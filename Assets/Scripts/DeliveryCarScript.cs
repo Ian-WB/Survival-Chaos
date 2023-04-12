@@ -1,0 +1,88 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class DeliveryCarScript : MonoBehaviour
+{
+    [SerializeField] float moveSpeed = 0.01f;
+
+    [Header("Bounds")]
+    [SerializeField]
+    private BoxCollider2D playerBounds;
+
+     [Header("Shoot")]
+    [SerializeField]
+    private Transform shootPivot;
+
+    [SerializeField]
+    private GameObject shootPrefab;
+
+    [Header("Delay")]
+    [SerializeField]
+    [Range(0f, 10f)]
+    private float initialDelay = 1f;
+
+    [SerializeField]
+    [Range(0f, 10f)]
+    private float spawnDelay = 1f;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {   
+        Move();
+
+        ApplyBounds();
+
+    }
+    private void Move()
+        {
+            var v = Input.GetAxis("Vertical");
+
+            var move = new Vector3(
+                0f,
+                v * moveSpeed * Time.deltaTime,
+                0f
+            );
+
+        transform.Translate(move);
+        }
+
+        private void ApplyBounds()
+    {
+        var minX = -playerBounds.bounds.extents.x + playerBounds.offset.x + playerBounds.transform.position.x;
+        var maxX = playerBounds.bounds.extents.x + playerBounds.offset.x + playerBounds.transform.position.x;
+
+        var minY = -playerBounds.bounds.extents.y + playerBounds.offset.y + playerBounds.transform.position.y;
+        var maxY = playerBounds.bounds.extents.y + playerBounds.offset.y + playerBounds.transform.position.y;
+
+        transform.position = new Vector3(
+            Mathf.Clamp(transform.position.x, minX, maxX),
+            Mathf.Clamp(transform.position.y, minY, maxY),
+            transform.position.z
+        );
+    }
+
+    private void Awake()
+    {
+        InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
+    }
+    private void Shoot()
+    {
+        
+
+        // Shoot
+
+        Instantiate(shootPrefab, shootPivot.position, shootPivot.rotation);
+
+    }
+
+    
+
+
+}
