@@ -5,6 +5,8 @@ using UnityEngine;
 public class DeliveryCarScript : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 0.01f;
+    //[SerializeField] float rotationSpeed = 1f;
+    [SerializeField] private int healthPoints = 1;
 
     [Header("Bounds")]
     [SerializeField]
@@ -42,7 +44,23 @@ public class DeliveryCarScript : MonoBehaviour
     }
     private void Move()
         {
+            var h = Input.GetAxis("Horizontal");
             var v = Input.GetAxis("Vertical");
+            
+
+            Vector3 movementDirection = new Vector3(h, 0, 0);
+
+            movementDirection.Normalize();
+            /*if (movementDirection != Vector3.zero){
+                Quaternion toRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
+            }*/
+            
+
+            if (movementDirection != Vector3.zero)
+            {
+                transform.forward = movementDirection;
+            }
 
             var move = new Vector3(
                 0f,
@@ -50,8 +68,29 @@ public class DeliveryCarScript : MonoBehaviour
                 0f
             );
 
-        transform.Translate(move);
+            transform.Translate(move);
         }
+
+        private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+
+            Destroy(other.gameObject);
+
+            // Update Health Points
+
+            healthPoints--;
+
+            // Check if Health Points is below 0 to destroy it
+
+            if (healthPoints <= 0)
+            {
+
+                Application.Quit();
+            }
+        }
+    }
 
         private void ApplyBounds()
     {
