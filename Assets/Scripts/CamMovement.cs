@@ -17,8 +17,8 @@ public class CamMovement : MonoBehaviour
     {
         distance += player.radius;
         speed = player.speed;
-        centerX = GameObject.Find("Scenary1").transform.position.x;
-        centerZ = GameObject.Find("Scenary1").transform.position.z;
+        centerX = GameObject.FindWithTag("Scenario").transform.position.x;
+        centerZ = GameObject.FindWithTag("Scenario").transform.position.z;
         center = new Vector3(centerX, 0f, centerZ);
     }
 
@@ -31,5 +31,8 @@ public class CamMovement : MonoBehaviour
 
         // Set position
         transform.position = center + new Vector3(x, transform.position.y, z);
+
+        // Look to scenario
+        transform.LookAt(center);
     }
 }
