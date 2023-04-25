@@ -15,8 +15,8 @@ public class CircleMovement : MonoBehaviour
 
     void Start()
     {
-        centerX = GameObject.Find("Scenary1").transform.position.x;
-        centerZ = GameObject.Find("Scenary1").transform.position.z;
+        centerX = GameObject.FindWithTag("Scenario").transform.position.x;
+        centerZ = GameObject.FindWithTag("Scenario").transform.position.z;
         center = new Vector3(centerX, 0f, centerZ);
     }
 

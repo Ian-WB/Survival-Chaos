@@ -350,6 +350,7 @@
 "Assets/Scripts/DeliveryCarScript.cs"
 "Assets/Scripts/DestroyAfterTime.cs"
 "Assets/Scripts/Enemy.cs"
+"Assets/Scripts/EnemyMovement.cs"
 "Assets/Scripts/LinearMove.cs"
 "Assets/Scripts/Range.cs"
 "Assets/Scripts/sceneRotation.cs"
