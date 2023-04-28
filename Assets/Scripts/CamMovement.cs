@@ -7,16 +7,13 @@ public class CamMovement : MonoBehaviour
     public CircleMovement player;
     [HideInInspector]
     public float speed;
-    public float distance = 5f;
-    private float angle = 0f;
     private float centerZ;
     private float centerX;
     private Vector3 center;
 
     void Start()
     {
-        distance += player.radius;
-        speed = player.speed;
+        speed = player.rotationSpeed;
         centerX = GameObject.FindWithTag("Scenario").transform.position.x;
         centerZ = GameObject.FindWithTag("Scenario").transform.position.z;
         center = new Vector3(centerX, 0f, centerZ);
@@ -25,12 +22,10 @@ public class CamMovement : MonoBehaviour
     void Update()
     {
         // Horizontal movement
-        angle += Input.GetAxis("Horizontal") * speed * Time.deltaTime;
-        float x = Mathf.Cos(angle) * distance;
-        float z = Mathf.Sin(angle) * distance;
+        float horizontalInput = Input.GetAxis("Horizontal");
 
         // Set position
-        transform.position = center + new Vector3(x, transform.position.y, z);
+        transform.RotateAround(center, Vector3.up, -player.rotationSpeed * horizontalInput * Time.deltaTime);
 
         // Look to scenario
         transform.LookAt(center);
