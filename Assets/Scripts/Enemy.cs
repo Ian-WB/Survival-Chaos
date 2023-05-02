@@ -8,24 +8,36 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     private int healthPoints = 1;
 
-    private void OnTriggerEnter(Collider other)
+    void Update()
     {
-        if (other.CompareTag("Shoot"))
+        if (healthPoints <= 0)
         {
-
-            Destroy(other.gameObject);
-
-            // Update Health Points
-
-            healthPoints--;
-
-            // Check if Health Points is below 0 to destroy it
-
-            if (healthPoints <= 0)
-            {
-
-                Destroy(gameObject);
-            }
+            Destroy(gameObject);
         }
     }
+
+    public void adjustHealth(int health)
+    {
+        healthPoints += health;
+    }
+    // private void OnTriggerEnter(Collider other)
+    // {
+    //     if (other.CompareTag("Shoot"))
+    //     {
+
+    //         Destroy(other.gameObject);
+
+    //         // Update Health Points
+
+    //         healthPoints--;
+
+    //         // Check if Health Points is below 0 to destroy it
+
+    //         if (healthPoints <= 0)
+    //         {
+
+    //             Destroy(gameObject);
+    //         }
+    //     }
+    // }
 }
