@@ -4,15 +4,13 @@ using UnityEngine;
 
 public class CircleMovement : MonoBehaviour
 {
-    public float speed = 5f;
-    public float radius = 5f;
-    public float verticalSpeed = 2f;
-    private float angle = 0f;
-    private float height = 0f;
-    private float centerZ;
-    private float centerX;
-    private Vector3 center;
 
+    public float rotationSpeed = 5f;
+
+    private float centerX;
+    private float centerZ;
+    private Vector3 center;
+    
     void Start()
     {
         centerX = GameObject.FindWithTag("Scenario").transform.position.x;
@@ -20,18 +18,22 @@ public class CircleMovement : MonoBehaviour
         center = new Vector3(centerX, 0f, centerZ);
     }
 
-    void Update()
+    private void Update()
     {
-        // Horizontal movement
-        angle += Input.GetAxis("Horizontal") * speed * Time.deltaTime;
-        float x = Mathf.Cos(angle) * radius;
-        float z = Mathf.Sin(angle) * radius;
+        // Get the horizontal input axis (e.g., A and D keys or left and right arrow keys)
+        float horizontalInput = Input.GetAxis("Horizontal");
+        
+        float verticalInput = Input.GetAxis("Vertical");
 
-        // Vertical movement
-        height += Input.GetAxis("Vertical") * verticalSpeed * Time.deltaTime;
-        float y = height;
+        var move = new Vector3(
+            0f,
+            verticalInput * rotationSpeed * Time.deltaTime,
+            0f   
+        );
+        transform.Translate(move);
 
-        // Set position
-        transform.position = center + new Vector3(x, y, z);
+        // Rotate the player around the circular environment
+        transform.RotateAround(center, Vector3.up, -rotationSpeed * horizontalInput * Time.deltaTime);
+
     }
 }

@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: -5128755240325758037}
   - component: {fileID: 1819180099937646346}
   - component: {fileID: 4338439029050199374}
-  - component: {fileID: 7593110296115686701}
+  - component: {fileID: 6629138651888844002}
   m_Layer: 0
-  m_Name: shoot
+  m_Name: shoot 1
   m_TagString: Shoot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -112,7 +112,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 2, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7593110296115686701
+--- !u!114 &6629138651888844002
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -124,6 +124,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a64cbc280cd0f418d140a7976d52a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 90
+  rotationSpeed: -90
   player: {fileID: 0}
   referencePoint: {fileID: 0}
