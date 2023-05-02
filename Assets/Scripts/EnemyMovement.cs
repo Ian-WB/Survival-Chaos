@@ -4,26 +4,37 @@ using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour
 {
-    public float speed = 5f;
-    public float radius = 5f;
-    //public Transform player;
+    public float rotationSpeed = 5f;
+
+    public float followSpeed = 1f;
+    public Transform player;
+    private float centerZ;
+    private float centerX;
     private Vector3 center;
-    private float angle = 0f;
+
+    public float enemyDistance = 1f;
+
 
     void Start()
     {
-        center = GameObject.FindWithTag("Scenario").transform.position;
+        player = GameObject.Find("Player").transform;
+        centerX = GameObject.FindWithTag("Scenario").transform.position.x;
+        centerZ = GameObject.FindWithTag("Scenario").transform.position.z;
+        center = new Vector3(centerX, 0f, centerZ);
     }
 
     void Update()
     {
-        Vector3 playerPos = GameObject.Find("Player").transform.position;
-        playerPos.y = transform.position.y;
-        transform.LookAt(playerPos);
+        followPlayer();
 
-        angle += speed * Time.deltaTime;
-        float x = Mathf.Cos(angle) * radius;
-        float z = Mathf.Sin(angle) * radius;
-        transform.position = center + new Vector3(x, 0f, z);
+        transform.RotateAround(center, Vector3.up, -rotationSpeed * Time.deltaTime);
+    }
+
+    void followPlayer()
+    {
+        if(Vector3.Distance(transform.position, player.position) <= 20){
+        Vector3 dir = player.position - transform.position;
+        transform.position = transform.position + dir.normalized * followSpeed * Time.deltaTime;
+        }
     }
 }
