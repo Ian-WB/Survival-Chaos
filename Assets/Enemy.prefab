@@ -119,7 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  delay: 20
+  delay: 6
 --- !u!114 &-1196103576992989831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,9 +133,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 40
-  followSpeed: 10
+  followSpeed: 15
   player: {fileID: 0}
-  enemyDistance: 12
+  enemyDistance: 5
 --- !u!114 &8257310908387811799
 MonoBehaviour:
   m_ObjectHideFlags: 0
