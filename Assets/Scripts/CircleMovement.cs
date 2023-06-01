@@ -22,8 +22,8 @@ public class CircleMovement : MonoBehaviour
     {
         // Get the horizontal input axis (e.g., A and D keys or left and right arrow keys)
         float horizontalInput = Input.GetAxis("Horizontal");
-        
         float verticalInput = Input.GetAxis("Vertical");
+
 
         var move = new Vector3(
             0f,
