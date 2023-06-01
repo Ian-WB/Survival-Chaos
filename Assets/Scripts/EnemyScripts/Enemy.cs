@@ -5,10 +5,32 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
 
-    [SerializeField]
+     [SerializeField]
     private int healthPoints = 1;
 
     int EXPGain = 5;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Shoot"))
+        {
+
+            Destroy(other.gameObject);
+
+            // Update Health Points
+
+            healthPoints--;
+
+            // Check if Health Points is below 0 to destroy it
+
+            if (healthPoints <= 0)
+            {
+
+                Destroy(gameObject);
+            }
+        }
+    }
+
 
     void Update()
     {
@@ -30,24 +52,4 @@ public class Enemy : MonoBehaviour
     {
         healthPoints += health;
     }
-    // private void OnTriggerEnter(Collider other)
-    // {
-    //     if (other.CompareTag("Shoot"))
-    //     {
-
-    //         Destroy(other.gameObject);
-
-    //         // Update Health Points
-
-    //         healthPoints--;
-
-    //         // Check if Health Points is below 0 to destroy it
-
-    //         if (healthPoints <= 0)
-    //         {
-
-    //             Destroy(gameObject);
-    //         }
-    //     }
-    // }
 }
