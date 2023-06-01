@@ -8,14 +8,24 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     private int healthPoints = 1;
 
+    int EXPGain = 5;
+
     void Update()
     {
         if (healthPoints <= 0)
         {
             Destroy(gameObject);
+            //Added by Luis Fernando, Working on the EXP System.
+            Death();
         }
     }
 
+
+    //Added by Luis Fernando, Working on the EXP System.
+    void Death()
+    {
+        EXP.Instance.AddEXP(EXPGain);
+    }
     public void adjustHealth(int health)
     {
         healthPoints += health;
