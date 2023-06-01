@@ -5,8 +5,10 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
 
-    [SerializeField]
+     [SerializeField]
     private int healthPoints = 1;
+
+    int EXPGain = 5;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -27,5 +29,27 @@ public class Enemy : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+    }
+
+
+    void Update()
+    {
+        if (healthPoints <= 0)
+        {
+            Destroy(gameObject);
+            //Added by Luis Fernando, Working on the EXP System.
+            Death();
+        }
+    }
+
+
+    //Added by Luis Fernando, Working on the EXP System.
+    void Death()
+    {
+        EXP.Instance.AddEXP(EXPGain);
+    }
+    public void adjustHealth(int health)
+    {
+        healthPoints += health;
     }
 }
