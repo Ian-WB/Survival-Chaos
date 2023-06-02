@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class MainMenu : MonoBehaviour
 {
     public void Jogar(){
-        SceneManager.LoadScene("Jogo");
+        SceneManager.LoadScene("Game");
     }
 
     public void Sair(){
