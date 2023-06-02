@@ -38,7 +38,11 @@ public class Player : MonoBehaviour
 
     private bool rotate;
 
-    [SerializeField] int currentExperience, maxExperience, currentLevel;
+    public HealthBar healthBar;
+    public ExpBar expBar;
+    public GameObject levelUpButton;
+
+    [SerializeField] int currentExperience = 0, maxExperience = 50, currentLevel = 1;
 
     private void OnEnable()
     {
@@ -55,10 +59,13 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {   
+        healthBar.SetMaxHealth(healthPoints);
         rotate = false;
         GameObject instantiatedChild = Instantiate(childPrefab, childObject);
         //Rigidbody childRigidbody = instantiatedChild.GetComponent<Rigidbody>();
         //instantiatedChild.transform.localPosition = prefabOffset;
+        expBar.setMaxExp(maxExperience);
+        expBar.setCurrentExp(currentExperience);
     }
 
     // Update is called once per frame
@@ -105,6 +112,7 @@ public class Player : MonoBehaviour
             // Update Health Points
 
             healthPoints--;
+            healthBar.SetHealth(healthPoints);
 
             // Check if Health Points is below 0 to destroy it
 
@@ -127,16 +135,20 @@ public class Player : MonoBehaviour
         if (rotate)
         {
             Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            //Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            //Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            if(currentLevel >= 2){
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
             
         }
         
-        else 
+        else
         {
             Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            //Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            //Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            if(currentLevel >= 2){
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
             
         }
         
@@ -146,6 +158,7 @@ public class Player : MonoBehaviour
     private void HandleEXPChange(int newExperience)
     {
         currentExperience += newExperience;
+        expBar.setCurrentExp(currentExperience);
         if (currentExperience >= maxExperience)
         {
             LevelUp();
@@ -155,10 +168,13 @@ public class Player : MonoBehaviour
 
     private void LevelUp()
     {
+        levelUpButton.SetActive(true);
         //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
         currentLevel += 1;
 
         currentExperience = 0;
+        expBar.setCurrentExp(currentExperience);
         maxExperience += 50;
+        expBar.setMaxExp(maxExperience);
     }
 }

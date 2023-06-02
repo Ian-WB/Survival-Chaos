@@ -31,24 +31,10 @@ public class Enemy : MonoBehaviour
             {
 
                 Destroy(gameObject);
+                Death();
             }
         }
     }
-
-
-    void Update()
-    {
-        if (healthPoints <= 0)
-        {
-            Destroy(gameObject);
-            //Added by Luis Fernando, Working on the EXP System.
-            Death();
-        }
-    }
-
-
-   
-
 
     //Added by Luis Fernando, Working on the EXP System.
     void Death()
