@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private BoxCollider2D playerBounds;
 
-     [Header("Shoot")]
+    [Header("Shoot")]
     [SerializeField]
     private Transform shootPivot;
 
@@ -92,6 +92,11 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+
+        if (other.CompareTag("enemy_Shoot"))
+        {
+            healthPoints--;
+        }
         if (other.CompareTag("Enemy"))
         {
 
@@ -122,16 +127,16 @@ public class Player : MonoBehaviour
         if (rotate)
         {
             Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            //Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            //Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             
         }
         
         else 
         {
             Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            //Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            //Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             
         }
         

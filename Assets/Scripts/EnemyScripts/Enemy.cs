@@ -8,7 +8,11 @@ public class Enemy : MonoBehaviour
      [SerializeField]
     private int healthPoints = 1;
 
+    public GameObject EnemyShip;
+
     int EXPGain = 5;
+
+    
 
     private void OnTriggerEnter(Collider other)
     {
@@ -41,6 +45,9 @@ public class Enemy : MonoBehaviour
             Death();
         }
     }
+
+
+   
 
 
     //Added by Luis Fernando, Working on the EXP System.
