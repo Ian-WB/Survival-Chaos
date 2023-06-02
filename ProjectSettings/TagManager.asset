@@ -7,6 +7,7 @@ TagManager:
   - Shoot
   - Enemy
   - Scenario
+  - levelUpButton
   - enemy_Shoot
   layers:
   - Default
