@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private BoxCollider2D playerBounds;
 
-     [Header("Shoot")]
+    [Header("Shoot")]
     [SerializeField]
     private Transform shootPivot;
 
@@ -99,6 +99,11 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+
+        if (other.CompareTag("enemy_Shoot"))
+        {
+            healthPoints--;
+        }
         if (other.CompareTag("Enemy"))
         {
 

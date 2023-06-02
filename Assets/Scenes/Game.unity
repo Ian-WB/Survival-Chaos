@@ -177,9 +177,10 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2111820779}
-  m_RootOrder: 1
+  m_Children:
+  - {fileID: 667349702}
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -441,7 +442,7 @@ MonoBehaviour:
   interval: 5
   spawnPrefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
   initialDelay: 1
-  spawnDelay: 3
+  spawnDelay: 6
   rangeX:
     min: 0
     max: 0
@@ -495,9 +496,9 @@ MonoBehaviour:
   initial_value: 5
   ratio: 0.5
   interval: 5
-  spawnPrefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
-  initialDelay: 1
-  spawnDelay: 3
+  spawnPrefab: {fileID: 2752971980227408059, guid: 5bacc39a5fcb74344accc15c4f97bf14, type: 3}
+  initialDelay: 8
+  spawnDelay: 30
   rangeX:
     min: 0
     max: 0
@@ -1164,7 +1165,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 1145920691}
-  speed: 30
+  speed: 32
+  Up_Down_Speed: 50
 --- !u!114 &963194231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1402,13 +1404,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db796f92195f87443a66d442d2ce75f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthPoints: 200
+  healthPoints: 10
   playerBounds: {fileID: 975740082}
   shootPivot: {fileID: 211850492}
   shootPrefab: {fileID: 6051693256502410095, guid: 0172e631f10defe46b80815a12e43d15, type: 3}
   shootPrefab1: {fileID: 6051693256502410095, guid: c9f562c4bce43d1458538a9d90806415, type: 3}
   initialDelay: 1
-  spawnDelay: 0.2
+  spawnDelay: 1.3
   childPrefab: {fileID: 3661885094213184039, guid: c318732fc4e8226469361daf47555431, type: 3}
   prefabOffset: {x: 0, y: 0, z: 0}
   childObject: {fileID: 832640313}
@@ -1496,9 +1498,9 @@ MonoBehaviour:
   initial_value: 5
   ratio: 0.5
   interval: 5
-  spawnPrefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
-  initialDelay: 1
-  spawnDelay: 3
+  spawnPrefab: {fileID: 2752971980227408059, guid: 5bacc39a5fcb74344accc15c4f97bf14, type: 3}
+  initialDelay: 12
+  spawnDelay: 20
   rangeX:
     min: 0
     max: 0
@@ -1512,14 +1514,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1425160998}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -137.05492, y: 67.8, z: 51.89065}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &1449545740
 GameObject:
   m_ObjectHideFlags: 0
@@ -1553,8 +1555,8 @@ MonoBehaviour:
   ratio: 0.5
   interval: 5
   spawnPrefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
-  initialDelay: 1
-  spawnDelay: 3
+  initialDelay: 3
+  spawnDelay: 6
   rangeX:
     min: 0
     max: 0
@@ -2476,8 +2478,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1598042295}
-  m_RootOrder: 1
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -2927,7 +2929,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 1145920691}
-  speed: 30
+  speed: 32
+  Up_Down_Speed: 50
 --- !u!114 &919132148744893762
 MonoBehaviour:
   m_ObjectHideFlags: 0

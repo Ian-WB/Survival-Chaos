@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 5c17bdf0e7af87a49818f5a578c88cd4, type: 2}
+  - {fileID: 2100000, guid: 590a2d4135936064fa5ec58ff48cb11e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -112,8 +112,8 @@ GameObject:
   - component: {fileID: 4338439029050199374}
   - component: {fileID: 6629138651888844002}
   m_Layer: 0
-  m_Name: shoot
-  m_TagString: Shoot
+  m_Name: enemy_shoot
+  m_TagString: enemy_Shoot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -127,7 +127,7 @@ Transform:
   m_GameObject: {fileID: 6051693256502410095}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.08, y: 1.08, z: 1.08}
+  m_LocalScale: {x: 1.0138971, y: 1.0138971, z: 1.0138971}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8342084743920291062}
@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  delay: 0.3
+  delay: 0.7
 --- !u!65 &4338439029050199374
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -166,8 +166,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.923274, y: 1.0919456, z: 1}
-  m_Center: {x: -0.003038267, y: -0.020573184, z: 0}
+  m_Size: {x: 1.9363941, y: 0.98983693, z: 1}
+  m_Center: {x: 0.0010408945, y: 0.022468325, z: 0}
 --- !u!114 &6629138651888844002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,4 +181,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 919132149155446097, guid: 6f9f8175f43a7704b9962bdf08038c47, type: 3}
-  speed: 100
+  speed: 80

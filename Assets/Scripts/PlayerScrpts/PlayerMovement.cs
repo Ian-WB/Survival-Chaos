@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 
     public Transform center;
     public float speed;
+    public float Up_Down_Speed;
     // Start is called before the first frame update
     void Start()
     {
@@ -25,6 +26,6 @@ public class PlayerMovement : MonoBehaviour
         transform.LookAt(pos);
 
 
-        transform.position += Vector3.up * v * Time.deltaTime * speed;
+        transform.position += Vector3.up * v * Time.deltaTime * Up_Down_Speed;
     }
 }
