@@ -5,15 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    // [SerializeField] float moveSpeed = 0.01f;
-    // //[SerializeField] float rotationSpeed = 1f;
     [SerializeField] private int healthPoints = 1;
 
     [Header("Bounds")]
     [SerializeField]
     private BoxCollider2D playerBounds;
 
-     [Header("Shoot")]
+    [Header("Shoot")]
     [SerializeField]
     private Transform shootPivot;
 
@@ -31,64 +29,81 @@ public class Player : MonoBehaviour
     [SerializeField]
     [Range(0f, 10f)]
     private float spawnDelay = 1;
-    
 
-    Rigidbody2D rb;
-    Vector3 moveDirection;
-    public float rotationSpeed = 5f;
-    public Transform referencePoint;
-
+    public GameObject childPrefab;
+    public Vector3 prefabOffset;
+    public Transform childObject;
+    private GameObject instantiatedChild;
     private KeyCode lastPressedKey;
 
-   
+    private bool rotate;
+
+    public HealthBar healthBar;
+    public ExpBar expBar;
+    public GameObject levelUpButton;
+
+    [SerializeField] int currentExperience = 0, maxExperience = 50, currentLevel = 1;
+
+    private void OnEnable()
+    {
+        //Enables EXP
+        EXP.Instance.OnEXPChange += HandleEXPChange;
+    }
+
+    private void OnDisable()
+    {
+        //Disables EXP
+        EXP.Instance.OnEXPChange -= HandleEXPChange;
+    }
 
     // Start is called before the first frame update
     void Start()
-    {
-        
+    {   
+        healthBar.SetMaxHealth(healthPoints);
+        rotate = false;
+        GameObject instantiatedChild = Instantiate(childPrefab, childObject);
+        //Rigidbody childRigidbody = instantiatedChild.GetComponent<Rigidbody>();
+        //instantiatedChild.transform.localPosition = prefabOffset;
+        expBar.setMaxExp(maxExperience);
+        expBar.setCurrentExp(currentExperience);
     }
 
     // Update is called once per frame
     void Update()
     {
-         if (Input.anyKeyDown)
+        
+        if (Input.anyKeyDown)
         {
-            if (Input.GetKeyDown(KeyCode.A))
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
-                lastPressedKey = KeyCode.A;
-                Debug.Log("Last pressed key: A");
+                lastPressedKey = KeyCode.LeftArrow;
+                //Debug.Log("Last pressed key: LeftArrow");
             }
-            else if (Input.GetKeyDown(KeyCode.D))
+            else if (Input.GetKeyDown(KeyCode.RightArrow))
             {
-                lastPressedKey = KeyCode.D;
-                Debug.Log("Last pressed key: D");
+                lastPressedKey = KeyCode.RightArrow;
+                //Debug.Log("Last pressed key: RightArrow");
             }
+            
         }      
         //Shoot();
         // Make the player look at the reference point
-
-        //transform.rotation = Quaternion.Euler(0, transform.rotation.y, referencePoint.transform.rotation.z);
-        if(Input.GetAxis("Horizontal") != 0)
-        {
-        Vector3 referenceDirection = referencePoint.position - transform.position;
-        Quaternion targetRotation = Quaternion.LookRotation(referenceDirection, Vector3.up);
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        }
-
-    
-
-        // Update the player's position to match the reference point
-        transform.position = referencePoint.position;
-
-
+        
         // Move();
-
-        ApplyBounds();
-
+        if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            rotate = !rotate;
+            Debug.Log("Variable state: " + rotate);
+        }
     }
 
-        private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
+
+        if (other.CompareTag("enemy_Shoot"))
+        {
+            healthPoints--;
+        }
         if (other.CompareTag("Enemy"))
         {
 
@@ -97,6 +112,7 @@ public class Player : MonoBehaviour
             // Update Health Points
 
             healthPoints--;
+            healthBar.SetHealth(healthPoints);
 
             // Check if Health Points is below 0 to destroy it
 
@@ -108,21 +124,6 @@ public class Player : MonoBehaviour
         }
     }
 
-        private void ApplyBounds()
-    {
-        var minX = -playerBounds.bounds.extents.x + playerBounds.offset.x + playerBounds.transform.position.x;
-        var maxX = playerBounds.bounds.extents.x + playerBounds.offset.x + playerBounds.transform.position.x;
-
-        var minY = -playerBounds.bounds.extents.y + playerBounds.offset.y + playerBounds.transform.position.y;
-        var maxY = playerBounds.bounds.extents.y + playerBounds.offset.y + playerBounds.transform.position.y;
-
-        transform.position = new Vector3(
-            Mathf.Clamp(transform.position.x, minX, maxX),
-            Mathf.Clamp(transform.position.y, minY, maxY),
-            transform.position.z
-        );
-    }
-
     private void Awake()
     {
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
@@ -131,16 +132,49 @@ public class Player : MonoBehaviour
     {
        
 
-        if (lastPressedKey == KeyCode.A)
+        if (rotate)
         {
-            Instantiate(shootPrefab, shootPivot.position, shootPivot.rotation);
+            Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            if(currentLevel >= 2){
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
+            
         }
+        
         else
         {
-            Instantiate(shootPrefab1, shootPivot.position, shootPivot.rotation);
-            //Instantiate(shootPrefab, shootPivot.position, shootPivot.rotation);
+            Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            if(currentLevel >= 2){
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
+            
         }
         
 
+    }
+
+    private void HandleEXPChange(int newExperience)
+    {
+        currentExperience += newExperience;
+        expBar.setCurrentExp(currentExperience);
+        if (currentExperience >= maxExperience)
+        {
+            LevelUp();
+            //this will show a popup on screen that "press space to level up, still to do
+        }
+    }
+
+    private void LevelUp()
+    {
+        levelUpButton.SetActive(true);
+        //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
+        currentLevel += 1;
+
+        currentExperience = 0;
+        expBar.setCurrentExp(currentExperience);
+        maxExperience += 50;
+        expBar.setMaxExp(maxExperience);
     }
 }

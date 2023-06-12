@@ -4,18 +4,26 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
+    private float number;
+
+    public float initial_value;
+    public float ratio;
+    public float interval;
+
     [Header("Prefab")]
     [SerializeField]
     private GameObject spawnPrefab;
 
     [Header("Delay")]
     [SerializeField]
-    [Range(0f, 10f)]
+    [Range(0f, 60f)]
     private float initialDelay = 1f;
+    private float initialDelay_1 = 1f;
 
     [SerializeField]
-    [Range(0f, 10f)]
+    [Range(0f, 60f)]
     private float spawnDelay = 1f;
+    private float spawnDelay_1 = 1f;
 
     [Header("Range")]
     [SerializeField]
@@ -24,10 +32,23 @@ public class Spawner : MonoBehaviour
     [SerializeField]
     private Range rangeY;
 
+
     private void Awake()
     {
         InvokeRepeating(nameof(Spawn), initialDelay, spawnDelay);
+
+        
+    
     }
+
+    void Update()
+    {
+    
+    }
+
+
+
+
 
     private void Spawn()
     {
