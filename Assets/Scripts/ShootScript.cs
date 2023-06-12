@@ -5,26 +5,30 @@ using UnityEngine;
 public class ShootScript : MonoBehaviour
 {
 
-    public float rotationSpeed = 5f;
+    public Transform center;
+    public float speed;
 
-    public Transform player;
-    private float centerZ;
-    private float centerX;
-    private Vector3 center;
-    public Transform referencePoint;
+
     // Start is called before the first frame update
     void Start()
     {
-        player = GameObject.Find("ReferencePoint").transform;
-        centerX = GameObject.FindWithTag("Scenario").transform.position.x;
-        centerZ = GameObject.FindWithTag("Scenario").transform.position.z;
-        center = new Vector3(centerX, 0f, centerZ);
+        transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        center = GameObject.FindWithTag("Scenario").transform;
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.RotateAround(center, Vector3.up, rotationSpeed * Time.deltaTime);
-    }
+        //float h = Input.GetAxis("Horizontal");
+        //float v = Input.GetAxis("Vertical");
         
+        Vector3 pos =  center.position;
+        pos.y = transform.position.y;
+        transform.RotateAround(pos, Vector3.up, Time.deltaTime * speed);
+        transform.LookAt(pos);
+
+
+        //transform.position += Vector3.up  * Time.deltaTime * speed;
+    }
+
 }

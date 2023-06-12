@@ -3,7 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Shoot
+  - Enemy
+  - Scenario
+  - levelUpButton
+  - enemy_Shoot
   layers:
   - Default
   - TransparentFX
