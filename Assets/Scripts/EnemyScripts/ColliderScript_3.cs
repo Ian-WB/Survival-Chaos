@@ -2,9 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ColliderScript : MonoBehaviour
+public class ColliderScript_3 : MonoBehaviour
 {
-
     public GameObject EnemyShip;
 
 
@@ -12,8 +11,11 @@ public class ColliderScript : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            EnemyShip.GetComponent<EnemyMovement>().leftOrRight = false;
-            EnemyShip.GetComponent<BossMovement>().leftOrRight_2 = false;
+            EnemyShip.GetComponent<BossScript>().lazer = true;
+        }
+        else
+        {
+            EnemyShip.GetComponent<BossScript>().lazer = false;
         }
     }
 }

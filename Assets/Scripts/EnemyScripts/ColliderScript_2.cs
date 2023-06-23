@@ -12,6 +12,7 @@ public class ColliderScript_2 : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             EnemyShip.GetComponent<EnemyMovement>().leftOrRight = true;
+            EnemyShip.GetComponent<BossMovement>().leftOrRight_2 = true;
         }
     }
 }
