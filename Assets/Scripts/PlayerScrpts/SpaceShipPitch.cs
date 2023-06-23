@@ -6,7 +6,6 @@ public class SpaceShipPitch : MonoBehaviour
 {
 
     public float rotationSpeed;
-    private KeyCode lastPressedKey;
 
     private bool rotate;
     // Start is called before the first frame update
@@ -19,18 +18,6 @@ public class SpaceShipPitch : MonoBehaviour
     void Update()
     {
 
-        if (Input.anyKeyDown)
-        {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                lastPressedKey = KeyCode.A;
-            }
-            else if (Input.GetKeyDown(KeyCode.D))
-            {
-                lastPressedKey = KeyCode.D;
-            }
-            
-        }      
 
         float v = Input.GetAxis("Vertical");
         float h = Input.GetAxis("Horizontal");
