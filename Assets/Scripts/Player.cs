@@ -41,6 +41,7 @@ public class Player : MonoBehaviour
     public HealthBar healthBar;
     public ExpBar expBar;
     public GameObject levelUpButton;
+    public DeathMenu deathMenu;
 
     [SerializeField] int currentExperience = 0, maxExperience = 50, currentLevel = 1;
 
@@ -119,7 +120,7 @@ public class Player : MonoBehaviour
             if (healthPoints <= 0)
             {
 
-                SceneManager.LoadScene( SceneManager.GetActiveScene().name );
+                deathMenu.ShowDeathMenu();
             }
         }
     }
