@@ -16,14 +16,12 @@ public class Spawner : MonoBehaviour
 
     [Header("Delay")]
     [SerializeField]
-    [Range(0f, 60f)]
     private float initialDelay = 1f;
-    private float initialDelay_1 = 1f;
+  
 
     [SerializeField]
     [Range(0f, 60f)]
     private float spawnDelay = 1f;
-    private float spawnDelay_1 = 1f;
 
     [Header("Range")]
     [SerializeField]
@@ -32,23 +30,50 @@ public class Spawner : MonoBehaviour
     [SerializeField]
     private Range rangeY;
 
+    [SerializeField]
+    private float spawnIncreaseDelay = 1f;
 
-    private void Awake()
+    private bool hasConditionOccurred = false;
+
+
+    [SerializeField]
+    private float spawnRateIncrease = 0.1f;
+
+    private void Start()
     {
-        InvokeRepeating(nameof(Spawn), initialDelay, spawnDelay);
-
-        
-    
+        StartCoroutine(SpawnWithDelay());
+        StartCoroutine(SpawnDelay());
     }
 
-    void Update()
+
+    private IEnumerator SpawnDelay()
     {
-    
+        yield return new WaitForSeconds(spawnIncreaseDelay);
+
+        while (true)
+        {
+            spawnDelay = spawnDelay * spawnRateIncrease;
+
+            spawnDelay = Mathf.Max(spawnDelay, 0.1f); // Set a minimum spawn delay
+
+            yield return new WaitForSeconds(spawnIncreaseDelay);
+        }
     }
 
+    private IEnumerator SpawnWithDelay()
+    {
+        yield return new WaitForSeconds(initialDelay);
 
+        while (true)
+        {
+            Spawn();
+            
+            
+            
 
-
+            yield return new WaitForSeconds(spawnDelay);
+        }
+    }
 
     private void Spawn()
     {
