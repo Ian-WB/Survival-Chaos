@@ -5,12 +5,11 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
 
-     [SerializeField]
+    [SerializeField]
     private int healthPoints = 1;
 
     public GameObject EnemyShip;
-
-    int EXPGain = 5;
+    int EXPGain = 2;
 
     
 

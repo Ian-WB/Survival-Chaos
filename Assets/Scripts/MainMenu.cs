@@ -12,4 +12,8 @@ public class MainMenu : MonoBehaviour
     public void Sair(){
         Application.Quit();
     }
+
+    public void MenuPrincipal(){
+        SceneManager.LoadScene("Menu");
+    }
 }
