@@ -29,17 +29,25 @@ public class Player : MonoBehaviour
     [SerializeField]
     [Range(0f, 10f)]
     private float spawnDelay = 1;
-
+    
+    [SerializeField]
     public GameObject childPrefab;
-    public Vector3 prefabOffset;
+
+    [SerializeField]
     public Transform childObject;
+    
     private GameObject instantiatedChild;
-    private KeyCode lastPressedKey;
 
     private bool rotate;
 
+    [SerializeField]
     public HealthBar healthBar;
+
+    [Header("XP")]
+    [SerializeField]
     public ExpBar expBar;
+
+    [SerializeField]
     public GameObject levelUpButton;
 
     [SerializeField] int currentExperience = 0, maxExperience = 50, currentLevel = 1;
@@ -72,24 +80,6 @@ public class Player : MonoBehaviour
     void Update()
     {
         
-        if (Input.anyKeyDown)
-        {
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                lastPressedKey = KeyCode.LeftArrow;
-                //Debug.Log("Last pressed key: LeftArrow");
-            }
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                lastPressedKey = KeyCode.RightArrow;
-                //Debug.Log("Last pressed key: RightArrow");
-            }
-            
-        }      
-        //Shoot();
-        // Make the player look at the reference point
-        
-        // Move();
         if(Input.GetKeyUp(KeyCode.LeftShift))
         {
             rotate = !rotate;
