@@ -9,6 +9,7 @@ TagManager:
   - Scenario
   - levelUpButton
   - enemy_Shoot
+  - Boss
   layers:
   - Default
   - TransparentFX
