@@ -447,7 +447,7 @@ GameObject:
   - component: {fileID: 8807014089605865643}
   m_Layer: 0
   m_Name: Boss
-  m_TagString: Enemy
+  m_TagString: Boss
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -552,7 +552,7 @@ MonoBehaviour:
   speed: 0.5
   rotationSpeed: 15
   leftOrRight: 0
-  spawnSpeed: 0.2
+  spawnSpeed: 0.1
 --- !u!114 &6912964140030053046
 MonoBehaviour:
   m_ObjectHideFlags: 0

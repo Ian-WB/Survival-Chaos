@@ -94,6 +94,11 @@ public class Player : MonoBehaviour
         if (other.CompareTag("enemy_Shoot"))
         {
             healthPoints--;
+            if (healthPoints <= 0)
+            {
+
+                deathMenu.ShowDeathMenu();
+            }
         }
         if (other.CompareTag("Enemy"))
         {
@@ -112,7 +117,24 @@ public class Player : MonoBehaviour
 
                 deathMenu.ShowDeathMenu();
             }
+        } else if (other.CompareTag("Boss"))
+        {
+
+
+            // Update Health Points
+
+            healthPoints--;
+            healthBar.SetHealth(healthPoints);
+
+            // Check if Health Points is below 0 to destroy it
+
+            if (healthPoints <= 0)
+            {
+
+                deathMenu.ShowDeathMenu();
+            }
         }
+
     }
 
     private void Awake()
@@ -121,29 +143,52 @@ public class Player : MonoBehaviour
     }
     private void Shoot()
     {
-       
+
 
         if (rotate)
         {
             Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            if(currentLevel >= 2){
+
+            // tiro duplo
+            if(currentLevel == 2){
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
+            // tiro triplo
+            else if(currentLevel == 3){
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
-            
+            // tiro para ambos os lados
+            else if(currentLevel == 4)
+            {
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
         }
-        
         else
         {
             Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            if(currentLevel >= 2){
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+
+            // tiro duplo
+            if(currentLevel == 2){
                 Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
-            
+            // tiro triplo
+            else if(currentLevel == 3){
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
+            // tiro para ambos os lados
+            else if(currentLevel == 4)
+            {
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
+            }
         }
-        
-
     }
 
     private void HandleEXPChange(int newExperience)
