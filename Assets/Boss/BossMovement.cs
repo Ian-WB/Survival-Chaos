@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyMovement : MonoBehaviour
+public class BossMovement : MonoBehaviour
 {
-    public float speed = 5.0f;
+     public float speed = 5.0f;
     private Transform player;
 
     public float rotationSpeed;
@@ -13,7 +13,7 @@ public class EnemyMovement : MonoBehaviour
     private float centerZ;
     private float centerX;
 
-    public bool leftOrRight = true;
+    public bool leftOrRight_2 = true;
 
     public float spawnSpeed;
 
@@ -31,7 +31,7 @@ public class EnemyMovement : MonoBehaviour
 
 void Update()
     {
-        
+        Debug.Log(leftOrRight_2);
         Vector3 pos = center;
         pos.y = transform.position.y;
 
@@ -55,7 +55,7 @@ void Update()
         }
         else
         {
-            if(leftOrRight)
+            if(leftOrRight_2)
             {
                 transform.RotateAround(pos, Vector3.up, rotationSpeed  * Time.deltaTime);
             }
@@ -66,15 +66,12 @@ void Update()
             
         
 
-            if(Vector3.Distance(transform.position, player.position) <= 150)
-            {
-                Vector3 dir = player.position - transform.position;
-                dir.x = 0;
-                dir.z = 0;
-                transform.position += dir * Time.deltaTime * speed;
-            }
+            
+            Vector3 dir = player.position - transform.position;
+            dir.x = 0;
+            dir.z = 0;
+            transform.position += dir * Time.deltaTime * speed;
+            
         }
     }
-
-    
 }

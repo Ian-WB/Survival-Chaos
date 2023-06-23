@@ -2,18 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyMovement : MonoBehaviour
+public class ObstacleScript : MonoBehaviour
 {
+    
     public float speed = 5.0f;
     private Transform player;
-
-    public float rotationSpeed;
 
     private Vector3 center;
     private float centerZ;
     private float centerX;
 
-    public bool leftOrRight = true;
 
     public float spawnSpeed;
 
@@ -53,28 +51,5 @@ void Update()
             dir.y = 0;
             transform.position += dir * Time.deltaTime * spawnSpeed;
         }
-        else
-        {
-            if(leftOrRight)
-            {
-                transform.RotateAround(pos, Vector3.up, rotationSpeed  * Time.deltaTime);
-            }
-            else
-            {
-                transform.RotateAround(pos, Vector3.up, -rotationSpeed  * Time.deltaTime);
-            }
-            
-        
-
-            if(Vector3.Distance(transform.position, player.position) <= 150)
-            {
-                Vector3 dir = player.position - transform.position;
-                dir.x = 0;
-                dir.z = 0;
-                transform.position += dir * Time.deltaTime * speed;
-            }
-        }
     }
-
-    
 }
