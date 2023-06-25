@@ -5,25 +5,27 @@ using UnityEngine.UI;
 
 public class Timer : MonoBehaviour
 {
-    [SerializeField] private float gameTime;
+    public BossHpBar bossHpBar;
+    [SerializeField] private float gameTime = 60;
     public Slider timerSlider;
-    private bool stopTimer;
+    public GameObject timerBar;
+    public float timeValue = 0;
     void Start()
     {
-        stopTimer=false;
         timerSlider.maxValue = gameTime;
-        timerSlider.value=0;
+        timeValue = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        float time = Time.time;
-        if (time >= gameTime) {
-            stopTimer = true;
+        if(gameTime > timeValue){
+            timeValue += Time.deltaTime;
+            timerSlider.value = timeValue;
+        } else {
+            bossHpBar.showHpBar();
+            timerBar.SetActive(false);
         }
-        if (stopTimer == false) {
-            timerSlider.value = time;
-        }
+        
     }
 }
