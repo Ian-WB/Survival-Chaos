@@ -10,6 +10,7 @@ TagManager:
   - levelUpButton
   - enemy_Shoot
   - Boss
+  - bossHpBar
   layers:
   - Default
   - TransparentFX
