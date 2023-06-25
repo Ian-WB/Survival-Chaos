@@ -179,8 +179,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 21.991213, y: 16.146715, z: 16.673346}
-  m_Center: {x: -2.632343, y: -0.044872545, z: 0.02612598}
+  m_Size: {x: 22.63248, y: 15.505496, z: 23.299791}
+  m_Center: {x: -2.3117092, y: 15.879963, z: 0.56051415}
 --- !u!114 &-5890411756183546034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -222,6 +222,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a434bc28cf0a0a349933013e08feca65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  childObject: {fileID: 7294817249652333329}
+  enemyHit: {fileID: 156155281887586458, guid: 6102a1d0085d78b4da69579e895802ce, type: 3}
+  explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
   healthPoints: 3
   EnemyShip: {fileID: 2752971980227408059}
   shootPivot: {fileID: 7692545558304019026}
@@ -666,15 +669,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.00000036124
+      value: -0.02
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.082477
+      value: 16.22
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 8e-15
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
       propertyPath: m_LocalRotation.w

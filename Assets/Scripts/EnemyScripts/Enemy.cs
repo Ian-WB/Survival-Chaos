@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    
+    public GameObject explosion;
 
     [SerializeField]
     private int healthPoints = 1;
@@ -13,6 +15,7 @@ public class Enemy : MonoBehaviour
 
     
 
+  
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Shoot"))
@@ -23,12 +26,13 @@ public class Enemy : MonoBehaviour
             // Update Health Points
 
             healthPoints--;
+            
 
             // Check if Health Points is below 0 to destroy it
-
+           
             if (healthPoints <= 0)
             {
-
+                Instantiate (explosion , transform.position , transform.rotation);
                 Destroy(gameObject);
                 Death();
             }
@@ -44,4 +48,5 @@ public class Enemy : MonoBehaviour
     {
         healthPoints += health;
     }
+
 }

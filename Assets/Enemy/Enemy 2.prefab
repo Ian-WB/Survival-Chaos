@@ -189,6 +189,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5c5d5f1a03e4ad4eafb9690dcc10bec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyHit: {fileID: 156155281887586458, guid: 6102a1d0085d78b4da69579e895802ce, type: 3}
+  explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
   healthPoints: 1
   EnemyShip: {fileID: 2752971980227408059}
 --- !u!1 &2813422443474280808
