@@ -274,6 +274,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a434bc28cf0a0a349933013e08feca65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
   healthPoints: 2
   EnemyShip: {fileID: 2752971980227408059}
   shootPivot: {fileID: 1449221108018617522}
