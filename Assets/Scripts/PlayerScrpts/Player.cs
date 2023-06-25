@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
+    public GameObject playerHit;
     [SerializeField] private int healthPoints = 1;
 
     [Header("Bounds")]
@@ -93,7 +94,11 @@ public class Player : MonoBehaviour
 
         if (other.CompareTag("enemy_Shoot"))
         {
+             
             healthPoints--;
+            Instantiate (playerHit , transform.position , transform.rotation);
+           
+
             if (healthPoints <= 0)
             {
 
@@ -106,8 +111,10 @@ public class Player : MonoBehaviour
             Destroy(other.gameObject);
 
             // Update Health Points
-
+            
             healthPoints--;
+             Instantiate (playerHit , transform.position , transform.rotation);
+            
             healthBar.SetHealth(healthPoints);
 
             // Check if Health Points is below 0 to destroy it

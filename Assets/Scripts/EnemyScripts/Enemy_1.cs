@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Enemy_1 : MonoBehaviour
 {
+    public GameObject childObject;
+    public GameObject enemyHit;
+    public GameObject explosion;
 
      [SerializeField]
     private int healthPoints = 1;
@@ -44,6 +47,7 @@ public class Enemy_1 : MonoBehaviour
             // Update Health Points
 
             healthPoints--;
+             Instantiate (enemyHit , childObject.transform.position , childObject.transform.rotation);
 
             // Check if Health Points is below 0 to destroy it
 
@@ -60,6 +64,7 @@ public class Enemy_1 : MonoBehaviour
     {
         if (healthPoints <= 0)
         {
+            Instantiate(explosion , transform.position , transform.rotation);
             Destroy(gameObject);
             //Added by Luis Fernando, Working on the EXP System.
             Death();
