@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BossScript : MonoBehaviour
 {
@@ -73,6 +74,7 @@ public class BossScript : MonoBehaviour
     private float spawnDelay3 = 1;
 
     private bool phase2 = false;
+    public Slider bossHpBar;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -84,7 +86,7 @@ public class BossScript : MonoBehaviour
             // Update Health Points
 
             healthPoints--;
-
+            bossHpBar.value = healthPoints;
             // Check if Health Points is below 0 to destroy it
 
             if (healthPoints <= 0)
@@ -95,6 +97,12 @@ public class BossScript : MonoBehaviour
         }
     }
 
+
+    void Start(){
+        bossHpBar = GameObject.FindGameObjectWithTag("bossHpBar").GetComponent<Slider>();
+        bossHpBar.maxValue = healthPoints;
+        bossHpBar.value = healthPoints;
+    }
 
     void Update()
     {
