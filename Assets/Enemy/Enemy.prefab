@@ -258,8 +258,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28ddfee901568f947aa69526798fdabf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0.4
-  rotationSpeed: 35
+  speed: 0.3
+  rotationSpeed: 28
   leftOrRight: 0
   spawnSpeed: 0.1
 --- !u!114 &-6739958517522978217
@@ -274,6 +274,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a434bc28cf0a0a349933013e08feca65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  childObject: {fileID: 0}
+  enemyHit: {fileID: 0}
   explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
   healthPoints: 2
   EnemyShip: {fileID: 2752971980227408059}
