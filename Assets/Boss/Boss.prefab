@@ -581,7 +581,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9954ac9226534241b5edddfc0a0ed44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthPoints: 20
+  healthPoints: 300
   EnemyShip: {fileID: 2752971980227408059}
   shootPivot: {fileID: 7692545558304019026}
   shootPivot_1: {fileID: 5345213693322661452}
@@ -628,6 +628,7 @@ MonoBehaviour:
   initialDelay3: 1
   lazer: 0
   spawnDelay3: 1
+  bossHpBar: {fileID: 0}
 --- !u!1 &2761499119940645981
 GameObject:
   m_ObjectHideFlags: 0

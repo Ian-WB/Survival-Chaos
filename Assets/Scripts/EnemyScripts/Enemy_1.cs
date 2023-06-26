@@ -13,7 +13,7 @@ public class Enemy_1 : MonoBehaviour
 
     public GameObject EnemyShip;
 
-    int EXPGain = 2;
+    int EXPGain = 15;
 
     [Header("Shoot")]
     [SerializeField]

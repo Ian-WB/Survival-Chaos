@@ -11,7 +11,7 @@ public class Enemy : MonoBehaviour
     private int healthPoints = 1;
 
     public GameObject EnemyShip;
-    int EXPGain = 2;
+    int EXPGain = 5;
 
     
 

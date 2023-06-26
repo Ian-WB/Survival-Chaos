@@ -12,20 +12,38 @@ public class Timer : MonoBehaviour
     public float timeValue = 0;
     void Start()
     {
-        timerSlider.maxValue = gameTime;
-        timeValue = 0;
-    }
 
-    // Update is called once per frame
+        if (timerSlider != null)
+        {
+            timerSlider.maxValue = gameTime;
+        }
+
+        timeValue = 0;
+}
+
+    //Update is called once per frame
     void Update()
     {
-        if(gameTime > timeValue){
-            timeValue += Time.deltaTime;
-            timerSlider.value = timeValue;
-        } else {
-            bossHpBar.showHpBar();
-            timerBar.SetActive(false);
+        if (timerSlider != null)
+        {
+            if(gameTime > timeValue){
+                timeValue += Time.deltaTime;
+                timerSlider.value = timeValue;
+            } else {
+                bossHpBar.showHpBar();
+                timerBar.SetActive(false);
+            }
         }
         
     }
+    // void Update()
+    // {
+    //     if(gameTime > timeValue){
+    //         timeValue += Time.deltaTime;
+    //         timerSlider.value = timeValue;
+    //     } else {
+    //         bossHpBar.showHpBar();
+    //         timerBar.SetActive(false);
+    //     }
+    // }
 }

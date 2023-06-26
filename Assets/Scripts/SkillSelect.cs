@@ -2,20 +2,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SkillSelect : MonoBehaviour
 {
 
-    public List<GameObject> Skills = new List<GameObject>();
-    public GameObject healSkill;
-    private int objCount;
-    private GameObject pickedSkill = null;
-    public GameObject slot1;
-    public GameObject slot2;
+    private int shotCount = 1;
+    private int attackSpeedCount = 3;
+    private List<System.Action> skillsList = new List<System.Action>();
+    public Player player;
+    public HealthBar hpBar;
+    public TextMeshProUGUI skillText;
+    public GameObject skillTextObject;
     // Start is called before the first frame update
     void Start()
     {
-        
+        Debug.Log("teste1");
+        skillsList.Add(MoreShots);
+        skillsList.Add(MoreMaxHp);
+        skillsList.Add(MoreAttackSpeed);
+        attackSpeedCount = 3;
+        shotCount = 1;
     }
 
     // Update is called once per frame
@@ -26,22 +33,62 @@ public class SkillSelect : MonoBehaviour
         }
     }
 
-    void PickSkill(){
-        objCount=0;
-        while(objCount < Skills.Count){
-            Skills[objCount].SetActive(false);
-            objCount+=1;
-        }
-        if (pickedSkill != null){
-            Skills.Remove(pickedSkill);
-        }
-        if(Skills.Count > 0){
-            pickedSkill = Skills[Random.Range(0, Skills.Count)];
-            slot1 = GameObject.Find("SkillSlot1");
-            pickedSkill.SetActive(true);
+    public void PickSkill(){
+        if(skillsList.Count > 0){
+            skillsList[Random.Range(0, skillsList.Count)]();
         } else {
-            healSkill.SetActive(true);
+            Heal();
         }
         
+    }
+
+    void MoreShots(){
+        Debug.Log("teste");
+        if(shotCount == 1){
+            player.tiroDuplo = true;
+            shotCount++;
+            StartCoroutine(showText("Double Shot!"));
+        } else if(shotCount == 2){
+            player.tiroDuplo = false;
+            player.tiroTriplo = true;
+            shotCount++;
+            StartCoroutine(showText("Triple Shot!"));
+        } else if(shotCount == 3){
+            player.tiroTriplo = false;
+            player.tiroAtras = true;
+            skillsList.Remove(MoreShots);
+            StartCoroutine(showText("Back Shot!"));
+        } 
+    }
+
+    void MoreMaxHp(){
+        player.addMaxHp(20);
+        skillsList.Remove(MoreMaxHp);
+        StartCoroutine(showText("Max HP Increased!"));
+    }
+
+    void Heal(){
+        player.addHp(5);
+        StartCoroutine(showText("Heal!"));
+    }
+    
+    void MoreAttackSpeed(){
+        if(attackSpeedCount > 0){
+            player.addAttackSpeed();
+            StartCoroutine(showText("Attack Speed Increased!"));
+            attackSpeedCount--;
+            if(attackSpeedCount == 0){
+                skillsList.Remove(MoreAttackSpeed);
+            }
+        }
+    }
+
+    IEnumerator showText(string skillName)
+    {
+        skillTextObject.SetActive(true);
+        skillText.text = "Level Up!\n" + skillName;
+        
+        yield return new WaitForSeconds(3);
+        skillTextObject.SetActive(false);
     }
 }
