@@ -52,7 +52,11 @@ public class Player : MonoBehaviour
     public GameObject levelUpButton;
     public DeathMenu deathMenu;
 
-    [SerializeField] int currentExperience = 0, maxExperience = 50, currentLevel = 1;
+    [SerializeField] int currentExperience = 0, maxExperience = 40, currentLevel = 1;
+    public bool tiroDuplo = false;
+    public bool tiroTriplo = false;
+    public bool tiroAtras = false;
+    public SkillSelect skillSelect;
 
     private void OnEnable()
     {
@@ -157,16 +161,16 @@ public class Player : MonoBehaviour
             Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
 
             // tiro duplo
-            if(currentLevel == 2){
+            if(tiroDuplo){
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro triplo
-            else if(currentLevel == 3){
+            else if(tiroTriplo){
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro para ambos os lados
-            else if(currentLevel == 4)
+            else if(tiroAtras)
             {
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
@@ -179,16 +183,16 @@ public class Player : MonoBehaviour
             Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
 
             // tiro duplo
-            if(currentLevel == 2){
+            if(tiroDuplo){
                 Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro triplo
-            else if(currentLevel == 3){
+            else if(tiroTriplo){
                 Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro para ambos os lados
-            else if(currentLevel == 4)
+            else if(tiroAtras)
             {
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -1.5f, 0f), Quaternion.Euler(0f, 0f, 90f));
@@ -211,13 +215,29 @@ public class Player : MonoBehaviour
 
     private void LevelUp()
     {
-        levelUpButton.SetActive(true);
         //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
+        skillSelect.PickSkill();
         currentLevel += 1;
-
+        
         currentExperience = 0;
         expBar.setCurrentExp(currentExperience);
-        maxExperience += 50;
+        maxExperience += 35;
         expBar.setMaxExp(maxExperience);
+    }
+
+    public void addHp(int hp){
+        healthPoints += hp;
+        if(healthBar.slider.maxValue < healthPoints){
+            healthPoints = (int) healthBar.slider.maxValue;
+        }
+        healthBar.slider.value = healthPoints;
+    }
+    public void addMaxHp(int hp){
+        healthPoints += hp;
+        healthBar.AddMaxHealth(hp);
+    }
+
+    public void addAttackSpeed(){
+        spawnDelay = spawnDelay - (0.40f * spawnDelay);
     }
 }
