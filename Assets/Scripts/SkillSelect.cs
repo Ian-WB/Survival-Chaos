@@ -20,7 +20,6 @@ public class SkillSelect : MonoBehaviour
         Debug.Log("teste1");
         skillsList.Add(MoreShots);
         skillsList.Add(MoreMaxHp);
-        skillsList.Add(MoreAttackSpeed);
         attackSpeedCount = 3;
         shotCount = 1;
     }
@@ -55,7 +54,13 @@ public class SkillSelect : MonoBehaviour
             StartCoroutine(showText("Triple Shot!"));
         } else if(shotCount == 3){
             player.tiroTriplo = false;
+            player.sextuplo = true;
+            shotCount++;
+            StartCoroutine(showText("SexTUPLO Shot!"));
+        } else if(shotCount == 4){
+            player.tiroTriplo = false;
             player.tiroAtras = true;
+            player.sextuplo = false;
             skillsList.Remove(MoreShots);
             StartCoroutine(showText("Back Shot!"));
         } 
