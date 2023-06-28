@@ -52,7 +52,7 @@ public class Player : MonoBehaviour
     public GameObject levelUpButton;
     public DeathMenu deathMenu;
 
-    [SerializeField] int currentExperience = 0, maxExperience = 40, currentLevel = 1;
+    [SerializeField] public int currentExperience = 0, maxExperience = 40, currentLevel = 1;
     public bool tiroDuplo = false;
     public bool tiroTriplo = false;
     public bool tiroAtras = false;
