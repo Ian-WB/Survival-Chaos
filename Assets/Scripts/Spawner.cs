@@ -37,11 +37,17 @@ public class Spawner : MonoBehaviour
 
     [SerializeField]
     private float spawnRateIncrease = 0.1f;
+    private float localTimer;
 
     private void Start()
     {
+        localTimer = 0f;
         StartCoroutine(SpawnWithDelay());
         StartCoroutine(SpawnDelay());
+    }
+
+    private void Update() {
+        localTimer += Time.deltaTime;
     }
 
 
@@ -84,7 +90,12 @@ public class Spawner : MonoBehaviour
             transform.position.y + randomY,
             transform.position.z
         );
-
-        Instantiate(spawnPrefab, position, transform.rotation);
+        if(spawnPrefab == GameObject.Find("Boss")){
+            Destroy(GameObject.FindWithTag("Enemy"));
+        }
+        if(localTimer <= 301){
+            Instantiate(spawnPrefab, position, transform.rotation);
+        }
+        
     }
 }

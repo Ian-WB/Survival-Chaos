@@ -225,7 +225,7 @@ MonoBehaviour:
   childObject: {fileID: 7294817249652333329}
   enemyHit: {fileID: 156155281887586458, guid: 6102a1d0085d78b4da69579e895802ce, type: 3}
   explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
-  healthPoints: 3
+  healthPoints: 7
   EnemyShip: {fileID: 2752971980227408059}
   shootPivot: {fileID: 7692545558304019026}
   shootPivot_1: {fileID: 5736866341520450878}
