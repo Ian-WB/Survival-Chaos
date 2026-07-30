@@ -41,6 +41,7 @@ public class Enemy_1 : MonoBehaviour
     private float spawnDelay = 1;
 
     private HealthState health;
+    private EnemyMovement movement;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -64,12 +65,20 @@ public class Enemy_1 : MonoBehaviour
     private void Awake()
     {
         health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
+
+        if (EnemyShip != null)
+        {
+            EnemyShip.TryGetComponent(out movement);
+        }
+
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
     }
 
     private void Shoot()
     {
-        if (EnemyShip.GetComponent<EnemyMovement>().leftOrRight)
+        // Cached and guarded: this fires on a repeating invoke, so an unguarded
+        // lookup would throw for the whole lifetime of a mis-wired prefab.
+        if (movement != null && movement.leftOrRight)
         {
             Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
             Instantiate(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
