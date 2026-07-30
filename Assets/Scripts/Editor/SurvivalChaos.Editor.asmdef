@@ -1,12 +1,12 @@
 {
-    "name": "SurvivalChaos",
-    "rootNamespace": "SurvivalChaos",
+    "name": "SurvivalChaos.Editor",
+    "rootNamespace": "SurvivalChaos.EditorTools",
     "references": [
-        "UnityEngine.UI",
-        "Unity.TextMeshPro",
-        "Unity.InputSystem"
+        "SurvivalChaos"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

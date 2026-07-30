@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using SurvivalChaos;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, ISkillTarget
 {
     public GameObject playerHit;
     [SerializeField] private int healthPoints = 1;
@@ -251,19 +251,39 @@ public class Player : MonoBehaviour
         expBar.setMaxExp(maxExperience);
     }
 
-    public void addHp(int hp){
+    // How many shot upgrades have been taken. Drives the pattern flags below,
+    // which Shoot() reads.
+    private int shotUpgrades;
+
+    /// <summary>The number of upgrades after which the pattern stops changing.</summary>
+    public const int MaxShotUpgrades = 4;
+
+    public void UpgradeShotPattern(){
+        if(shotUpgrades >= MaxShotUpgrades){
+            return;
+        }
+
+        shotUpgrades++;
+        tiroDuplo = shotUpgrades == 1;
+        tiroTriplo = shotUpgrades == 2;
+        sextuplo = shotUpgrades == 3;
+        tiroAtras = shotUpgrades == 4;
+    }
+
+    public void Heal(int hp){
         healthPoints += hp;
         if(healthBar.slider.maxValue < healthPoints){
             healthPoints = (int) healthBar.slider.maxValue;
         }
         healthBar.slider.value = healthPoints;
     }
-    public void addMaxHp(int hp){
+
+    public void AddMaxHealth(int hp){
         healthPoints += hp;
         healthBar.AddMaxHealth(hp);
     }
 
-    public void addAttackSpeed(){
+    public void IncreaseAttackSpeed(){
         spawnDelay = spawnDelay - (0.40f * spawnDelay);
     }
 }

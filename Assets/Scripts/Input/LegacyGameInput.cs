@@ -1,3 +1,4 @@
+#if ENABLE_LEGACY_INPUT_MANAGER
 using UnityEngine;
 
 namespace SurvivalChaos
@@ -21,3 +22,4 @@ namespace SurvivalChaos
         public bool DebugLevelUpPressed => Input.GetKeyDown(KeyCode.F7);
     }
 }
+#endif

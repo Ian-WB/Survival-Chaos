@@ -7,16 +7,30 @@ namespace SurvivalChaos
     /// </summary>
     public static class GameInput
     {
-        private static IGameInput source = new LegacyGameInput();
+        private static IGameInput source = CreateDefault();
 
         /// <summary>
-        /// The active backend. Assigning null restores the legacy backend, so a
-        /// test that forgets to clean up cannot leave the game without input.
+        /// The active backend. Assigning null restores the default, so a test
+        /// that forgets to clean up cannot leave the game without input.
         /// </summary>
         public static IGameInput Source
         {
             get => source;
-            set => source = value ?? new LegacyGameInput();
+            set => source = value ?? CreateDefault();
+        }
+
+        /// <summary>
+        /// Picks the backend matching Player Settings' active input handling.
+        /// With "Both" selected, ENABLE_INPUT_SYSTEM wins - reading through the
+        /// legacy API when the new one is available offers nothing.
+        /// </summary>
+        private static IGameInput CreateDefault()
+        {
+#if ENABLE_INPUT_SYSTEM
+            return new InputSystemGameInput();
+#else
+            return new LegacyGameInput();
+#endif
         }
 
         public static float Horizontal => source.Horizontal;

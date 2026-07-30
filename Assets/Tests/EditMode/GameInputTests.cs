@@ -26,9 +26,19 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void Source_IsLegacyBackendByDefault()
+        public void Source_HasABackendByDefault()
         {
+            Assert.IsNotNull(GameInput.Source);
+        }
+
+        [Test]
+        public void DefaultBackend_MatchesActiveInputHandling()
+        {
+#if ENABLE_INPUT_SYSTEM
+            Assert.IsInstanceOf<InputSystemGameInput>(GameInput.Source);
+#else
             Assert.IsInstanceOf<LegacyGameInput>(GameInput.Source);
+#endif
         }
 
         [Test]
@@ -67,13 +77,14 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void Source_SetToNull_FallsBackToLegacyBackend()
+        public void Source_SetToNull_RestoresTheDefaultBackend()
         {
             GameInput.Source = new FakeGameInput();
 
             GameInput.Source = null;
 
-            Assert.IsInstanceOf<LegacyGameInput>(GameInput.Source);
+            Assert.IsNotNull(GameInput.Source);
+            Assert.IsNotInstanceOf<FakeGameInput>(GameInput.Source);
         }
     }
 }
