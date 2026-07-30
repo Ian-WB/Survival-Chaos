@@ -2,15 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using SurvivalChaos;
 
 public class BossScript : MonoBehaviour
 {
- [SerializeField]
+    [SerializeField]
+    [Tooltip("Stats for the boss. Falls back to the health value below when unset.")]
+    private EnemyDefinition definition;
+
+    [SerializeField]
     private int healthPoints = 1;
 
     public GameObject EnemyShip;
 
-    int EXPGain = 2;
+    private HealthState health;
 
     [Header("Shoot")]
     [SerializeField]
@@ -83,15 +88,14 @@ public class BossScript : MonoBehaviour
 
             Destroy(other.gameObject);
 
-            // Update Health Points
+            bool killed = health.TakeDamage(1);
+            bossHpBar.value = health.Current;
 
-            healthPoints--;
-            bossHpBar.value = healthPoints;
-            // Check if Health Points is below 0 to destroy it
-
-            if (healthPoints <= 0)
+            // Death effects and the reward now fire here rather than from
+            // Update(), which only ever ran because Destroy is deferred.
+            if (killed)
             {
-
+                Death();
                 Destroy(gameObject);
             }
         }
@@ -100,29 +104,23 @@ public class BossScript : MonoBehaviour
 
     void Start(){
         bossHpBar = GameObject.FindGameObjectWithTag("bossHpBar").GetComponent<Slider>();
-        bossHpBar.maxValue = healthPoints;
-        bossHpBar.value = healthPoints;
+        bossHpBar.maxValue = health.Max;
+        bossHpBar.value = health.Current;
     }
 
     void Update()
     {
-        if (healthPoints <= 0)
-        {
-            Destroy(gameObject);
-            //Added by Luis Fernando, Working on the EXP System.
-            Death();
-        }
-
         if(lazer)
         {
             Shoot_1();
         }
-        
+
     }
 
 
     private void Awake()
     {
+        health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
         InvokeRepeating(nameof(Shoot_2), initialDelay, spawnDelay);
     }
@@ -233,13 +231,13 @@ public class BossScript : MonoBehaviour
     
 
 
-    //Added by Luis Fernando, Working on the EXP System.
-    void Death()
+    private void Death()
     {
-        EXP.Instance.AddEXP(EXPGain);
-    }
-    public void adjustHealth(int health)
-    {
-        healthPoints += health;
+        int reward = definition != null ? definition.ExperienceReward : 2;
+
+        if (EXP.Instance != null)
+        {
+            EXP.Instance.AddEXP(reward);
+        }
     }
 }

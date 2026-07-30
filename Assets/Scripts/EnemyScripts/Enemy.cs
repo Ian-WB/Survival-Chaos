@@ -1,52 +1,51 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class Enemy : MonoBehaviour
 {
-    
+
     public GameObject explosion;
+
+    [SerializeField]
+    [Tooltip("Stats for this enemy. Falls back to the health value below when unset.")]
+    private EnemyDefinition definition;
 
     [SerializeField]
     private int healthPoints = 1;
 
     public GameObject EnemyShip;
-    int EXPGain = 5;
 
-    
+    private HealthState health;
 
-  
+    private void Awake()
+    {
+        health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Shoot"))
         {
-
             Destroy(other.gameObject);
 
-            // Update Health Points
-
-            healthPoints--;
-            
-
-            // Check if Health Points is below 0 to destroy it
-           
-            if (healthPoints <= 0)
+            if (health.TakeDamage(1))
             {
-                Instantiate (explosion , transform.position , transform.rotation);
-                Destroy(gameObject);
+                Instantiate(explosion, transform.position, transform.rotation);
                 Death();
+                Destroy(gameObject);
             }
         }
     }
 
-    //Added by Luis Fernando, Working on the EXP System.
-    void Death()
+    private void Death()
     {
-        EXP.Instance.AddEXP(EXPGain);
-    }
-    public void adjustHealth(int health)
-    {
-        healthPoints += health;
-    }
+        int reward = definition != null ? definition.ExperienceReward : 5;
 
+        if (EXP.Instance != null)
+        {
+            EXP.Instance.AddEXP(reward);
+        }
+    }
 }

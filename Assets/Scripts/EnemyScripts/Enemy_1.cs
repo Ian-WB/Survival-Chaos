@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class Enemy_1 : MonoBehaviour
 {
@@ -8,12 +9,14 @@ public class Enemy_1 : MonoBehaviour
     public GameObject enemyHit;
     public GameObject explosion;
 
-     [SerializeField]
+    [SerializeField]
+    [Tooltip("Stats for this enemy. Falls back to the health value below when unset.")]
+    private EnemyDefinition definition;
+
+    [SerializeField]
     private int healthPoints = 1;
 
     public GameObject EnemyShip;
-
-    int EXPGain = 15;
 
     [Header("Shoot")]
     [SerializeField]
@@ -37,68 +40,55 @@ public class Enemy_1 : MonoBehaviour
     [Range(0f, 10f)]
     private float spawnDelay = 1;
 
+    private HealthState health;
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Shoot"))
         {
-
             Destroy(other.gameObject);
 
-            // Update Health Points
+            Instantiate(enemyHit, childObject.transform.position, childObject.transform.rotation);
 
-            healthPoints--;
-             Instantiate (enemyHit , childObject.transform.position , childObject.transform.rotation);
-
-            // Check if Health Points is below 0 to destroy it
-
-            if (healthPoints <= 0)
+            // Death effects and the reward now fire here rather than from
+            // Update(), which only ever ran because Destroy is deferred.
+            if (health.TakeDamage(1))
             {
-
+                Instantiate(explosion, transform.position, transform.rotation);
+                Death();
                 Destroy(gameObject);
             }
         }
     }
 
-
-    void Update()
-    {
-        if (healthPoints <= 0)
-        {
-            Instantiate(explosion , transform.position , transform.rotation);
-            Destroy(gameObject);
-            //Added by Luis Fernando, Working on the EXP System.
-            Death();
-        }
-    }
-
-
     private void Awake()
     {
+        health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
     }
+
     private void Shoot()
     {
         if (EnemyShip.GetComponent<EnemyMovement>().leftOrRight)
         {
             Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));  
+            Instantiate(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
         }
-        
-        else 
+
+        else
         {
             Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab1, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));  
+            Instantiate(shootPrefab1, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
         }
     }
 
+    private void Death()
+    {
+        int reward = definition != null ? definition.ExperienceReward : 15;
 
-    //Added by Luis Fernando, Working on the EXP System.
-    void Death()
-    {
-        EXP.Instance.AddEXP(EXPGain);
-    }
-    public void adjustHealth(int health)
-    {
-        healthPoints += health;
+        if (EXP.Instance != null)
+        {
+            EXP.Instance.AddEXP(reward);
+        }
     }
 }
