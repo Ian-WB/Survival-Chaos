@@ -7,20 +7,18 @@ public class ColliderScript : MonoBehaviour
 
     public GameObject EnemyShip;
 
+    // Value applied to EnemyMovement.leftOrRight when the player crosses this trigger.
+    [SerializeField]
+    private bool leftOrRight;
+
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            // Regular enemies only have EnemyMovement, so both lookups are optional.
             if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
             {
-                enemyMovement.leftOrRight = false;
-            }
-
-            if (EnemyShip.TryGetComponent(out BossMovement bossMovement))
-            {
-                bossMovement.leftOrRight_2 = false;
+                enemyMovement.leftOrRight = leftOrRight;
             }
         }
     }
