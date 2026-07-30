@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SurvivalChaos;
 
 public class Player : MonoBehaviour
 {
@@ -87,7 +88,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         
-        if(Input.GetKeyUp(KeyCode.LeftShift))
+        if(GameInput.ToggleDirectionReleased)
         {
             rotate = !rotate;
             Debug.Log("Variable state: " + rotate);

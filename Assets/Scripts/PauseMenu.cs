@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class PauseMenu : MonoBehaviour
     public GameObject optionsUI;
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)){
+        if (GameInput.PausePressed){
             if(GameIsPaused){
                 Resume();
             } else {

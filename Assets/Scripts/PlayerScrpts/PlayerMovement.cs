@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -17,8 +18,8 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
+        float h = GameInput.Horizontal;
+        float v = GameInput.Vertical;
         
         Vector3 pos = center.position;
         pos.y = transform.position.y;

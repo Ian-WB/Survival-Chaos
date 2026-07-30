@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class CircleMovement : MonoBehaviour
 {
@@ -21,8 +22,8 @@ public class CircleMovement : MonoBehaviour
     private void Update()
     {
         // Get the horizontal input axis (e.g., A and D keys or left and right arrow keys)
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
+        float horizontalInput = GameInput.Horizontal;
+        float verticalInput = GameInput.Vertical;
 
 
         var move = new Vector3(

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class sceneRotation : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class sceneRotation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var h = Input.GetAxis("Horizontal");
+        var h = GameInput.Horizontal;
         var rotate = new Vector3(
             0f,
             h * moveSpeed * Time.deltaTime,

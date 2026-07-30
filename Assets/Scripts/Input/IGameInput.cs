@@ -1,0 +1,25 @@
+namespace SurvivalChaos
+{
+    /// <summary>
+    /// Every input the game reads, expressed independently of which Unity input
+    /// backend is supplying it. Swapping to com.unity.inputsystem means adding a
+    /// second implementation of this interface - no gameplay script changes.
+    /// </summary>
+    public interface IGameInput
+    {
+        /// <summary>Smoothed -1..1 steering axis.</summary>
+        float Horizontal { get; }
+
+        /// <summary>Smoothed -1..1 climb/dive axis.</summary>
+        float Vertical { get; }
+
+        /// <summary>True on the frame the flip-direction key is released.</summary>
+        bool ToggleDirectionReleased { get; }
+
+        /// <summary>True on the frame the pause key is pressed.</summary>
+        bool PausePressed { get; }
+
+        /// <summary>True on the frame the debug "force level up" key is pressed.</summary>
+        bool DebugLevelUpPressed { get; }
+    }
+}

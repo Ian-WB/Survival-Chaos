@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using SurvivalChaos;
 
 public class SkillSelect : MonoBehaviour
 {
@@ -27,10 +28,8 @@ public class SkillSelect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.F7)){
+        if(GameInput.DebugLevelUpPressed){
             PickSkill();
-        }
-        if(Input.GetKeyDown(KeyCode.F8)){
         }
     }
 
