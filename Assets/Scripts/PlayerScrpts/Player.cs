@@ -42,6 +42,13 @@ public class Player : MonoBehaviour, ISkillTarget
 
     private bool rotate;
 
+    /// <summary>
+    /// True while the ship is flipped to fire the other way. This is the single
+    /// source of truth - SpaceShipPitch reads it rather than tracking its own
+    /// copy, which could drift out of step with this one.
+    /// </summary>
+    public bool DirectionFlipped => rotate;
+
     [SerializeField]
     public HealthBar healthBar;
 
@@ -62,14 +69,21 @@ public class Player : MonoBehaviour, ISkillTarget
 
     private void OnEnable()
     {
-        //Enables EXP
-        EXP.Instance.OnEXPChange += HandleEXPChange;
+        // EXP.Instance is assigned in EXP.Awake() on a different object, and
+        // Unity does not order Awake across objects - so it can legitimately be
+        // null here, and on teardown EXP may already be gone.
+        if (EXP.Instance != null)
+        {
+            EXP.Instance.OnEXPChange += HandleEXPChange;
+        }
     }
 
     private void OnDisable()
     {
-        //Disables EXP
-        EXP.Instance.OnEXPChange -= HandleEXPChange;
+        if (EXP.Instance != null)
+        {
+            EXP.Instance.OnEXPChange -= HandleEXPChange;
+        }
     }
 
     // Start is called before the first frame update
@@ -91,7 +105,6 @@ public class Player : MonoBehaviour, ISkillTarget
         if(GameInput.ToggleDirectionReleased)
         {
             rotate = !rotate;
-            Debug.Log("Variable state: " + rotate);
         }
     }
 
@@ -100,10 +113,12 @@ public class Player : MonoBehaviour, ISkillTarget
 
         if (other.CompareTag("enemy_Shoot"))
         {
-             
+
             healthPoints--;
             Instantiate (playerHit , transform.position , transform.rotation);
-           
+
+            // Was missing, so bullet damage was invisible until death.
+            healthBar.SetHealth(healthPoints);
 
             if (healthPoints <= 0)
             {

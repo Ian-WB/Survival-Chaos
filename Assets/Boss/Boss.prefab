@@ -680,7 +680,7 @@ MonoBehaviour:
     projectileWhenRight: {fileID: 6051693256502410095, guid: 93abc9a3b63d40b479ce943df28f4721, type: 3}
     trigger: 1
     initialDelay: 0
-    interval: 0
+    interval: 3
 --- !u!1 &2761499119940645981
 GameObject:
   m_ObjectHideFlags: 0

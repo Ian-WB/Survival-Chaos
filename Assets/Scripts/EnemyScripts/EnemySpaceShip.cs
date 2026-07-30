@@ -6,12 +6,28 @@ public class EnemySpaceShip : MonoBehaviour
 {
 
     public GameObject EnemyShip;
-    // Start is called before the first frame update
-    
+
+    private EnemyMovement movement;
+
+    private void Awake()
+    {
+        // Cached rather than fetched every frame, and guarded so a prefab
+        // without EnemyMovement cannot throw once per frame forever.
+        if (EnemyShip != null)
+        {
+            EnemyShip.TryGetComponent(out movement);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if(EnemyShip.GetComponent<EnemyMovement>().leftOrRight)
+        if (movement == null)
+        {
+            return;
+        }
+
+        if(movement.leftOrRight)
         {
             transform.localRotation = Quaternion.Euler(0, -90, 0);
         }
