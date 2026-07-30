@@ -142,6 +142,8 @@ namespace SurvivalChaos
             {
                 EXP.Instance.AddEXP(reward);
             }
+
+            RunOutcome.ReportBossDefeated();
         }
     }
 }
