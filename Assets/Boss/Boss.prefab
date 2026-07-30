@@ -483,7 +483,7 @@ GameObject:
   - component: {fileID: -7457484145980311945}
   - component: {fileID: 4020032344993825383}
   - component: {fileID: 8752330439326372042}
-  - component: {fileID: 8807014089605865643}
+  - component: {fileID: 782800684810090552}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Boss
@@ -611,7 +611,7 @@ MonoBehaviour:
   rotationSpeed: 15
   leftOrRight: 0
   spawnSpeed: 0.1
---- !u!114 &8807014089605865643
+--- !u!114 &782800684810090552
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -620,58 +620,67 @@ MonoBehaviour:
   m_GameObject: {fileID: 2752971980227408059}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9954ac9226534241b5edddfc0a0ed44, type: 3}
+  m_Script: {fileID: 11500000, guid: f234b93dcf6915f44a45dd62cf5ce90b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossEmitter
   definition: {fileID: 11400000, guid: c42f7f73dcd21af47bfd4f1f671fbde1, type: 2}
   healthPoints: 300
-  EnemyShip: {fileID: 2752971980227408059}
-  shootPivot: {fileID: 7692545558304019026}
-  shootPivot_1: {fileID: 5345213693322661452}
-  shootPivot_2: {fileID: 8336700346027857989}
-  shootPivot_3: {fileID: 5882260647378427002}
-  shootPivot_4: {fileID: 431153703089317636}
-  shootPivot_5: {fileID: 9131899581714540196}
-  shootPivot_6: {fileID: 1989500190635978071}
-  shootPivot_7: {fileID: 5663537587974292785}
-  shootPivot_8: {fileID: 3428938395691891541}
-  shootPivot_9: {fileID: 4358618337196567421}
-  shootPivot_10: {fileID: 4859633414465674908}
-  shootPivot_11: {fileID: 6302247655967782872}
-  shootPivot_12: {fileID: 7797610871343010157}
-  shootPivot_13: {fileID: 6836970815473255908}
-  shootPivot_14: {fileID: 7759554703854880899}
-  shootPivot_15: {fileID: 890337952769368991}
-  shootPivot_16: {fileID: 7500854423627805025}
-  shootPivot_17: {fileID: 809695109134623909}
-  shootPivot_18: {fileID: 6901567711633593064}
-  shootPivot_19: {fileID: 576480338665577603}
-  shootPivot_20: {fileID: 8820562983099152691}
-  shootPivot_21: {fileID: 2847702713223726131}
-  shootPivot_22: {fileID: 6188103541312185430}
-  shootPivot_23: {fileID: 849262907134140525}
-  shootPivot_24: {fileID: 2213292447857576795}
-  shootPivot_25: {fileID: 573927045689170082}
-  shootPivot_26: {fileID: 7025017739365709917}
-  shootPivot_27: {fileID: 4500643032827682834}
-  shootPivot_28: {fileID: 4750849188237552756}
-  shootPivot_29: {fileID: 5570672010402684824}
-  shootPivot_30: {fileID: 8201606821959058308}
-  shootPivot_31: {fileID: 7645385936995277870}
-  shootPrefab: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
-  shootPrefab_1: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
-  shootPrefab_2: {fileID: 6051693256502410095, guid: 3735b5099c861c64da916bd514a4c36b, type: 3}
-  shootPrefab_3: {fileID: 6051693256502410095, guid: 93abc9a3b63d40b479ce943df28f4721, type: 3}
-  initialDelay: 1
-  spawnDelay: 0.5
-  initialDelay1: 1
-  spawnDelay1: 0.02
-  initialDelay2: 1
-  spawnDelay2: 1.2
-  initialDelay3: 1
-  lazer: 0
-  spawnDelay3: 1
-  bossHpBar: {fileID: 0}
+  enemyShip: {fileID: 2752971980227408059}
+  attacks:
+  - label: Volley (was Shoot)
+    pivots:
+    - {fileID: 7692545558304019026}
+    - {fileID: 5345213693322661452}
+    - {fileID: 8336700346027857989}
+    - {fileID: 5882260647378427002}
+    - {fileID: 431153703089317636}
+    - {fileID: 9131899581714540196}
+    - {fileID: 1989500190635978071}
+    - {fileID: 5663537587974292785}
+    - {fileID: 3428938395691891541}
+    - {fileID: 4358618337196567421}
+    - {fileID: 4859633414465674908}
+    - {fileID: 6302247655967782872}
+    - {fileID: 7797610871343010157}
+    - {fileID: 6836970815473255908}
+    - {fileID: 7759554703854880899}
+    - {fileID: 890337952769368991}
+    projectileWhenLeft: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
+    projectileWhenRight: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
+    trigger: 0
+    initialDelay: 1
+    interval: 0.5
+  - label: Spread (was Shoot_2)
+    pivots:
+    - {fileID: 7500854423627805025}
+    - {fileID: 809695109134623909}
+    - {fileID: 6901567711633593064}
+    - {fileID: 576480338665577603}
+    - {fileID: 8820562983099152691}
+    - {fileID: 2847702713223726131}
+    - {fileID: 6188103541312185430}
+    - {fileID: 849262907134140525}
+    - {fileID: 2213292447857576795}
+    - {fileID: 573927045689170082}
+    - {fileID: 7025017739365709917}
+    - {fileID: 4500643032827682834}
+    - {fileID: 4750849188237552756}
+    projectileWhenLeft: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
+    projectileWhenRight: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
+    trigger: 0
+    initialDelay: 1
+    interval: 0.5
+  - label: Laser (was Shoot_1)
+    pivots:
+    - {fileID: 7500854423627805025}
+    - {fileID: 5570672010402684824}
+    - {fileID: 8201606821959058308}
+    - {fileID: 7645385936995277870}
+    projectileWhenLeft: {fileID: 6051693256502410095, guid: 3735b5099c861c64da916bd514a4c36b, type: 3}
+    projectileWhenRight: {fileID: 6051693256502410095, guid: 93abc9a3b63d40b479ce943df28f4721, type: 3}
+    trigger: 1
+    initialDelay: 0
+    interval: 0
 --- !u!1 &2761499119940645981
 GameObject:
   m_ObjectHideFlags: 0
