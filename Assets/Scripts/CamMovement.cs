@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class CamMovement : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class CamMovement : MonoBehaviour
     void Update()
     {
         // Horizontal movement
-        float horizontalInput = Input.GetAxis("Horizontal");
+        float horizontalInput = GameInput.Horizontal;
 
         // Set position
         transform.RotateAround(center, Vector3.up, -player.rotationSpeed * horizontalInput * Time.deltaTime);

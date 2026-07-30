@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class SpaceShipPitch : MonoBehaviour
 {
@@ -19,10 +20,10 @@ public class SpaceShipPitch : MonoBehaviour
     {
 
 
-        float v = Input.GetAxis("Vertical");
-        float h = Input.GetAxis("Horizontal");
+        float v = GameInput.Vertical;
+        float h = GameInput.Horizontal;
 
-        if(Input.GetKeyUp(KeyCode.LeftShift))
+        if(GameInput.ToggleDirectionReleased)
         {
             rotate = !rotate;
         }
