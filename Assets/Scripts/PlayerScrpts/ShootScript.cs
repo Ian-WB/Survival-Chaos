@@ -5,7 +5,8 @@ using UnityEngine;
 public class ShootScript : MonoBehaviour
 {
 
-    public Transform center;
+    // Resolved in Start() - not serialized, so stale prefab references can't shadow it.
+    private Transform center;
     public float speed;
 
 

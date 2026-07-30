@@ -31,7 +31,6 @@ public class BossMovement : MonoBehaviour
 
 void Update()
     {
-        Debug.Log(leftOrRight_2);
         Vector3 pos = center;
         pos.y = transform.position.y;
 

@@ -12,8 +12,16 @@ public class ColliderScript : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            EnemyShip.GetComponent<EnemyMovement>().leftOrRight = false;
-            EnemyShip.GetComponent<BossMovement>().leftOrRight_2 = false;
+            // Regular enemies only have EnemyMovement, so both lookups are optional.
+            if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
+            {
+                enemyMovement.leftOrRight = false;
+            }
+
+            if (EnemyShip.TryGetComponent(out BossMovement bossMovement))
+            {
+                bossMovement.leftOrRight_2 = false;
+            }
         }
     }
 }

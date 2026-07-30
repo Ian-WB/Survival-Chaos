@@ -9,13 +9,9 @@ public class ColliderScript_3 : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (EnemyShip.TryGetComponent(out BossScript bossScript))
         {
-            EnemyShip.GetComponent<BossScript>().lazer = true;
-        }
-        else
-        {
-            EnemyShip.GetComponent<BossScript>().lazer = false;
+            bossScript.lazer = other.CompareTag("Player");
         }
     }
 }
