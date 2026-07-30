@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SurvivalChaos;
 
 public class EnemyMovement : MonoBehaviour
 {
@@ -47,7 +48,7 @@ void Update()
 
         transform.LookAt(pos);
 
-        if(Vector3.Distance(position2, position3) >= 137.2f)
+        if(Vector3.Distance(position2, position3) >= ArenaGeometry.OrbitRadius)
         {
             Vector3 dir = center - transform.position;
             dir.y = 0;
