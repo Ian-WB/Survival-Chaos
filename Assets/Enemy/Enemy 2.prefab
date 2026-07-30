@@ -72,10 +72,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1810748574158399187}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9613864d0a663054faf3507e3861e39a, type: 3}
+  m_Script: {fileID: 11500000, guid: 1419c08a82fb89240934d231f02803fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  leftOrRight: 1
 --- !u!1 &2752971980227408059
 GameObject:
   m_ObjectHideFlags: 0
@@ -268,6 +269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  leftOrRight: 0
 --- !u!1 &4258661090184616461
 GameObject:
   m_ObjectHideFlags: 0
@@ -344,6 +346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  leftOrRight: 0
 --- !u!1 &5563117538194326119
 GameObject:
   m_ObjectHideFlags: 0
@@ -420,6 +423,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  leftOrRight: 0
 --- !u!1 &5727305683460490200
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,10 +496,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 5727305683460490200}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9613864d0a663054faf3507e3861e39a, type: 3}
+  m_Script: {fileID: 11500000, guid: 1419c08a82fb89240934d231f02803fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  leftOrRight: 1
 --- !u!1 &8786866538369807142
 GameObject:
   m_ObjectHideFlags: 0
@@ -568,10 +573,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 8786866538369807142}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9613864d0a663054faf3507e3861e39a, type: 3}
+  m_Script: {fileID: 11500000, guid: 1419c08a82fb89240934d231f02803fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  leftOrRight: 1
 --- !u!1001 &1401396822620041922
 PrefabInstance:
   m_ObjectHideFlags: 0
