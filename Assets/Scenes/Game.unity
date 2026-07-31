@@ -2828,8 +2828,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1ac09e29b416664dadfb1278d444021, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 100
   player: {fileID: 0}
+  climbPitchAngle: 22
+  climbRollAngle: 10
+  climbResponse: 7
+  thrustLeanAngle: 18
+  thrustDragDistance: 0.6
+  thrustResponse: 6
+  flipDegreesPerSecond: 540
+  idleRollAmplitude: 3
+  idlePitchAmplitude: 2
+  idleSpeed: 1
 --- !u!1 &837051729
 GameObject:
   m_ObjectHideFlags: 0
@@ -3737,7 +3746,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 0}
-  radiusOffset: 100
+  radiusOffset: 75
 --- !u!1 &968902366
 GameObject:
   m_ObjectHideFlags: 0
@@ -13214,8 +13223,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 70, z: -160}
-  m_LocalScale: {x: 1.45, y: 1.45, z: 1.45}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 211850492}
   - {fileID: 832640313}
@@ -13600,7 +13609,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 0}
-  radiusOffset: 0
+  radiusOffset: 25
 --- !u!1 &919132149536594334
 GameObject:
   m_ObjectHideFlags: 0
