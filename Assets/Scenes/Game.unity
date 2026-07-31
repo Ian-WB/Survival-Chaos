@@ -34,7 +34,7 @@ RenderSettings:
   m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
-  m_ReflectionBounces: 1
+  m_ReflectionBounces: 5
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
@@ -12137,6 +12137,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1904768758}
   m_CullTransparentMesh: 1
+--- !u!1 &1931793261
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1931793263}
+  - component: {fileID: 1931793262}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1931793262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931793261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: c88833e1d764352499ba2c10a6e784b1, type: 2}
+--- !u!4 &1931793263
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931793261}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 56.96357, y: 0, z: 22.35174}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1944095109
 GameObject:
   m_ObjectHideFlags: 0
@@ -15168,7 +15217,7 @@ Transform:
   m_GameObject: {fileID: 3961652730198161647}
   serializedVersion: 2
   m_LocalRotation: {x: 1.8337256e-17, y: -0.84080625, z: -1.8337256e-17, w: 0.5413362}
-  m_LocalPosition: {x: -164.48093, y: 50.708332, z: 3.630636}
+  m_LocalPosition: {x: -164.48093, y: 45.97, z: 3.630636}
   m_LocalScale: {x: 1.1327618, y: 1.1327617, z: 1.1327618}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -20232,7 +20281,7 @@ Transform:
   m_GameObject: {fileID: 5184898339644311840}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.25912836, z: -0, w: 0.9658429}
-  m_LocalPosition: {x: -104.45792, y: 25.189272, z: -73.71697}
+  m_LocalPosition: {x: -104.45792, y: 24.67, z: -73.71697}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -20871,3 +20920,4 @@ SceneRoots:
   - {fileID: 1250390128}
   - {fileID: 498302174}
   - {fileID: 581903989}
+  - {fileID: 1931793263}
