@@ -3,13 +3,58 @@ guid: bdc6c89e3e7aeec4cb64f181c7574f9d
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: METADE CIMA
+    second: {fileID: 2100000, guid: 779191ee8842ab74db6bcf638c6735de, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: avores
+    second: {fileID: 2100000, guid: 6c0f434b7a83c57478f0d8c3e839fd41, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "fuma\xE7a"
+    second: {fileID: 2100000, guid: c56f807f46fb64243a518e75caad7f17, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ilha
+    second: {fileID: 2100000, guid: 7875f2625f4602940a185ea446d098a3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 'lava '
+    second: {fileID: 2100000, guid: 378e0fd4149893f40910030ba0e2ae3d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lava_
+    second: {fileID: 2100000, guid: 378e0fd4149893f40910030ba0e2ae3d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pedra
+    second: {fileID: 2100000, guid: 82dbc55a65451f34abe020d2b55a0004, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ponta
+    second: {fileID: 2100000, guid: 507a37b8a201d9d459dce97da10b2462, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: predio
+    second: {fileID: 2100000, guid: 69404007432dde94899ef3996a11482b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
     materialSearch: 1
     materialLocation: 1
-    searchTexturesGlobally: 1
+    searchTexturesGlobally: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -95,7 +140,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
-    globalScale: 0.01
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
