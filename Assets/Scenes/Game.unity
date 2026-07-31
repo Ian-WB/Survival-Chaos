@@ -13609,7 +13609,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 0}
-  radiusOffset: 25
+  radiusOffset: 0
 --- !u!1 &919132149536594334
 GameObject:
   m_ObjectHideFlags: 0
