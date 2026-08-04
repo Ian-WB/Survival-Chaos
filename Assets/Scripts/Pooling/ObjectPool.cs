@@ -86,19 +86,22 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Creates instances up front so the first volley of a fight does not
-        /// pay for them mid-frame.
+        /// Builds the pool up to <paramref name="idleCount"/> spare instances,
+        /// so the opening volley does not pay to create them mid-fight.
+        ///
+        /// Tops up rather than adds, so calling it repeatedly is harmless - the
+        /// boss warms itself every time one spawns.
         /// </summary>
-        public static void Prewarm(GameObject prefab, int count)
+        public static void Warm(GameObject prefab, int idleCount)
         {
-            if (prefab == null || count <= 0)
+            if (prefab == null || idleCount <= 0)
             {
                 return;
             }
 
             Stack<GameObject> bucket = Bucket(prefab);
 
-            for (int i = 0; i < count; i++)
+            while (bucket.Count < idleCount)
             {
                 GameObject instance = Object.Instantiate(prefab, Root);
                 instance.AddComponent<PooledInstance>().Source = prefab;

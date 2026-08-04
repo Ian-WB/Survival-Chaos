@@ -28,11 +28,11 @@ public class Enemy : MonoBehaviour
     {
         if (other.CompareTag("Shoot"))
         {
-            Destroy(other.gameObject);
+            ObjectPool.Despawn(other.gameObject);
 
             if (health.TakeDamage(1))
             {
-                Instantiate(explosion, transform.position, transform.rotation);
+                ObjectPool.Spawn(explosion, transform.position, transform.rotation);
                 Death();
                 Destroy(gameObject);
             }
