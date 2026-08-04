@@ -47,15 +47,15 @@ public class Enemy_1 : MonoBehaviour
     {
         if (other.CompareTag("Shoot"))
         {
-            Destroy(other.gameObject);
+            ObjectPool.Despawn(other.gameObject);
 
-            Instantiate(enemyHit, childObject.transform.position, childObject.transform.rotation);
+            ObjectPool.Spawn(enemyHit, childObject.transform.position, childObject.transform.rotation);
 
             // Death effects and the reward now fire here rather than from
             // Update(), which only ever ran because Destroy is deferred.
             if (health.TakeDamage(1))
             {
-                Instantiate(explosion, transform.position, transform.rotation);
+                ObjectPool.Spawn(explosion, transform.position, transform.rotation);
                 Death();
                 Destroy(gameObject);
             }
@@ -80,14 +80,14 @@ public class Enemy_1 : MonoBehaviour
         // lookup would throw for the whole lifetime of a mis-wired prefab.
         if (movement != null && movement.leftOrRight)
         {
-            Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
         }
 
         else
         {
-            Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            Instantiate(shootPrefab1, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(shootPrefab1, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
         }
     }
 

@@ -65,6 +65,33 @@ namespace SurvivalChaos
             {
                 timers[i] = new VolleyTimer(Time.time, attacks[i].initialDelay);
             }
+
+            WarmProjectilePools();
+        }
+
+        /// <summary>
+        /// Builds one volley's worth of every projectile the boss can fire,
+        /// during its entrance rather than during the fight.
+        ///
+        /// The opening volley is the largest simultaneous spawn in the game, and
+        /// it lands at the climax. One volley per travel direction is the useful
+        /// amount: it covers the first shot of each attack and lets the rest grow
+        /// on its own, without stalling the entrance to build a pool six volleys
+        /// deep. The size needs no tuning - an attack fires one projectile per
+        /// pivot, so the pivots already say how many.
+        /// </summary>
+        private void WarmProjectilePools()
+        {
+            foreach (BossAttack attack in attacks)
+            {
+                if (attack == null || attack.pivots == null)
+                {
+                    continue;
+                }
+
+                ObjectPool.Warm(attack.projectileWhenLeft, attack.pivots.Length);
+                ObjectPool.Warm(attack.projectileWhenRight, attack.pivots.Length);
+            }
         }
 
         private void Update()
@@ -104,7 +131,7 @@ namespace SurvivalChaos
             {
                 if (pivot != null)
                 {
-                    Instantiate(projectile, pivot.position, Quaternion.identity);
+                    ObjectPool.Spawn(projectile, pivot.position, Quaternion.identity);
                 }
             }
         }
@@ -118,7 +145,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            Destroy(other.gameObject);
+            ObjectPool.Despawn(other.gameObject);
 
             bool killed = health.TakeDamage(1);
 

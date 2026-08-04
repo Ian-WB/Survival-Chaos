@@ -28,6 +28,20 @@ public class Player : MonoBehaviour, ISkillTarget
              "use double this. Scales with the arena - it was 3 when the arena was ten times larger.")]
     private float shotSpacing = 0.3f;
 
+    [Header("Pooling")]
+    [SerializeField]
+    [Tooltip("How many of each bullet type to build before the run starts, so the opening " +
+             "volleys don't create them mid-frame. Roughly (bullet lifetime / fire interval) " +
+             "x shots per volley - 2s / 0.5s x 5 is 20, plus headroom for attack speed upgrades, " +
+             "which shorten the interval and so raise how many are in the air at once.")]
+    private int projectileWarmup = 24;
+
+    /// <summary>
+    /// Hit effects last longer than bullets but only appear when the player is
+    /// struck, so a few is plenty; the pool grows on its own if it needs to.
+    /// </summary>
+    private const int HitEffectWarmup = 4;
+
     [Header("Delay")]
     [SerializeField]
     [Range(0f, 10f)]
@@ -101,6 +115,11 @@ public class Player : MonoBehaviour, ISkillTarget
         //instantiatedChild.transform.localPosition = prefabOffset;
         expBar.setMaxExp(maxExperience);
         expBar.setCurrentExp(currentExperience);
+
+        // Runs before the first volley - Awake schedules Shoot with a delay.
+        ObjectPool.Warm(shootPrefab, projectileWarmup);
+        ObjectPool.Warm(shootPrefab1, projectileWarmup);
+        ObjectPool.Warm(playerHit, HitEffectWarmup);
     }
 
     // Update is called once per frame
@@ -120,7 +139,7 @@ public class Player : MonoBehaviour, ISkillTarget
         {
 
             healthPoints--;
-            Instantiate (playerHit , transform.position , transform.rotation);
+            ObjectPool.Spawn(playerHit, transform.position , transform.rotation);
 
             // Was missing, so bullet damage was invisible until death.
             healthBar.SetHealth(healthPoints);
@@ -139,7 +158,7 @@ public class Player : MonoBehaviour, ISkillTarget
             // Update Health Points
             
             healthPoints--;
-             Instantiate (playerHit , transform.position , transform.rotation);
+             ObjectPool.Spawn(playerHit, transform.position , transform.rotation);
             
             healthBar.SetHealth(healthPoints);
 
@@ -180,70 +199,70 @@ public class Player : MonoBehaviour, ISkillTarget
 
         if (rotate)
         {
-            Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
 
             // tiro duplo
             if(tiroDuplo){
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro triplo
             else if(tiroTriplo){
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro para ambos os lados
             else if(tiroAtras)
             {
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 
             }
             else if(sextuplo)
             {
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
         }
         else
         {
-            Instantiate(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
 
             // tiro duplo
             if(tiroDuplo){
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro triplo
             else if(tiroTriplo){
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro para ambos os lados
             else if(tiroAtras)
             {
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             else if(sextuplo)
             {
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
         }
     }

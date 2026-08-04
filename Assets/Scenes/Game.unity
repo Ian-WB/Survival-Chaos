@@ -11240,6 +11240,7 @@ MonoBehaviour:
   shootPrefab: {fileID: 6051693256502410095, guid: 0172e631f10defe46b80815a12e43d15, type: 3}
   shootPrefab1: {fileID: 6051693256502410095, guid: c9f562c4bce43d1458538a9d90806415, type: 3}
   shotSpacing: 0.3
+  projectileWarmup: 24
   initialDelay: 1
   spawnDelay: 0.5
   childPrefab: {fileID: 3661885094213184039, guid: c318732fc4e8226469361daf47555431, type: 3}
