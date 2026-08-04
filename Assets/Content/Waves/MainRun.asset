@@ -16,10 +16,10 @@ MonoBehaviour:
   streams:
   - label: Enemy -> Enemy 2
     prefab: {fileID: 2752971980227408059, guid: 778f3559fb4e69141b81f3753e36c18d, type: 3}
-    position: {x: -4.8, y: 68.409996, z: 386.9}
+    position: {x: -0.48, y: 6.841, z: 38.69}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 0
     interval: 8
     intervalScale: 0.8
@@ -27,10 +27,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: Enemy(1) -> Enemy 2
     prefab: {fileID: 2752971980227408059, guid: 778f3559fb4e69141b81f3753e36c18d, type: 3}
-    position: {x: -18.1, y: 49, z: -213.7}
+    position: {x: -1.81, y: 4.9, z: -21.37}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 5
     interval: 10
     intervalScale: 0.8
@@ -38,10 +38,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (6) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: 265, y: 82, z: 101}
+    position: {x: 26.5, y: 8.2, z: 10.1}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 11
     interval: 60
     intervalScale: 0.9
@@ -49,10 +49,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (7) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: 265, y: 57.409996, z: 101}
+    position: {x: 26.5, y: 5.741, z: 10.1}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 11
     interval: 60
     intervalScale: 0.9
@@ -60,10 +60,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: -94.5, y: 57.409996, z: 386.9}
+    position: {x: -9.45, y: 5.741, z: 38.69}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 11
     interval: 60
     intervalScale: 0.9
@@ -71,10 +71,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (2) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: -94.5, y: 29, z: 386.9}
+    position: {x: -9.45, y: 2.9, z: 38.69}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 13
     interval: 60
     intervalScale: 0.9
@@ -82,10 +82,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (5) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: 59, y: 29, z: -213}
+    position: {x: 5.9, y: 2.9, z: -21.3}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 13
     interval: 60
     intervalScale: 0.9
@@ -93,10 +93,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (8) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: 265, y: 29, z: 101}
+    position: {x: 26.5, y: 2.9, z: 10.1}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 13
     interval: 60
     intervalScale: 0.9
@@ -104,10 +104,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (10) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: -267, y: 57.409996, z: -31}
+    position: {x: -26.7, y: 5.741, z: -3.1}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 14
     interval: 60
     intervalScale: 0.9
@@ -115,10 +115,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (3) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: 59, y: 82, z: -213}
+    position: {x: 5.9, y: 8.2, z: -21.3}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 14
     interval: 60
     intervalScale: 0.9
@@ -126,10 +126,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (4) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: 59, y: 57.409996, z: -213}
+    position: {x: 5.9, y: 5.741, z: -21.3}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 14
     interval: 60
     intervalScale: 0.9
@@ -137,10 +137,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (9) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: -267, y: 82, z: -31}
+    position: {x: -26.7, y: 8.2, z: -3.1}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 14
     interval: 60
     intervalScale: 0.9
@@ -148,10 +148,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (1) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: -94.5, y: 82, z: 386.9}
+    position: {x: -9.45, y: 8.2, z: 38.69}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 15
     interval: 60
     intervalScale: 0.9
@@ -159,10 +159,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: ObstacleEnemySpawn (11) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
-    position: {x: -267, y: 29, z: -31}
+    position: {x: -26.7, y: 2.9, z: -3.1}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 8}
+    yOffsetRange: {x: -1.1, y: 0.8}
     startDelay: 15
     interval: 60
     intervalScale: 0.9
@@ -170,10 +170,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: Enemy 2 -> Enemy
     prefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
-    position: {x: 118, y: 68.409996, z: 346}
+    position: {x: 11.8, y: 6.841, z: 34.6}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 90
     interval: 20
     intervalScale: 0.9
@@ -181,10 +181,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: Enemy 2 (1) -> Enemy
     prefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
-    position: {x: -188, y: 68.409996, z: -202}
+    position: {x: -18.8, y: 6.841, z: -20.2}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 120
     interval: 20
     intervalScale: 0.9
@@ -192,10 +192,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: Enemy3(1) -> Enemy 1
     prefab: {fileID: 2752971980227408059, guid: 5bacc39a5fcb74344accc15c4f97bf14, type: 3}
-    position: {x: 313.5, y: 49, z: 14.6}
+    position: {x: 31.35, y: 4.9, z: 1.46}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 140
     interval: 60
     intervalScale: 0.9
@@ -203,10 +203,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: Enemy3 -> Enemy 1
     prefab: {fileID: 2752971980227408059, guid: 5bacc39a5fcb74344accc15c4f97bf14, type: 3}
-    position: {x: -268.5, y: 67.8, z: 51.9}
+    position: {x: -26.85, y: 6.78, z: 5.19}
     rotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 170
     interval: 60
     intervalScale: 0.9
@@ -214,10 +214,10 @@ MonoBehaviour:
     minInterval: 0.1
   - label: BossSpawn -> Boss
     prefab: {fileID: 2752971980227408059, guid: 16ffec50ecaea2b47a6a45d6eeb4ca56, type: 3}
-    position: {x: -18.1, y: 49, z: -213.7}
+    position: {x: -1.81, y: 4.9, z: -21.37}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: -1.1, y: 1.1}
     startDelay: 300
     interval: 99999
     intervalScale: 0.9

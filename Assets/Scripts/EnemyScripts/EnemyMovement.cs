@@ -67,7 +67,7 @@ void Update()
             
         
 
-            if(Vector3.Distance(transform.position, player.position) <= 150)
+            if(Vector3.Distance(transform.position, player.position) <= 15)
             {
                 Vector3 dir = player.position - transform.position;
                 dir.x = 0;

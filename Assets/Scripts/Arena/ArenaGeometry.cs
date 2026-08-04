@@ -15,7 +15,7 @@ namespace SurvivalChaos
         /// Distance from the arena axis that enemies converge to and hold.
         /// Anything meant to share a lane with them belongs at this radius.
         /// </summary>
-        public const float OrbitRadius = 137.2f;
+        public const float OrbitRadius = 13.72f;
 
         /// <summary>
         /// Moves a point onto the orbit circle, keeping its bearing around the

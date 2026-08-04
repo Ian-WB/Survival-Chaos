@@ -23,6 +23,11 @@ public class Player : MonoBehaviour, ISkillTarget
     [SerializeField]
     private GameObject shootPrefab1;
 
+    [SerializeField]
+    [Tooltip("Vertical gap between multi-shot bullets, in world units. The wider spreads " +
+             "use double this. Scales with the arena - it was 3 when the arena was ten times larger.")]
+    private float shotSpacing = 0.3f;
+
     [Header("Delay")]
     [SerializeField]
     [Range(0f, 10f)]
@@ -179,32 +184,32 @@ public class Player : MonoBehaviour, ISkillTarget
 
             // tiro duplo
             if(tiroDuplo){
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro triplo
             else if(tiroTriplo){
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro para ambos os lados
             else if(tiroAtras)
             {
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -6f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 
             }
             else if(sextuplo)
             {
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -6f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
         }
         else
@@ -213,32 +218,32 @@ public class Player : MonoBehaviour, ISkillTarget
 
             // tiro duplo
             if(tiroDuplo){
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro triplo
             else if(tiroTriplo){
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             // tiro para ambos os lados
             else if(tiroAtras)
             {
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, 6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
                 Instantiate(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -6f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
             else if(sextuplo)
             {
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -3f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, 6f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -6f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
+                Instantiate(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
             }
         }
     }
