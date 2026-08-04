@@ -16,7 +16,7 @@ MonoBehaviour:
   interCascadeBorders: 1
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 400
+    m_Value: 500
   directionalTransmissionMultiplier:
     m_OverrideState: 0
     m_Value: 1
@@ -44,6 +44,25 @@ MonoBehaviour:
   cascadeShadowBorder3:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &-7085240614803176425
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32b6af8f7ad32324cb6941c3290e5895, type: 3}
+  m_Name: MicroShadowing
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.MicroShadowing
+  active: 1
+  enable:
+    m_OverrideState: 0
+    m_Value: 0
+  opacity:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!114 &-1648992003973996764
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -87,6 +106,61 @@ MonoBehaviour:
   minSolidAngle:
     m_OverrideState: 0
     m_Value: 4
+--- !u!114 &-208205261953859417
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56b145d2b9ee1ac4f846968484e7485a, type: 3}
+  m_Name: ContactShadows
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.ContactShadows
+  active: 1
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
+  enable:
+    m_OverrideState: 1
+    m_Value: 0
+  directionalOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  halfResolution:
+    m_OverrideState: 0
+    m_Value: 0
+  length:
+    m_OverrideState: 0
+    m_Value: 0.15
+  opacity:
+    m_OverrideState: 0
+    m_Value: 1
+  distanceScaleFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+  maxDistance:
+    m_OverrideState: 0
+    m_Value: 50
+  minDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeDistance:
+    m_OverrideState: 0
+    m_Value: 5
+  fadeInDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  rayBias:
+    m_OverrideState: 0
+    m_Value: 0.2
+  thicknessScale:
+    m_OverrideState: 0
+    m_Value: 0.15
+  m_SampleCount:
+    m_OverrideState: 0
+    m_Value: 10
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -107,6 +181,8 @@ MonoBehaviour:
   - {fileID: -8060902914045109898}
   - {fileID: 5090587302978701541}
   - {fileID: 8837919303990125290}
+  - {fileID: -208205261953859417}
+  - {fileID: -7085240614803176425}
 --- !u!114 &3770913140674972688
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -522,7 +598,7 @@ MonoBehaviour:
   active: 1
   quality:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 1
   enable:
     m_OverrideState: 1
     m_Value: 1
@@ -574,16 +650,16 @@ MonoBehaviour:
     m_Value: 7
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 250
+    m_Value: 50
   m_ClampValue:
     m_OverrideState: 0
     m_Value: 100
   mode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
   m_FullResolution:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   sampleCount:
     m_OverrideState: 0
     m_Value: 2
@@ -604,7 +680,7 @@ MonoBehaviour:
     m_Value: 1
   m_MaxMixedRaySteps:
     m_OverrideState: 1
-    m_Value: 64
+    m_Value: 48
   receiverMotionRejection:
     m_OverrideState: 0
     m_Value: 1
