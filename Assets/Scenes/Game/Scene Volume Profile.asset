@@ -75,7 +75,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d877a03bef431a847adca8ab343db3e1, type: 3}
   m_Name: RayTracingSettings
   m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.RayTracingSettings
-  active: 0
+  active: 1
   rayBias:
     m_OverrideState: 0
     m_Value: 0.001
@@ -87,7 +87,7 @@ MonoBehaviour:
     m_Value: 1
   extendCameraCulling:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   directionalShadowRayLength:
     m_OverrideState: 0
     m_Value: 1000
@@ -351,13 +351,13 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   enabled:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   enabledTransparent:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   tracing:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   m_MinSmoothness:
     m_OverrideState: 0
@@ -598,7 +598,7 @@ MonoBehaviour:
   active: 1
   quality:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 3
   enable:
     m_OverrideState: 1
     m_Value: 1
