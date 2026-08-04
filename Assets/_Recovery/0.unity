@@ -4430,7 +4430,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -1.531559, y: 4.570272}
+  m_Offset: {x: -1.531559, y: 8.474141}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -4440,7 +4440,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 53.94834, y: 32.35954}
+  m_Size: {x: 53.94834, y: 24.551802}
   m_EdgeRadius: 0
 --- !u!1 &993896431
 GameObject:
@@ -18700,7 +18700,7 @@ Transform:
   m_GameObject: {fileID: 1813644026654590026}
   serializedVersion: 2
   m_LocalRotation: {x: -8.3343125e-17, y: 0.87252235, z: 8.3343125e-17, w: 0.48857418}
-  m_LocalPosition: {x: 90.53184, y: 37.75, z: -107.37908}
+  m_LocalPosition: {x: 90.53184, y: 37.68, z: -107.37908}
   m_LocalScale: {x: 0.99999994, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21454,7 +21454,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
+  m_ReceiveGI: 2
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
