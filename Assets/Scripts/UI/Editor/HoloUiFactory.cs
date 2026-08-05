@@ -224,8 +224,12 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// A button: a holo panel that takes raycasts, with a label. Colour tint
-        /// on hover rather than a swapped sprite, because there are no sprites.
+        /// A button: a holo panel that takes raycasts, with a label.
+        ///
+        /// Highlighting is done by HoloButtonHighlight driving the shader, not by
+        /// Unity's colour tint. A tint fades the whole image at once - fill
+        /// included - which flattens the frame instead of sharpening it, and it
+        /// cannot reach the glow, the brackets or the sweep at all.
         /// </summary>
         public static Button CreateButton(Transform parent, string name, Vector2 anchor, Vector2 pivot,
             Vector2 position, Vector2 size, Material panelMaterial, string label, float fontSize)
@@ -236,21 +240,63 @@ namespace SurvivalChaos.EditorTools
 
             Button button = Undo.AddComponent<Button>(image.gameObject);
             button.targetGraphic = image;
-            button.transition = Selectable.Transition.ColorTint;
-
-            ColorBlock colors = button.colors;
-            colors.normalColor = new Color(1f, 1f, 1f, 0.85f);
-            colors.highlightedColor = Color.white;
-            colors.pressedColor = new Color(0.6f, 0.9f, 1f, 1f);
-            colors.selectedColor = Color.white;
-            colors.disabledColor = new Color(1f, 1f, 1f, 0.3f);
-            colors.fadeDuration = 0.08f;
-            button.colors = colors;
+            button.transition = Selectable.Transition.None;
 
             RectTransform rect = (RectTransform)image.transform;
             TextMeshProUGUI text = CreateText(rect, "Label", new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), Vector2.zero, size, fontSize, TextAlignmentOptions.Center);
             text.text = label;
+
+            HoloButtonHighlight highlight = Undo.AddComponent<HoloButtonHighlight>(image.gameObject);
+            SerializedObject so = new SerializedObject(highlight);
+            so.FindProperty("panel").objectReferenceValue = image;
+            so.FindProperty("label").objectReferenceValue = text;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return button;
+        }
+
+        /// <summary>
+        /// A title-screen menu line: an accent bar and a left-aligned label, with
+        /// no frame around them.
+        ///
+        /// Deliberately not CreateButton. A boxed button is right for a dialog
+        /// the player is being held in, and wrong for a title screen, where the
+        /// artwork is the point and a row of panels sits on top of it like a
+        /// sticker. Highlighting is handled by HoloMenuEntry rather than a colour
+        /// tint, because there is no panel left to tint.
+        /// </summary>
+        public static Button CreateMenuEntry(Transform parent, string name, Vector2 anchor,
+            Vector2 pivot, Vector2 position, Vector2 size, string label, float fontSize)
+        {
+            RectTransform rect = CreateRect(parent, name, anchor, pivot, position, size);
+
+            // Invisible, but still the thing that catches the pointer - the row
+            // should respond anywhere along it, not only on the glyphs.
+            Image hit = Undo.AddComponent<Image>(rect.gameObject);
+            hit.color = new Color(0f, 0f, 0f, 0f);
+            hit.raycastTarget = true;
+
+            Button button = Undo.AddComponent<Button>(rect.gameObject);
+            button.targetGraphic = hit;
+            button.transition = Selectable.Transition.None;
+
+            RectTransform accent = CreateRect(rect, "Accent", new Vector2(0f, 0.5f),
+                new Vector2(0f, 0.5f), Vector2.zero, new Vector2(4f, size.y * 0.6f));
+            Image accentImage = Undo.AddComponent<Image>(accent.gameObject);
+            accentImage.raycastTarget = false;
+            accentImage.color = Edge;
+
+            TextMeshProUGUI text = CreateText(rect, "Label", new Vector2(0f, 0.5f),
+                new Vector2(0f, 0.5f), new Vector2(30f, 0f), new Vector2(size.x - 30f, size.y),
+                fontSize, TextAlignmentOptions.Left);
+            text.text = label;
+
+            HoloMenuEntry entry = Undo.AddComponent<HoloMenuEntry>(rect.gameObject);
+            SerializedObject so = new SerializedObject(entry);
+            so.FindProperty("label").objectReferenceValue = text.transform;
+            so.FindProperty("accent").objectReferenceValue = accent;
+            so.ApplyModifiedPropertiesWithoutUndo();
 
             return button;
         }
