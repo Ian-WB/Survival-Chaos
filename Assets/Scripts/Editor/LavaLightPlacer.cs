@@ -87,7 +87,7 @@ namespace SurvivalChaos.EditorTools
         private static void CollectLavaSurface(Material lava, List<Vector3> points, List<Vector3> normals)
         {
             foreach (MeshRenderer renderer in Object.FindObjectsByType<MeshRenderer>(
-                         FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+                         FindObjectsInactive.Exclude))
             {
                 Material[] materials = renderer.sharedMaterials;
                 MeshFilter filter = renderer.GetComponent<MeshFilter>();

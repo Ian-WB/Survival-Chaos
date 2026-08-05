@@ -7,42 +7,35 @@ using UnityEngine.UI;
 namespace SurvivalChaos.EditorTools
 {
     /// <summary>
-    /// Builds the holographic HUD and repoints the existing gameplay scripts at it.
+    /// Builds the holographic HUD, repoints the gameplay scripts at it, and
+    /// retires the old one.
     ///
     /// The interface is generated rather than assembled by hand for the same
     /// reason the sky is: it is defined by numbers, and numbers belong in a file
     /// that can be re-run. Nudging thirty rect transforms by hand and hoping they
-    /// still line up at another aspect ratio is how the old one ended up as it
-    /// was.
+    /// still line up at another aspect ratio is how the old one ended up as it was.
     ///
-    /// This adds a new HUD next to the old one rather than deleting anything. The
-    /// old canvas is left alone so the two can be compared, and so a mistake here
-    /// costs nothing. Every step is registered with Undo, so one Ctrl+Z reverts
-    /// the whole build.
+    /// Every step is registered with Undo, so one Ctrl+Z reverts the whole build.
     ///
     /// Deliberately in its own assembly: the other editor tools reference HDRP and
     /// cannot go back to the URP branch, whereas nothing here is pipeline specific.
     /// </summary>
     public static class HoloUiBuilder
     {
-        // The interface is authored against this. Scale With Screen Size then
-        // handles every other resolution, which is exactly what the old canvas -
-        // set to Constant Pixel Size - was not doing.
-        private static readonly Vector2 ReferenceResolution = new Vector2(1920f, 1080f);
-
-        private const string MaterialFolder = "Assets/UI/Materials";
         private const string BossBarTag = "bossHpBar";
+        private const string RootName = "HUD (Holo)";
 
-        // Palette. Cyan-white line work over a cold dark fill: high contrast
-        // against the orange lava that dominates the scene, so the HUD never
-        // competes with the thing the player is looking at.
-        private static readonly Color EdgeCyan = new Color(0.55f, 0.95f, 1.00f, 1.00f);
-        private static readonly Color FillCyan = new Color(0.30f, 0.85f, 1.00f, 1.00f);
-        private static readonly Color PanelFill = new Color(0.03f, 0.14f, 0.20f, 0.42f);
-        private static readonly Color TrackDark = new Color(0.03f, 0.12f, 0.17f, 0.55f);
-        private static readonly Color LossRed = new Color(1.00f, 0.32f, 0.34f, 1.00f);
-        private static readonly Color HealthGreen = new Color(0.40f, 1.00f, 0.80f, 1.00f);
-        private static readonly Color BossOrange = new Color(1.00f, 0.55f, 0.25f, 1.00f);
+        /// <summary>
+        /// The old HUD objects. These are stripped of their visuals rather than
+        /// deleted, because several of them carry gameplay components - HealthBar
+        /// sits on the object called "HealthBar", ExpBar on "XpBar", BossHpBar on
+        /// "bossHpBar". Deleting those would take the components with them and
+        /// leave Player's references pointing at nothing.
+        /// </summary>
+        private static readonly string[] OldHudObjects =
+        {
+            "HealthBar", "XpBar", "timeBar", "bossHpBar", "LevelUpText"
+        };
 
         [MenuItem("Survival Chaos/UI/Rebuild HUD", priority = 20)]
         public static void RebuildHud()
@@ -50,36 +43,44 @@ namespace SurvivalChaos.EditorTools
             Canvas canvas = FindCanvas();
             if (canvas == null)
             {
-                EditorUtility.DisplayDialog(
-                    "No canvas",
-                    "Open the Game scene first - this needs a Canvas to build into.",
-                    "OK");
+                EditorUtility.DisplayDialog("No canvas",
+                    "Open the Game scene first - this needs a Canvas to build into.", "OK");
                 return;
             }
 
             ConfigureCanvas(canvas);
 
-            Material barMaterial = EnsureMaterial("HoloBar", "Survival Chaos/Holo Bar");
-            Material panelMaterial = EnsureMaterial("HoloPanel", "Survival Chaos/Holo Panel");
+            Material bar = HoloUiFactory.EnsureBaseMaterial("HoloBar", "Survival Chaos/Holo Bar");
+            Material panel = HoloUiFactory.EnsureBaseMaterial("HoloPanel", "Survival Chaos/Holo Panel");
+            if (bar == null || panel == null)
+            {
+                return;
+            }
 
-            GameObject root = ReplaceRoot(canvas.transform, "HUD (Holo)");
+            GameObject root = HoloUiFactory.ReplaceRoot(canvas.transform, RootName);
 
-            BuildHealth(root.transform, barMaterial);
-            BuildExperience(root.transform, barMaterial);
-            BuildTimer(root.transform, barMaterial);
-            BuildBossBar(root.transform, barMaterial);
-            BuildLevelUpBanner(root.transform, panelMaterial);
+            BuildHealth(root.transform, bar);
+            BuildExperience(root.transform, bar);
+            BuildTimer(root.transform, bar);
+            BuildBossBar(root.transform, bar);
+            BuildLevelUpBanner(root.transform, panel);
 
+            // Order matters: the components have to exist on the new objects
+            // before anything is wired to them, and everything has to be wired
+            // before the old objects are destroyed.
+            RelocateComponents(root.transform);
+            ConsolidateTimer(root.transform, canvas.transform);
             int wired = Rewire(root.transform);
+            RepointReferences(root.transform);
+            int removed = RetireOldHud(canvas.transform);
 
             AssetDatabase.SaveAssets();
             EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);
             Selection.activeGameObject = root;
 
             Debug.Log(
-                "Holo HUD built under '" + root.name + "'. " + wired + " script references repointed. " +
-                "The old UI is untouched - compare them, then delete the old objects when you are happy. " +
-                "Ctrl+Z reverts the whole build.", root);
+                "Holo HUD built. " + wired + " references repointed, " + removed +
+                " old HUD objects removed. Ctrl+Z reverts everything.", root);
         }
 
         private static Canvas FindCanvas()
@@ -95,16 +96,14 @@ namespace SurvivalChaos.EditorTools
             return null;
         }
 
-        /// <summary>
-        /// The two settings that caused the old interface to look low resolution.
-        /// </summary>
+        /// <summary>The two settings that made the old interface look low resolution.</summary>
         private static void ConfigureCanvas(Canvas canvas)
         {
             Undo.RecordObject(canvas, "Configure canvas");
 
-            // The shaders read each element's pixel size out of this channel. It
-            // is off by default, and without it every holo element draws at a
-            // fallback size.
+            // The shaders read each element's pixel size from this channel. It is
+            // off by default, and without it every holo element falls back to a
+            // fixed size and draws wrong.
             canvas.additionalShaderChannels |= AdditionalCanvasShaderChannels.TexCoord1;
             EditorUtility.SetDirty(canvas);
 
@@ -117,278 +116,107 @@ namespace SurvivalChaos.EditorTools
             Undo.RecordObject(scaler, "Configure canvas scaler");
 
             // Was Constant Pixel Size, which ignores the reference resolution
-            // entirely and pins the interface to physical pixels - so it shrank
-            // on every display better than the one it was authored on.
+            // entirely and pins the interface to physical pixels - so it shrank on
+            // every display better than the one it was authored on.
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = ReferenceResolution;
-            // Match on both axes equally, so an ultrawide monitor loses nothing
-            // off the sides and a 4:3 one loses nothing off the top.
+            scaler.referenceResolution = HoloUiFactory.ReferenceResolution;
+            // Match both axes equally: an ultrawide loses nothing off the sides,
+            // a 4:3 loses nothing off the top.
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5f;
             EditorUtility.SetDirty(scaler);
         }
 
-        private static Material EnsureMaterial(string name, string shaderName)
+        private static void BuildHealth(Transform parent, Material bar)
         {
-            string path = MaterialFolder + "/" + name + ".mat";
-            Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (existing != null)
-            {
-                return existing;
-            }
-
-            Shader shader = Shader.Find(shaderName);
-            if (shader == null)
-            {
-                Debug.LogError("Shader '" + shaderName + "' not found. Has it finished importing?");
-                return null;
-            }
-
-            if (!AssetDatabase.IsValidFolder("Assets/UI"))
-            {
-                AssetDatabase.CreateFolder("Assets", "UI");
-            }
-
-            if (!AssetDatabase.IsValidFolder(MaterialFolder))
-            {
-                AssetDatabase.CreateFolder("Assets/UI", "Materials");
-            }
-
-            Material material = new Material(shader) { name = name };
-            AssetDatabase.CreateAsset(material, path);
-            return material;
-        }
-
-        /// <summary>
-        /// Clears any previous build so the tool can be run repeatedly while the
-        /// layout is being tuned, without stacking copies.
-        /// </summary>
-        private static GameObject ReplaceRoot(Transform parent, string name)
-        {
-            Transform existing = parent.Find(name);
-            if (existing != null)
-            {
-                Undo.DestroyObjectImmediate(existing.gameObject);
-            }
-
-            GameObject root = new GameObject(name, typeof(RectTransform));
-            Undo.RegisterCreatedObjectUndo(root, "Build holo HUD");
-            RectTransform rect = (RectTransform)root.transform;
-            rect.SetParent(parent, false);
-            Stretch(rect);
-            return root;
-        }
-
-        private static void Stretch(RectTransform rect)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-        }
-
-        private static RectTransform CreateRect(Transform parent, string name,
-            Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
-        {
-            GameObject go = new GameObject(name, typeof(RectTransform));
-            Undo.RegisterCreatedObjectUndo(go, "Build holo HUD");
-
-            RectTransform rect = (RectTransform)go.transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchor;
-            rect.anchorMax = anchor;
-            rect.pivot = pivot;
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-            return rect;
-        }
-
-        /// <summary>
-        /// A bar: one image drawn entirely by the shader, plus a Slider that
-        /// exists only so the gameplay scripts have something to set. The slider
-        /// draws nothing itself - no fill rect, no handle - which is why the bar
-        /// can be a single quad rather than the four nested objects it was.
-        /// </summary>
-        private static Slider CreateBar(Transform parent, string name, Vector2 anchor, Vector2 pivot,
-            Vector2 position, Vector2 size, Material material, Color fill, float segments,
-            float lowThreshold)
-        {
-            RectTransform rect = CreateRect(parent, name, anchor, pivot, position, size);
-
-            Image image = Undo.AddComponent<Image>(rect.gameObject);
-            image.material = material;
-            image.raycastTarget = false;
-            image.color = Color.white;
-
-            Undo.AddComponent<HoloRectData>(rect.gameObject);
-
-            Slider slider = Undo.AddComponent<Slider>(rect.gameObject);
-            slider.transition = Selectable.Transition.None;
-            slider.interactable = false;
-            slider.navigation = new Navigation { mode = Navigation.Mode.None };
-            slider.minValue = 0f;
-            slider.maxValue = 1f;
-            slider.value = 1f;
-
-            HoloBar bar = Undo.AddComponent<HoloBar>(rect.gameObject);
-            ApplyBarSettings(bar, slider, lowThreshold);
-
-            // Per-bar colour lives on the element, not the shared material, so
-            // one material asset serves every bar.
-            TintBar(image, material, fill, segments);
-            return slider;
-        }
-
-        private static void ApplyBarSettings(HoloBar bar, Slider source, float lowThreshold)
-        {
-            SerializedObject so = new SerializedObject(bar);
-            so.FindProperty("source").objectReferenceValue = source;
-            so.FindProperty("lowThreshold").floatValue = lowThreshold;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        /// <summary>
-        /// Gives one element its own copy of the bar material so its colours and
-        /// segment count can differ from the others.
-        /// </summary>
-        private static void TintBar(Image image, Material source, Color fill, float segments)
-        {
-            Material variant = new Material(source) { name = image.name + " Material" };
-            variant.SetColor("_FillColor", fill);
-            variant.SetColor("_EdgeColor", EdgeCyan);
-            variant.SetColor("_TrackColor", TrackDark);
-            variant.SetColor("_GhostColor", LossRed);
-            variant.SetFloat("_Segments", segments);
-
-            image.material = SaveMaterial(variant, image.name.Replace(" ", string.Empty));
-        }
-
-        private static TextMeshProUGUI CreateText(Transform parent, string name, Vector2 anchor,
-            Vector2 pivot, Vector2 position, Vector2 size, float fontSize, TextAlignmentOptions align)
-        {
-            RectTransform rect = CreateRect(parent, name, anchor, pivot, position, size);
-
-            TextMeshProUGUI text = Undo.AddComponent<TextMeshProUGUI>(rect.gameObject);
-            text.fontSize = fontSize;
-            text.alignment = align;
-            text.color = EdgeCyan;
-            text.raycastTarget = false;
-
-            // Wide tracking and small caps is most of what makes plain type read
-            // as a technical readout. The bundled font is Liberation Sans, which
-            // is doing a lot of work here - a squarer face would lift it further.
-            text.characterSpacing = 8f;
-            text.fontStyle = FontStyles.UpperCase;
-            return text;
-        }
-
-        private static void BuildHealth(Transform parent, Material barMaterial)
-        {
-            CreateText(parent, "Health Label", new Vector2(0f, 0f), new Vector2(0f, 0f),
+            HoloUiFactory.CreateText(parent, "Health Label", Vector2.zero, Vector2.zero,
                 new Vector2(52f, 92f), new Vector2(300f, 24f), 18f, TextAlignmentOptions.Left)
                 .text = "Hull";
 
-            CreateBar(parent, "Health Bar", new Vector2(0f, 0f), new Vector2(0f, 0f),
-                new Vector2(48f, 48f), new Vector2(440f, 38f), barMaterial,
-                HealthGreen, 10f, 0.3f);
+            HoloUiFactory.CreateBar(parent, "Health Bar", Vector2.zero, Vector2.zero,
+                new Vector2(48f, 48f), new Vector2(440f, 38f), bar,
+                HoloUiFactory.Health, 10f, 0.3f);
         }
 
-        private static void BuildExperience(Transform parent, Material barMaterial)
+        private static void BuildExperience(Transform parent, Material bar)
         {
-            // Experience is read as an Image fill by ExpBar, not as a Slider, so
-            // this one has no Slider at all and HoloBar reads fillAmount instead.
-            RectTransform rect = CreateRect(parent, "XP Bar", new Vector2(0f, 0f), new Vector2(0f, 0f),
-                new Vector2(48f, 128f), new Vector2(440f, 14f));
+            // ExpBar reads an Image's fillAmount rather than a Slider, so this one
+            // has no Slider and HoloBar falls back to reading fillAmount.
+            Image image = HoloUiFactory.CreateBarImage(parent, "XP Bar", Vector2.zero, Vector2.zero,
+                new Vector2(48f, 128f), new Vector2(440f, 14f), bar, HoloUiFactory.Accent, 0f);
 
-            Image image = Undo.AddComponent<Image>(rect.gameObject);
-            image.material = barMaterial;
-            image.raycastTarget = false;
-            // Left as Simple on purpose. Filled would shorten the quad itself and
-            // the shader would then draw a whole bar inside that shortened piece.
-            // ExpBar can still set fillAmount; it is stored and read from here.
+            // Left as Simple deliberately. Filled would shorten the quad itself,
+            // and the shader would then draw a whole bar inside that short piece.
+            // ExpBar can still set fillAmount - it is stored, and read from here.
             image.type = Image.Type.Simple;
             image.fillAmount = 0f;
 
-            Undo.AddComponent<HoloRectData>(rect.gameObject);
+            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
+            // No source, and no low pulse: running out of experience is not an
+            // emergency, so it should not throb.
+            HoloUiFactory.ConfigureBar(holo, null, 0f);
 
-            HoloBar bar = Undo.AddComponent<HoloBar>(rect.gameObject);
-            // No source: falls back to this element's own fillAmount. No low
-            // pulse either - running out of experience is not an emergency.
-            ApplyBarSettings(bar, null, 0f);
-            TintBar(image, barMaterial, FillCyan, 0f);
-
-            CreateText(parent, "Level Text", new Vector2(0f, 0f), new Vector2(0f, 0f),
+            HoloUiFactory.CreateText(parent, "Level Text", Vector2.zero, Vector2.zero,
                 new Vector2(52f, 146f), new Vector2(300f, 24f), 16f, TextAlignmentOptions.Left)
                 .text = "Level 1";
         }
 
-        private static void BuildTimer(Transform parent, Material barMaterial)
+        private static void BuildTimer(Transform parent, Material bar)
         {
-            CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -44f), new Vector2(860f, 22f), barMaterial,
-                FillCyan, 20f, 0f);
+            HoloUiFactory.CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, -44f), new Vector2(860f, 22f), bar, HoloUiFactory.Accent, 20f, 0f);
 
-            CreateText(parent, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+            HoloUiFactory.CreateText(parent, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -20f), new Vector2(600f, 22f), 16f, TextAlignmentOptions.Center)
                 .text = "Incoming";
         }
 
-        private static void BuildBossBar(Transform parent, Material barMaterial)
+        private static void BuildBossBar(Transform parent, Material bar)
         {
-            Slider slider = CreateBar(parent, "Boss Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -44f), new Vector2(1200f, 44f), barMaterial,
-                BossOrange, 24f, 0.2f);
+            Slider slider = HoloUiFactory.CreateBar(parent, "Boss Bar", new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 1f), new Vector2(0f, -44f), new Vector2(1200f, 44f), bar,
+                HoloUiFactory.Boss, 24f, 0.2f);
 
             // BossEmitter finds this by tag at runtime, so the tag matters more
-            // than the name does.
+            // than the name.
             slider.gameObject.tag = BossBarTag;
 
-            CreateText(slider.transform, "Boss Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 0f),
-                new Vector2(0f, 8f), new Vector2(600f, 24f), 20f, TextAlignmentOptions.Center)
-                .text = "Leviathan";
+            HoloUiFactory.CreateText(slider.transform, "Boss Label", new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(600f, 24f), 20f,
+                TextAlignmentOptions.Center).text = "Leviathan";
 
             // Hidden until the timer runs out; BossHpBar switches it on.
             slider.gameObject.SetActive(false);
         }
 
-        private static void BuildLevelUpBanner(Transform parent, Material panelMaterial)
+        private static void BuildLevelUpBanner(Transform parent, Material panel)
         {
-            RectTransform rect = CreateRect(parent, "Level Up Banner", new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), new Vector2(0f, 220f), new Vector2(620f, 130f));
+            Image image = HoloUiFactory.CreatePanel(parent, "Level Up Banner",
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 220f),
+                new Vector2(620f, 130f), panel, HoloUiFactory.PanelFill, "LevelUpPanel");
 
-            Image panel = Undo.AddComponent<Image>(rect.gameObject);
-            panel.material = panelMaterial;
-            panel.raycastTarget = false;
-            panel.color = Color.white;
-            Undo.AddComponent<HoloRectData>(rect.gameObject);
+            HoloUiFactory.CreateText(image.transform, "Level Up Text", new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(560f, 100f), 30f,
+                TextAlignmentOptions.Center).text = "Level Up";
 
-            Material variant = new Material(panelMaterial) { name = "LevelUpPanel" };
-            variant.SetColor("_FillColor", PanelFill);
-            variant.SetColor("_EdgeColor", EdgeCyan);
-            panel.material = SaveMaterial(variant, "LevelUpPanel");
-
-            CreateText(rect, "Level Up Text", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                Vector2.zero, new Vector2(560f, 100f), 30f, TextAlignmentOptions.Center)
-                .text = "Level Up";
-
-            rect.gameObject.SetActive(false);
+            image.gameObject.SetActive(false);
         }
 
         /// <summary>
-        /// Points the existing gameplay scripts at the new elements. They are not
-        /// modified, only reconnected - the health bar still sets the same slider
-        /// value it always did.
+        /// Points the gameplay scripts at the new elements. They are not modified,
+        /// only reconnected - HealthBar still sets the same slider value it always
+        /// did. Inactive objects are included, because the boss bar and the menus
+        /// start switched off.
         /// </summary>
         private static int Rewire(Transform root)
         {
             int wired = 0;
 
-            Slider health = Find<Slider>(root, "Health Bar");
-            Slider timer = Find<Slider>(root, "Timer Bar");
-            Slider boss = Find<Slider>(root, "Boss Bar");
-            Image xp = Find<Image>(root, "XP Bar");
-            TextMeshProUGUI levelText = Find<TextMeshProUGUI>(root, "Level Text");
-            TextMeshProUGUI levelUpText = Find<TextMeshProUGUI>(root, "Level Up Text");
+            Slider health = HoloUiFactory.Find<Slider>(root, "Health Bar");
+            Slider boss = HoloUiFactory.Find<Slider>(root, "Boss Bar");
+            Image xp = HoloUiFactory.Find<Image>(root, "XP Bar");
+            TextMeshProUGUI levelText = HoloUiFactory.Find<TextMeshProUGUI>(root, "Level Text");
+            TextMeshProUGUI levelUpText = HoloUiFactory.Find<TextMeshProUGUI>(root, "Level Up Text");
 
             foreach (HealthBar target in Object.FindObjectsByType<HealthBar>(FindObjectsInactive.Include))
             {
@@ -407,14 +235,8 @@ namespace SurvivalChaos.EditorTools
                 wired++;
             }
 
-            foreach (Timer target in Object.FindObjectsByType<Timer>(FindObjectsInactive.Include))
-            {
-                Undo.RecordObject(target, "Rewire HUD");
-                target.timerSlider = timer;
-                target.timerBar = timer != null ? timer.gameObject : null;
-                EditorUtility.SetDirty(target);
-                wired++;
-            }
+            // Timer is handled by ConsolidateTimer, which has to pick between two
+            // differently configured copies rather than just wiring both.
 
             foreach (BossHpBar target in Object.FindObjectsByType<BossHpBar>(FindObjectsInactive.Include))
             {
@@ -440,44 +262,205 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// Searches the whole subtree, not just direct children - some elements
-        /// are nested, and Transform.Find would quietly return null for those.
+        /// Puts a copy of each HUD script on the new element it now describes.
+        ///
+        /// These components sat on the old bars - HealthBar on the object called
+        /// "HealthBar", ExpBar on "XpBar", BossHpBar on "bossHpBar" - so the old
+        /// objects could not be deleted without taking them along. Recreating them
+        /// here is what makes the old HUD genuinely disposable.
         /// </summary>
-        private static T Find<T>(Transform root, string name) where T : Component
+        private static void RelocateComponents(Transform root)
         {
-            foreach (T candidate in root.GetComponentsInChildren<T>(includeInactive: true))
+            Player player = Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include);
+
+            Slider health = HoloUiFactory.Find<Slider>(root, "Health Bar");
+            if (health != null && health.GetComponent<HealthBar>() == null)
             {
-                if (candidate.gameObject.name == name)
+                Undo.AddComponent<HealthBar>(health.gameObject);
+            }
+
+            Image xp = HoloUiFactory.Find<Image>(root, "XP Bar");
+            if (xp != null && xp.GetComponent<ExpBar>() == null)
+            {
+                ExpBar bar = Undo.AddComponent<ExpBar>(xp.gameObject);
+                bar.player = player;
+            }
+
+            Slider boss = HoloUiFactory.Find<Slider>(root, "Boss Bar");
+            if (boss != null && boss.GetComponent<BossHpBar>() == null)
+            {
+                Undo.AddComponent<BossHpBar>(boss.gameObject);
+            }
+        }
+
+        /// <summary>
+        /// Reduces the scene to a single, correctly configured Timer.
+        ///
+        /// There were two, both active and both driving the same slider. One had
+        /// gameTime 300 and a wired boss bar; the other had gameTime 60 and a null
+        /// one, so from sixty seconds in it called showHpBar() on nothing - an
+        /// exception every frame - and the two disagreed about the slider's
+        /// maxValue, which made the bar's scale depend on component start order.
+        ///
+        /// The configured one wins. Its settings are carried over to a single
+        /// Timer on a non-UI host, so the countdown no longer lives on a bar that
+        /// switches itself off.
+        /// </summary>
+        private static void ConsolidateTimer(Transform root, Transform canvas)
+        {
+            Timer[] existing = Object.FindObjectsByType<Timer>(FindObjectsInactive.Include);
+
+            // Prefer whichever was actually set up. Falling back to the longest
+            // countdown keeps the boss arriving late rather than immediately, if
+            // some future scene has neither wired.
+            Timer authority = null;
+            foreach (Timer candidate in existing)
+            {
+                if (candidate.bossHpBar != null)
+                {
+                    authority = candidate;
+                    break;
+                }
+
+                if (authority == null || ReadGameTime(candidate) > ReadGameTime(authority))
+                {
+                    authority = candidate;
+                }
+            }
+
+            float gameTime = authority != null ? ReadGameTime(authority) : 300f;
+            GameObject host = authority != null && !IsOldHud(authority.gameObject)
+                ? authority.gameObject
+                : PickTimerHost(existing, canvas);
+
+            foreach (Timer old in existing)
+            {
+                Undo.DestroyObjectImmediate(old);
+            }
+
+            Timer timer = Undo.AddComponent<Timer>(host);
+            Slider bar = HoloUiFactory.Find<Slider>(root, "Timer Bar");
+            timer.timerSlider = bar;
+            timer.timerBar = bar != null ? bar.gameObject : null;
+            // Specifically the new one. A scene-wide search could return the old
+            // BossHpBar, which is about to be destroyed - leaving the countdown
+            // pointing at nothing exactly as the boss arrives.
+            timer.bossHpBar = HoloUiFactory.Find<BossHpBar>(root, "Boss Bar");
+
+            SerializedObject so = new SerializedObject(timer);
+            so.FindProperty("gameTime").floatValue = gameTime;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            Debug.Log("Timer consolidated onto '" + host.name + "' with gameTime " + gameTime +
+                      ", replacing " + existing.Length + ".");
+        }
+
+        private static float ReadGameTime(Timer timer)
+        {
+            return new SerializedObject(timer).FindProperty("gameTime").floatValue;
+        }
+
+        /// <summary>
+        /// Somewhere that is not part of the HUD, so the countdown keeps running
+        /// when the timer bar hides itself.
+        /// </summary>
+        private static GameObject PickTimerHost(Timer[] existing, Transform canvas)
+        {
+            foreach (Timer candidate in existing)
+            {
+                if (!IsOldHud(candidate.gameObject))
+                {
+                    return candidate.gameObject;
+                }
+            }
+
+            return canvas.gameObject;
+        }
+
+        private static bool IsOldHud(GameObject candidate)
+        {
+            foreach (string name in OldHudObjects)
+            {
+                if (candidate.name == name)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Repoints what referenced the relocated components. Player holds direct
+        /// references to HealthBar and ExpBar, and those would be left pointing at
+        /// objects about to be destroyed.
+        /// </summary>
+        private static void RepointReferences(Transform root)
+        {
+            HealthBar health = HoloUiFactory.Find<HealthBar>(root, "Health Bar");
+            ExpBar experience = HoloUiFactory.Find<ExpBar>(root, "XP Bar");
+
+            foreach (Player player in Object.FindObjectsByType<Player>(FindObjectsInactive.Include))
+            {
+                Undo.RecordObject(player, "Repoint HUD references");
+                if (health != null)
+                {
+                    player.healthBar = health;
+                }
+
+                if (experience != null)
+                {
+                    player.expBar = experience;
+                }
+
+                EditorUtility.SetDirty(player);
+            }
+        }
+
+        /// <summary>
+        /// Deletes the old HUD outright. Safe only because everything that lived
+        /// on those objects has been recreated and everything pointing at them has
+        /// been repointed - both of which happen before this runs.
+        ///
+        /// Removing the old boss bar also clears a duplicate "bossHpBar" tag,
+        /// which BossEmitter resolves at runtime and would otherwise pick from at
+        /// random.
+        /// </summary>
+        private static int RetireOldHud(Transform canvas)
+        {
+            int removed = 0;
+            Transform newRoot = canvas.Find(RootName);
+
+            foreach (string name in OldHudObjects)
+            {
+                Transform old = FindByName(canvas, name);
+
+                // Never delete what was just built. The new names differ from the
+                // old ones, so this should not trigger - but a rename later would
+                // otherwise make this tool quietly delete its own output.
+                if (old == null || (newRoot != null && old.IsChildOf(newRoot)))
+                {
+                    continue;
+                }
+
+                Undo.DestroyObjectImmediate(old.gameObject);
+                removed++;
+            }
+
+            return removed;
+        }
+
+        private static Transform FindByName(Transform root, string name)
+        {
+            foreach (Transform candidate in root.GetComponentsInChildren<Transform>(includeInactive: true))
+            {
+                if (candidate.gameObject.name == name && candidate != root)
                 {
                     return candidate;
                 }
             }
 
-            Debug.LogWarning("Holo HUD is missing '" + name + "', so something will be left unwired.");
             return null;
-        }
-
-        /// <summary>
-        /// Writes a material to a fixed path, replacing what was there. Using a
-        /// unique path instead would leave a trail of orphaned materials every
-        /// time the layout is re-run.
-        /// </summary>
-        private static Material SaveMaterial(Material material, string fileName)
-        {
-            string path = MaterialFolder + "/" + fileName + ".mat";
-            Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-            if (existing != null)
-            {
-                existing.shader = material.shader;
-                EditorUtility.CopySerialized(material, existing);
-                Object.DestroyImmediate(material);
-                EditorUtility.SetDirty(existing);
-                return existing;
-            }
-
-            AssetDatabase.CreateAsset(material, path);
-            return material;
         }
     }
 }

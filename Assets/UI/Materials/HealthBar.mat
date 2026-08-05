@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Health Bar Material
+  m_Name: Health Bar
   m_Shader: {fileID: 4800000, guid: 9d3c00b3cf5b6294ebb68a8c208c03e9, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
