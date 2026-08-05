@@ -75,6 +75,12 @@ namespace SurvivalChaos.EditorTools
         public static Material SaveMaterial(Material material, string fileName)
         {
             EnsureFolder();
+
+            // Unity warns whenever a main asset's object name differs from its
+            // filename, and the callers name these after the element they belong
+            // to - "Health Bar" - while the file cannot carry the space.
+            material.name = fileName;
+
             string path = MaterialFolder + "/" + fileName + ".mat";
             Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
 
