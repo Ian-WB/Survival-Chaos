@@ -21,5 +21,11 @@ namespace SurvivalChaos
 
         /// <summary>True on the frame the debug "force level up" key is pressed.</summary>
         bool DebugLevelUpPressed { get; }
+
+        /// <summary>True on the frame the performance overlay is toggled.</summary>
+        bool DebugOverlayTogglePressed { get; }
+
+        /// <summary>True on the frame the overlay is asked to export its report.</summary>
+        bool DebugCopyReportPressed { get; }
     }
 }

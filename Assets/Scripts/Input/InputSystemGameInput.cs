@@ -70,6 +70,24 @@ namespace SurvivalChaos
             }
         }
 
+        public bool DebugOverlayTogglePressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+                return keyboard != null && keyboard.f3Key.wasPressedThisFrame;
+            }
+        }
+
+        public bool DebugCopyReportPressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+                return keyboard != null && keyboard.f4Key.wasPressedThisFrame;
+            }
+        }
+
         /// <summary>
         /// Advances smoothing at most once per frame, so it does not matter how
         /// many scripts read the axes or in what order.
