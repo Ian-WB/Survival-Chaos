@@ -294,44 +294,42 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// Reduces the scene to a single, correctly configured Timer.
+        /// Reduces the scene to a single Timer, counting down to the moment the
+        /// boss actually spawns.
         ///
-        /// There were two, both active and both driving the same slider. One had
-        /// gameTime 300 and a wired boss bar; the other had gameTime 60 and a null
-        /// one, so from sixty seconds in it called showHpBar() on nothing - an
-        /// exception every frame - and the two disagreed about the slider's
-        /// maxValue, which made the bar's scale depend on component start order.
+        /// There were two, both active and both driving the same slider: one with
+        /// gameTime 300 and a wired boss bar, one with 60 and a null one, so from
+        /// sixty seconds in it called showHpBar() on nothing. They also disagreed
+        /// about the slider's maxValue, making the bar's scale depend on start
+        /// order.
         ///
-        /// The configured one wins. Its settings are carried over to a single
-        /// Timer on a non-UI host, so the countdown no longer lives on a bar that
-        /// switches itself off.
+        /// The length is taken from the wave data rather than from either of them.
+        /// The countdown and the boss's spawn time were two independent numbers
+        /// that had to agree and had already drifted apart; deriving one from the
+        /// other means they cannot drift again.
         /// </summary>
         private static void ConsolidateTimer(Transform root, Transform canvas)
         {
             Timer[] existing = Object.FindObjectsByType<Timer>(FindObjectsInactive.Include);
 
-            // Prefer whichever was actually set up. Falling back to the longest
-            // countdown keeps the boss arriving late rather than immediately, if
-            // some future scene has neither wired.
-            Timer authority = null;
-            foreach (Timer candidate in existing)
+            float gameTime = ResolveBossSpawnTime();
+            string source = "the boss stream in the wave asset";
+
+            if (gameTime <= 0f)
             {
-                if (candidate.bossHpBar != null)
+                // No wave data to read. Fall back to the longest existing
+                // countdown, which at least errs toward the boss arriving late
+                // rather than immediately.
+                foreach (Timer candidate in existing)
                 {
-                    authority = candidate;
-                    break;
+                    gameTime = Mathf.Max(gameTime, ReadGameTime(candidate));
                 }
 
-                if (authority == null || ReadGameTime(candidate) > ReadGameTime(authority))
-                {
-                    authority = candidate;
-                }
+                gameTime = gameTime > 0f ? gameTime : 300f;
+                source = "the longest existing Timer (no boss stream found)";
             }
 
-            float gameTime = authority != null ? ReadGameTime(authority) : 300f;
-            GameObject host = authority != null && !IsOldHud(authority.gameObject)
-                ? authority.gameObject
-                : PickTimerHost(existing, canvas);
+            GameObject host = PickTimerHost(existing, canvas);
 
             foreach (Timer old in existing)
             {
@@ -352,7 +350,43 @@ namespace SurvivalChaos.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Debug.Log("Timer consolidated onto '" + host.name + "' with gameTime " + gameTime +
-                      ", replacing " + existing.Length + ".");
+                      " (from " + source + "), replacing " + existing.Length + ".");
+        }
+
+        /// <summary>
+        /// When the boss is scheduled to spawn, read from the wave asset.
+        ///
+        /// The boss stream is found by its prefab carrying a BossEmitter, not by
+        /// its label or its position in the list - a renamed or reordered stream
+        /// should not silently change how long the run lasts.
+        /// </summary>
+        private static float ResolveBossSpawnTime()
+        {
+            foreach (WaveDirector director in Object.FindObjectsByType<WaveDirector>(FindObjectsInactive.Include))
+            {
+                SerializedObject so = new SerializedObject(director);
+                WaveDefinition wave = so.FindProperty("wave").objectReferenceValue as WaveDefinition;
+
+                if (wave == null || wave.Streams == null)
+                {
+                    continue;
+                }
+
+                foreach (SpawnStream stream in wave.Streams)
+                {
+                    if (stream == null || stream.prefab == null)
+                    {
+                        continue;
+                    }
+
+                    if (stream.prefab.GetComponentInChildren<BossEmitter>(includeInactive: true) != null)
+                    {
+                        return stream.startDelay;
+                    }
+                }
+            }
+
+            return -1f;
         }
 
         private static float ReadGameTime(Timer timer)
