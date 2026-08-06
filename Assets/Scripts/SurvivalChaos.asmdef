@@ -3,6 +3,8 @@
     "rootNamespace": "SurvivalChaos",
     "references": [
         "UnityEngine.UI",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
         "Unity.TextMeshPro",
         "Unity.InputSystem"
     ],
