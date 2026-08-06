@@ -1,6 +1,8 @@
 using TMPro;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace SurvivalChaos.EditorTools
@@ -360,6 +362,93 @@ namespace SurvivalChaos.EditorTools
             so.FindProperty("slider").objectReferenceValue = slider;
             so.FindProperty("readout").objectReferenceValue = readout;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>Panel size the graphics rows need. Both menus use it.</summary>
+        public static readonly Vector2 GraphicsPanelSize = new Vector2(820f, 820f);
+
+        /// <summary>Where the Back button goes on the graphics panel.</summary>
+        public const float GraphicsBackY = -750f;
+
+        /// <summary>
+        /// Fills a panel with every graphics setting, in the order they matter.
+        ///
+        /// Quality first because it moves everything else; display settings next
+        /// because they are what a player reaches for; then the individual
+        /// overrides, which are for someone chasing a specific frame rate rather
+        /// than someone setting the game up.
+        /// </summary>
+        public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
+        {
+            const float top = -110f;
+            const float step = 58f;
+
+            (GraphicsOptionKind kind, string label)[] rows =
+            {
+                (GraphicsOptionKind.Quality, "Quality"),
+                (GraphicsOptionKind.Resolution, "Resolution"),
+                (GraphicsOptionKind.ScreenMode, "Display"),
+                (GraphicsOptionKind.VSync, "VSync"),
+                (GraphicsOptionKind.FrameCap, "Frame Cap"),
+                (GraphicsOptionKind.RenderScale, "Render Scale"),
+                (GraphicsOptionKind.Lighting, "Lighting"),
+                (GraphicsOptionKind.Reflections, "Reflections"),
+                (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
+                (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
+                (GraphicsOptionKind.MotionBlur, "Motion Blur")
+            };
+
+            for (int i = 0; i < rows.Length; i++)
+            {
+                CreateOptionRow(panel, rows[i].kind, rows[i].label, top - i * step, panelMaterial);
+            }
+        }
+
+        /// <summary>
+        /// One graphics setting: label, a value between two arrows, and a note
+        /// underneath when the setting needs explaining.
+        ///
+        /// Everything is a cycler, including the on/off settings — one control
+        /// type means one visual language and one place to fix. The arrows are
+        /// plain ASCII rather than typographic guillemets, because the font atlas
+        /// is Extended ASCII and a missing glyph would render as a box.
+        /// </summary>
+        public static void CreateOptionRow(Transform panel, GraphicsOptionKind kind, string label,
+            float top, Material panelMaterial)
+        {
+            Vector2 anchor = new Vector2(0.5f, 1f);
+            Vector2 middle = new Vector2(0.5f, 0.5f);
+
+            TextMeshProUGUI caption = CreateText(panel, label + " Label", anchor,
+                new Vector2(0f, 0.5f), new Vector2(-300f, top), new Vector2(300f, 26f),
+                18f, TextAlignmentOptions.Left);
+            caption.text = label;
+
+            Button previous = CreateButton(panel, label + " Prev", anchor, middle,
+                new Vector2(90f, top), new Vector2(44f, 38f), panelMaterial, "<", 20f);
+
+            TextMeshProUGUI current = CreateText(panel, label + " Value", anchor, middle,
+                new Vector2(200f, top), new Vector2(180f, 26f), 18f, TextAlignmentOptions.Center);
+            current.text = "-";
+
+            Button next = CreateButton(panel, label + " Next", anchor, middle,
+                new Vector2(310f, top), new Vector2(44f, 38f), panelMaterial, ">", 20f);
+
+            TextMeshProUGUI note = CreateText(panel, label + " Note", anchor,
+                new Vector2(0f, 0.5f), new Vector2(-300f, top - 22f), new Vector2(600f, 20f),
+                13f, TextAlignmentOptions.Left);
+            note.text = string.Empty;
+            note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
+
+            GraphicsOption option = Undo.AddComponent<GraphicsOption>(caption.gameObject);
+            SerializedObject so = new SerializedObject(option);
+            so.FindProperty("kind").enumValueIndex = (int)kind;
+            so.FindProperty("value").objectReferenceValue = current;
+            so.FindProperty("note").objectReferenceValue = note;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEventTools.AddVoidPersistentListener(previous.onClick, new UnityAction(option.Previous));
+            UnityEventTools.AddVoidPersistentListener(next.onClick, new UnityAction(option.Next));
         }
 
         /// <summary>

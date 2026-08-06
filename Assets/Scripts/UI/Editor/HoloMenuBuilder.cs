@@ -64,7 +64,9 @@ namespace SurvivalChaos.EditorTools
             MainMenu mainMenu = EnsureComponent<MainMenu>(canvas.gameObject);
             PauseMenu pause = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
 
+            GameObject graphics = BuildGraphics(root.transform, panelMaterial);
             GameObject options = BuildOptions(root.transform, panelMaterial, barMaterial);
+            WireToGraphics(options, graphics, panelMaterial);
             GameObject paused = BuildPause(root.transform, panelMaterial, mainMenu, pause, options);
             GameObject death = BuildOutcome(root.transform, panelMaterial, mainMenu,
                 "Death Screen", "Ship Lost", HoloUiFactory.Loss);
@@ -237,6 +239,39 @@ namespace SurvivalChaos.EditorTools
                 new Vector2(0f, -500f), ButtonSize, panelMaterial, "Back", 24f);
 
             return screen;
+        }
+
+        /// <summary>
+        /// The graphics screen. Separate from audio rather than tabbed into it:
+        /// eleven rows and four sliders do not belong on one panel, and MenuScreen
+        /// already gives one-at-a-time behaviour for free.
+        /// </summary>
+        private static GameObject BuildGraphics(Transform parent, Material panelMaterial)
+        {
+            GameObject screen = BuildScreen(parent, "Graphics Screen", panelMaterial,
+                HoloUiFactory.GraphicsPanelSize, "Graphics", HoloUiFactory.Edge);
+
+            HoloUiFactory.PopulateGraphicsPanel(PanelOf(screen), panelMaterial);
+            return screen;
+        }
+
+        /// <summary>
+        /// Adds the way in and the way back. Done after both screens exist,
+        /// because each needs to name the other.
+        /// </summary>
+        private static void WireToGraphics(GameObject options, GameObject graphics, Material panelMaterial)
+        {
+            Button open = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -430f), ButtonSize,
+                panelMaterial, "Graphics", 24f);
+            UnityEventTools.AddVoidPersistentListener(open.onClick,
+                new UnityAction(graphics.GetComponent<MenuScreen>().Show));
+
+            Button back = HoloUiFactory.CreateButton(PanelOf(graphics), "Back",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, HoloUiFactory.GraphicsBackY),
+                ButtonSize, panelMaterial, "Back", 24f);
+            UnityEventTools.AddVoidPersistentListener(back.onClick,
+                new UnityAction(options.GetComponent<MenuScreen>().Show));
         }
 
         /// <summary>
