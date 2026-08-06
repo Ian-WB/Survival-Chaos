@@ -364,33 +364,47 @@ namespace SurvivalChaos.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        /// <summary>Panel size the graphics rows need. Both menus use it.</summary>
-        public static readonly Vector2 GraphicsPanelSize = new Vector2(820f, 820f);
+        /// <summary>
+        /// Panel size the graphics rows need.
+        ///
+        /// Wide rather than tall: eleven settings in one column made a panel
+        /// nearly as high as the screen, with a long dead gap between every label
+        /// and its controls. Two columns use the shape a monitor actually is.
+        /// </summary>
+        public static readonly Vector2 GraphicsPanelSize = new Vector2(1400f, 780f);
 
         /// <summary>Where the Back button goes on the graphics panel.</summary>
-        public const float GraphicsBackY = -750f;
+        public const float GraphicsBackY = -700f;
+
+        /// <summary>Horizontal centre of each column, relative to the panel.</summary>
+        private const float LeftColumn = -340f;
+        private const float RightColumn = 340f;
 
         /// <summary>
-        /// Fills a panel with every graphics setting, in the order they matter.
+        /// Fills a panel with every graphics setting, split into two columns.
         ///
-        /// Quality first because it moves everything else; display settings next
-        /// because they are what a player reaches for; then the individual
-        /// overrides, which are for someone chasing a specific frame rate rather
-        /// than someone setting the game up.
+        /// The split is not arbitrary: the left column is what a player changes
+        /// when setting the game up - how it looks and how it fits their monitor -
+        /// and the right is per-effect overrides, which are for someone chasing a
+        /// particular frame rate afterwards.
         /// </summary>
         public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
         {
-            const float top = -110f;
-            const float step = 58f;
+            const float top = -190f;
+            const float step = 84f;
 
-            (GraphicsOptionKind kind, string label)[] rows =
+            (GraphicsOptionKind kind, string label)[] setup =
             {
                 (GraphicsOptionKind.Quality, "Quality"),
                 (GraphicsOptionKind.Resolution, "Resolution"),
                 (GraphicsOptionKind.ScreenMode, "Display"),
                 (GraphicsOptionKind.VSync, "VSync"),
                 (GraphicsOptionKind.FrameCap, "Frame Cap"),
-                (GraphicsOptionKind.RenderScale, "Render Scale"),
+                (GraphicsOptionKind.RenderScale, "Render Scale")
+            };
+
+            (GraphicsOptionKind kind, string label)[] effects =
+            {
                 (GraphicsOptionKind.Lighting, "Lighting"),
                 (GraphicsOptionKind.Reflections, "Reflections"),
                 (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
@@ -398,9 +412,16 @@ namespace SurvivalChaos.EditorTools
                 (GraphicsOptionKind.MotionBlur, "Motion Blur")
             };
 
-            for (int i = 0; i < rows.Length; i++)
+            for (int i = 0; i < setup.Length; i++)
             {
-                CreateOptionRow(panel, rows[i].kind, rows[i].label, top - i * step, panelMaterial);
+                CreateOptionRow(panel, setup[i].kind, setup[i].label,
+                    LeftColumn, top - i * step, panelMaterial);
+            }
+
+            for (int i = 0; i < effects.Length; i++)
+            {
+                CreateOptionRow(panel, effects[i].kind, effects[i].label,
+                    RightColumn, top - i * step, panelMaterial);
             }
         }
 
@@ -414,29 +435,32 @@ namespace SurvivalChaos.EditorTools
         /// is Extended ASCII and a missing glyph would render as a box.
         /// </summary>
         public static void CreateOptionRow(Transform panel, GraphicsOptionKind kind, string label,
-            float top, Material panelMaterial)
+            float columnX, float top, Material panelMaterial)
         {
             Vector2 anchor = new Vector2(0.5f, 1f);
             Vector2 middle = new Vector2(0.5f, 0.5f);
 
+            // Laid out within a 560-wide column: the label owns the left half and
+            // the controls sit together on the right, close enough to read as one
+            // group rather than as a label stranded from its value.
             TextMeshProUGUI caption = CreateText(panel, label + " Label", anchor,
-                new Vector2(0f, 0.5f), new Vector2(-300f, top), new Vector2(300f, 26f),
-                18f, TextAlignmentOptions.Left);
+                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top), new Vector2(290f, 30f),
+                21f, TextAlignmentOptions.Left);
             caption.text = label;
 
             Button previous = CreateButton(panel, label + " Prev", anchor, middle,
-                new Vector2(90f, top), new Vector2(44f, 38f), panelMaterial, "<", 20f);
+                new Vector2(columnX + 50f, top), new Vector2(46f, 40f), panelMaterial, "<", 20f);
 
             TextMeshProUGUI current = CreateText(panel, label + " Value", anchor, middle,
-                new Vector2(200f, top), new Vector2(180f, 26f), 18f, TextAlignmentOptions.Center);
+                new Vector2(columnX + 170f, top), new Vector2(180f, 30f), 21f, TextAlignmentOptions.Center);
             current.text = "-";
 
             Button next = CreateButton(panel, label + " Next", anchor, middle,
-                new Vector2(310f, top), new Vector2(44f, 38f), panelMaterial, ">", 20f);
+                new Vector2(columnX + 290f, top), new Vector2(46f, 40f), panelMaterial, ">", 20f);
 
             TextMeshProUGUI note = CreateText(panel, label + " Note", anchor,
-                new Vector2(0f, 0.5f), new Vector2(-300f, top - 22f), new Vector2(600f, 20f),
-                13f, TextAlignmentOptions.Left);
+                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top - 24f), new Vector2(560f, 20f),
+                14f, TextAlignmentOptions.Left);
             note.text = string.Empty;
             note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
 

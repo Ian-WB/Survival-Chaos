@@ -65,8 +65,9 @@ namespace SurvivalChaos.EditorTools
             PauseMenu pause = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
 
             GameObject graphics = BuildGraphics(root.transform, panelMaterial);
-            GameObject options = BuildOptions(root.transform, panelMaterial, barMaterial);
-            WireToGraphics(options, graphics, panelMaterial);
+            GameObject audio = BuildOptions(root.transform, panelMaterial, barMaterial);
+            GameObject options = BuildOptionsHub(root.transform, panelMaterial, audio, graphics);
+            WireSubScreenBacks(options, audio, graphics, panelMaterial);
             GameObject paused = BuildPause(root.transform, panelMaterial, mainMenu, pause, options);
             GameObject death = BuildOutcome(root.transform, panelMaterial, mainMenu,
                 "Death Screen", "Ship Lost", HoloUiFactory.Loss);
@@ -226,18 +227,11 @@ namespace SurvivalChaos.EditorTools
 
         private static GameObject BuildOptions(Transform parent, Material panelMaterial, Material barMaterial)
         {
-            GameObject screen = BuildScreen(parent, "Options Screen", panelMaterial,
-                new Vector2(700f, 600f), "Options", HoloUiFactory.Edge);
+            GameObject screen = BuildScreen(parent, "Audio Screen", panelMaterial,
+                new Vector2(780f, 660f), "Audio", HoloUiFactory.Edge);
             Transform panel = PanelOf(screen);
 
             AddVolumeRows(panel, barMaterial);
-
-            // Back is wired once the pause screen exists - it returns there
-            // rather than merely closing, which would leave nothing on screen
-            // with the game still stopped.
-            HoloUiFactory.CreateButton(panel, "Back", new Vector2(0.5f, 1f), Centre,
-                new Vector2(0f, -500f), ButtonSize, panelMaterial, "Back", 24f);
-
             return screen;
         }
 
@@ -256,22 +250,55 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// Adds the way in and the way back. Done after both screens exist,
-        /// because each needs to name the other.
+        /// Options is a hub rather than a screen of its own settings.
+        ///
+        /// Audio and graphics have nothing to do with each other and want very
+        /// different layouts - four sliders against eleven cyclers in two columns.
+        /// Sharing one panel meant one of them was always the wrong shape.
         /// </summary>
-        private static void WireToGraphics(GameObject options, GameObject graphics, Material panelMaterial)
+        private static GameObject BuildOptionsHub(Transform parent, Material panelMaterial,
+            GameObject audio, GameObject graphics)
         {
-            Button open = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
-                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -430f), ButtonSize,
-                panelMaterial, "Graphics", 24f);
-            UnityEventTools.AddVoidPersistentListener(open.onClick,
+            GameObject screen = BuildScreen(parent, "Options Screen", panelMaterial,
+                new Vector2(640f, 460f), "Options", HoloUiFactory.Edge);
+            Transform panel = PanelOf(screen);
+
+            Button toAudio = HoloUiFactory.CreateButton(panel, "Audio", new Vector2(0.5f, 1f),
+                Centre, new Vector2(0f, -160f), ButtonSize, panelMaterial, "Audio", 24f);
+            UnityEventTools.AddVoidPersistentListener(toAudio.onClick,
+                new UnityAction(audio.GetComponent<MenuScreen>().Show));
+
+            Button toGraphics = HoloUiFactory.CreateButton(panel, "Graphics", new Vector2(0.5f, 1f),
+                Centre, new Vector2(0f, -250f), ButtonSize, panelMaterial, "Graphics", 24f);
+            UnityEventTools.AddVoidPersistentListener(toGraphics.onClick,
                 new UnityAction(graphics.GetComponent<MenuScreen>().Show));
 
-            Button back = HoloUiFactory.CreateButton(PanelOf(graphics), "Back",
+            // Named "Back" because WireBack finds it that way once the pause
+            // screen exists and can be pointed at.
+            HoloUiFactory.CreateButton(panel, "Back", new Vector2(0.5f, 1f), Centre,
+                new Vector2(0f, -340f), ButtonSize, panelMaterial, "Back", 24f);
+
+            return screen;
+        }
+
+        /// <summary>
+        /// Sends both sub-screens back to the hub. Done after all three exist,
+        /// because each needs to name another.
+        /// </summary>
+        private static void WireSubScreenBacks(GameObject hub, GameObject audio, GameObject graphics,
+            Material panelMaterial)
+        {
+            MenuScreen target = hub.GetComponent<MenuScreen>();
+
+            Button audioBack = HoloUiFactory.CreateButton(PanelOf(audio), "Back",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -580f), ButtonSize,
+                panelMaterial, "Back", 24f);
+            UnityEventTools.AddVoidPersistentListener(audioBack.onClick, new UnityAction(target.Show));
+
+            Button graphicsBack = HoloUiFactory.CreateButton(PanelOf(graphics), "Back",
                 new Vector2(0.5f, 1f), Centre, new Vector2(0f, HoloUiFactory.GraphicsBackY),
                 ButtonSize, panelMaterial, "Back", 24f);
-            UnityEventTools.AddVoidPersistentListener(back.onClick,
-                new UnityAction(options.GetComponent<MenuScreen>().Show));
+            UnityEventTools.AddVoidPersistentListener(graphicsBack.onClick, new UnityAction(target.Show));
         }
 
         /// <summary>
@@ -285,10 +312,10 @@ namespace SurvivalChaos.EditorTools
         /// </summary>
         private static void AddVolumeRows(Transform panel, Material barMaterial)
         {
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -140f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -220f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -300f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -380f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -170f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -280f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -390f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -500f, barMaterial);
         }
 
         /// <summary>Death and victory differ only in wording and colour.</summary>

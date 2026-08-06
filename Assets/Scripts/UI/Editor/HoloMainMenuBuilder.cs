@@ -75,25 +75,37 @@ namespace SurvivalChaos.EditorTools
             }
 
             // Sub-screens first, so the title screen can point its entries at them.
-            GameObject options = BuildScreen(root.transform, "Options Screen", panelMaterial,
-                new Vector2(700f, 600f), "Options");
+            GameObject audio = BuildScreen(root.transform, "Audio Screen", panelMaterial,
+                new Vector2(780f, 660f), "Audio");
             GameObject creditsScreen = BuildScreen(root.transform, "Credits Screen", panelMaterial,
                 new Vector2(900f, 620f), "Credits");
 
             GameObject graphics = BuildScreen(root.transform, "Graphics Screen", panelMaterial,
                 HoloUiFactory.GraphicsPanelSize, "Graphics");
             HoloUiFactory.PopulateGraphicsPanel(PanelOf(graphics), panelMaterial);
+
+            // Options is a hub here too. Audio and graphics want very different
+            // layouts - four sliders against eleven cyclers in two columns - and
+            // sharing one panel meant one of them was always the wrong shape.
+            GameObject options = BuildScreen(root.transform, "Options Screen", panelMaterial,
+                new Vector2(640f, 460f), "Options");
             GameObject title = BuildTitleScreen(root.transform, mainMenu, options, creditsScreen);
 
-            BuildOptions(options, panelMaterial, barMaterial, title);
+            Button toAudio = HoloUiFactory.CreateButton(PanelOf(options), "Audio",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -160f), ButtonSize,
+                panelMaterial, "Audio", 24f);
+            UnityEventTools.AddVoidPersistentListener(toAudio.onClick,
+                new UnityAction(audio.GetComponent<MenuScreen>().Show));
 
-            // Reachable from audio options, and back again - the same route the
-            // in-game menus use, so the two behave identically.
             Button toGraphics = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
-                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -430f), ButtonSize,
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -250f), ButtonSize,
                 panelMaterial, "Graphics", 24f);
             UnityEventTools.AddVoidPersistentListener(toGraphics.onClick,
                 new UnityAction(graphics.GetComponent<MenuScreen>().Show));
+
+            // The hub returns to the title; both sub-screens return to the hub.
+            AddBack(PanelOf(options), panelMaterial, title, -340f);
+            BuildOptions(audio, panelMaterial, barMaterial, options);
 
             Button graphicsBack = HoloUiFactory.CreateButton(PanelOf(graphics), "Back",
                 new Vector2(0.5f, 1f), Centre, new Vector2(0f, HoloUiFactory.GraphicsBackY),
@@ -287,12 +299,12 @@ namespace SurvivalChaos.EditorTools
             // The same four rows the pause screen shows, from the same factory
             // and reading the same channels — a level set here is already in
             // force by the time the game scene loads.
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -140f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -220f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -300f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -380f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -170f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -280f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -390f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -500f, barMaterial);
 
-            AddBack(panel, panelMaterial, title, -500f);
+            AddBack(panel, panelMaterial, title, -580f);
         }
 
         private static void BuildCredits(GameObject screen, Material panelMaterial,
@@ -311,7 +323,7 @@ namespace SurvivalChaos.EditorTools
             text.characterSpacing = 0f;
             text.textWrappingMode = TextWrappingModes.Normal;
 
-            AddBack(panel, panelMaterial, title, -500f);
+            AddBack(panel, panelMaterial, title, -580f);
         }
 
         private static void AddBack(Transform panel, Material panelMaterial, GameObject title, float y)
