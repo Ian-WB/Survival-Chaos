@@ -48,6 +48,7 @@ namespace SurvivalChaos
         private Light[] pool;
         private Transform[] poolTransforms;
         private Camera view;
+        private bool shadowsAllowed = true;
 
         private readonly List<Transform> bullets = new List<Transform>();
 
@@ -81,7 +82,7 @@ namespace SurvivalChaos
 
                 // Shadows only on the first few. Everything else about the light
                 // comes from the template.
-                copy.shadows = i < shadowCastingCount ? lightTemplate.shadows : LightShadows.None;
+                copy.shadows = ShadowsFor(i);
 
                 pool[i] = copy;
                 poolTransforms[i] = copy.transform;
@@ -92,12 +93,53 @@ namespace SurvivalChaos
         /// Runs after movement so the lights land on this frame's bullet
         /// positions rather than last frame's.
         /// </summary>
+        /// <summary>
+        /// The shadow mode for the light at <paramref name="index"/>.
+        ///
+        /// At the lowest quality tier the answer is always None. That tier sets
+        /// HDRP's shadow request budget to zero, so a shadow-casting light there
+        /// would be paying to be marked as one and getting nothing back.
+        /// QualitySettings.shadows carries the intent - HDRP does not read it
+        /// itself, but it means this does not have to know the pipeline exists.
+        /// </summary>
+        private LightShadows ShadowsFor(int index)
+        {
+            if (QualitySettings.shadows == ShadowQuality.Disable)
+            {
+                return LightShadows.None;
+            }
+
+            return index < shadowCastingCount ? lightTemplate.shadows : LightShadows.None;
+        }
+
+        /// <summary>
+        /// Reapplies shadow modes when the quality level changes mid-session,
+        /// which the graphics menu allows. Cheap enough to check every frame: it
+        /// is one enum comparison, and nothing is written unless it differs.
+        /// </summary>
+        private void RefreshShadows()
+        {
+            bool allowed = QualitySettings.shadows != ShadowQuality.Disable;
+            if (allowed == shadowsAllowed)
+            {
+                return;
+            }
+
+            shadowsAllowed = allowed;
+            for (int i = 0; i < pool.Length; i++)
+            {
+                pool[i].shadows = ShadowsFor(i);
+            }
+        }
+
         private void LateUpdate()
         {
             if (pool == null || pool.Length == 0)
             {
                 return;
             }
+
+            RefreshShadows();
 
             if (view == null)
             {

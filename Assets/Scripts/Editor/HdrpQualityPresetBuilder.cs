@@ -48,10 +48,33 @@ namespace SurvivalChaos.EditorTools
             public bool VolumetricClouds;
             public bool SubsurfaceScattering;
             public bool Decals;
+
+            /// <summary>
+            /// Mirrored into QualitySettings.shadows. HDRP does not read that
+            /// value for its own rendering, but it is the standard place Unity
+            /// records the intent, and it lets anything else in the game - the
+            /// bullet lights, for one - find out without taking a dependency on
+            /// the render pipeline.
+            /// </summary>
+            public ShadowQuality Shadows;
         }
 
         private static readonly Tier[] Tiers =
         {
+            new Tier
+            {
+                // No dynamic shadows at all. maxShadowRequests of 0 is a state
+                // HDRP handles explicitly rather than an accident: it skips
+                // shadow allocation entirely, so the lava lights and the bullet
+                // lights stop costing anything to render.
+                Name = "Very Low", ShadowAtlas = 256, MaxShadowRequests = 0,
+                Filtering = HDShadowFilteringQuality.Low,
+                ContactShadows = false, ScreenSpaceShadows = false,
+                Ssao = false, Ssr = false, Ssgi = false,
+                Volumetrics = false, VolumetricClouds = false,
+                SubsurfaceScattering = false, Decals = false,
+                Shadows = ShadowQuality.Disable
+            },
             new Tier
             {
                 Name = "Low", ShadowAtlas = 1024, MaxShadowRequests = 4,
@@ -59,7 +82,8 @@ namespace SurvivalChaos.EditorTools
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = false, Ssr = false, Ssgi = false,
                 Volumetrics = false, VolumetricClouds = false,
-                SubsurfaceScattering = false, Decals = false
+                SubsurfaceScattering = false, Decals = false,
+                Shadows = ShadowQuality.All
             },
             new Tier
             {
@@ -68,7 +92,8 @@ namespace SurvivalChaos.EditorTools
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = true, Ssr = false, Ssgi = false,
                 Volumetrics = true, VolumetricClouds = false,
-                SubsurfaceScattering = true, Decals = true
+                SubsurfaceScattering = true, Decals = true,
+                Shadows = ShadowQuality.All
             },
             new Tier
             {
@@ -77,7 +102,8 @@ namespace SurvivalChaos.EditorTools
                 ContactShadows = true, ScreenSpaceShadows = true,
                 Ssao = true, Ssr = true, Ssgi = false,
                 Volumetrics = true, VolumetricClouds = true,
-                SubsurfaceScattering = true, Decals = true
+                SubsurfaceScattering = true, Decals = true,
+                Shadows = ShadowQuality.All
             },
             new Tier
             {
@@ -86,7 +112,8 @@ namespace SurvivalChaos.EditorTools
                 ContactShadows = true, ScreenSpaceShadows = true,
                 Ssao = true, Ssr = true, Ssgi = true,
                 Volumetrics = true, VolumetricClouds = true,
-                SubsurfaceScattering = true, Decals = true
+                SubsurfaceScattering = true, Decals = true,
+                Shadows = ShadowQuality.All
             },
             new Tier
             {
@@ -95,18 +122,15 @@ namespace SurvivalChaos.EditorTools
                 ContactShadows = true, ScreenSpaceShadows = true,
                 Ssao = true, Ssr = true, Ssgi = true,
                 Volumetrics = true, VolumetricClouds = true,
-                SubsurfaceScattering = true, Decals = true
+                SubsurfaceScattering = true, Decals = true,
+                Shadows = ShadowQuality.All
             }
         };
 
-        /// <summary>
-        /// Which preset each existing quality level gets. "Very Low" has no preset
-        /// of its own and shares Low, because five tiers that differ is worth more
-        /// than six that barely do.
-        /// </summary>
+        /// <summary>Which preset each existing quality level gets, one for one.</summary>
         private static readonly Dictionary<string, string> LevelToTier = new Dictionary<string, string>
         {
-            { "Very Low", "Low" },
+            { "Very Low", "Very Low" },
             { "Low", "Low" },
             { "Medium", "Medium" },
             { "High", "High" },
@@ -140,6 +164,19 @@ namespace SurvivalChaos.EditorTools
             Debug.Log("Built " + built.Count + " HDRP quality presets in " + PresetFolder +
                       " and assigned them to " + assigned + " quality levels. Ray tracing support " +
                       "is left as the base asset had it, so the lighting toggle works at every tier.");
+        }
+
+        private static ShadowQuality ShadowFor(string tierName)
+        {
+            foreach (Tier tier in Tiers)
+            {
+                if (tier.Name == tierName)
+                {
+                    return tier.Shadows;
+                }
+            }
+
+            return ShadowQuality.All;
         }
 
         private static void EnsureFolder()
@@ -223,6 +260,10 @@ namespace SurvivalChaos.EditorTools
 
                 QualitySettings.SetQualityLevel(i, applyExpensiveChanges: false);
                 QualitySettings.renderPipeline = asset;
+
+                // Recorded even though HDRP does not read it, so that anything
+                // outside the pipeline can find out whether shadows are wanted.
+                QualitySettings.shadows = ShadowFor(tierName);
                 assigned++;
             }
 
