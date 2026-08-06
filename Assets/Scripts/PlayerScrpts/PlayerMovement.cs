@@ -18,6 +18,11 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (center == null)
+        {
+            return;
+        }
+
         float h = GameInput.Horizontal;
         float v = GameInput.Vertical;
         

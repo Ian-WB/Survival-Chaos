@@ -170,9 +170,9 @@ Shader "Survival Chaos/Holo Panel"
                 float3 rgb = (fill * fillAlpha + lit) * i.color.rgb * flicker;
 
                 #ifdef UNITY_UI_CLIP_RECT
-                float clip = UnityGet2DClipping(i.world.xy, _ClipRect);
-                rgb *= clip;
-                alpha *= clip;
+                float clipFactor = UnityGet2DClipping(i.world.xy, _ClipRect);
+                rgb *= clipFactor;
+                alpha *= clipFactor;
                 #endif
 
                 #ifdef UNITY_UI_ALPHACLIP
