@@ -22,16 +22,28 @@ public class EnemyMovement : MonoBehaviour
 
     void Start()
     {
-        player = GameObject.Find("Player").transform;
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+        }
+
         GameObject scenario = GameObject.FindWithTag("Scenario");
-        centerX = scenario.transform.position.x;
-        centerZ = scenario.transform.position.z;
-        center = new Vector3(centerX, 0f, centerZ);
+        if (scenario != null)
+        {
+            centerX = scenario.transform.position.x;
+            centerZ = scenario.transform.position.z;
+            center = new Vector3(centerX, 0f, centerZ);
+        }
     }
 
 
 void Update()
     {
+        if (player == null)
+        {
+            return;
+        }
         
         Vector3 pos = center;
         pos.y = transform.position.y;

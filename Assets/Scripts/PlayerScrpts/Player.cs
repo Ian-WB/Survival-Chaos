@@ -110,7 +110,7 @@ public class Player : MonoBehaviour, ISkillTarget
     {   
         healthBar.SetMaxHealth(healthPoints);
         rotate = false;
-        GameObject instantiatedChild = Instantiate(childPrefab, childObject);
+        instantiatedChild = Instantiate(childPrefab, childObject);
         //Rigidbody childRigidbody = instantiatedChild.GetComponent<Rigidbody>();
         //instantiatedChild.transform.localPosition = prefabOffset;
         expBar.setMaxExp(maxExperience);
@@ -324,5 +324,7 @@ public class Player : MonoBehaviour, ISkillTarget
 
     public void IncreaseAttackSpeed(){
         spawnDelay = spawnDelay - (0.40f * spawnDelay);
+        CancelInvoke(nameof(Shoot));
+        InvokeRepeating(nameof(Shoot), spawnDelay, spawnDelay);
     }
 }
