@@ -17,6 +17,17 @@ namespace SurvivalChaos.EditorTools
     public static class HoloUiFactory
     {
         public const string MaterialFolder = "Assets/UI/Materials";
+        public const string FontFolder = "Assets/UI/Fonts";
+
+        /// <summary>
+        /// Letter spacing on interface type.
+        ///
+        /// This was 8 while the interface ran on Liberation Sans, where wide
+        /// tracking was doing the work of making a generic face read as a
+        /// technical readout. Chakra Petch is already squared off, so the same
+        /// value now just reads as loose. One number, tuned here for every screen.
+        /// </summary>
+        public const float Tracking = 4f;
 
         /// <summary>Authoring resolution. Scale With Screen Size covers the rest.</summary>
         public static readonly Vector2 ReferenceResolution = new Vector2(1920f, 1080f);
@@ -149,12 +160,55 @@ namespace SurvivalChaos.EditorTools
             text.color = Edge;
             text.raycastTarget = false;
 
-            // Wide tracking and caps is most of what makes plain type read as a
-            // technical readout. The bundled Liberation Sans is doing a lot of
-            // work here; a squarer face would lift it further.
-            text.characterSpacing = 8f;
+            TMP_FontAsset font = InterfaceFont;
+            if (font != null)
+            {
+                text.font = font;
+            }
+
+            text.characterSpacing = Tracking;
             text.fontStyle = FontStyles.UpperCase;
             return text;
+        }
+
+        /// <summary>
+        /// The interface typeface, found by looking in the font folder rather than
+        /// by naming a file.
+        ///
+        /// Deliberately not a hardcoded asset path: seven of those broke silently
+        /// the last time the project was reorganised, and they only fail at the
+        /// moment somebody runs a tool. Renaming or replacing the font asset here
+        /// needs no code change.
+        ///
+        /// Returns null when nothing is found, and every caller falls back to
+        /// TextMeshPro's default rather than producing text with no font at all.
+        /// </summary>
+        public static TMP_FontAsset InterfaceFont
+        {
+            get
+            {
+                if (!AssetDatabase.IsValidFolder(FontFolder))
+                {
+                    Debug.LogWarning("No '" + FontFolder + "' folder, so the interface will fall " +
+                                     "back to TextMeshPro's default font.");
+                    return null;
+                }
+
+                foreach (string guid in AssetDatabase.FindAssets("t:TMP_FontAsset", new[] { FontFolder }))
+                {
+                    TMP_FontAsset font =
+                        AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AssetDatabase.GUIDToAssetPath(guid));
+
+                    if (font != null)
+                    {
+                        return font;
+                    }
+                }
+
+                Debug.LogWarning("No TMP font asset in '" + FontFolder + "', so the interface will " +
+                                 "fall back to TextMeshPro's default font.");
+                return null;
+            }
         }
 
         /// <summary>A framed panel drawn entirely by the panel shader.</summary>
