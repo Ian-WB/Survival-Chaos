@@ -263,6 +263,83 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
+        /// One labelled volume slider with a percentage readout, bound to a
+        /// channel. Built here rather than in each menu builder so the pause
+        /// screen and the title screen cannot drift apart — they show the same
+        /// channels and read from the same place.
+        /// </summary>
+        public static void CreateVolumeRow(Transform panel, AudioChannel channel, string label,
+            float top, Material barMaterial)
+        {
+            Vector2 anchor = new Vector2(0.5f, 1f);
+            Vector2 middle = new Vector2(0.5f, 0.5f);
+
+            TextMeshProUGUI caption = CreateText(panel, label + " Label", anchor,
+                new Vector2(0f, 0.5f), new Vector2(-240f, top), new Vector2(300f, 26f),
+                18f, TextAlignmentOptions.Left);
+            caption.text = label;
+
+            TextMeshProUGUI readout = CreateText(panel, label + " Readout", anchor,
+                new Vector2(1f, 0.5f), new Vector2(240f, top), new Vector2(100f, 26f),
+                18f, TextAlignmentOptions.Right);
+            readout.text = "100%";
+
+            Image image = CreateBarImage(panel, label + " Bar", anchor, middle,
+                new Vector2(0f, top - 34f), new Vector2(480f, 26f), barMaterial, Accent, 10f);
+            // Unlike the HUD bars, this one is dragged.
+            image.raycastTarget = true;
+
+            Slider slider = Undo.AddComponent<Slider>(image.gameObject);
+            slider.transition = Selectable.Transition.None;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 1f;
+            slider.handleRect = CreateHandle((RectTransform)image.transform);
+            slider.targetGraphic = image;
+
+            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
+            ConfigureBar(holo, slider, 0f);
+
+            VolumeControl volume = Undo.AddComponent<VolumeControl>(image.gameObject);
+            SerializedObject so = new SerializedObject(volume);
+            so.FindProperty("channel").enumValueIndex = (int)channel;
+            so.FindProperty("slider").objectReferenceValue = slider;
+            so.FindProperty("readout").objectReferenceValue = readout;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// The invisible handle a Slider needs in order to be draggable.
+        ///
+        /// Slider.UpdateDrag maps the pointer through <c>handleRect.parent</c>,
+        /// falling back to <c>fillRect.parent</c>. With neither assigned it
+        /// returns immediately and the control cannot be moved at all — which is
+        /// not obvious, because the slider still looks and reports as if it works.
+        ///
+        /// Nothing is drawn on it: the bar shader already marks the value with its
+        /// leading edge, so a second handle would be a duplicate.
+        /// </summary>
+        private static RectTransform CreateHandle(RectTransform bar)
+        {
+            // The area is the rect the pointer is measured against, so it must
+            // span the bar; the handle inside it is what Slider actually moves.
+            RectTransform area = CreateRect(bar, "Handle Area", Vector2.zero, Vector2.zero,
+                Vector2.zero, Vector2.zero);
+            area.anchorMin = Vector2.zero;
+            area.anchorMax = Vector2.one;
+            area.offsetMin = Vector2.zero;
+            area.offsetMax = Vector2.zero;
+
+            RectTransform handle = CreateRect(area, "Handle", new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(20f, 0f));
+            handle.anchorMin = new Vector2(0f, 0f);
+            handle.anchorMax = new Vector2(0f, 1f);
+            handle.offsetMin = new Vector2(-10f, 0f);
+            handle.offsetMax = new Vector2(10f, 0f);
+            return handle;
+        }
+
+        /// <summary>
         /// A title-screen menu line: an accent bar and a left-aligned label, with
         /// no frame around them.
         ///

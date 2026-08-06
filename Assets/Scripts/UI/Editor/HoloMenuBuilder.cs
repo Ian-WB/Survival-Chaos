@@ -36,6 +36,18 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
+            // These are the in-game screens, so they belong in the scene that has
+            // a run to pause. Without this check the tool happily builds a second
+            // options screen into the title scene, which is exactly what happened.
+            if (Object.FindAnyObjectByType<WaveDirector>(FindObjectsInactive.Include) == null)
+            {
+                EditorUtility.DisplayDialog("Wrong scene",
+                    "This scene has no WaveDirector, so it is not the game scene. The pause, death " +
+                    "and victory screens belong in Game.unity.\n\nFor the title screen, use " +
+                    "Rebuild Main Menu instead.", "OK");
+                return;
+            }
+
             Material panelMaterial = HoloUiFactory.EnsureBaseMaterial("HoloPanel", "Survival Chaos/Holo Panel");
             Material barMaterial = HoloUiFactory.EnsureBaseMaterial("HoloBar", "Survival Chaos/Holo Bar");
             if (panelMaterial == null || barMaterial == null)
@@ -213,42 +225,35 @@ namespace SurvivalChaos.EditorTools
         private static GameObject BuildOptions(Transform parent, Material panelMaterial, Material barMaterial)
         {
             GameObject screen = BuildScreen(parent, "Options Screen", panelMaterial,
-                new Vector2(620f, 400f), "Options", HoloUiFactory.Edge);
+                new Vector2(700f, 600f), "Options", HoloUiFactory.Edge);
             Transform panel = PanelOf(screen);
 
-            HoloUiFactory.CreateText(panel, "Volume Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -140f), new Vector2(420f, 30f), 20f, TextAlignmentOptions.Left)
-                .text = "Volume";
-
-            // Interactive, unlike the HUD bars: this one the player drags.
-            Image image = HoloUiFactory.CreateBarImage(panel, "Volume Bar", new Vector2(0.5f, 1f),
-                Centre, new Vector2(0f, -190f), new Vector2(420f, 28f), barMaterial,
-                HoloUiFactory.Accent, 10f);
-            image.raycastTarget = true;
-
-            Slider slider = Undo.AddComponent<Slider>(image.gameObject);
-            slider.transition = Selectable.Transition.None;
-            slider.minValue = 0f;
-            slider.maxValue = 1f;
-            slider.value = 1f;
-
-            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
-            HoloUiFactory.ConfigureBar(holo, slider, 0f);
-
-            // The old slider had no listeners at all, so it did nothing. This one
-            // is connected in code, where it cannot be lost by accident.
-            VolumeControl volume = Undo.AddComponent<VolumeControl>(image.gameObject);
-            SerializedObject so = new SerializedObject(volume);
-            so.FindProperty("slider").objectReferenceValue = slider;
-            so.ApplyModifiedPropertiesWithoutUndo();
+            AddVolumeRows(panel, barMaterial);
 
             // Back is wired once the pause screen exists - it returns there
             // rather than merely closing, which would leave nothing on screen
             // with the game still stopped.
             HoloUiFactory.CreateButton(panel, "Back", new Vector2(0.5f, 1f), Centre,
-                new Vector2(0f, -300f), ButtonSize, panelMaterial, "Back", 24f);
+                new Vector2(0f, -500f), ButtonSize, panelMaterial, "Back", 24f);
 
             return screen;
+        }
+
+        /// <summary>
+        /// The four channels, in the order they make sense to reach for: the one
+        /// that governs everything, then the two most people actually want to
+        /// balance, then menu sound.
+        ///
+        /// Labelled for players rather than for the mixer — "Effects" and
+        /// "Interface" say what is being turned down; "SFX" and "UI" say how the
+        /// code is organised.
+        /// </summary>
+        private static void AddVolumeRows(Transform panel, Material barMaterial)
+        {
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -140f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -220f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -300f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -380f, barMaterial);
         }
 
         /// <summary>Death and victory differ only in wording and colour.</summary>

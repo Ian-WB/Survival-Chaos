@@ -42,6 +42,17 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
+            // The mirror of the check in HoloMenuBuilder: a scene with a run in
+            // it is the game, not the title screen.
+            if (Object.FindAnyObjectByType<WaveDirector>(FindObjectsInactive.Include) != null)
+            {
+                EditorUtility.DisplayDialog("Wrong scene",
+                    "This scene has a WaveDirector, so it is the game scene. The title screen " +
+                    "belongs in Menu.unity.\n\nFor the in-game screens, use Rebuild Menus instead.",
+                    "OK");
+                return;
+            }
+
             Material panelMaterial = HoloUiFactory.EnsureBaseMaterial("HoloPanel", "Survival Chaos/Holo Panel");
             Material barMaterial = HoloUiFactory.EnsureBaseMaterial("HoloBar", "Survival Chaos/Holo Bar");
             if (panelMaterial == null || barMaterial == null)
@@ -65,7 +76,7 @@ namespace SurvivalChaos.EditorTools
 
             // Sub-screens first, so the title screen can point its entries at them.
             GameObject options = BuildScreen(root.transform, "Options Screen", panelMaterial,
-                new Vector2(620f, 400f), "Options");
+                new Vector2(700f, 600f), "Options");
             GameObject creditsScreen = BuildScreen(root.transform, "Credits Screen", panelMaterial,
                 new Vector2(900f, 620f), "Credits");
             GameObject title = BuildTitleScreen(root.transform, mainMenu, options, creditsScreen);
@@ -255,30 +266,15 @@ namespace SurvivalChaos.EditorTools
         {
             Transform panel = PanelOf(screen);
 
-            HoloUiFactory.CreateText(panel, "Volume Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -140f), new Vector2(420f, 30f), 20f, TextAlignmentOptions.Left)
-                .text = "Volume";
+            // The same four rows the pause screen shows, from the same factory
+            // and reading the same channels — a level set here is already in
+            // force by the time the game scene loads.
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -140f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -220f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -300f, barMaterial);
+            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -380f, barMaterial);
 
-            Image image = HoloUiFactory.CreateBarImage(panel, "Volume Bar", new Vector2(0.5f, 1f),
-                Centre, new Vector2(0f, -190f), new Vector2(420f, 28f), barMaterial,
-                HoloUiFactory.Accent, 10f);
-            image.raycastTarget = true;
-
-            Slider slider = Undo.AddComponent<Slider>(image.gameObject);
-            slider.transition = Selectable.Transition.None;
-            slider.minValue = 0f;
-            slider.maxValue = 1f;
-            slider.value = 1f;
-
-            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
-            HoloUiFactory.ConfigureBar(holo, slider, 0f);
-
-            VolumeControl volume = Undo.AddComponent<VolumeControl>(image.gameObject);
-            SerializedObject so = new SerializedObject(volume);
-            so.FindProperty("slider").objectReferenceValue = slider;
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            AddBack(panel, panelMaterial, title, -300f);
+            AddBack(panel, panelMaterial, title, -500f);
         }
 
         private static void BuildCredits(GameObject screen, Material panelMaterial,
