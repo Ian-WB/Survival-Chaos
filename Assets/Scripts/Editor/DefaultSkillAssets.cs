@@ -11,7 +11,7 @@ namespace SurvivalChaos.EditorTools
     /// </summary>
     public static class DefaultSkillAssets
     {
-        private const string FolderPath = "Assets/Content/Skills";
+        private const string FolderPath = "Assets/Data/Skills";
 
         [MenuItem("Survival Chaos/Create Default Skill Assets")]
         public static void Create()

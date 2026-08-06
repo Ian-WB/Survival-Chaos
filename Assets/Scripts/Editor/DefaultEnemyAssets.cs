@@ -16,7 +16,7 @@ namespace SurvivalChaos.EditorTools
     /// </summary>
     public static class DefaultEnemyAssets
     {
-        private const string FolderPath = "Assets/Content/Enemies";
+        private const string FolderPath = "Assets/Data/Enemies";
 
         [MenuItem("Survival Chaos/Create Default Enemy Assets")]
         public static void Create()
@@ -34,11 +34,11 @@ namespace SurvivalChaos.EditorTools
             AssetDatabase.SaveAssets();
 
             int wired = 0;
-            wired += AssignToPrefab("Assets/Enemy/Enemy.prefab", fighter) ? 1 : 0;
-            wired += AssignToPrefab("Assets/Enemy/Enemy 1.prefab", heavy) ? 1 : 0;
-            wired += AssignToPrefab("Assets/Enemy/Enemy 2.prefab", scout) ? 1 : 0;
-            wired += AssignToPrefab("Assets/Enemy/Enemy 3.prefab", drone) ? 1 : 0;
-            wired += AssignToPrefab("Assets/Boss/Boss.prefab", boss) ? 1 : 0;
+            wired += AssignToPrefab("Assets/Prefabs/Enemies/Enemy.prefab", fighter) ? 1 : 0;
+            wired += AssignToPrefab("Assets/Prefabs/Enemies/Enemy 1.prefab", heavy) ? 1 : 0;
+            wired += AssignToPrefab("Assets/Prefabs/Enemies/Enemy 2.prefab", scout) ? 1 : 0;
+            wired += AssignToPrefab("Assets/Prefabs/Enemies/Enemy 3.prefab", drone) ? 1 : 0;
+            wired += AssignToPrefab("Assets/Prefabs/Boss/Boss.prefab", boss) ? 1 : 0;
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

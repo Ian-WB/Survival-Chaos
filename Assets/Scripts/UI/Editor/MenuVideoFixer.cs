@@ -23,7 +23,7 @@ namespace SurvivalChaos.EditorTools
     /// </summary>
     public static class MenuVideoFixer
     {
-        private const string TexturePath = "Assets/HUD/VideoOutput.renderTexture";
+        private const string TexturePath = "Assets/UI/RenderTextures/VideoOutput.renderTexture";
         private const string BackgroundName = "Video Background";
 
         [MenuItem("Survival Chaos/UI/Fix Menu Video Output", priority = 23)]
