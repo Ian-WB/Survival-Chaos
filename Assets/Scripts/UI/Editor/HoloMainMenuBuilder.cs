@@ -79,9 +79,27 @@ namespace SurvivalChaos.EditorTools
                 new Vector2(700f, 600f), "Options");
             GameObject creditsScreen = BuildScreen(root.transform, "Credits Screen", panelMaterial,
                 new Vector2(900f, 620f), "Credits");
+
+            GameObject graphics = BuildScreen(root.transform, "Graphics Screen", panelMaterial,
+                HoloUiFactory.GraphicsPanelSize, "Graphics");
+            HoloUiFactory.PopulateGraphicsPanel(PanelOf(graphics), panelMaterial);
             GameObject title = BuildTitleScreen(root.transform, mainMenu, options, creditsScreen);
 
             BuildOptions(options, panelMaterial, barMaterial, title);
+
+            // Reachable from audio options, and back again - the same route the
+            // in-game menus use, so the two behave identically.
+            Button toGraphics = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -430f), ButtonSize,
+                panelMaterial, "Graphics", 24f);
+            UnityEventTools.AddVoidPersistentListener(toGraphics.onClick,
+                new UnityAction(graphics.GetComponent<MenuScreen>().Show));
+
+            Button graphicsBack = HoloUiFactory.CreateButton(PanelOf(graphics), "Back",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, HoloUiFactory.GraphicsBackY),
+                ButtonSize, panelMaterial, "Back", 24f);
+            UnityEventTools.AddVoidPersistentListener(graphicsBack.onClick,
+                new UnityAction(options.GetComponent<MenuScreen>().Show));
             BuildCredits(creditsScreen, panelMaterial, title, credits);
 
             // The title screen is the one the player arrives at, so unlike the
