@@ -19,8 +19,8 @@ namespace SurvivalChaos.EditorTools
     /// </summary>
     public static class HdrpVfxMaterialFixup
     {
-        private const string ExplosionPath = "Assets/Materials/VFX/Explosion.mat";
-        private const string SmokePath = "Assets/Smoke 1/Smoke_Mat.mat";
+        private const string ExplosionPath = "Assets/Art/Materials/VFX/Explosion.mat";
+        private const string SmokePath = "Assets/Art/Materials/VFX/Smoke_Mat.mat";
 
         // HDRP's BlendMode enum: Alpha = 0, Additive = 1, Premultiply = 4.
         private const float BlendAlpha = 0f;

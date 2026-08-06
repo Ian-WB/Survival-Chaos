@@ -24,7 +24,7 @@ namespace SurvivalChaos.EditorTools
     public class LavaLightPlacer : ScriptableWizard
     {
         private const string ContainerName = "Lava Lights";
-        private const string LavaMaterialPath = "Assets/Scenario/Materials/lava_.mat";
+        private const string LavaMaterialPath = "Assets/Art/Materials/Scenario/lava_.mat";
 
         [Tooltip("How many lights to spread along the lava, from the crater downward.")]
         public int lightCount = 4;

@@ -33,8 +33,8 @@ namespace SurvivalChaos.EditorTools
             LegacyCubemap = 1
         }
 
-        private const string TextureFolder = "Assets/Starfield Skybox/Demo/Textures";
-        private const string OutputFolder = "Assets/Starfield Skybox";
+        private const string TextureFolder = "Assets/Art/Skybox/Source";
+        private const string OutputFolder = "Assets/Art/Skybox";
 
         [Tooltip("CrossTexture is strongly preferred - see the class comment for why.")]
         public OutputMode output = OutputMode.CrossTexture;
