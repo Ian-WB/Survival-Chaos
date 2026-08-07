@@ -80,15 +80,20 @@ namespace SurvivalChaos.EditorTools
             GameObject creditsScreen = BuildScreen(root.transform, "Credits Screen", panelMaterial,
                 new Vector2(900f, 620f), "Credits");
 
+            GameObject display = BuildScreen(root.transform, "Display Screen", panelMaterial,
+                HoloUiFactory.DisplayPanelSize, "Display");
+            HoloUiFactory.PopulateDisplayPanel(PanelOf(display), panelMaterial);
+
             GameObject graphics = BuildScreen(root.transform, "Graphics Screen", panelMaterial,
                 HoloUiFactory.GraphicsPanelSize, "Graphics");
             HoloUiFactory.PopulateGraphicsPanel(PanelOf(graphics), panelMaterial);
 
-            // Options is a hub here too. Audio and graphics want very different
-            // layouts - four sliders against eleven cyclers in two columns - and
-            // sharing one panel meant one of them was always the wrong shape.
+            // Options is a hub here too. The three sections want very different
+            // layouts - four sliders, two columns of cyclers, one column of
+            // switches - and sharing one panel meant at least one was always the
+            // wrong shape.
             GameObject options = BuildScreen(root.transform, "Options Screen", panelMaterial,
-                new Vector2(640f, 460f), "Options");
+                new Vector2(640f, 540f), "Options");
             GameObject title = BuildTitleScreen(root.transform, mainMenu, options, creditsScreen);
 
             Button toAudio = HoloUiFactory.CreateButton(PanelOf(options), "Audio",
@@ -97,21 +102,24 @@ namespace SurvivalChaos.EditorTools
             UnityEventTools.AddVoidPersistentListener(toAudio.onClick,
                 new UnityAction(audio.GetComponent<MenuScreen>().Show));
 
-            Button toGraphics = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
+            Button toDisplay = HoloUiFactory.CreateButton(PanelOf(options), "Display",
                 new Vector2(0.5f, 1f), Centre, new Vector2(0f, -250f), ButtonSize,
+                panelMaterial, "Display", 24f);
+            UnityEventTools.AddVoidPersistentListener(toDisplay.onClick,
+                new UnityAction(display.GetComponent<MenuScreen>().Show));
+
+            Button toGraphics = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
+                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -340f), ButtonSize,
                 panelMaterial, "Graphics", 24f);
             UnityEventTools.AddVoidPersistentListener(toGraphics.onClick,
                 new UnityAction(graphics.GetComponent<MenuScreen>().Show));
 
-            // The hub returns to the title; both sub-screens return to the hub.
-            AddBack(PanelOf(options), panelMaterial, title, -340f);
+            // The hub returns to the title; every sub-screen returns to the hub.
+            AddBack(PanelOf(options), panelMaterial, title, -430f);
             BuildOptions(audio, panelMaterial, barMaterial, options);
 
-            Button graphicsBack = HoloUiFactory.CreateButton(PanelOf(graphics), "Back",
-                new Vector2(0.5f, 1f), Centre, new Vector2(0f, HoloUiFactory.GraphicsBackY),
-                ButtonSize, panelMaterial, "Back", 24f);
-            UnityEventTools.AddVoidPersistentListener(graphicsBack.onClick,
-                new UnityAction(options.GetComponent<MenuScreen>().Show));
+            AddBack(PanelOf(display), panelMaterial, options, HoloUiFactory.DisplayBackY);
+            AddBack(PanelOf(graphics), panelMaterial, options, HoloUiFactory.GraphicsBackY);
             BuildCredits(creditsScreen, panelMaterial, title, credits);
 
             // The title screen is the one the player arrives at, so unlike the
@@ -292,7 +300,7 @@ namespace SurvivalChaos.EditorTools
         }
 
         private static void BuildOptions(GameObject screen, Material panelMaterial,
-            Material barMaterial, GameObject title)
+            Material barMaterial, GameObject back)
         {
             Transform panel = PanelOf(screen);
 
@@ -304,7 +312,7 @@ namespace SurvivalChaos.EditorTools
             HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -390f, barMaterial);
             HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -500f, barMaterial);
 
-            AddBack(panel, panelMaterial, title, -580f);
+            AddBack(panel, panelMaterial, back, -580f);
         }
 
         private static void BuildCredits(GameObject screen, Material panelMaterial,
@@ -326,15 +334,19 @@ namespace SurvivalChaos.EditorTools
             AddBack(panel, panelMaterial, title, -580f);
         }
 
-        private static void AddBack(Transform panel, Material panelMaterial, GameObject title, float y)
+        private static void AddBack(Transform panel, Material panelMaterial, GameObject target, float y)
         {
             Button back = HoloUiFactory.CreateButton(panel, "Back", new Vector2(0.5f, 1f), Centre,
                 new Vector2(0f, y), ButtonSize, panelMaterial, "Back", 24f);
 
-            // Returns to the title screen rather than just closing, which would
-            // leave the player looking at the video with no way back in.
+            // Opens the screen behind this one rather than just closing, which
+            // would leave the player looking at the video with no way back in.
             UnityEventTools.AddVoidPersistentListener(back.onClick,
-                new UnityAction(title.GetComponent<MenuScreen>().Show));
+                new UnityAction(target.GetComponent<MenuScreen>().Show));
+
+            // The panel passed in is the screen's child, so the component this
+            // belongs on is one level up.
+            HoloUiFactory.SetPrevious(panel.parent == null ? null : panel.parent.gameObject, target);
         }
 
         /// <summary>

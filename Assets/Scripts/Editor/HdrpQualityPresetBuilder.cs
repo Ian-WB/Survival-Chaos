@@ -63,11 +63,18 @@ namespace SurvivalChaos.EditorTools
         {
             new Tier
             {
-                // No dynamic shadows at all. maxShadowRequests of 0 is a state
-                // HDRP handles explicitly rather than an accident: it skips
-                // shadow allocation entirely, so the lava lights and the bullet
-                // lights stop costing anything to render.
-                Name = "Very Low", ShadowAtlas = 256, MaxShadowRequests = 0,
+                // Effectively no dynamic shadows: one request, the smallest
+                // atlas, and ShadowQuality.Disable below, so the lava lights and
+                // the bullet lights cost nothing to render.
+                //
+                // One rather than zero because zero is not a state HDRP survives,
+                // despite reading like the obvious way to say "none".
+                // HDShadowManager.InitShadowManager returns early at
+                // maxShadowRequests == 0 without allocating m_Atlas, and
+                // GetUnmanageDataForShadowRequestJobs then dereferences it with no
+                // guard - a NullReferenceException every frame, on a screen that
+                // never draws. Verified in HDRP 17.5.0.
+                Name = "Very Low", ShadowAtlas = 256, MaxShadowRequests = 1,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = false, Ssr = false, Ssgi = false,

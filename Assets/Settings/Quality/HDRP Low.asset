@@ -370,9 +370,10 @@ MonoBehaviour:
       useMipBias: 0
       advancedUpscalersByPriority: 
       advancedUpscalerNames:
+      - DLSS
       - FSR2
       - STP
-      DLSSPerfQualitySetting: 0
+      DLSSPerfQualitySetting: 4
       DLSSInjectionPoint: 0
       TAAUInjectionPoint: 0
       STPInjectionPoint: 0
@@ -386,15 +387,15 @@ MonoBehaviour:
       DLSSRenderPresetForDLAA: 0
       FSR2EnableSharpness: 0
       FSR2Sharpness: 0
-      FSR2UseOptimalSettings: 0
+      FSR2UseOptimalSettings: 1
       FSR2QualitySetting: 0
       FSR2InjectionPoint: 0
       fsrOverrideSharpness: 0
       fsrSharpness: 0.92
       maxPercentage: 100
-      minPercentage: 100
+      minPercentage: 50
       dynResType: 1
-      upsampleFilter: 1
+      upsampleFilter: 5
       forceResolution: 0
       forcedPercentage: 100
       lowResTransparencyMinimumThreshold: 0

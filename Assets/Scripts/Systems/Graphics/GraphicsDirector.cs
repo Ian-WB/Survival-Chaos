@@ -6,32 +6,6 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos
 {
-    /// <summary>
-    /// How the image is resolved: anti-aliasing, or an upscaler that replaces it.
-    ///
-    /// One list rather than two controls, because these are mutually exclusive -
-    /// DLSS and FSR2 do their own temporal reconstruction and take over from
-    /// anti-aliasing entirely. Presented separately, a player could ask for TAA
-    /// and DLSS together and get something neither of them describes.
-    ///
-    /// The upscalers carry their render scale with them, which is why they are
-    /// listed as quality modes rather than as a bare on/off next to the separate
-    /// Render Scale control - two settings owning one number is how you end up
-    /// with DLSS at 100%, doing nothing at all.
-    /// </summary>
-    public enum UpscalingMode
-    {
-        Off = 0,
-        Smaa = 1,
-        Taa = 2,
-        FsrQuality = 3,
-        FsrBalanced = 4,
-        FsrPerformance = 5,
-        DlssQuality = 6,
-        DlssBalanced = 7,
-        DlssPerformance = 8
-    }
-
     /// <summary>Which system lights the scene.</summary>
     public enum LightingMode
     {
@@ -77,6 +51,13 @@ namespace SurvivalChaos
 
         private List<DisplaySize> sizes;
 
+        /// <summary>
+        /// What the render scale control is asking for, as a percentage. Held in a
+        /// field because HDRP reads it through a delegate every frame rather than
+        /// being told once.
+        /// </summary>
+        private float requestedPercentage = 100f;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Create()
         {
@@ -95,6 +76,7 @@ namespace SurvivalChaos
 
             Instance = this;
             BuildOverrideVolume();
+            RegisterScaler();
             ApplyAll();
 
             // The camera settings live on the scene's camera, which is replaced
@@ -216,47 +198,58 @@ namespace SurvivalChaos
         /// </summary>
         public bool DlssAvailable => HDDynamicResolutionPlatformCapabilities.DLSSDetected;
 
-        public UpscalingMode Upscaling
+        /// <summary>Same question for FSR2, which most cards can run but not all.</summary>
+        public bool FsrAvailable => HDDynamicResolutionPlatformCapabilities.FSR2Detected;
+
+        public UpscaleMethod Method
         {
             get
             {
-                UpscalingMode stored = (UpscalingMode)GetInt("Upscaling", (int)UpscalingMode.Taa);
+                UpscaleMethod stored = (UpscaleMethod)GetInt("UpscaleMethod", (int)UpscaleMethod.Off);
                 // A settings file can outlive the graphics card it was written on.
-                return IsDlss(stored) && !DlssAvailable ? UpscalingMode.Taa : stored;
+                return Supported(stored) ? stored : UpscaleMethod.Off;
             }
-            set => SetInt("Upscaling", (int)value);
+            set => SetInt("UpscaleMethod", (int)value);
         }
 
-        public static bool IsDlss(UpscalingMode mode)
+        public bool Supported(UpscaleMethod method)
         {
-            return mode >= UpscalingMode.DlssQuality;
+            switch (method)
+            {
+                case UpscaleMethod.Dlss: return DlssAvailable;
+                case UpscaleMethod.Fsr: return FsrAvailable;
+                default: return true;
+            }
         }
 
-        public static bool IsUpscaler(UpscalingMode mode)
+        public UpscaleQuality Quality
         {
-            return mode >= UpscalingMode.FsrQuality;
+            get => (UpscaleQuality)GetInt("UpscaleQuality", (int)UpscaleQuality.Quality);
+            set => SetInt("UpscaleQuality", (int)value);
+        }
+
+        public AntiAliasingMode AntiAliasing
+        {
+            get
+            {
+                AntiAliasingMode stored =
+                    (AntiAliasingMode)GetInt("AntiAliasing", (int)AntiAliasingMode.Taa);
+                // DLAA is DLSS underneath, so it goes the same way DLSS does on a
+                // machine that cannot run it.
+                return stored == AntiAliasingMode.Dlaa && !DlssAvailable
+                    ? AntiAliasingMode.Taa
+                    : stored;
+            }
+            set => SetInt("AntiAliasing", (int)value);
         }
 
         /// <summary>
         /// The scale the game actually renders at. An upscaler owns this outright;
         /// the Render Scale control only applies when none is selected.
         /// </summary>
-        public float EffectiveRenderScale
-        {
-            get
-            {
-                switch (Upscaling)
-                {
-                    case UpscalingMode.FsrQuality:
-                    case UpscalingMode.DlssQuality: return 0.67f;
-                    case UpscalingMode.FsrBalanced:
-                    case UpscalingMode.DlssBalanced: return 0.58f;
-                    case UpscalingMode.FsrPerformance:
-                    case UpscalingMode.DlssPerformance: return 0.5f;
-                    default: return RenderScale;
-                }
-            }
-        }
+        public float EffectiveRenderScale => Method == UpscaleMethod.Off
+            ? RenderScale
+            : DisplayOptions.ApproximateScale((int)Quality);
 
         public LightingMode Lighting
         {
@@ -315,10 +308,11 @@ namespace SurvivalChaos
             // defeat the other.
             Application.targetFrameRate = VSync ? -1 : (FrameCap <= 0 ? -1 : FrameCap);
 
-            // No-op unless the pipeline asset has dynamic resolution enabled;
-            // harmless either way, and the lever that helps weak hardware most.
-            float scale = EffectiveRenderScale;
-            ScalableBufferManager.ResizeBuffers(scale, scale);
+            // Read every frame by the scaler registered in Awake. Not applied by
+            // calling ScalableBufferManager directly: HDRP drives that itself from
+            // the dynamic resolution handler each frame, so a direct call is
+            // overwritten the moment anything else changes the resolution.
+            requestedPercentage = RenderScale * 100f;
 
             ApplyCamera();
             ApplyOverrides();
@@ -348,9 +342,34 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Drives the render scale when no upscaler is running.
+        ///
+        /// Registered once, into the User slot. DLSS and FSR2 claim the System
+        /// slot for themselves when they are active, and HDRP selects User again
+        /// at the top of every camera, so this ends up applying exactly when
+        /// nothing else is deciding the resolution — which is what the Render
+        /// Scale row promises.
+        ///
+        /// The returned percentage is clamped by HDRP to the pipeline asset's
+        /// minimum and maximum, so the asset's floor is the real lower bound
+        /// whatever this asks for.
+        /// </summary>
+        private void RegisterScaler()
+        {
+            DynamicResolutionHandler.SetDynamicResScaler(
+                () => requestedPercentage, DynamicResScalePolicyType.ReturnsPercentage);
+        }
+
+        /// <summary>
         /// Anti-aliasing and upscaling live on the camera, not in a Volume, so
         /// this has to find the scene's camera - and find it again after a scene
         /// load, since the old one went with the old scene.
+        ///
+        /// Everything here is a per-camera field on purpose. The same settings
+        /// exist on the pipeline asset, but writing to that asset from a settings
+        /// menu edits the project itself: asset changes made in play mode are not
+        /// rolled back when play mode ends, so a player dragging a control in the
+        /// editor would permanently rewrite the shipped defaults.
         /// </summary>
         private void ApplyCamera()
         {
@@ -360,29 +379,59 @@ namespace SurvivalChaos
                 return;
             }
 
-            UpscalingMode mode = Upscaling;
-            bool upscaling = IsUpscaler(mode);
-            bool dlss = IsDlss(mode);
+            UpscaleMethod method = Method;
+            AntiAliasingMode aa = AntiAliasing;
+
+            // DLAA is DLSS with its scale pinned at native, so it needs the DLSS
+            // pass running even though no upscaling is being asked for.
+            bool dlaa = method == UpscaleMethod.Off && aa == AntiAliasingMode.Dlaa;
+            bool dlss = method == UpscaleMethod.Dlss;
+            bool fsr = method == UpscaleMethod.Fsr;
 
             // An upscaler does its own temporal reconstruction, so HDRP's
             // anti-aliasing is switched off rather than stacked on top of it.
-            data.antialiasing = upscaling
-                ? HDAdditionalCameraData.AntialiasingMode.None
-                : Antialiasing(mode);
+            data.antialiasing = method == UpscaleMethod.Off
+                ? HdrpAntialiasing(aa)
+                : HDAdditionalCameraData.AntialiasingMode.None;
 
-            data.allowDynamicResolution = upscaling || RenderScale < 1f;
-            data.allowDeepLearningSuperSampling = dlss;
-            data.allowFidelityFX2SuperResolution = upscaling && !dlss;
+            // False here stops every advanced upscaler for this camera, including
+            // ones listed in the pipeline asset that have no per-camera switch of
+            // their own. It is the only honest way to offer "Off".
+            data.allowDynamicResolution = method != UpscaleMethod.Off || dlaa || RenderScale < 1f;
+
+            data.allowDeepLearningSuperSampling = dlss || dlaa;
+            data.allowFidelityFX2SuperResolution = fsr;
+
+            // Both "use custom" flags are set because HDRP reads the quality and
+            // the optimal-settings toggle through different gates - DLSS checks
+            // its attributes flag, FSR2 checks its quality flag - and leaving
+            // either unset silently falls back to the pipeline asset's value.
+            data.deepLearningSuperSamplingUseCustomQualitySettings = true;
+            data.deepLearningSuperSamplingUseCustomAttributes = true;
+            data.deepLearningSuperSamplingUseOptimalSettings = true;
+            data.deepLearningSuperSamplingQuality = dlaa
+                ? DisplayOptions.DlssDlaa
+                : DisplayOptions.DlssQualityValue((int)Quality);
+
+            data.fidelityFX2SuperResolutionUseCustomQualitySettings = true;
+            data.fidelityFX2SuperResolutionUseCustomAttributes = true;
+            data.fidelityFX2SuperResolutionUseOptimalSettings = true;
+            data.fidelityFX2SuperResolutionQuality = DisplayOptions.Fsr2QualityValue((int)Quality);
         }
 
-        private static HDAdditionalCameraData.AntialiasingMode Antialiasing(UpscalingMode mode)
+        private static HDAdditionalCameraData.AntialiasingMode HdrpAntialiasing(AntiAliasingMode mode)
         {
             switch (mode)
             {
-                case UpscalingMode.Smaa:
+                case AntiAliasingMode.Fxaa:
+                    return HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing;
+                case AntiAliasingMode.Smaa:
                     return HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-                case UpscalingMode.Taa:
+                case AntiAliasingMode.Taa:
                     return HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+
+                // DLAA is not one of HDRP's anti-aliasing modes; the DLSS pass
+                // provides it, so HDRP's own is left off.
                 default:
                     return HDAdditionalCameraData.AntialiasingMode.None;
             }
