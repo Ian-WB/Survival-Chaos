@@ -1,9 +1,16 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 namespace SurvivalChaos
 {
-    /// <summary>Which setting a row drives.</summary>
+    /// <summary>
+    /// Which setting a row drives.
+    ///
+    /// Numbers are fixed rather than reordered to match the screens, because the
+    /// value is serialised into every row the menu builder has already placed —
+    /// renumbering would silently repoint existing rows at other settings.
+    /// </summary>
     public enum GraphicsOptionKind
     {
         Quality = 0,
@@ -17,7 +24,9 @@ namespace SurvivalChaos
         AmbientOcclusion = 8,
         VolumetricFog = 9,
         MotionBlur = 10,
-        Upscaling = 11
+        UpscaleMethod = 12,
+        UpscaleQuality = 13,
+        AntiAliasing = 14
     }
 
     /// <summary>
@@ -51,14 +60,6 @@ namespace SurvivalChaos
 
         /// <summary>Render scale in whole tens; anything finer is false precision.</summary>
         private static readonly float[] RenderScales = { 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f };
-
-        /// <summary>Anti-aliasing first, then upscalers by how hard they push.</summary>
-        private static readonly string[] UpscalingNames =
-        {
-            "Off", "SMAA", "TAA",
-            "FSR Quality", "FSR Balanced", "FSR Performance",
-            "DLSS Quality", "DLSS Balanced", "DLSS Performance"
-        };
 
         [SerializeField]
         private GraphicsOptionKind kind = GraphicsOptionKind.Quality;
@@ -133,11 +134,44 @@ namespace SurvivalChaos
 
                 // Inert while an upscaler is driving the resolution.
                 case GraphicsOptionKind.RenderScale:
-                    return !GraphicsDirector.IsUpscaler(director.Upscaling);
+                    return director.Method == UpscaleMethod.Off;
+
+                // Nothing to set the quality of until an upscaler is chosen.
+                case GraphicsOptionKind.UpscaleQuality:
+                    return director.Method != UpscaleMethod.Off;
+
+                // An upscaler replaces anti-aliasing rather than running beside it.
+                case GraphicsOptionKind.AntiAliasing:
+                    return director.Method == UpscaleMethod.Off;
 
                 default:
                     return true;
             }
+        }
+
+        /// <summary>
+        /// The upscalers this machine can actually run, always including Off.
+        ///
+        /// Unsupported ones are left out of the cycle rather than shown and
+        /// refused: the director falls back to Off for anything it cannot run, so
+        /// a selectable DLSS on an AMD card would snap back to Off the moment it
+        /// was chosen and read as a broken control.
+        /// </summary>
+        private static List<UpscaleMethod> Methods(GraphicsDirector director)
+        {
+            List<UpscaleMethod> available = new List<UpscaleMethod> { UpscaleMethod.Off };
+
+            if (director.FsrAvailable)
+            {
+                available.Add(UpscaleMethod.Fsr);
+            }
+
+            if (director.DlssAvailable)
+            {
+                available.Add(UpscaleMethod.Dlss);
+            }
+
+            return available;
         }
 
         private int Count(GraphicsDirector director)
@@ -149,7 +183,15 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
                 case GraphicsOptionKind.FrameCap: return DisplayOptions.FrameRateCaps.Length;
                 case GraphicsOptionKind.RenderScale: return RenderScales.Length;
-                case GraphicsOptionKind.Upscaling: return director.DlssAvailable ? UpscalingNames.Length : 6;
+                case GraphicsOptionKind.UpscaleMethod: return Methods(director).Count;
+                case GraphicsOptionKind.UpscaleQuality: return DisplayOptions.UpscaleQualityNames.Length;
+
+                // DLAA is the last entry and only exists where DLSS does.
+                case GraphicsOptionKind.AntiAliasing:
+                    return director.DlssAvailable
+                        ? DisplayOptions.AntiAliasingNames.Length
+                        : DisplayOptions.AntiAliasingNames.Length - 1;
+
                 case GraphicsOptionKind.Lighting: return 2;
                 default: return 2;
             }
@@ -165,7 +207,9 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync: return director.VSync ? 1 : 0;
                 case GraphicsOptionKind.FrameCap: return IndexOfCap(director.FrameCap);
                 case GraphicsOptionKind.RenderScale: return IndexOfScale(director.RenderScale);
-                case GraphicsOptionKind.Upscaling: return (int)director.Upscaling;
+                case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
+                case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
+                case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
                 case GraphicsOptionKind.Lighting: return (int)director.Lighting;
                 case GraphicsOptionKind.Reflections: return director.Reflections ? 1 : 0;
                 case GraphicsOptionKind.AmbientOcclusion: return director.AmbientOcclusion ? 1 : 0;
@@ -185,7 +229,9 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync: director.VSync = index == 1; break;
                 case GraphicsOptionKind.FrameCap: director.FrameCap = DisplayOptions.FrameRateCaps[index]; break;
                 case GraphicsOptionKind.RenderScale: director.RenderScale = RenderScales[index]; break;
-                case GraphicsOptionKind.Upscaling: director.Upscaling = (UpscalingMode)index; break;
+                case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
+                case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
+                case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
                 case GraphicsOptionKind.Lighting: director.Lighting = (LightingMode)index; break;
                 case GraphicsOptionKind.Reflections: director.Reflections = index == 1; break;
                 case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = index == 1; break;
@@ -222,8 +268,20 @@ namespace SurvivalChaos
                     // upscaler decides rather than this control.
                     return Mathf.RoundToInt(director.EffectiveRenderScale * 100f) + "%";
 
-                case GraphicsOptionKind.Upscaling:
-                    return UpscalingNames[Mathf.Clamp((int)director.Upscaling, 0, UpscalingNames.Length - 1)];
+                case GraphicsOptionKind.UpscaleMethod:
+                    return DisplayOptions.UpscaleMethodNames[(int)director.Method];
+
+                case GraphicsOptionKind.UpscaleQuality:
+                    // Reads as a plain dash rather than a stale quality nobody
+                    // asked for, when there is no upscaler to qualify.
+                    return director.Method == UpscaleMethod.Off
+                        ? "-"
+                        : DisplayOptions.UpscaleQualityNames[(int)director.Quality];
+
+                case GraphicsOptionKind.AntiAliasing:
+                    return director.Method == UpscaleMethod.Off
+                        ? DisplayOptions.AntiAliasingNames[(int)director.AntiAliasing]
+                        : DisplayOptions.UpscaleMethodNames[(int)director.Method];
 
                 case GraphicsOptionKind.Lighting:
                     if (!director.RayTracingAvailable)
@@ -259,14 +317,27 @@ namespace SurvivalChaos
                 // An upscaler owns the render scale, so this control is inert
                 // while one is selected. Saying so beats letting someone change a
                 // number that has no effect.
-                case GraphicsOptionKind.RenderScale when GraphicsDirector.IsUpscaler(director.Upscaling):
+                case GraphicsOptionKind.RenderScale when director.Method != UpscaleMethod.Off:
                     return "Set by the upscaler";
 
-                case GraphicsOptionKind.Upscaling when !director.DlssAvailable:
+                case GraphicsOptionKind.UpscaleMethod when !director.DlssAvailable:
                     return "DLSS needs an NVIDIA RTX card";
 
-                case GraphicsOptionKind.Upscaling when GraphicsDirector.IsUpscaler(director.Upscaling):
-                    return "Replaces anti-aliasing";
+                case GraphicsOptionKind.UpscaleQuality when director.Method == UpscaleMethod.Off:
+                    return "Choose an upscaler first";
+
+                // Every quality mode of every upscaler renders below native and
+                // reconstructs back up, so the render scale row goes quiet and
+                // this one has to say what the trade actually is.
+                case GraphicsOptionKind.UpscaleQuality:
+                    return "Renders at about " +
+                        Mathf.RoundToInt(DisplayOptions.ApproximateScale((int)director.Quality) * 100f) + "%";
+
+                case GraphicsOptionKind.AntiAliasing when director.Method != UpscaleMethod.Off:
+                    return "Replaced by " + DisplayOptions.UpscaleMethodNames[(int)director.Method];
+
+                case GraphicsOptionKind.AntiAliasing when director.AntiAliasing == AntiAliasingMode.Dlaa:
+                    return "DLSS quality at full resolution; costs more than TAA";
 
                 case GraphicsOptionKind.Quality:
                     return director.QualityLevel == 0 ? "Dynamic shadows are off at this level" : string.Empty;

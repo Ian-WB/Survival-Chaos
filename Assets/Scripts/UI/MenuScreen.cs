@@ -18,6 +18,10 @@ namespace SurvivalChaos
     [DisallowMultipleComponent]
     public sealed class MenuScreen : MonoBehaviour
     {
+        [SerializeField]
+        [Tooltip("The screen this one was opened from. Empty means this is the first screen, and backing out of it ends the flow.")]
+        private MenuScreen previous;
+
         private void OnEnable()
         {
             Transform parent = transform.parent;
@@ -54,6 +58,62 @@ namespace SurvivalChaos
         public void Hide()
         {
             gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// The screen currently on show, or null if none is.
+        ///
+        /// At most one can be open: <see cref="OnEnable"/> closes the others.
+        /// </summary>
+        public static MenuScreen Open()
+        {
+            MenuScreen[] showing = FindObjectsByType<MenuScreen>(FindObjectsInactive.Exclude);
+            return showing.Length == 0 ? null : showing[0];
+        }
+
+        /// <summary>
+        /// Steps back one level, opening whichever screen this one was reached
+        /// from. False when there is nowhere to go, which is the caller's cue that
+        /// backing out again should end the flow instead.
+        ///
+        /// Shares the <see cref="previous"/> link with the Back button rather than
+        /// tracking its own history, so the key and the button cannot disagree
+        /// about where "back" is.
+        /// </summary>
+        public bool Back()
+        {
+            if (previous == null)
+            {
+                return false;
+            }
+
+            // Show closes this one on the way, being a sibling.
+            previous.Show();
+            return true;
+        }
+
+        /// <summary>
+        /// Closes every screen, wherever the player got to.
+        ///
+        /// For anything that ends the whole flow rather than stepping back one
+        /// level - resuming from pause, most of all. Written as a sweep rather
+        /// than as a list of screens to hide because that list is what rots: the
+        /// pause menu knew about the options hub and nothing else, so adding the
+        /// audio, display and graphics screens left Esc resuming the game with one
+        /// of them still on screen. A sweep cannot fall behind the screens that
+        /// exist.
+        /// </summary>
+        public static void CloseAll()
+        {
+            MenuScreen[] screens = FindObjectsByType<MenuScreen>(FindObjectsInactive.Include);
+
+            foreach (MenuScreen screen in screens)
+            {
+                if (screen.gameObject.activeSelf)
+                {
+                    screen.gameObject.SetActive(false);
+                }
+            }
         }
     }
 }

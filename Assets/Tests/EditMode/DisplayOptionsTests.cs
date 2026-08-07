@@ -105,5 +105,76 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual("Uncapped", DisplayOptions.DescribeCap(0));
             Assert.AreEqual("60 FPS", DisplayOptions.DescribeCap(60));
         }
+
+        /// <summary>
+        /// The one that would go wrong silently. NVIDIA's quality enum runs
+        /// cheapest-first and AMD's runs best-first, so a straight cast hands the
+        /// player picking Quality the fastest, ugliest mode instead — and it still
+        /// renders, still upscales, and still looks like the setting works.
+        /// </summary>
+        [Test]
+        public void DlssQualityValue_MapsBestFirstOntoNvidiasCheapestFirstEnum()
+        {
+            Assert.AreEqual(DisplayOptions.DlssMaximumQuality,
+                DisplayOptions.DlssQualityValue((int)UpscaleQuality.Quality));
+            Assert.AreEqual(DisplayOptions.DlssBalanced,
+                DisplayOptions.DlssQualityValue((int)UpscaleQuality.Balanced));
+            Assert.AreEqual(DisplayOptions.DlssMaximumPerformance,
+                DisplayOptions.DlssQualityValue((int)UpscaleQuality.Performance));
+            Assert.AreEqual(DisplayOptions.DlssUltraPerformance,
+                DisplayOptions.DlssQualityValue((int)UpscaleQuality.UltraPerformance));
+        }
+
+        [Test]
+        public void DlssQualityValue_IsNeverDlaa()
+        {
+            // DLAA is reached from the anti-aliasing row, not by cycling upscale
+            // quality past the end of it. Landing on it here would silently pin
+            // the render scale to native and make the whole row do nothing.
+            for (int i = -2; i < 8; i++)
+            {
+                Assert.AreNotEqual(DisplayOptions.DlssDlaa, DisplayOptions.DlssQualityValue(i));
+            }
+        }
+
+        [Test]
+        public void Fsr2QualityValue_KeepsAmdsOrderingAndClampsOffTheEnds()
+        {
+            Assert.AreEqual(0u, DisplayOptions.Fsr2QualityValue((int)UpscaleQuality.Quality));
+            Assert.AreEqual(3u, DisplayOptions.Fsr2QualityValue((int)UpscaleQuality.UltraPerformance));
+
+            // A settings file written by a later build with more modes must not
+            // index past the enum the driver actually accepts.
+            Assert.AreEqual(0u, DisplayOptions.Fsr2QualityValue(-1));
+            Assert.AreEqual(3u, DisplayOptions.Fsr2QualityValue(99));
+        }
+
+        [Test]
+        public void QualityNames_CoverEveryModeBothVendorsOffer()
+        {
+            // Four names, four FSR2 modes, four DLSS modes once DLAA is set aside.
+            Assert.AreEqual(4, DisplayOptions.UpscaleQualityNames.Length);
+            Assert.AreEqual(3, DisplayOptions.UpscaleMethodNames.Length);
+            Assert.AreEqual(5, DisplayOptions.AntiAliasingNames.Length);
+
+            // DLAA must stay last: the anti-aliasing row drops exactly one entry
+            // off the end when DLSS is unavailable.
+            Assert.AreEqual("DLAA",
+                DisplayOptions.AntiAliasingNames[DisplayOptions.AntiAliasingNames.Length - 1]);
+            Assert.AreEqual((int)AntiAliasingMode.Dlaa, DisplayOptions.AntiAliasingNames.Length - 1);
+        }
+
+        [Test]
+        public void ApproximateScale_FallsAsQualityDrops()
+        {
+            float previous = 1f;
+            for (int i = 0; i < DisplayOptions.UpscaleQualityNames.Length; i++)
+            {
+                float scale = DisplayOptions.ApproximateScale(i);
+                Assert.Less(scale, previous, "Quality mode " + i + " should render lower than the one above it");
+                Assert.Greater(scale, 0f);
+                previous = scale;
+            }
+        }
     }
 }

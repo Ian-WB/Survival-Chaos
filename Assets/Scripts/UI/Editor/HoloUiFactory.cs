@@ -358,54 +358,138 @@ namespace SurvivalChaos.EditorTools
 
             VolumeControl volume = Undo.AddComponent<VolumeControl>(image.gameObject);
             SerializedObject so = new SerializedObject(volume);
-            so.FindProperty("channel").enumValueIndex = (int)channel;
+            // See CreateOptionRow: intValue is the enum's value, enumValueIndex is
+            // its position in the declaration. AudioChannel has no gaps today, so
+            // both work - which is exactly why the wrong one survives unnoticed.
+            so.FindProperty("channel").intValue = (int)channel;
             so.FindProperty("slider").objectReferenceValue = slider;
             so.FindProperty("readout").objectReferenceValue = readout;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>
-        /// Panel size the graphics rows need.
+        /// Records which screen a Back button returns to, so Esc can retrace the
+        /// same path.
         ///
-        /// Wide rather than tall: eleven settings in one column made a panel
+        /// Always set next to the button it mirrors. Two places deciding what
+        /// "back" means is how a key and a button end up disagreeing.
+        /// </summary>
+        public static void SetPrevious(GameObject screen, GameObject target)
+        {
+            MenuScreen menu = screen == null ? null : screen.GetComponent<MenuScreen>();
+            if (menu == null)
+            {
+                return;
+            }
+
+            SerializedObject so = new SerializedObject(menu);
+            SerializedProperty property = so.FindProperty("previous");
+
+            // Named lookups into a serialised field fail silently if the field is
+            // renamed, and a builder that quietly stops wiring Esc is worse than
+            // one that stops. Say so loudly instead.
+            if (property == null)
+            {
+                Debug.LogError("MenuScreen has no 'previous' field - Esc cannot step back. " +
+                    "Rename the field back or update SetPrevious.", menu);
+                return;
+            }
+
+            property.objectReferenceValue = target == null ? null : target.GetComponent<MenuScreen>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// Panel size the display rows need.
+        ///
+        /// Wide rather than tall: settings stacked in one column made a panel
         /// nearly as high as the screen, with a long dead gap between every label
         /// and its controls. Two columns use the shape a monitor actually is.
         /// </summary>
-        public static readonly Vector2 GraphicsPanelSize = new Vector2(1400f, 780f);
+        public static readonly Vector2 DisplayPanelSize = new Vector2(1400f, 700f);
 
-        /// <summary>Where the Back button goes on the graphics panel.</summary>
+        /// <summary>
+        /// Graphics needs one column now that display has moved out, so the panel
+        /// is narrow enough not to look half empty - but tall enough for six rows
+        /// and their notes. Six rows from -170 in steps of 84 put the last note at
+        /// -624, so a Back button at -620 sat on top of it.
+        /// </summary>
+        public static readonly Vector2 GraphicsPanelSize = new Vector2(780f, 800f);
+
+        /// <summary>
+        /// Where the Back button goes on each panel. Far enough below the last row
+        /// that the note line underneath it still has somewhere to go.
+        /// </summary>
+        public const float DisplayBackY = -620f;
         public const float GraphicsBackY = -700f;
 
         /// <summary>Horizontal centre of each column, relative to the panel.</summary>
         private const float LeftColumn = -340f;
         private const float RightColumn = 340f;
 
+        /// <summary>Single centred column, for panels that only need one.</summary>
+        private const float OneColumn = 30f;
+
         /// <summary>
-        /// Fills a panel with every graphics setting, split into two columns.
+        /// Fills a panel with everything about how the image is produced and
+        /// presented, in two columns.
         ///
-        /// The split is not arbitrary: the left column is what a player changes
-        /// when setting the game up - how it looks and how it fits their monitor -
-        /// and the right is per-effect overrides, which are for someone chasing a
-        /// particular frame rate afterwards.
+        /// The left column is what a player sets once to fit their monitor. The
+        /// right is reconstruction — which upscaler, how hard it pushes, and what
+        /// resolves edges when none of them is doing it. Those three are adjacent
+        /// because changing the first changes what the other two mean, and a row
+        /// that has just gone inert should be visible from the one that did it.
+        /// </summary>
+        public static void PopulateDisplayPanel(Transform panel, Material panelMaterial)
+        {
+            const float top = -170f;
+            const float step = 84f;
+
+            (GraphicsOptionKind kind, string label)[] screen =
+            {
+                (GraphicsOptionKind.Resolution, "Resolution"),
+                (GraphicsOptionKind.ScreenMode, "Window Mode"),
+                (GraphicsOptionKind.VSync, "VSync"),
+                (GraphicsOptionKind.FrameCap, "Frame Cap")
+            };
+
+            (GraphicsOptionKind kind, string label)[] reconstruction =
+            {
+                (GraphicsOptionKind.UpscaleMethod, "Upscaling"),
+                (GraphicsOptionKind.UpscaleQuality, "Upscale Quality"),
+                (GraphicsOptionKind.RenderScale, "Render Scale"),
+                (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing")
+            };
+
+            for (int i = 0; i < screen.Length; i++)
+            {
+                CreateOptionRow(panel, screen[i].kind, screen[i].label,
+                    LeftColumn, top - i * step, panelMaterial);
+            }
+
+            for (int i = 0; i < reconstruction.Length; i++)
+            {
+                CreateOptionRow(panel, reconstruction[i].kind, reconstruction[i].label,
+                    RightColumn, top - i * step, panelMaterial);
+            }
+        }
+
+        /// <summary>
+        /// Fills a panel with what is actually in the image, as opposed to how it
+        /// gets drawn — that half now lives on the display screen.
+        ///
+        /// One column: these are six independent switches with no ordering between
+        /// them, and splitting six rows across two columns only makes a reader
+        /// check both sides for something that could have been a list.
         /// </summary>
         public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
         {
-            const float top = -190f;
+            const float top = -170f;
             const float step = 84f;
-
-            (GraphicsOptionKind kind, string label)[] setup =
-            {
-                (GraphicsOptionKind.Quality, "Quality"),
-                (GraphicsOptionKind.Resolution, "Resolution"),
-                (GraphicsOptionKind.ScreenMode, "Display"),
-                (GraphicsOptionKind.VSync, "VSync"),
-                (GraphicsOptionKind.FrameCap, "Frame Cap"),
-                (GraphicsOptionKind.RenderScale, "Render Scale")
-            };
 
             (GraphicsOptionKind kind, string label)[] effects =
             {
-                (GraphicsOptionKind.Upscaling, "Upscaling"),
+                (GraphicsOptionKind.Quality, "Quality"),
                 (GraphicsOptionKind.Lighting, "Lighting"),
                 (GraphicsOptionKind.Reflections, "Reflections"),
                 (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
@@ -413,16 +497,10 @@ namespace SurvivalChaos.EditorTools
                 (GraphicsOptionKind.MotionBlur, "Motion Blur")
             };
 
-            for (int i = 0; i < setup.Length; i++)
-            {
-                CreateOptionRow(panel, setup[i].kind, setup[i].label,
-                    LeftColumn, top - i * step, panelMaterial);
-            }
-
             for (int i = 0; i < effects.Length; i++)
             {
                 CreateOptionRow(panel, effects[i].kind, effects[i].label,
-                    RightColumn, top - i * step, panelMaterial);
+                    OneColumn, top - i * step, panelMaterial);
             }
         }
 
@@ -467,7 +545,12 @@ namespace SurvivalChaos.EditorTools
 
             GraphicsOption option = Undo.AddComponent<GraphicsOption>(caption.gameObject);
             SerializedObject so = new SerializedObject(option);
-            so.FindProperty("kind").enumValueIndex = (int)kind;
+            // intValue, not enumValueIndex: the latter is the position in the
+            // enum's declared list rather than the value itself, so it silently
+            // points at the wrong setting the moment the enum has a gap in it -
+            // and GraphicsOptionKind has one, where the old combined upscaling
+            // row was removed.
+            so.FindProperty("kind").intValue = (int)kind;
             so.FindProperty("value").objectReferenceValue = current;
             so.FindProperty("note").objectReferenceValue = note;
             so.ApplyModifiedPropertiesWithoutUndo();
