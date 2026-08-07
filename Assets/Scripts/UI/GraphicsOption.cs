@@ -16,7 +16,8 @@ namespace SurvivalChaos
         Reflections = 7,
         AmbientOcclusion = 8,
         VolumetricFog = 9,
-        MotionBlur = 10
+        MotionBlur = 10,
+        Upscaling = 11
     }
 
     /// <summary>
@@ -50,6 +51,14 @@ namespace SurvivalChaos
 
         /// <summary>Render scale in whole tens; anything finer is false precision.</summary>
         private static readonly float[] RenderScales = { 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f };
+
+        /// <summary>Anti-aliasing first, then upscalers by how hard they push.</summary>
+        private static readonly string[] UpscalingNames =
+        {
+            "Off", "SMAA", "TAA",
+            "FSR Quality", "FSR Balanced", "FSR Performance",
+            "DLSS Quality", "DLSS Balanced", "DLSS Performance"
+        };
 
         [SerializeField]
         private GraphicsOptionKind kind = GraphicsOptionKind.Quality;
@@ -117,7 +126,18 @@ namespace SurvivalChaos
         /// <summary>False when the machine cannot offer the setting at all.</summary>
         private bool Available(GraphicsDirector director)
         {
-            return kind != GraphicsOptionKind.Lighting || director.RayTracingAvailable;
+            switch (kind)
+            {
+                case GraphicsOptionKind.Lighting:
+                    return director.RayTracingAvailable;
+
+                // Inert while an upscaler is driving the resolution.
+                case GraphicsOptionKind.RenderScale:
+                    return !GraphicsDirector.IsUpscaler(director.Upscaling);
+
+                default:
+                    return true;
+            }
         }
 
         private int Count(GraphicsDirector director)
@@ -129,6 +149,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
                 case GraphicsOptionKind.FrameCap: return DisplayOptions.FrameRateCaps.Length;
                 case GraphicsOptionKind.RenderScale: return RenderScales.Length;
+                case GraphicsOptionKind.Upscaling: return director.DlssAvailable ? UpscalingNames.Length : 6;
                 case GraphicsOptionKind.Lighting: return 2;
                 default: return 2;
             }
@@ -144,6 +165,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync: return director.VSync ? 1 : 0;
                 case GraphicsOptionKind.FrameCap: return IndexOfCap(director.FrameCap);
                 case GraphicsOptionKind.RenderScale: return IndexOfScale(director.RenderScale);
+                case GraphicsOptionKind.Upscaling: return (int)director.Upscaling;
                 case GraphicsOptionKind.Lighting: return (int)director.Lighting;
                 case GraphicsOptionKind.Reflections: return director.Reflections ? 1 : 0;
                 case GraphicsOptionKind.AmbientOcclusion: return director.AmbientOcclusion ? 1 : 0;
@@ -163,6 +185,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync: director.VSync = index == 1; break;
                 case GraphicsOptionKind.FrameCap: director.FrameCap = DisplayOptions.FrameRateCaps[index]; break;
                 case GraphicsOptionKind.RenderScale: director.RenderScale = RenderScales[index]; break;
+                case GraphicsOptionKind.Upscaling: director.Upscaling = (UpscalingMode)index; break;
                 case GraphicsOptionKind.Lighting: director.Lighting = (LightingMode)index; break;
                 case GraphicsOptionKind.Reflections: director.Reflections = index == 1; break;
                 case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = index == 1; break;
@@ -195,7 +218,12 @@ namespace SurvivalChaos
                     return DisplayOptions.DescribeCap(director.FrameCap);
 
                 case GraphicsOptionKind.RenderScale:
-                    return Mathf.RoundToInt(director.RenderScale * 100f) + "%";
+                    // Shows what the game is actually rendering at, which an
+                    // upscaler decides rather than this control.
+                    return Mathf.RoundToInt(director.EffectiveRenderScale * 100f) + "%";
+
+                case GraphicsOptionKind.Upscaling:
+                    return UpscalingNames[Mathf.Clamp((int)director.Upscaling, 0, UpscalingNames.Length - 1)];
 
                 case GraphicsOptionKind.Lighting:
                     if (!director.RayTracingAvailable)
@@ -227,6 +255,18 @@ namespace SurvivalChaos
 
                 case GraphicsOptionKind.FrameCap when director.VSync:
                     return "Ignored while VSync is on";
+
+                // An upscaler owns the render scale, so this control is inert
+                // while one is selected. Saying so beats letting someone change a
+                // number that has no effect.
+                case GraphicsOptionKind.RenderScale when GraphicsDirector.IsUpscaler(director.Upscaling):
+                    return "Set by the upscaler";
+
+                case GraphicsOptionKind.Upscaling when !director.DlssAvailable:
+                    return "DLSS needs an NVIDIA RTX card";
+
+                case GraphicsOptionKind.Upscaling when GraphicsDirector.IsUpscaler(director.Upscaling):
+                    return "Replaces anti-aliasing";
 
                 case GraphicsOptionKind.Quality:
                     return director.QualityLevel == 0 ? "Dynamic shadows are off at this level" : string.Empty;

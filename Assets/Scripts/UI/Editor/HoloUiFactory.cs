@@ -405,6 +405,7 @@ namespace SurvivalChaos.EditorTools
 
             (GraphicsOptionKind kind, string label)[] effects =
             {
+                (GraphicsOptionKind.Upscaling, "Upscaling"),
                 (GraphicsOptionKind.Lighting, "Lighting"),
                 (GraphicsOptionKind.Reflections, "Reflections"),
                 (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),

@@ -6,6 +6,32 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos
 {
+    /// <summary>
+    /// How the image is resolved: anti-aliasing, or an upscaler that replaces it.
+    ///
+    /// One list rather than two controls, because these are mutually exclusive -
+    /// DLSS and FSR2 do their own temporal reconstruction and take over from
+    /// anti-aliasing entirely. Presented separately, a player could ask for TAA
+    /// and DLSS together and get something neither of them describes.
+    ///
+    /// The upscalers carry their render scale with them, which is why they are
+    /// listed as quality modes rather than as a bare on/off next to the separate
+    /// Render Scale control - two settings owning one number is how you end up
+    /// with DLSS at 100%, doing nothing at all.
+    /// </summary>
+    public enum UpscalingMode
+    {
+        Off = 0,
+        Smaa = 1,
+        Taa = 2,
+        FsrQuality = 3,
+        FsrBalanced = 4,
+        FsrPerformance = 5,
+        DlssQuality = 6,
+        DlssBalanced = 7,
+        DlssPerformance = 8
+    }
+
     /// <summary>Which system lights the scene.</summary>
     public enum LightingMode
     {
@@ -70,10 +96,22 @@ namespace SurvivalChaos
             Instance = this;
             BuildOverrideVolume();
             ApplyAll();
+
+            // The camera settings live on the scene's camera, which is replaced
+            // every time a scene loads. Without this they survive only the first.
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene,
+            UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            ApplyCamera();
         }
 
         private void OnDestroy()
         {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+
             if (Instance == this)
             {
                 Instance = null;
@@ -171,6 +209,55 @@ namespace SurvivalChaos
             set => SetFloat("RenderScale", Mathf.Clamp(value, 0.5f, 1f));
         }
 
+        /// <summary>
+        /// Whether DLSS can actually run. The NVIDIA module being installed is
+        /// not the same as an RTX card being present, and HDRP does the real
+        /// detection, so this asks it rather than guessing from a device name.
+        /// </summary>
+        public bool DlssAvailable => HDDynamicResolutionPlatformCapabilities.DLSSDetected;
+
+        public UpscalingMode Upscaling
+        {
+            get
+            {
+                UpscalingMode stored = (UpscalingMode)GetInt("Upscaling", (int)UpscalingMode.Taa);
+                // A settings file can outlive the graphics card it was written on.
+                return IsDlss(stored) && !DlssAvailable ? UpscalingMode.Taa : stored;
+            }
+            set => SetInt("Upscaling", (int)value);
+        }
+
+        public static bool IsDlss(UpscalingMode mode)
+        {
+            return mode >= UpscalingMode.DlssQuality;
+        }
+
+        public static bool IsUpscaler(UpscalingMode mode)
+        {
+            return mode >= UpscalingMode.FsrQuality;
+        }
+
+        /// <summary>
+        /// The scale the game actually renders at. An upscaler owns this outright;
+        /// the Render Scale control only applies when none is selected.
+        /// </summary>
+        public float EffectiveRenderScale
+        {
+            get
+            {
+                switch (Upscaling)
+                {
+                    case UpscalingMode.FsrQuality:
+                    case UpscalingMode.DlssQuality: return 0.67f;
+                    case UpscalingMode.FsrBalanced:
+                    case UpscalingMode.DlssBalanced: return 0.58f;
+                    case UpscalingMode.FsrPerformance:
+                    case UpscalingMode.DlssPerformance: return 0.5f;
+                    default: return RenderScale;
+                }
+            }
+        }
+
         public LightingMode Lighting
         {
             get => RayTracingAvailable
@@ -230,9 +317,10 @@ namespace SurvivalChaos
 
             // No-op unless the pipeline asset has dynamic resolution enabled;
             // harmless either way, and the lever that helps weak hardware most.
-            float scale = RenderScale;
+            float scale = EffectiveRenderScale;
             ScalableBufferManager.ResizeBuffers(scale, scale);
 
+            ApplyCamera();
             ApplyOverrides();
             SettingsChanged?.Invoke();
         }
@@ -257,6 +345,47 @@ namespace SurvivalChaos
             fog = overrides.profile.Add<Fog>();
             motionBlur = overrides.profile.Add<MotionBlur>();
             globalIllumination = overrides.profile.Add<GlobalIllumination>();
+        }
+
+        /// <summary>
+        /// Anti-aliasing and upscaling live on the camera, not in a Volume, so
+        /// this has to find the scene's camera - and find it again after a scene
+        /// load, since the old one went with the old scene.
+        /// </summary>
+        private void ApplyCamera()
+        {
+            Camera camera = Camera.main;
+            if (camera == null || !camera.TryGetComponent(out HDAdditionalCameraData data))
+            {
+                return;
+            }
+
+            UpscalingMode mode = Upscaling;
+            bool upscaling = IsUpscaler(mode);
+            bool dlss = IsDlss(mode);
+
+            // An upscaler does its own temporal reconstruction, so HDRP's
+            // anti-aliasing is switched off rather than stacked on top of it.
+            data.antialiasing = upscaling
+                ? HDAdditionalCameraData.AntialiasingMode.None
+                : Antialiasing(mode);
+
+            data.allowDynamicResolution = upscaling || RenderScale < 1f;
+            data.allowDeepLearningSuperSampling = dlss;
+            data.allowFidelityFX2SuperResolution = upscaling && !dlss;
+        }
+
+        private static HDAdditionalCameraData.AntialiasingMode Antialiasing(UpscalingMode mode)
+        {
+            switch (mode)
+            {
+                case UpscalingMode.Smaa:
+                    return HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+                case UpscalingMode.Taa:
+                    return HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                default:
+                    return HDAdditionalCameraData.AntialiasingMode.None;
+            }
         }
 
         private void ApplyOverrides()
