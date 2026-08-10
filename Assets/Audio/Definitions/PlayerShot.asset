@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: PlayerShot
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 31e35a20c3040284bb3af99b55945e11, type: 3}
-  - {fileID: 8300000, guid: 7192196e407fa9643a952e686eed90f9, type: 3}
-  - {fileID: 8300000, guid: 907a16caa3e315a4ca8bb8ab1b33dd3f, type: 3}
-  - {fileID: 8300000, guid: 8a8fb61110ecbd146920818509cc66d5, type: 3}
+  - {fileID: 8300000, guid: 90af8196dfcf27c4280e472c178e2fa8, type: 3}
+  - {fileID: 8300000, guid: 3308cc27bbbd3f14e9cbb47d0cb452ad, type: 3}
   channel: 2
   volume: 0.4466836
   pitchRange: {x: 0.94, y: 1.06}
