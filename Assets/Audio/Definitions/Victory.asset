@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Victory
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 13e0909438545064da94c9a2512e49d7, type: 3}
+  - {fileID: 8300000, guid: f4662d04ecbadb04084cf943ec7aa17d, type: 3}
   channel: 3
   volume: 1
   pitchRange: {x: 1, y: 1}

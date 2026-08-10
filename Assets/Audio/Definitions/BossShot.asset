@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: BossShot
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 5e16fb1cb0de5554b9eb645cb9b90ba5, type: 3}
-  - {fileID: 8300000, guid: efe0380443fa152498235251bd660735, type: 3}
-  - {fileID: 8300000, guid: cf54a5279559dc846990c95f6a8e80a4, type: 3}
+  - {fileID: 8300000, guid: 2fcc40816c109554d984d8e6f872f847, type: 3}
+  - {fileID: 8300000, guid: a9049f77ac4f897478b3966c8bb73aa5, type: 3}
+  - {fileID: 8300000, guid: f6a26654506b7364e8a0557d962f1476, type: 3}
   channel: 2
-  volume: 0.5
+  volume: 0.56234133
   pitchRange: {x: 0.95, y: 1.05}
   minRetrigger: 0.12
   maxVoices: 3

@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: UiClick
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 98452277ea1ea4e40b8c5277e2845692, type: 3}
-  - {fileID: 8300000, guid: 00453e59e90a27d42b6d2fb9a8919cf5, type: 3}
+  - {fileID: 8300000, guid: 581a2ae386b64044dbc8e43a685fc9c7, type: 3}
+  - {fileID: 8300000, guid: 7465e0b8151fdb94aa03ee6599990c3e, type: 3}
   channel: 3
-  volume: 0.8
+  volume: 0.8912509
   pitchRange: {x: 1, y: 1}
   minRetrigger: 0.05
   maxVoices: 2

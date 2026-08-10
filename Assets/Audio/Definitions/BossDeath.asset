@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BossDeath
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 6fee6c51ae140cf4d8c5edacb4448456, type: 3}
+  - {fileID: 8300000, guid: 71110fae5fddf594fb672930e7a3263e, type: 3}
   channel: 2
   volume: 1
   pitchRange: {x: 1, y: 1}

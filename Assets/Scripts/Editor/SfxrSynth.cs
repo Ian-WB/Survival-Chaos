@@ -350,25 +350,34 @@ namespace SurvivalChaos.EditorTools
             }
         }
 
-        /// <summary>Writes 16-bit mono PCM. Mono because two of these are positional.</summary>
-        public static void WriteWav(string path, float[] samples)
+        /// <summary>
+        /// Writes 16-bit PCM. Channels and rate are parameters because this also
+        /// writes level-corrected copies of imported clips, which are not all mono
+        /// and not all 44.1k - a copy that silently changed either would be a
+        /// different sound, not a quieter one.
+        /// </summary>
+        public static void WriteWav(string path, float[] samples, int channels = 1, int sampleRate = SampleRate)
         {
+            channels = Mathf.Max(1, channels);
+            sampleRate = Mathf.Max(1, sampleRate);
+
             using (FileStream file = new FileStream(path, FileMode.Create))
             using (BinaryWriter w = new BinaryWriter(file))
             {
                 int dataBytes = samples.Length * 2;
+                int blockAlign = channels * 2;
 
                 w.Write(new[] { 'R', 'I', 'F', 'F' });
                 w.Write(36 + dataBytes);
                 w.Write(new[] { 'W', 'A', 'V', 'E' });
                 w.Write(new[] { 'f', 'm', 't', ' ' });
                 w.Write(16);
-                w.Write((short)1);           // PCM
-                w.Write((short)1);           // mono
-                w.Write(SampleRate);
-                w.Write(SampleRate * 2);     // byte rate
-                w.Write((short)2);           // block align
-                w.Write((short)16);          // bits
+                w.Write((short)1);                       // PCM
+                w.Write((short)channels);
+                w.Write(sampleRate);
+                w.Write(sampleRate * blockAlign);        // byte rate
+                w.Write((short)blockAlign);
+                w.Write((short)16);                      // bits
                 w.Write(new[] { 'd', 'a', 't', 'a' });
                 w.Write(dataBytes);
 

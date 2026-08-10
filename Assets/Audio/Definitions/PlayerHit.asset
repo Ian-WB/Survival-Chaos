@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: PlayerHit
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 0e6ce64dadb7f4942aecebe094fccd0d, type: 3}
-  - {fileID: 8300000, guid: fc02160e9f41e3c4d8dff8aac34e9786, type: 3}
-  - {fileID: 8300000, guid: 54cd8f11b29604d4d8a29c420908c61a, type: 3}
+  - {fileID: 8300000, guid: 984586c4626cd3141a911a5890d3003a, type: 3}
+  - {fileID: 8300000, guid: 2f6d9255abe37fa469d81de50e85c44a, type: 3}
+  - {fileID: 8300000, guid: b453fa097dc7ec445a6977af3bc32c93, type: 3}
   channel: 2
-  volume: 0.9
+  volume: 1
   pitchRange: {x: 0.96, y: 1.04}
   minRetrigger: 0.08
   maxVoices: 2
