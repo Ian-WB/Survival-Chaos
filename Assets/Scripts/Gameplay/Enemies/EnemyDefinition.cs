@@ -22,10 +22,17 @@ namespace SurvivalChaos
         [Tooltip("Experience awarded to the player on death.")]
         private int experienceReward = 5;
 
+        [SerializeField]
+        [Tooltip("Played where this enemy dies. Leave empty to use the shared one on GameSounds - " +
+                 "a heavy is worth its own sound, a scout probably is not.")]
+        private SoundDefinition deathSound;
+
         public string DisplayName => displayName;
 
         public int MaxHealth => maxHealth;
 
         public int ExperienceReward => experienceReward;
+
+        public SoundDefinition DeathSound => deathSound;
     }
 }

@@ -39,6 +39,14 @@ public class SkillSelect : MonoBehaviour
         }
 
         skill.Apply(player);
+
+        // After Apply, so it marks a skill that was actually granted rather than
+        // one the pool declined to hand out.
+        if (GameSounds.Instance != null)
+        {
+            GameSounds.Play(GameSounds.Instance.SkillPicked);
+        }
+
         StartCoroutine(showText(skill.GetDisplayName(pool.PicksTaken(skill))));
     }
 

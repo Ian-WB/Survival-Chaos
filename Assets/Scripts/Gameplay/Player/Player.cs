@@ -143,6 +143,7 @@ public class Player : MonoBehaviour, ISkillTarget
 
             // Was missing, so bullet damage was invisible until death.
             healthBar.SetHealth(healthPoints);
+            PlayDamageSound();
 
             if (healthPoints <= 0)
             {
@@ -156,11 +157,12 @@ public class Player : MonoBehaviour, ISkillTarget
             Destroy(other.gameObject);
 
             // Update Health Points
-            
+
             healthPoints--;
              ObjectPool.Spawn(playerHit, transform.position , transform.rotation);
-            
+
             healthBar.SetHealth(healthPoints);
+            PlayDamageSound();
 
             // Check if Health Points is below 0 to destroy it
 
@@ -177,6 +179,7 @@ public class Player : MonoBehaviour, ISkillTarget
 
             healthPoints--;
             healthBar.SetHealth(healthPoints);
+            PlayDamageSound();
 
             // Check if Health Points is below 0 to destroy it
 
@@ -189,13 +192,36 @@ public class Player : MonoBehaviour, ISkillTarget
 
     }
 
+    /// <summary>
+    /// The hit sound, or the death sound when that hit was the last one.
+    ///
+    /// Kept as one method called from each damage branch rather than inlined
+    /// three times, so the three ways of being hurt cannot drift apart - which is
+    /// how the Boss branch ended up as the only one without a hit effect.
+    /// </summary>
+    private void PlayDamageSound()
+    {
+        GameSounds sounds = GameSounds.Instance;
+        if (sounds == null)
+        {
+            return;
+        }
+
+        GameSounds.Play(healthPoints <= 0 ? sounds.PlayerDeath : sounds.PlayerHit);
+    }
+
     private void Awake()
     {
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
     }
     private void Shoot()
     {
-
+        // Once per volley, not once per bullet. The widest pattern fires ten at
+        // the same instant and should still read as one shot.
+        if (GameSounds.Instance != null)
+        {
+            GameSounds.Play(GameSounds.Instance.PlayerShot);
+        }
 
         if (rotate)
         {
@@ -280,6 +306,11 @@ public class Player : MonoBehaviour, ISkillTarget
 
     private void LevelUp()
     {
+        if (GameSounds.Instance != null)
+        {
+            GameSounds.Play(GameSounds.Instance.LevelUp);
+        }
+
         //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
         skillSelect.PickSkill();
         currentLevel += 1;

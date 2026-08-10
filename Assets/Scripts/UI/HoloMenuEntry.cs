@@ -20,7 +20,8 @@ namespace SurvivalChaos
     [RequireComponent(typeof(Button))]
     [DisallowMultipleComponent]
     public sealed class HoloMenuEntry : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
+        IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
+        IPointerClickHandler
     {
         [SerializeField]
         [Tooltip("The text. Slides right when this entry is highlighted.")]
@@ -82,13 +83,37 @@ namespace SurvivalChaos
             Apply();
         }
 
-        public void OnPointerEnter(PointerEventData eventData) => target = 1f;
+        public void OnPointerEnter(PointerEventData eventData) => Arrive();
 
         public void OnPointerExit(PointerEventData eventData) => target = 0f;
 
-        public void OnSelect(BaseEventData eventData) => target = 1f;
+        public void OnSelect(BaseEventData eventData) => Arrive();
 
         public void OnDeselect(BaseEventData eventData) => target = 0f;
+
+        /// <summary>
+        /// The same sounds the framed buttons make. The title screen's entries
+        /// look nothing like those buttons on purpose, but they are still the same
+        /// act — a menu where only half the things you click answer back reads as
+        /// broken rather than as two styles.
+        /// </summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.UiClick);
+            }
+        }
+
+        private void Arrive()
+        {
+            target = 1f;
+
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.UiHover);
+            }
+        }
 
         /// <summary>
         /// Unscaled: the pause screen runs at a stopped timeScale, and a menu

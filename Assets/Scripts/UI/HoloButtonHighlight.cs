@@ -21,7 +21,8 @@ namespace SurvivalChaos
     [RequireComponent(typeof(Button))]
     [DisallowMultipleComponent]
     public sealed class HoloButtonHighlight : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
+        IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
+        IPointerClickHandler
     {
         [SerializeField]
         [Tooltip("The framed image. Its material is copied so this button's glow is its own.")]
@@ -117,10 +118,35 @@ namespace SurvivalChaos
 
         public void OnDeselect(BaseEventData eventData) => target = 0f;
 
+        /// <summary>
+        /// The click sound. Here rather than on each button's onClick, because
+        /// every framed button in the game already carries this component - the
+        /// editor tools put it there - so there is nothing to wire and nothing to
+        /// forget when a screen gains a button.
+        ///
+        /// Menu sounds answer to the Interface channel, which until now had a
+        /// working slider and nothing to attenuate.
+        /// </summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.UiClick);
+            }
+        }
+
         private void Highlight()
         {
             target = 1f;
             sweep = 0f;
+
+            // Only when the pointer arrives, not on every frame it stays: this
+            // runs again on reselection, and a menu that ticks while the mouse
+            // rests on a button is worse than one that says nothing.
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.UiHover);
+            }
         }
 
         /// <summary>

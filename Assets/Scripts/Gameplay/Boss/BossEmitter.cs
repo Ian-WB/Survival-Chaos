@@ -134,6 +134,14 @@ namespace SurvivalChaos
                     ObjectPool.Spawn(projectile, pivot.position, Quaternion.identity);
                 }
             }
+
+            // One per attack rather than per muzzle - the volley alone has
+            // sixteen, and the retrigger guard on the sound is a safety net, not
+            // a licence to ask for sixteen copies of the same noise.
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.PlayAt(GameSounds.Instance.BossShot, transform.position);
+            }
         }
 
         private bool TravellingLeft => movement != null && movement.leftOrRight;
@@ -168,6 +176,14 @@ namespace SurvivalChaos
             if (EXP.Instance != null)
             {
                 EXP.Instance.AddEXP(reward);
+            }
+
+            // Not positional, and played before the object goes: this is the run
+            // ending, not an event somewhere out on the ring.
+            GameSounds sounds = GameSounds.Instance;
+            if (sounds != null)
+            {
+                GameSounds.Play(sounds.BossDeath != null ? sounds.BossDeath : sounds.Victory);
             }
 
             RunOutcome.ReportBossDefeated();

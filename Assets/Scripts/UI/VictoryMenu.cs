@@ -34,6 +34,11 @@ namespace SurvivalChaos
                     "VictoryMenu has no panel assigned, so the run ends with nothing on screen.", this);
             }
 
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.Victory);
+            }
+
             // Stop the run regardless of whether the panel is wired, so "the
             // boss died" always actually ends the game.
             Time.timeScale = 0f;

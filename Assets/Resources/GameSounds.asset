@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4302759c7ac07fb4ab386e3fb6ed7e8c, type: 3}
+  m_Name: GameSounds
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.GameSounds
+  playerShot: {fileID: 11400000, guid: 371fd1e793dd3f345b88530211ae8882, type: 2}
+  playerHit: {fileID: 11400000, guid: 3a62f3a528a111743bcfdff00355df22, type: 2}
+  playerDeath: {fileID: 11400000, guid: 8160371381ccf1543833bdc632e0dfaf, type: 2}
+  levelUp: {fileID: 11400000, guid: 76c1e75513274ac4fa172d84066f85b3, type: 2}
+  skillPicked: {fileID: 11400000, guid: 858c7732477384d46a7c284e159030d0, type: 2}
+  enemyDeath: {fileID: 11400000, guid: 44cca5e94b65cd64ab2fe4a8d389daa6, type: 2}
+  bossShot: {fileID: 11400000, guid: 4a4d0466c6a55e5458f9193dc8271357, type: 2}
+  bossDeath: {fileID: 11400000, guid: b1dc6b90a4938ee47885ff58b201b664, type: 2}
+  victory: {fileID: 11400000, guid: 740d9d00cb550e746a4b9ac50f13fca0, type: 2}
+  uiClick: {fileID: 11400000, guid: a01a46782ba92de44840b51fd89af255, type: 2}
+  uiHover: {fileID: 11400000, guid: 9a6b3a802738c924da0469c37a825d42, type: 2}
