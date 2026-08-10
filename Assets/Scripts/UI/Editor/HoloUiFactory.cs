@@ -458,7 +458,10 @@ namespace SurvivalChaos.EditorTools
                 (GraphicsOptionKind.UpscaleMethod, "Upscaling"),
                 (GraphicsOptionKind.UpscaleQuality, "Upscale Quality"),
                 (GraphicsOptionKind.RenderScale, "Render Scale"),
-                (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing")
+                (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing"),
+                // Directly under the row it depends on: sharpening is a property
+                // of whatever resolved the edges, so the two belong together.
+                (GraphicsOptionKind.Sharpness, "Sharpness")
             };
 
             for (int i = 0; i < screen.Length; i++)

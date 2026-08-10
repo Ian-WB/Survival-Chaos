@@ -43,6 +43,22 @@ namespace SurvivalChaos
         Dlaa = 4
     }
 
+    /// <summary>
+    /// How hard the image is sharpened after reconstruction.
+    ///
+    /// Medium reproduces HDRP's own defaults exactly. Those defaults run two
+    /// sharpening passes at once — <c>taaSharpenStrength</c> at 0.5 and
+    /// <c>taaHistorySharpening</c> at 0.35 — which stacked is what reads as
+    /// over-sharpened, and is why the default here is Low rather than Medium.
+    /// </summary>
+    public enum SharpnessLevel
+    {
+        Off = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3
+    }
+
     /// <summary>One selectable screen size.</summary>
     public readonly struct DisplaySize
     {
@@ -173,16 +189,61 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// A cap that tracks whatever display the game is on, sitting just below
+        /// its refresh rate rather than on it.
+        ///
+        /// This exists because landing *on* the refresh rate is the one place
+        /// frame pacing falls apart. A frame that takes almost exactly one refresh
+        /// interval alternately makes and misses the deadline, and in a borderless
+        /// window - where the desktop compositor is presenting every frame - that
+        /// beat is visible as regular hitching. Staying a couple of frames under
+        /// removes the boundary rather than fighting it.
+        ///
+        /// Derived rather than typed, because a fixed 144 is the boundary on a
+        /// 144 Hz panel and nowhere near it on a 165 Hz one.
+        /// </summary>
+        public const int MatchDisplay = -1;
+
+        /// <summary>How far under the display's rate <see cref="MatchDisplay"/> sits.</summary>
+        public const int DisplayHeadroom = 2;
+
+        /// <summary>
         /// Frame rate caps offered, with 0 meaning uncapped.
         ///
         /// A cap below the display's rate is the cheapest way to stop a laptop
         /// cooking itself on a menu screen, which is why 30 stays on the list even
         /// though nobody chooses it for play.
         /// </summary>
-        public static readonly int[] FrameRateCaps = { 0, 30, 60, 90, 120, 144, 165, 240 };
+        public static readonly int[] FrameRateCaps = { 0, MatchDisplay, 30, 60, 90, 120, 144, 165, 240 };
+
+        /// <summary>
+        /// The cap to actually apply, resolving <see cref="MatchDisplay"/> against
+        /// the display currently in use.
+        /// </summary>
+        public static int ResolveCap(int cap, int refreshRate)
+        {
+            if (cap != MatchDisplay)
+            {
+                return cap;
+            }
+
+            // A display that reports nothing usable gets left uncapped rather than
+            // pinned to some invented number.
+            if (refreshRate <= 0)
+            {
+                return 0;
+            }
+
+            return refreshRate > DisplayHeadroom + 30 ? refreshRate - DisplayHeadroom : refreshRate;
+        }
 
         public static string DescribeCap(int cap)
         {
+            if (cap == MatchDisplay)
+            {
+                return "Just under display";
+            }
+
             return cap <= 0 ? "Uncapped" : cap + " FPS";
         }
 
@@ -263,6 +324,56 @@ namespace SurvivalChaos
 
             int last = UpscaleQualityNames.Length - 1;
             return (uint)(quality > last ? last : quality);
+        }
+
+        // ---------- sharpening ----------
+
+        public static readonly string[] SharpnessNames = { "Off", "Low", "Medium", "High" };
+
+        /// <summary>
+        /// Strength of TAA's post-sharpen pass. HDRP's own default is 0.5, which
+        /// is what Medium returns.
+        /// </summary>
+        public static float TaaSharpenStrength(int level)
+        {
+            switch (level)
+            {
+                case 0: return 0f;
+                case 1: return 0.25f;
+                case 2: return 0.5f;
+                default: return 1f;
+            }
+        }
+
+        /// <summary>
+        /// Sharpening applied to the history TAA samples from. Separate from the
+        /// pass above and on by default too - turning one down while leaving the
+        /// other alone is why sharpening can seem stuck.
+        /// </summary>
+        public static float TaaHistorySharpening(int level)
+        {
+            switch (level)
+            {
+                case 0: return 0f;
+                case 1: return 0.18f;
+                case 2: return 0.35f;
+                default: return 0.55f;
+            }
+        }
+
+        /// <summary>
+        /// Sharpening for FSR, which does its own rather than using TAA's. Off
+        /// returns 0 and the caller disables the pass outright.
+        /// </summary>
+        public static float UpscalerSharpness(int level)
+        {
+            switch (level)
+            {
+                case 0: return 0f;
+                case 1: return 0.2f;
+                case 2: return 0.4f;
+                default: return 0.7f;
+            }
         }
 
         /// <summary>

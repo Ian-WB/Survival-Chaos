@@ -26,7 +26,8 @@ namespace SurvivalChaos
         MotionBlur = 10,
         UpscaleMethod = 12,
         UpscaleQuality = 13,
-        AntiAliasing = 14
+        AntiAliasing = 14,
+        Sharpness = 15
     }
 
     /// <summary>
@@ -144,6 +145,11 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.AntiAliasing:
                     return director.Method == UpscaleMethod.Off;
 
+                // Only TAA and FSR sharpen. With FXAA, SMAA or nothing selected
+                // there is no sharpening pass for this to turn down.
+                case GraphicsOptionKind.Sharpness:
+                    return director.SharpeningApplies;
+
                 default:
                     return true;
             }
@@ -192,6 +198,7 @@ namespace SurvivalChaos
                         ? DisplayOptions.AntiAliasingNames.Length
                         : DisplayOptions.AntiAliasingNames.Length - 1;
 
+                case GraphicsOptionKind.Sharpness: return DisplayOptions.SharpnessNames.Length;
                 case GraphicsOptionKind.Lighting: return 2;
                 default: return 2;
             }
@@ -210,6 +217,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
+                case GraphicsOptionKind.Sharpness: return (int)director.Sharpness;
                 case GraphicsOptionKind.Lighting: return (int)director.Lighting;
                 case GraphicsOptionKind.Reflections: return director.Reflections ? 1 : 0;
                 case GraphicsOptionKind.AmbientOcclusion: return director.AmbientOcclusion ? 1 : 0;
@@ -232,6 +240,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
+                case GraphicsOptionKind.Sharpness: director.Sharpness = (SharpnessLevel)index; break;
                 case GraphicsOptionKind.Lighting: director.Lighting = (LightingMode)index; break;
                 case GraphicsOptionKind.Reflections: director.Reflections = index == 1; break;
                 case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = index == 1; break;
@@ -261,7 +270,11 @@ namespace SurvivalChaos
                     return director.VSync ? "On" : "Off";
 
                 case GraphicsOptionKind.FrameCap:
-                    return DisplayOptions.DescribeCap(director.FrameCap);
+                    // The derived cap shows the number it resolved to, so it is
+                    // not a promise the player has to take on trust.
+                    return director.FrameCap == DisplayOptions.MatchDisplay && director.ResolvedFrameCap > 0
+                        ? director.ResolvedFrameCap + " FPS"
+                        : DisplayOptions.DescribeCap(director.FrameCap);
 
                 case GraphicsOptionKind.RenderScale:
                     // Shows what the game is actually rendering at, which an
@@ -282,6 +295,9 @@ namespace SurvivalChaos
                     return director.Method == UpscaleMethod.Off
                         ? DisplayOptions.AntiAliasingNames[(int)director.AntiAliasing]
                         : DisplayOptions.UpscaleMethodNames[(int)director.Method];
+
+                case GraphicsOptionKind.Sharpness:
+                    return DisplayOptions.SharpnessNames[(int)director.Sharpness];
 
                 case GraphicsOptionKind.Lighting:
                     if (!director.RayTracingAvailable)
@@ -314,6 +330,14 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.FrameCap when director.VSync:
                     return "Ignored while VSync is on";
 
+                case GraphicsOptionKind.FrameCap when director.FrameCap == DisplayOptions.MatchDisplay:
+                    return "Stays clear of the refresh rate, where pacing gets rough";
+
+                // Sitting exactly on the display's rate is the one cap that paces
+                // badly, so the row says so rather than leaving it to be found.
+                case GraphicsOptionKind.VSync when director.VSync:
+                    return "If frames hitch, try Just Under Display instead";
+
                 // An upscaler owns the render scale, so this control is inert
                 // while one is selected. Saying so beats letting someone change a
                 // number that has no effect.
@@ -338,6 +362,13 @@ namespace SurvivalChaos
 
                 case GraphicsOptionKind.AntiAliasing when director.AntiAliasing == AntiAliasingMode.Dlaa:
                     return "DLSS quality at full resolution; costs more than TAA";
+
+                // The row it depends on is right above it, so say which one.
+                case GraphicsOptionKind.Sharpness when !director.SharpeningApplies:
+                    return "Only TAA and FSR sharpen";
+
+                case GraphicsOptionKind.Sharpness when director.Sharpness == SharpnessLevel.Medium:
+                    return "Medium is HDRP's default, which sharpens twice over";
 
                 case GraphicsOptionKind.Quality:
                     return director.QualityLevel == 0 ? "Dynamic shadows are off at this level" : string.Empty;

@@ -184,6 +184,22 @@ namespace SurvivalChaos
             set => SetInt("FrameCap", value);
         }
 
+        /// <summary>The display's refresh rate, or 0 when it reports nothing usable.</summary>
+        public int RefreshRate
+        {
+            get
+            {
+                double rate = Screen.currentResolution.refreshRateRatio.value;
+                return double.IsNaN(rate) || rate <= 0d ? 0 : Mathf.RoundToInt((float)rate);
+            }
+        }
+
+        /// <summary>
+        /// The cap actually handed to Unity, with "just under display" resolved
+        /// against whichever monitor the game is on right now.
+        /// </summary>
+        public int ResolvedFrameCap => DisplayOptions.ResolveCap(FrameCap, RefreshRate);
+
         /// <summary>Fraction of native resolution the game renders at, 0.5 to 1.</summary>
         public float RenderScale
         {
@@ -242,6 +258,25 @@ namespace SurvivalChaos
             }
             set => SetInt("AntiAliasing", (int)value);
         }
+
+        /// <summary>
+        /// Defaults to Low rather than Medium. Medium is HDRP's own value, and
+        /// HDRP's own value is two sharpening passes stacked - which is the
+        /// over-sharpened look this control exists to fix.
+        /// </summary>
+        public SharpnessLevel Sharpness
+        {
+            get => (SharpnessLevel)GetInt("Sharpness", (int)SharpnessLevel.Low);
+            set => SetInt("Sharpness", (int)value);
+        }
+
+        /// <summary>
+        /// False when nothing on screen is being sharpened, so the row can say so
+        /// rather than sitting there doing nothing. Only TAA and FSR sharpen;
+        /// FXAA, SMAA and no anti-aliasing at all do not.
+        /// </summary>
+        public bool SharpeningApplies =>
+            Method == UpscaleMethod.Fsr || AntiAliasing == AntiAliasingMode.Taa;
 
         /// <summary>
         /// The scale the game actually renders at. An upscaler owns this outright;
@@ -303,10 +338,13 @@ namespace SurvivalChaos
             }
 
             QualitySettings.vSyncCount = VSync ? 1 : 0;
-            // A frame cap is ignored while VSync is on, so the two are not
-            // independent and the menu says so rather than letting one silently
-            // defeat the other.
-            Application.targetFrameRate = VSync ? -1 : (FrameCap <= 0 ? -1 : FrameCap);
+
+            // Unity ignores targetFrameRate entirely while vSyncCount is non-zero,
+            // so these cannot be combined however much one might want to cap just
+            // below the refresh rate *and* sync. The menu says so rather than
+            // letting one silently defeat the other.
+            int cap = ResolvedFrameCap;
+            Application.targetFrameRate = VSync ? -1 : (cap <= 0 ? -1 : cap);
 
             // Read every frame by the scaler registered in Awake. Not applied by
             // calling ScalableBufferManager directly: HDRP drives that itself from
@@ -417,6 +455,38 @@ namespace SurvivalChaos
             data.fidelityFX2SuperResolutionUseCustomAttributes = true;
             data.fidelityFX2SuperResolutionUseOptimalSettings = true;
             data.fidelityFX2SuperResolutionQuality = DisplayOptions.Fsr2QualityValue((int)Quality);
+
+            ApplySharpening(data);
+        }
+
+        /// <summary>
+        /// Sharpening, everywhere it is decided.
+        ///
+        /// There are three separate knobs and they are easy to fight with. TAA
+        /// sharpens twice - once as a post pass, once on the history it samples -
+        /// and both are on by default, so turning down only the obvious one leaves
+        /// the image still looking crunchy. FSR ignores both and does its own.
+        ///
+        /// The FSR 1.0 override is set even though the fallback filter is
+        /// currently TAA Upscale: the pipeline asset carries fsrSharpness 0.92,
+        /// near maximum, and if anything ever selects that filter an unoverridden
+        /// camera would inherit it.
+        /// </summary>
+        private void ApplySharpening(HDAdditionalCameraData data)
+        {
+            int level = (int)Sharpness;
+
+            data.taaSharpenMode = HDAdditionalCameraData.TAASharpenMode.PostSharpen;
+            data.taaSharpenStrength = DisplayOptions.TaaSharpenStrength(level);
+            data.taaHistorySharpening = DisplayOptions.TaaHistorySharpening(level);
+
+            float upscalerSharpness = DisplayOptions.UpscalerSharpness(level);
+
+            data.fidelityFX2SuperResolutionEnableSharpening = upscalerSharpness > 0f;
+            data.fidelityFX2SuperResolutionSharpening = upscalerSharpness;
+
+            data.fsrOverrideSharpness = true;
+            data.fsrSharpness = upscalerSharpness;
         }
 
         private static HDAdditionalCameraData.AntialiasingMode HdrpAntialiasing(AntiAliasingMode mode)

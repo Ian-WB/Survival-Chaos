@@ -107,6 +107,47 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
+        /// The whole point of this cap is to not land on the refresh rate, since
+        /// that is where frame pacing falls apart. A rounding slip that returned
+        /// the rate itself would reintroduce the exact problem it exists to avoid,
+        /// and would look like it was working.
+        /// </summary>
+        [Test]
+        public void ResolveCap_LandsJustUnderTheDisplayRate()
+        {
+            foreach (int rate in new[] { 60, 75, 120, 144, 165, 240 })
+            {
+                int resolved = DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, rate);
+
+                Assert.Less(resolved, rate, "must not sit on the refresh rate of " + rate);
+                Assert.GreaterOrEqual(resolved, rate - 4, "should stay close to " + rate);
+            }
+        }
+
+        [Test]
+        public void ResolveCap_LeavesOrdinaryCapsAlone()
+        {
+            Assert.AreEqual(60, DisplayOptions.ResolveCap(60, 144));
+            Assert.AreEqual(0, DisplayOptions.ResolveCap(0, 144));
+        }
+
+        [Test]
+        public void ResolveCap_WithNoUsableRefreshRate_LeavesItUncapped()
+        {
+            // Better uncapped than pinned to a number nobody reported.
+            Assert.AreEqual(0, DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, 0));
+            Assert.AreEqual(0, DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, -1));
+        }
+
+        [Test]
+        public void ResolveCap_AtAVeryLowRate_DoesNotUndercutIntoUnplayability()
+        {
+            // Subtracting headroom from an already low rate is worse than matching
+            // it; 30 Hz minus 2 is a worse experience than 30.
+            Assert.AreEqual(30, DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, 30));
+        }
+
+        /// <summary>
         /// The one that would go wrong silently. NVIDIA's quality enum runs
         /// cheapest-first and AMD's runs best-first, so a straight cast hands the
         /// player picking Quality the fastest, ugliest mode instead — and it still
