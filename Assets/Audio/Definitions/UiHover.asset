@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
   m_Name: UiHover
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: cec1746eef709c74f85d40bc154f440c, type: 3}
+  - {fileID: 8300000, guid: 46002b705c560e54f99ffff83853b725, type: 3}
   channel: 3
   volume: 0.45
   pitchRange: {x: 0.98, y: 1.02}

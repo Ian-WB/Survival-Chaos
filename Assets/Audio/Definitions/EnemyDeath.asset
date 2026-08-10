@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
   m_Name: EnemyDeath
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 5c6148a4d3a5f954391d14a9cca0cf84, type: 3}
+  - {fileID: 8300000, guid: a83a065a700db5348ae668c51ea01515, type: 3}
+  - {fileID: 8300000, guid: 92d703c72b8829948b795bbcea4be1dc, type: 3}
+  - {fileID: 8300000, guid: 575af030ccae2694e8bb9bfed982aec8, type: 3}
   channel: 2
   volume: 0.7
   pitchRange: {x: 0.9, y: 1.1}

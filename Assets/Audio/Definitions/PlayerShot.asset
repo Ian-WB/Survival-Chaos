@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
   m_Name: PlayerShot
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 68f8b80c565ec5a4c90e31fd928485ed, type: 3}
+  - {fileID: 8300000, guid: 463e1fb8696d3904e9705f68dc8398bb, type: 3}
+  - {fileID: 8300000, guid: f7cd1fda26be8bd41b3735b05946028c, type: 3}
+  - {fileID: 8300000, guid: d5df2c180acbdfe469d8e3affe02dd83, type: 3}
   channel: 2
   volume: 0.55
   pitchRange: {x: 0.94, y: 1.06}

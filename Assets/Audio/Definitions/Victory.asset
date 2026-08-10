@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
   m_Name: Victory
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 5d8d227eca1b2934cbb19e919e662ba5, type: 3}
   channel: 3
   volume: 1
   pitchRange: {x: 1, y: 1}

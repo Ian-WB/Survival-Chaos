@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
   m_Name: BossShot
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 57d350db09a614346a245ac5076c549e, type: 3}
+  - {fileID: 8300000, guid: e7cec3009d313f54e96f48381fd16d6b, type: 3}
+  - {fileID: 8300000, guid: 2e1d6e402f8382d4685502b390348974, type: 3}
   channel: 2
   volume: 0.5
   pitchRange: {x: 0.95, y: 1.05}
