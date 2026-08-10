@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LevelUp
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 49237f5c1ba6cf145bef7c74e6a0b6fa, type: 3}
+  - {fileID: 8300000, guid: 884d6506c08013b4383f54dd3f6f9e73, type: 3}
   channel: 2
   volume: 0.9
   pitchRange: {x: 1, y: 1}

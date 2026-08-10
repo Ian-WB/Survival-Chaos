@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: BossShot
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 57d350db09a614346a245ac5076c549e, type: 3}
-  - {fileID: 8300000, guid: e7cec3009d313f54e96f48381fd16d6b, type: 3}
-  - {fileID: 8300000, guid: 2e1d6e402f8382d4685502b390348974, type: 3}
+  - {fileID: 8300000, guid: 5e16fb1cb0de5554b9eb645cb9b90ba5, type: 3}
+  - {fileID: 8300000, guid: efe0380443fa152498235251bd660735, type: 3}
+  - {fileID: 8300000, guid: cf54a5279559dc846990c95f6a8e80a4, type: 3}
   channel: 2
   volume: 0.5
   pitchRange: {x: 0.95, y: 1.05}

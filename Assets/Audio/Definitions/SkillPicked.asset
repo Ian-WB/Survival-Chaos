@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SkillPicked
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: d028224790947844795aa44df2aa8340, type: 3}
+  - {fileID: 8300000, guid: 8b6c9be32e0513646995548728d2a4da, type: 3}
   channel: 3
   volume: 0.85
   pitchRange: {x: 1, y: 1}

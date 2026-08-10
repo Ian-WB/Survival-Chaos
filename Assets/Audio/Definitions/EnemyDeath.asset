@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: EnemyDeath
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 5c6148a4d3a5f954391d14a9cca0cf84, type: 3}
-  - {fileID: 8300000, guid: a83a065a700db5348ae668c51ea01515, type: 3}
-  - {fileID: 8300000, guid: 92d703c72b8829948b795bbcea4be1dc, type: 3}
-  - {fileID: 8300000, guid: 575af030ccae2694e8bb9bfed982aec8, type: 3}
+  - {fileID: 8300000, guid: 53cdd65a5a19218449de430fcfe27503, type: 3}
+  - {fileID: 8300000, guid: 2031d98911406ed40b0db618c5c4db4e, type: 3}
+  - {fileID: 8300000, guid: 8b390cc8943fe6744bca2a47f9dcf22f, type: 3}
+  - {fileID: 8300000, guid: cb35799a71d29b246a09e6b153b5436c, type: 3}
   channel: 2
   volume: 0.7
   pitchRange: {x: 0.9, y: 1.1}

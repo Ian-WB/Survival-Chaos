@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerDeath
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 3a6172d78b8ec2d40aedc3fd460e6548, type: 3}
+  - {fileID: 8300000, guid: fcfc5392ca4ae364cba4f3cc2f80388a, type: 3}
   channel: 2
   volume: 1
   pitchRange: {x: 1, y: 1}
