@@ -250,12 +250,55 @@ namespace SurvivalChaos
                     .AppendLine(" total");
             }
 
+            AppendVSyncVerdict(builder);
+
             builder.AppendLine();
             SystemProfile.AppendGraphicsSettings(builder);
             builder.AppendLine();
             SystemProfile.AppendHardware(builder);
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Says so when VSync is what is holding the frame rate down.
+        ///
+        /// This is the difference between "your machine is too slow" and "your
+        /// machine is one toggle away from being faster", and a tester cannot tell
+        /// them apart from a frame rate alone. The tell is a frame time sitting on
+        /// an exact multiple of the refresh interval while the GPU is measurably
+        /// finishing sooner - the spare time is spent waiting for a vblank that
+        /// has already been missed.
+        /// </summary>
+        private void AppendVSyncVerdict(StringBuilder text)
+        {
+            if (QualitySettings.vSyncCount <= 0)
+            {
+                return;
+            }
+
+            float refreshHz = (float)Screen.currentResolution.refreshRateRatio.value;
+            float averageMs = stats.AverageMs;
+            int multiple = FrameTimeStats.VSyncMultiple(averageMs, refreshHz);
+
+            if (multiple < 2)
+            {
+                return;
+            }
+
+            text.AppendLine();
+            text.Append("VSync is holding this to 1/").Append(multiple)
+                .Append(" of ").Append(refreshHz.ToString("0")).Append(" Hz  (")
+                .Append((refreshHz / multiple).ToString("0")).AppendLine(" FPS)");
+
+            // Only worth suggesting when there is headroom to reclaim. A GPU
+            // already at the frame time is not being held back by anything.
+            if (gpuFrameMs > 0d && gpuFrameMs < averageMs * 0.9d)
+            {
+                text.Append("  GPU finishes in ").Append(Milliseconds(gpuFrameMs))
+                    .Append(" - VSync off should give about ")
+                    .Append((1000d / gpuFrameMs).ToString("0")).AppendLine(" FPS");
+            }
         }
 
         private static void AppendRate(StringBuilder text, string label, float fps, float milliseconds)

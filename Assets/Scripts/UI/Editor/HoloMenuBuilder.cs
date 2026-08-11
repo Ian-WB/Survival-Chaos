@@ -65,7 +65,7 @@ namespace SurvivalChaos.EditorTools
             PauseMenu pause = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
 
             GameObject graphics = BuildGraphics(root.transform, panelMaterial);
-            GameObject display = BuildDisplay(root.transform, panelMaterial);
+            GameObject display = BuildDisplay(root.transform, panelMaterial, barMaterial);
             GameObject audio = BuildOptions(root.transform, panelMaterial, barMaterial);
             GameObject options = BuildOptionsHub(root.transform, panelMaterial, audio, display, graphics);
             WireSubScreenBacks(options, audio, display, graphics, panelMaterial);
@@ -258,12 +258,13 @@ namespace SurvivalChaos.EditorTools
         /// turning off motion blur is expressing a preference. Mixed together they
         /// made a twelve-row panel with no order anyone could predict.
         /// </summary>
-        private static GameObject BuildDisplay(Transform parent, Material panelMaterial)
+        private static GameObject BuildDisplay(Transform parent, Material panelMaterial,
+            Material barMaterial)
         {
             GameObject screen = BuildScreen(parent, "Display Screen", panelMaterial,
                 HoloUiFactory.DisplayPanelSize, "Display", HoloUiFactory.Edge);
 
-            HoloUiFactory.PopulateDisplayPanel(PanelOf(screen), panelMaterial);
+            HoloUiFactory.PopulateDisplayPanel(PanelOf(screen), panelMaterial, barMaterial);
             return screen;
         }
 

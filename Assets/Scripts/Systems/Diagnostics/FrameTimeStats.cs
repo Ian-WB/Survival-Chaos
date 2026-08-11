@@ -123,6 +123,45 @@ namespace SurvivalChaos
         /// <summary>The slowest <paramref name="fraction"/> of frames, as FPS.</summary>
         public float LowFps(float fraction) => FpsFromMs(LowMs(fraction));
 
+        /// <summary>
+        /// How many refresh intervals each frame is taking, when VSync has locked
+        /// the frame rate to a fraction of the display's. Returns 0 when it has
+        /// not.
+        ///
+        /// VSync cannot present between refreshes: a machine that misses 60 Hz
+        /// drops to 30, then 20, then 15, with nothing in between. So a frame time
+        /// sitting on an exact multiple of the refresh interval is not a
+        /// coincidence, it is the frame rate being held down - and the give-away
+        /// is that the reported GPU cost is comfortably below the frame time.
+        ///
+        /// Worth detecting because it reads as "the machine is too slow" when it
+        /// is really "VSync rounded the machine down", and the fix is a setting
+        /// rather than a smaller scene. A tester seeing 20 FPS on a 60 Hz screen
+        /// may be one toggle away from 25.
+        /// </summary>
+        /// <param name="frameMs">Measured average frame time.</param>
+        /// <param name="refreshHz">The display's refresh rate.</param>
+        /// <param name="tolerance">How close to an exact multiple counts, 0 to 1.</param>
+        public static int VSyncMultiple(float frameMs, float refreshHz, float tolerance = 0.12f)
+        {
+            if (frameMs <= 0f || refreshHz <= 0f)
+            {
+                return 0;
+            }
+
+            float interval = 1000f / refreshHz;
+            float multiple = frameMs / interval;
+
+            // One interval is VSync working as intended, not holding anything back.
+            if (multiple < 1.5f)
+            {
+                return 0;
+            }
+
+            int nearest = (int)Math.Round(multiple);
+            return Math.Abs(multiple - nearest) <= tolerance ? nearest : 0;
+        }
+
         private float Extreme(bool smallest)
         {
             if (count == 0)

@@ -43,22 +43,6 @@ namespace SurvivalChaos
         Dlaa = 4
     }
 
-    /// <summary>
-    /// How hard the image is sharpened after reconstruction.
-    ///
-    /// Medium reproduces HDRP's own defaults exactly. Those defaults run two
-    /// sharpening passes at once — <c>taaSharpenStrength</c> at 0.5 and
-    /// <c>taaHistorySharpening</c> at 0.35 — which stacked is what reads as
-    /// over-sharpened, and is why the default here is Low rather than Medium.
-    /// </summary>
-    public enum SharpnessLevel
-    {
-        Off = 0,
-        Low = 1,
-        Medium = 2,
-        High = 3
-    }
-
     /// <summary>One selectable screen size.</summary>
     public readonly struct DisplaySize
     {
@@ -328,52 +312,92 @@ namespace SurvivalChaos
 
         // ---------- sharpening ----------
 
+        /// <summary>
+        /// Names for the four anchor positions the slider passes through. Kept
+        /// because a number alone says nothing about where "the HDRP default" is.
+        /// </summary>
         public static readonly string[] SharpnessNames = { "Off", "Low", "Medium", "High" };
 
-        /// <summary>
-        /// Strength of TAA's post-sharpen pass. HDRP's own default is 0.5, which
-        /// is what Medium returns.
-        /// </summary>
-        public static float TaaSharpenStrength(int level)
+        /// <summary>Where each named level sits on the slider's 0..1 travel.</summary>
+        public static float SharpnessAnchor(int level)
         {
-            switch (level)
-            {
-                case 0: return 0f;
-                case 1: return 0.25f;
-                case 2: return 0.5f;
-                default: return 1f;
-            }
+            int last = SharpnessNames.Length - 1;
+            int clamped = level < 0 ? 0 : (level > last ? last : level);
+            return clamped / (float)last;
         }
+
+        /// <summary>The slider's default: Low, because HDRP's own value sharpens twice.</summary>
+        public static readonly float DefaultSharpness = SharpnessAnchor(1);
+
+        // Anchored rather than computed so the four named positions land on
+        // exactly the values they had when this was a four-item cycler. Anything
+        // already tuned to Low or Medium is unchanged; the slider only fills in
+        // between them.
+        private static readonly float[] TaaSharpenAnchors = { 0f, 0.25f, 0.5f, 1f };
+        private static readonly float[] TaaHistoryAnchors = { 0f, 0.18f, 0.35f, 0.55f };
+        private static readonly float[] UpscalerAnchors = { 0f, 0.2f, 0.4f, 0.7f };
+
+        /// <summary>Strength of TAA's post-sharpen pass. HDRP's own default is 0.5.</summary>
+        public static float TaaSharpenStrength(float amount) => Sample(TaaSharpenAnchors, amount);
 
         /// <summary>
         /// Sharpening applied to the history TAA samples from. Separate from the
         /// pass above and on by default too - turning one down while leaving the
         /// other alone is why sharpening can seem stuck.
         /// </summary>
-        public static float TaaHistorySharpening(int level)
+        public static float TaaHistorySharpening(float amount) => Sample(TaaHistoryAnchors, amount);
+
+        /// <summary>
+        /// Sharpening for FSR, which does its own rather than using TAA's. Zero
+        /// means the caller disables the pass outright.
+        /// </summary>
+        public static float UpscalerSharpness(float amount) => Sample(UpscalerAnchors, amount);
+
+        /// <summary>
+        /// Reads a 0..1 position off a curve defined by its anchor points.
+        ///
+        /// Piecewise rather than a single lerp because the anchors are not evenly
+        /// spaced - TAA's post-sharpen doubles between Medium and High while the
+        /// history pass barely moves, and a straight interpolation between the
+        /// ends would misrepresent both.
+        /// </summary>
+        private static float Sample(float[] anchors, float amount)
         {
-            switch (level)
+            if (amount <= 0f)
             {
-                case 0: return 0f;
-                case 1: return 0.18f;
-                case 2: return 0.35f;
-                default: return 0.55f;
+                return anchors[0];
             }
+
+            int last = anchors.Length - 1;
+            if (amount >= 1f)
+            {
+                return anchors[last];
+            }
+
+            float position = amount * last;
+            int index = (int)position;
+            float within = position - index;
+
+            return anchors[index] + (anchors[index + 1] - anchors[index]) * within;
         }
 
         /// <summary>
-        /// Sharpening for FSR, which does its own rather than using TAA's. Off
-        /// returns 0 and the caller disables the pass outright.
+        /// The slider's value as a percentage, naming the level when it is sitting
+        /// on one - "50%  (Medium)" reads better than either half alone.
         /// </summary>
-        public static float UpscalerSharpness(int level)
+        public static string DescribeSharpness(float amount)
         {
-            switch (level)
+            int percent = (int)(amount * 100f + 0.5f);
+
+            for (int i = 0; i < SharpnessNames.Length; i++)
             {
-                case 0: return 0f;
-                case 1: return 0.2f;
-                case 2: return 0.4f;
-                default: return 0.7f;
+                if (amount >= SharpnessAnchor(i) - 0.005f && amount <= SharpnessAnchor(i) + 0.005f)
+                {
+                    return percent + "%  (" + SharpnessNames[i] + ")";
+                }
             }
+
+            return percent + "%";
         }
 
         /// <summary>

@@ -124,6 +124,65 @@ namespace SurvivalChaos.Tests
             }
         }
 
+        /// <summary>
+        /// The slider replaced a four-item cycler, and the promise was that the
+        /// four named positions would land on exactly the values they already had.
+        /// An interpolation that drifted by a little at the anchors would change
+        /// how the game looks for anyone who had already picked one.
+        /// </summary>
+        [Test]
+        public void Sharpness_AnchorsKeepTheValuesTheCyclerHad()
+        {
+            float[] expectedTaa = { 0f, 0.25f, 0.5f, 1f };
+            float[] expectedHistory = { 0f, 0.18f, 0.35f, 0.55f };
+            float[] expectedUpscaler = { 0f, 0.2f, 0.4f, 0.7f };
+
+            for (int level = 0; level < DisplayOptions.SharpnessNames.Length; level++)
+            {
+                float at = DisplayOptions.SharpnessAnchor(level);
+
+                Assert.AreEqual(expectedTaa[level], DisplayOptions.TaaSharpenStrength(at), 0.0001f,
+                    DisplayOptions.SharpnessNames[level] + " TAA sharpen moved");
+                Assert.AreEqual(expectedHistory[level], DisplayOptions.TaaHistorySharpening(at), 0.0001f,
+                    DisplayOptions.SharpnessNames[level] + " TAA history moved");
+                Assert.AreEqual(expectedUpscaler[level], DisplayOptions.UpscalerSharpness(at), 0.0001f,
+                    DisplayOptions.SharpnessNames[level] + " upscaler sharpness moved");
+            }
+        }
+
+        [Test]
+        public void Sharpness_RisesWithoutDippingBetweenAnchors()
+        {
+            float previous = -1f;
+
+            for (int i = 0; i <= 40; i++)
+            {
+                float amount = i / 40f;
+                float value = DisplayOptions.TaaSharpenStrength(amount);
+
+                Assert.GreaterOrEqual(value, previous, "sharpening dipped at " + amount);
+                previous = value;
+            }
+        }
+
+        [Test]
+        public void Sharpness_ClampsOutsideItsTravel()
+        {
+            Assert.AreEqual(0f, DisplayOptions.TaaSharpenStrength(-1f), 0.0001f);
+            Assert.AreEqual(1f, DisplayOptions.TaaSharpenStrength(2f), 0.0001f);
+        }
+
+        [Test]
+        public void Sharpness_NamesTheLevelOnlyWhenSittingOnIt()
+        {
+            Assert.AreEqual("0%  (Off)", DisplayOptions.DescribeSharpness(0f));
+            Assert.AreEqual("100%  (High)", DisplayOptions.DescribeSharpness(1f));
+
+            // Between anchors it is just a number - claiming "Medium" at 55% would
+            // be a readout that disagrees with what is actually applied.
+            Assert.AreEqual("55%", DisplayOptions.DescribeSharpness(0.55f));
+        }
+
         [Test]
         public void ResolveCap_LeavesOrdinaryCapsAlone()
         {

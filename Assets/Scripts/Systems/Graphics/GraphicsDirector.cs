@@ -260,14 +260,21 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Defaults to Low rather than Medium. Medium is HDRP's own value, and
-        /// HDRP's own value is two sharpening passes stacked - which is the
-        /// over-sharpened look this control exists to fix.
+        /// How hard the image is sharpened, over a continuous 0..1.
+        ///
+        /// Continuous rather than stepped because sharpening is the one graphics
+        /// setting with no performance cliff behind it. Render scale steps in tens
+        /// because 73% is not a choice anyone means to make; sharpness costs the
+        /// same everywhere, so it is pure taste and a slider is the honest control.
+        ///
+        /// Defaults to the Low anchor rather than Medium. Medium is HDRP's own
+        /// value, and HDRP's own value is two sharpening passes stacked - which is
+        /// the over-sharpened look this control exists to fix.
         /// </summary>
-        public SharpnessLevel Sharpness
+        public float Sharpness
         {
-            get => (SharpnessLevel)GetInt("Sharpness", (int)SharpnessLevel.Low);
-            set => SetInt("Sharpness", (int)value);
+            get => Mathf.Clamp01(GetFloat("Sharpness", DisplayOptions.DefaultSharpness));
+            set => SetFloat("Sharpness", Mathf.Clamp01(value));
         }
 
         /// <summary>
@@ -277,6 +284,32 @@ namespace SurvivalChaos
         /// </summary>
         public bool SharpeningApplies =>
             Method == UpscaleMethod.Fsr || AntiAliasing == AntiAliasingMode.Taa;
+
+        /// <summary>
+        /// The scale the pipeline resolved for the last frame, which is not always
+        /// what was asked for - an upscaler negotiates its own, and the handler
+        /// clamps to the asset's range.
+        ///
+        /// Lives here rather than in SystemProfile because reading it needs an SRP
+        /// package type, and that file is deliberately kept free of them so it
+        /// survives a merge back to URP.
+        /// </summary>
+        public float ActualRenderScale
+        {
+            get
+            {
+                try
+                {
+                    float scale = DynamicResolutionHandler.instance.GetResolvedScale().x;
+                    return scale > 0f ? scale : 1f;
+                }
+                catch (Exception)
+                {
+                    // No pipeline instance yet. Native is the honest answer.
+                    return 1f;
+                }
+            }
+        }
 
         /// <summary>
         /// The scale the game actually renders at. An upscaler owns this outright;
@@ -474,13 +507,13 @@ namespace SurvivalChaos
         /// </summary>
         private void ApplySharpening(HDAdditionalCameraData data)
         {
-            int level = (int)Sharpness;
+            float amount = Sharpness;
 
             data.taaSharpenMode = HDAdditionalCameraData.TAASharpenMode.PostSharpen;
-            data.taaSharpenStrength = DisplayOptions.TaaSharpenStrength(level);
-            data.taaHistorySharpening = DisplayOptions.TaaHistorySharpening(level);
+            data.taaSharpenStrength = DisplayOptions.TaaSharpenStrength(amount);
+            data.taaHistorySharpening = DisplayOptions.TaaHistorySharpening(amount);
 
-            float upscalerSharpness = DisplayOptions.UpscalerSharpness(level);
+            float upscalerSharpness = DisplayOptions.UpscalerSharpness(amount);
 
             data.fidelityFX2SuperResolutionEnableSharpening = upscalerSharpness > 0f;
             data.fidelityFX2SuperResolutionSharpening = upscalerSharpness;

@@ -400,6 +400,59 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
+        /// The sharpness slider: the one graphics control that is not a cycler.
+        ///
+        /// Built from the same bar the volume rows use, so it looks like a slider
+        /// the player has already met rather than a new kind of widget. Laid out
+        /// to occupy one cycler row's worth of height, with the bar under the
+        /// label, so it drops into the column without moving anything below it.
+        /// </summary>
+        public static void CreateSharpnessRow(Transform panel, string label,
+            float columnX, float top, Material barMaterial)
+        {
+            Vector2 anchor = new Vector2(0.5f, 1f);
+            Vector2 middle = new Vector2(0.5f, 0.5f);
+
+            TextMeshProUGUI caption = CreateText(panel, label + " Label", anchor,
+                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top), new Vector2(290f, 30f),
+                21f, TextAlignmentOptions.Left);
+            caption.text = label;
+
+            TextMeshProUGUI readout = CreateText(panel, label + " Readout", anchor,
+                new Vector2(1f, 0.5f), new Vector2(columnX + 340f, top), new Vector2(200f, 30f),
+                18f, TextAlignmentOptions.Right);
+            readout.text = "33%  (Low)";
+
+            Image image = CreateBarImage(panel, label + " Bar", anchor, middle,
+                new Vector2(columnX + 30f, top - 26f), new Vector2(560f, 20f), barMaterial, Accent, 8f);
+            image.raycastTarget = true;
+
+            Slider slider = Undo.AddComponent<Slider>(image.gameObject);
+            slider.transition = Selectable.Transition.None;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 0.33f;
+            slider.handleRect = CreateHandle((RectTransform)image.transform);
+            slider.targetGraphic = image;
+
+            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
+            ConfigureBar(holo, slider, 0f);
+
+            TextMeshProUGUI note = CreateText(panel, label + " Note", anchor,
+                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top - 44f), new Vector2(560f, 20f),
+                14f, TextAlignmentOptions.Left);
+            note.text = string.Empty;
+            note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
+
+            SharpnessControl control = Undo.AddComponent<SharpnessControl>(image.gameObject);
+            SerializedObject so = new SerializedObject(control);
+            so.FindProperty("slider").objectReferenceValue = slider;
+            so.FindProperty("readout").objectReferenceValue = readout;
+            so.FindProperty("note").objectReferenceValue = note;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
         /// Panel size the display rows need.
         ///
         /// Wide rather than tall: settings stacked in one column made a panel
@@ -440,7 +493,8 @@ namespace SurvivalChaos.EditorTools
         /// because changing the first changes what the other two mean, and a row
         /// that has just gone inert should be visible from the one that did it.
         /// </summary>
-        public static void PopulateDisplayPanel(Transform panel, Material panelMaterial)
+        public static void PopulateDisplayPanel(Transform panel, Material panelMaterial,
+            Material barMaterial)
         {
             const float top = -170f;
             const float step = 84f;
@@ -458,10 +512,7 @@ namespace SurvivalChaos.EditorTools
                 (GraphicsOptionKind.UpscaleMethod, "Upscaling"),
                 (GraphicsOptionKind.UpscaleQuality, "Upscale Quality"),
                 (GraphicsOptionKind.RenderScale, "Render Scale"),
-                (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing"),
-                // Directly under the row it depends on: sharpening is a property
-                // of whatever resolved the edges, so the two belong together.
-                (GraphicsOptionKind.Sharpness, "Sharpness")
+                (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing")
             };
 
             for (int i = 0; i < screen.Length; i++)
@@ -475,6 +526,11 @@ namespace SurvivalChaos.EditorTools
                 CreateOptionRow(panel, reconstruction[i].kind, reconstruction[i].label,
                     RightColumn, top - i * step, panelMaterial);
             }
+
+            // Directly under the row it depends on: sharpening is a property of
+            // whatever resolved the edges, so the two belong together.
+            CreateSharpnessRow(panel, "Sharpness",
+                RightColumn, top - reconstruction.Length * step, barMaterial);
         }
 
         /// <summary>

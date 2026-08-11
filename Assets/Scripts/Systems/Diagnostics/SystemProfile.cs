@@ -97,6 +97,8 @@ namespace SurvivalChaos
                 .Append("  @ ").Append(Screen.currentResolution.refreshRateRatio.value.ToString("0"))
                 .AppendLine(" Hz");
 
+            AppendRenderResolution(text);
+
             text.Append("VSync    ")
                 .Append(QualitySettings.vSyncCount == 0
                     ? "off"
@@ -106,9 +108,76 @@ namespace SurvivalChaos
                     ? "uncapped"
                     : Application.targetFrameRate + " FPS");
 
+            AppendReconstruction(text);
+
             text.Append("Textures ")
                 .Append("mipmap limit ").Append(QualitySettings.globalTextureMipmapLimit)
                 .Append("  |  aniso ").AppendLine(QualitySettings.anisotropicFiltering.ToString());
+        }
+
+        /// <summary>
+        /// What the game is actually rendering at, as opposed to the window it
+        /// ends up in.
+        ///
+        /// The window size on its own answers the wrong question once an upscaler
+        /// or a render scale is in play - a tester reporting 1280x720 may be
+        /// rendering 850x478 and reading the difference as the game looking soft.
+        /// Taken from the live resolved scale rather than the requested one, so it
+        /// reflects whatever the upscaler negotiated for itself.
+        /// </summary>
+        private static void AppendRenderResolution(StringBuilder text)
+        {
+            // Asked of GraphicsDirector rather than the pipeline directly, so this
+            // file keeps its promise not to name a render-pipeline package type.
+            GraphicsDirector director = GraphicsDirector.Instance;
+            float scale = director != null ? director.ActualRenderScale : 1f;
+
+            if (scale <= 0f)
+            {
+                scale = 1f;
+            }
+
+            int width = Mathf.Max(1, Mathf.RoundToInt(Screen.width * scale));
+            int height = Mathf.Max(1, Mathf.RoundToInt(Screen.height * scale));
+
+            text.Append("Render   ").Append(width).Append(" x ").Append(height);
+
+            bool native = width >= Screen.width && height >= Screen.height;
+            text.Append(native
+                ? "  (native)"
+                : "  (" + Mathf.RoundToInt(scale * 100f) + "% of window)");
+
+            text.AppendLine();
+        }
+
+        /// <summary>
+        /// Which reconstruction is running, and how hard.
+        ///
+        /// Without this a report cannot distinguish "slow at native" from "slow
+        /// even with FSR Performance", which are different problems with different
+        /// answers. Reads the player's settings rather than the pipeline asset,
+        /// because the per-camera fields are what actually take effect.
+        /// </summary>
+        private static void AppendReconstruction(StringBuilder text)
+        {
+            GraphicsDirector director = GraphicsDirector.Instance;
+            if (director == null)
+            {
+                return;
+            }
+
+            text.Append("Upscaler ")
+                .Append(DisplayOptions.UpscaleMethodNames[(int)director.Method]);
+
+            if (director.Method != UpscaleMethod.Off)
+            {
+                text.Append(' ').Append(DisplayOptions.UpscaleQualityNames[(int)director.Quality]);
+            }
+
+            text.Append("  |  AA ")
+                .Append(DisplayOptions.AntiAliasingNames[(int)director.AntiAliasing])
+                .Append("  |  sharpness ")
+                .AppendLine(DisplayOptions.DescribeSharpness(director.Sharpness));
         }
 
         /// <summary>What produced this build, so results can be told apart.</summary>

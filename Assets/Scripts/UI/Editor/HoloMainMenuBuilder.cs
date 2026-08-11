@@ -82,7 +82,7 @@ namespace SurvivalChaos.EditorTools
 
             GameObject display = BuildScreen(root.transform, "Display Screen", panelMaterial,
                 HoloUiFactory.DisplayPanelSize, "Display");
-            HoloUiFactory.PopulateDisplayPanel(PanelOf(display), panelMaterial);
+            HoloUiFactory.PopulateDisplayPanel(PanelOf(display), panelMaterial, barMaterial);
 
             GameObject graphics = BuildScreen(root.transform, "Graphics Screen", panelMaterial,
                 HoloUiFactory.GraphicsPanelSize, "Graphics");
