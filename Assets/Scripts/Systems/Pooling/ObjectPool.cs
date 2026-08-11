@@ -25,6 +25,8 @@ namespace SurvivalChaos
 
         private static Transform root;
 
+        private static PoolMotionReset motionReset;
+
         /// <summary>
         /// Takes an instance from the pool, or creates one if the pool is empty.
         /// </summary>
@@ -53,6 +55,11 @@ namespace SurvivalChaos
             if (reused && instance.TryGetComponent(out PooledInstance pooled))
             {
                 pooled.Replay();
+
+                // Only reused instances need this. A fresh clone has no previous
+                // position to report motion from, so it cannot smear.
+                pooled.SuppressMotionForOneFrame();
+                MotionReset.Register(pooled);
             }
 
             return instance;
@@ -115,6 +122,9 @@ namespace SurvivalChaos
         {
             idle.Clear();
             root = null;
+            // Belongs to the root that just went, so it has to go with it or the
+            // next spawn registers against a component on a destroyed object.
+            motionReset = null;
         }
 
         private static GameObject TakeIdle(GameObject prefab)
@@ -163,6 +173,25 @@ namespace SurvivalChaos
                 }
 
                 return root;
+            }
+        }
+
+        /// <summary>
+        /// The one component that puts motion vectors back, hosted on the pool's
+        /// own root so it appears and disappears with the pool.
+        /// </summary>
+        private static PoolMotionReset MotionReset
+        {
+            get
+            {
+                if (motionReset == null)
+                {
+                    Transform host = Root;
+                    motionReset = host.GetComponent<PoolMotionReset>()
+                        ?? host.gameObject.AddComponent<PoolMotionReset>();
+                }
+
+                return motionReset;
             }
         }
 

@@ -12397,7 +12397,7 @@ MonoBehaviour:
   deepLearningSuperSamplingUseCustomAttributes: 0
   deepLearningSuperSamplingUseOptimalSettings: 1
   deepLearningSuperSamplingSharpening: 0
-  allowFidelityFX2SuperResolution: 1
+  allowFidelityFX2SuperResolution: 0
   fidelityFX2SuperResolutionUseCustomQualitySettings: 0
   fidelityFX2SuperResolutionQuality: 0
   fidelityFX2SuperResolutionUseCustomAttributes: 0

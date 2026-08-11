@@ -130,24 +130,31 @@ namespace SurvivalChaos
             // Asked of GraphicsDirector rather than the pipeline directly, so this
             // file keeps its promise not to name a render-pipeline package type.
             GraphicsDirector director = GraphicsDirector.Instance;
-            float scale = director != null ? director.ActualRenderScale : 1f;
-
-            if (scale <= 0f)
+            if (director == null)
             {
-                scale = 1f;
+                return;
             }
 
-            int width = Mathf.Max(1, Mathf.RoundToInt(Screen.width * scale));
-            int height = Mathf.Max(1, Mathf.RoundToInt(Screen.height * scale));
+            float asked = Mathf.Clamp(director.EffectiveRenderScale, 0.05f, 1f);
+            float resolved = director.ActualRenderScale;
 
-            text.Append("Render   ").Append(width).Append(" x ").Append(height);
+            int width = Mathf.Max(1, Mathf.RoundToInt(Screen.width * asked));
+            int height = Mathf.Max(1, Mathf.RoundToInt(Screen.height * asked));
 
-            bool native = width >= Screen.width && height >= Screen.height;
-            text.Append(native
-                ? "  (native)"
-                : "  (" + Mathf.RoundToInt(scale * 100f) + "% of window)");
+            text.Append("Render   ").Append(width).Append(" x ").Append(height)
+                .Append("  (").Append(Mathf.RoundToInt(asked * 100f)).Append("% asked");
 
-            text.AppendLine();
+            // Both numbers, because they can legitimately disagree and a single
+            // figure hides which one is wrong. The pipeline only recomputes its
+            // scale when the active camera changes, so a stale resolved value next
+            // to a moving asked value is itself the diagnosis - and an upscaler
+            // negotiating its own scale shows up here too.
+            if (Mathf.Abs(resolved - asked) > 0.02f)
+            {
+                text.Append(", ").Append(Mathf.RoundToInt(resolved * 100f)).Append("% resolved");
+            }
+
+            text.AppendLine(")");
         }
 
         /// <summary>

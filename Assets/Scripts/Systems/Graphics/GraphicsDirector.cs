@@ -212,10 +212,34 @@ namespace SurvivalChaos
         /// not the same as an RTX card being present, and HDRP does the real
         /// detection, so this asks it rather than guessing from a device name.
         /// </summary>
-        public bool DlssAvailable => HDDynamicResolutionPlatformCapabilities.DLSSDetected;
+        public bool DlssAvailable =>
+            HDDynamicResolutionPlatformCapabilities.DLSSDetected && PipelineOffers("DLSS");
 
         /// <summary>Same question for FSR2, which most cards can run but not all.</summary>
-        public bool FsrAvailable => HDDynamicResolutionPlatformCapabilities.FSR2Detected;
+        public bool FsrAvailable =>
+            HDDynamicResolutionPlatformCapabilities.FSR2Detected && PipelineOffers("FSR2");
+
+        /// <summary>
+        /// Whether the pipeline asset lists an upscaler at all.
+        ///
+        /// Hardware support is not enough: HDRP only walks the upscalers named in
+        /// the asset, so one the card can run but the asset omits will simply
+        /// never activate. Without this check, taking FSR2 out of the asset leaves
+        /// the menu still offering it and doing nothing - a dead control, which is
+        /// the failure this project keeps finding.
+        ///
+        /// Reads the asset; never writes to it.
+        /// </summary>
+        private static bool PipelineOffers(string upscaler)
+        {
+            HDRenderPipelineAsset asset =
+                GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+
+            List<string> names =
+                asset?.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+
+            return names != null && names.Contains(upscaler);
+        }
 
         public UpscaleMethod Method
         {
