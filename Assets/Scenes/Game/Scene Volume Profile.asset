@@ -87,7 +87,7 @@ MonoBehaviour:
     m_Value: 1
   extendCameraCulling:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   directionalShadowRayLength:
     m_OverrideState: 1
     m_Value: 1000
@@ -198,7 +198,7 @@ MonoBehaviour:
   active: 1
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   meteringMode:
     m_OverrideState: 0
     m_Value: 2
@@ -207,7 +207,7 @@ MonoBehaviour:
     m_Value: 1
   fixedExposure:
     m_OverrideState: 1
-    m_Value: -1.190476
+    m_Value: -0.8571427
   compensation:
     m_OverrideState: 0
     m_Value: 0
