@@ -26,7 +26,8 @@ namespace SurvivalChaos
         MotionBlur = 10,
         UpscaleMethod = 12,
         UpscaleQuality = 13,
-        AntiAliasing = 14
+        AntiAliasing = 14,
+        DynamicResolution = 16
 
         // 15 was Sharpness, before it became a slider rather than a cycler. The
         // number stays retired rather than reused: a row serialised as 15 by an
@@ -136,9 +137,10 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Lighting:
                     return director.RayTracingAvailable;
 
-                // Inert while an upscaler is driving the resolution.
+                // Inert while anything else is driving the resolution - an
+                // upscaler, or dynamic resolution moving it every frame.
                 case GraphicsOptionKind.RenderScale:
-                    return director.Method == UpscaleMethod.Off;
+                    return director.Method == UpscaleMethod.Off && !director.DynamicResolutionOn;
 
                 // Nothing to set the quality of until an upscaler is chosen.
                 case GraphicsOptionKind.UpscaleQuality:
@@ -188,6 +190,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
                 case GraphicsOptionKind.FrameCap: return DisplayOptions.FrameRateCaps.Length;
                 case GraphicsOptionKind.RenderScale: return RenderScales.Length;
+                case GraphicsOptionKind.DynamicResolution: return DisplayOptions.DynamicTargets.Length;
                 case GraphicsOptionKind.UpscaleMethod: return Methods(director).Count;
                 case GraphicsOptionKind.UpscaleQuality: return DisplayOptions.UpscaleQualityNames.Length;
 
@@ -212,6 +215,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync: return director.VSync ? 1 : 0;
                 case GraphicsOptionKind.FrameCap: return IndexOfCap(director.FrameCap);
                 case GraphicsOptionKind.RenderScale: return IndexOfScale(director.RenderScale);
+                case GraphicsOptionKind.DynamicResolution: return IndexOfDynamic(director.DynamicTarget);
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
@@ -234,6 +238,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync: director.VSync = index == 1; break;
                 case GraphicsOptionKind.FrameCap: director.FrameCap = DisplayOptions.FrameRateCaps[index]; break;
                 case GraphicsOptionKind.RenderScale: director.RenderScale = RenderScales[index]; break;
+                case GraphicsOptionKind.DynamicResolution: director.DynamicTarget = DisplayOptions.DynamicTargets[index]; break;
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
@@ -276,6 +281,9 @@ namespace SurvivalChaos
                     // Shows what the game is actually rendering at, which an
                     // upscaler decides rather than this control.
                     return Mathf.RoundToInt(director.EffectiveRenderScale * 100f) + "%";
+
+                case GraphicsOptionKind.DynamicResolution:
+                    return DisplayOptions.DescribeDynamicTarget(director.DynamicTarget);
 
                 case GraphicsOptionKind.UpscaleMethod:
                     return DisplayOptions.UpscaleMethodNames[(int)director.Method];
@@ -337,6 +345,17 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.RenderScale when director.Method != UpscaleMethod.Off:
                     return "Set by the upscaler";
 
+                case GraphicsOptionKind.RenderScale when director.DynamicResolutionOn:
+                    return "Set by dynamic resolution";
+
+                // The upscalers install their own scaler and HDRP prefers it, so
+                // this would run and be discarded. Say so rather than appear to work.
+                case GraphicsOptionKind.DynamicResolution when director.DynamicOverriddenByUpscaler:
+                    return "Overridden while an upscaler is on";
+
+                case GraphicsOptionKind.DynamicResolution when director.DynamicResolutionOn:
+                    return "Drops resolution to hold the target, never below 50%";
+
                 case GraphicsOptionKind.UpscaleMethod when !director.DlssAvailable:
                     return "DLSS needs an NVIDIA RTX card";
 
@@ -388,6 +407,21 @@ namespace SurvivalChaos
                 }
             }
 
+            return 0;
+        }
+
+        private static int IndexOfDynamic(int target)
+        {
+            for (int i = 0; i < DisplayOptions.DynamicTargets.Length; i++)
+            {
+                if (DisplayOptions.DynamicTargets[i] == target)
+                {
+                    return i;
+                }
+            }
+
+            // A target from a settings file this build no longer offers reads as
+            // off rather than as whatever happens to sit at index 0 by accident.
             return 0;
         }
 

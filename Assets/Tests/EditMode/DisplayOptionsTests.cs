@@ -112,15 +112,24 @@ namespace SurvivalChaos.Tests
         /// the rate itself would reintroduce the exact problem it exists to avoid,
         /// and would look like it was working.
         /// </summary>
+        /// <summary>
+        /// The margin is a proportion, not a fixed number of frames. A flat two
+        /// frames is 3.3% at 60 Hz and 1% at 200 Hz - and at 200 Hz the whole
+        /// refresh interval is 5 ms, so 1% is a margin of 0.05 ms and buys
+        /// nothing. Asserting a percentage band is what actually holds across the
+        /// range; asserting "within 4 frames" only held for slow displays.
+        /// </summary>
         [Test]
-        public void ResolveCap_LandsJustUnderTheDisplayRate()
+        public void ResolveCap_LeavesTheSameProportionOnEveryDisplay()
         {
-            foreach (int rate in new[] { 60, 75, 120, 144, 165, 240 })
+            foreach (int rate in new[] { 60, 75, 120, 144, 165, 200, 240, 360 })
             {
                 int resolved = DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, rate);
+                float margin = (rate - resolved) * 100f / rate;
 
                 Assert.Less(resolved, rate, "must not sit on the refresh rate of " + rate);
-                Assert.GreaterOrEqual(resolved, rate - 4, "should stay close to " + rate);
+                Assert.GreaterOrEqual(margin, 2.5f, rate + " Hz was shaved too little to matter");
+                Assert.LessOrEqual(margin, 6f, rate + " Hz gave away more rate than it needed to");
             }
         }
 

@@ -504,7 +504,11 @@ namespace SurvivalChaos.EditorTools
                 (GraphicsOptionKind.Resolution, "Resolution"),
                 (GraphicsOptionKind.ScreenMode, "Window Mode"),
                 (GraphicsOptionKind.VSync, "VSync"),
-                (GraphicsOptionKind.FrameCap, "Frame Cap")
+                (GraphicsOptionKind.FrameCap, "Frame Cap"),
+                // Beside the frame cap rather than with the upscalers: both are
+                // about holding a frame rate, and a player looking for one will
+                // be looking for the other.
+                (GraphicsOptionKind.DynamicResolution, "Dynamic Resolution")
             };
 
             (GraphicsOptionKind kind, string label)[] reconstruction =

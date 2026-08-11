@@ -58,6 +58,16 @@ namespace SurvivalChaos
         /// </summary>
         private float requestedPercentage = 100f;
 
+        /// <summary>How often to notice the display changed. Nothing here is urgent.</summary>
+        private const float RefreshCheckInterval = 1f;
+
+        private float nextRefreshCheck;
+
+        /// <summary>The refresh rate the current frame cap was derived from.</summary>
+        private int appliedRefreshRate;
+
+        private readonly DynamicResolutionController dynamic = new DynamicResolutionController();
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Create()
         {
@@ -88,6 +98,59 @@ namespace SurvivalChaos
             UnityEngine.SceneManagement.LoadSceneMode mode)
         {
             ApplyCamera();
+        }
+
+        /// <summary>
+        /// Re-derives the frame cap when the display's refresh rate changes under
+        /// us.
+        ///
+        /// Only "just under display" is affected - a typed cap is a fixed number
+        /// and does not care what the monitor is doing. But that one is computed
+        /// in Apply, which runs when a *setting* changes and not when the *display*
+        /// does, so dragging the game to a second monitor or unplugging a laptop
+        /// would leave it capping to a refresh rate that is no longer there.
+        ///
+        /// Polled rather than event-driven because Unity offers no display-change
+        /// callback, and throttled because nothing here needs to react within a
+        /// frame.
+        /// </summary>
+        private void Update()
+        {
+            DriveDynamicResolution();
+
+            if (FrameCap != DisplayOptions.MatchDisplay || Time.unscaledTime < nextRefreshCheck)
+            {
+                return;
+            }
+
+            nextRefreshCheck = Time.unscaledTime + RefreshCheckInterval;
+
+            if (RefreshRate != appliedRefreshRate)
+            {
+                Apply();
+            }
+        }
+
+        /// <summary>
+        /// Feeds the controller and hands its answer to the scaler.
+        ///
+        /// Unscaled time throughout, and skipped entirely while the game is
+        /// stopped: a menu renders nothing like the game does, and letting it
+        /// steer would drive the resolution somewhere wrong before the player has
+        /// even unpaused.
+        /// </summary>
+        private void DriveDynamicResolution()
+        {
+            if (!DynamicResolutionOn || Time.timeScale <= 0f)
+            {
+                return;
+            }
+
+            float frameMs = Time.unscaledDeltaTime * 1000f;
+            float targetMs = DisplayOptions.TargetFrameMs(DynamicTarget);
+
+            requestedPercentage =
+                dynamic.Update(frameMs, targetMs, Time.unscaledDeltaTime) * 100f;
         }
 
         private void OnDestroy()
@@ -206,6 +269,33 @@ namespace SurvivalChaos
             get => Mathf.Clamp(GetFloat("RenderScale", 1f), 0.5f, 1f);
             set => SetFloat("RenderScale", Mathf.Clamp(value, 0.5f, 1f));
         }
+
+        /// <summary>
+        /// Frame rate dynamic resolution chases, or 0 when it is off.
+        ///
+        /// Off by default: it trades sharpness for frame rate without being asked,
+        /// and that should be a decision rather than a surprise.
+        /// </summary>
+        public int DynamicTarget
+        {
+            get => GetInt("DynamicTarget", 0);
+            set
+            {
+                dynamic.Reset();
+                SetInt("DynamicTarget", value);
+            }
+        }
+
+        public bool DynamicResolutionOn => DynamicTarget > 0;
+
+        /// <summary>
+        /// True when an upscaler has taken the resolution away from us.
+        ///
+        /// DLSS and FSR2 with optimal settings install their own scaler in the
+        /// System slot and HDRP prefers it, so dynamic resolution silently stops
+        /// applying. The row says so rather than appearing to work.
+        /// </summary>
+        public bool DynamicOverriddenByUpscaler => Method != UpscaleMethod.Off;
 
         /// <summary>
         /// Whether DLSS can actually run. The NVIDIA module being installed is
@@ -403,11 +493,22 @@ namespace SurvivalChaos
             int cap = ResolvedFrameCap;
             Application.targetFrameRate = VSync ? -1 : (cap <= 0 ? -1 : cap);
 
+            // Recorded so Update can tell when the display has moved out from
+            // under a display-derived cap.
+            appliedRefreshRate = RefreshRate;
+
             // Read every frame by the scaler registered in Awake. Not applied by
             // calling ScalableBufferManager directly: HDRP drives that itself from
             // the dynamic resolution handler each frame, so a direct call is
             // overwritten the moment anything else changes the resolution.
-            requestedPercentage = RenderScale * 100f;
+            //
+            // Left alone while dynamic resolution is running, or every settings
+            // change would yank the scale back to the fixed value and the
+            // controller would have to climb down again.
+            if (!DynamicResolutionOn)
+            {
+                requestedPercentage = RenderScale * 100f;
+            }
 
             ApplyCamera();
             ApplyOverrides();
@@ -492,7 +593,12 @@ namespace SurvivalChaos
             // False here stops every advanced upscaler for this camera, including
             // ones listed in the pipeline asset that have no per-camera switch of
             // their own. It is the only honest way to offer "Off".
-            data.allowDynamicResolution = method != UpscaleMethod.Off || dlaa || RenderScale < 1f;
+            //
+            // Dynamic resolution needs it too: without this the scaler runs and
+            // its answer is discarded, which is what "enabled in the asset but
+            // nothing moves" looked like.
+            data.allowDynamicResolution =
+                method != UpscaleMethod.Off || dlaa || RenderScale < 1f || DynamicResolutionOn;
 
             data.allowDeepLearningSuperSampling = dlss || dlaa;
             data.allowFidelityFX2SuperResolution = fsr;

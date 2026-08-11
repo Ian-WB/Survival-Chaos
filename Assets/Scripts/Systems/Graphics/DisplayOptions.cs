@@ -188,8 +188,21 @@ namespace SurvivalChaos
         /// </summary>
         public const int MatchDisplay = -1;
 
-        /// <summary>How far under the display's rate <see cref="MatchDisplay"/> sits.</summary>
-        public const int DisplayHeadroom = 2;
+        /// <summary>
+        /// How far under the display's rate <see cref="MatchDisplay"/> sits, as a
+        /// fraction of that rate.
+        ///
+        /// Proportional rather than a flat number of frames, because a flat one
+        /// means completely different things at either end. Two frames under 60 Hz
+        /// is a 3.3% margin and genuinely safe; two frames under 200 Hz is 1%, and
+        /// at 200 Hz the whole refresh interval is only 5 ms - so that "margin" is
+        /// 0.05 ms and buys nothing at all. A 200 Hz display was where this was
+        /// found: the cap read 198 and the game still sat exactly on the boundary.
+        /// </summary>
+        public const float DisplayHeadroomFraction = 0.04f;
+
+        /// <summary>Never shave less than this, however slow the display.</summary>
+        public const int MinimumDisplayHeadroom = 2;
 
         /// <summary>
         /// Frame rate caps offered, with 0 meaning uncapped.
@@ -218,7 +231,37 @@ namespace SurvivalChaos
                 return 0;
             }
 
-            return refreshRate > DisplayHeadroom + 30 ? refreshRate - DisplayHeadroom : refreshRate;
+            int headroom = (int)(refreshRate * DisplayHeadroomFraction + 0.5f);
+            if (headroom < MinimumDisplayHeadroom)
+            {
+                headroom = MinimumDisplayHeadroom;
+            }
+
+            // Below about 30 Hz there is nothing to give away - shaving frames off
+            // an already unplayable rate makes it worse, not safer.
+            return refreshRate - headroom >= 30 ? refreshRate - headroom : refreshRate;
+        }
+
+        // ---------- dynamic resolution ----------
+
+        /// <summary>
+        /// Frame rates dynamic resolution can chase, with 0 meaning off.
+        ///
+        /// One row rather than a toggle beside a target, because a target that is
+        /// switched off is a control that does nothing - and this project already
+        /// found three of those. "Dynamic Resolution: 120 FPS" says both things.
+        /// </summary>
+        public static readonly int[] DynamicTargets = { 0, 30, 60, 90, 120, 144, 165, 240 };
+
+        public static string DescribeDynamicTarget(int target)
+        {
+            return target <= 0 ? "Off" : "Target " + target + " FPS";
+        }
+
+        /// <summary>How long a frame may take to hold a given rate.</summary>
+        public static float TargetFrameMs(int targetFps)
+        {
+            return targetFps <= 0 ? 0f : 1000f / targetFps;
         }
 
         public static string DescribeCap(int cap)
