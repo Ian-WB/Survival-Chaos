@@ -16,6 +16,25 @@ namespace SurvivalChaos.EditorTools
     ///
     /// Both packs are CC0, so nothing here needs attribution to ship.
     /// </summary>
+    /// <remarks>
+    /// <para><b>The source folders are hidden, so this will not run as-is.</b></para>
+    /// <para>
+    /// The two Kenney packs are 174 files of which none are referenced: the ones
+    /// actually used were normalised by <see cref="BalanceSoundLevels"/> into
+    /// Audio/SFX/Balanced, and the definitions point there. Leaving the raw packs
+    /// in the asset database meant importing 174 clips on every reimport for
+    /// nothing, so they were renamed with a trailing <c>~</c>, which is Unity's
+    /// convention for "ignore this folder entirely".
+    /// </para>
+    /// <para>
+    /// They are still on disk and still in git - this is the regeneration source,
+    /// so it is hidden rather than deleted. To re-pick a sound, drop the <c>~</c>
+    /// from <c>kenney_sci-fi-sounds~</c> and <c>kenney_interface-sounds~</c>, let
+    /// Unity reimport, run this and then Balance Sound Levels, then rename them
+    /// back. Audio/SFX/Generated~ and Audio/SFX/Sonnis~ are hidden for the same
+    /// reason and are not used by anything.
+    /// </para>
+    /// </remarks>
     public static class AssignKenneySounds
     {
         private const string DefinitionFolder = "Assets/Audio/Definitions";

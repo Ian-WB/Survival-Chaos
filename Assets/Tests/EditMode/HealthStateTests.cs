@@ -87,5 +87,107 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual(3, health.Current);
             Assert.IsFalse(health.IsDead);
         }
+
+        // ---------- healing and raising the ceiling ----------
+        //
+        // Added when Player stopped tracking a raw int and moved onto this class,
+        // so the Heal and Max Health skills go through the same rules everything
+        // else does.
+
+        [Test]
+        public void Heal_RestoresHealth()
+        {
+            var health = new HealthState(10);
+            health.TakeDamage(6);
+
+            health.Heal(3);
+
+            Assert.AreEqual(7, health.Current);
+        }
+
+        [Test]
+        public void Heal_StopsAtTheCeiling()
+        {
+            var health = new HealthState(10);
+            health.TakeDamage(2);
+
+            health.Heal(99);
+
+            Assert.AreEqual(10, health.Current);
+            Assert.AreEqual(10, health.Max);
+        }
+
+        [Test]
+        public void Heal_IgnoresNonPositiveAmounts()
+        {
+            var health = new HealthState(10);
+            health.TakeDamage(4);
+
+            health.Heal(0);
+            health.Heal(-5);
+
+            Assert.AreEqual(6, health.Current);
+        }
+
+        [Test]
+        public void Heal_IsRefusedOnceDead()
+        {
+            var health = new HealthState(3);
+            Assert.IsTrue(health.TakeDamage(3));
+
+            health.Heal(10);
+
+            Assert.IsTrue(health.IsDead, "a heal landing after the killing hit must not revive");
+            Assert.AreEqual(0, health.Current);
+        }
+
+        [Test]
+        public void RaiseMax_LiftsTheCeilingAndCurrentTogether()
+        {
+            var health = new HealthState(10);
+            health.TakeDamage(4);
+
+            health.RaiseMax(20);
+
+            Assert.AreEqual(30, health.Max);
+            Assert.AreEqual(26, health.Current,
+                "raising the ceiling alone would be a longer bar and no more survivability");
+        }
+
+        [Test]
+        public void RaiseMax_IgnoresNonPositiveAmounts()
+        {
+            var health = new HealthState(10);
+
+            health.RaiseMax(0);
+            health.RaiseMax(-20);
+
+            Assert.AreEqual(10, health.Max);
+            Assert.AreEqual(10, health.Current);
+        }
+
+        [Test]
+        public void RaiseMax_IsRefusedOnceDead()
+        {
+            var health = new HealthState(2);
+            health.TakeDamage(2);
+
+            health.RaiseMax(20);
+
+            Assert.IsTrue(health.IsDead);
+            Assert.AreEqual(2, health.Max);
+        }
+
+        [Test]
+        public void Heal_CanReachTheRaisedCeiling()
+        {
+            var health = new HealthState(10);
+            health.TakeDamage(9);
+            health.RaiseMax(10);
+
+            health.Heal(99);
+
+            Assert.AreEqual(20, health.Current);
+        }
     }
 }

@@ -194,7 +194,15 @@ namespace SurvivalChaos
             try
             {
                 process.Refresh();
-                workingSet = process.WorkingSet64;
+
+                // Zero is not a measurement. Some Mono builds and restricted
+                // platforms answer WorkingSet64 with 0 rather than failing, and
+                // "Memory 0 KB process" in a report reads as a real figure - the
+                // one thing this overlay exists not to do. A process that is
+                // running has a working set, so 0 means the counter is
+                // unavailable and n/a is the honest answer.
+                long resident = process.WorkingSet64;
+                workingSet = resident > 0L ? resident : -1L;
 
                 TimeSpan processorTime = process.TotalProcessorTime;
                 float now = Time.realtimeSinceStartup;
