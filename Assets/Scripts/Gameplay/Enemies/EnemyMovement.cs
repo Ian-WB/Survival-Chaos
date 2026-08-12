@@ -18,19 +18,34 @@ public class EnemyMovement : MonoBehaviour
 
     public float spawnSpeed;
 
-    /// <summary>
-    /// How close the player has to be, vertically and around the ring, before
-    /// this enemy starts matching their height.
-    ///
-    /// Expressed as a fraction of the orbit radius rather than as a literal. It
-    /// was the bare number 15, tuned when the radius was 137.2 - about an 11%
-    /// band. The arena was later shrunk tenfold and the literal stayed, which
-    /// left the threshold larger than the whole arena: the check could never be
-    /// false, so every enemy chased vertically all the time.
-    /// </summary>
-    private const float ChaseRadiusFraction = 0.11f;
+    [SerializeField]
+    [Tooltip("How close the player has to be before this enemy starts matching their height, " +
+             "as a multiple of the arena orbit radius. Both sit on the ring, so this is a " +
+             "straight-line distance across it: 1.1 is roughly a 66 degree arc either side of " +
+             "the player, 0.11 is about 6 degrees.")]
+    private float chaseRadiusFraction = 1.1f;
 
-    private static float ChaseRadius => ArenaGeometry.OrbitRadius * ChaseRadiusFraction;
+    /// <summary>
+    /// The distance inside which this enemy chases the player's height.
+    ///
+    /// A multiple of the orbit radius rather than a literal, so it survives
+    /// another rescale of the arena. It was the bare number 15.
+    ///
+    /// That literal was flagged as stale on the grounds that 15 exceeds the
+    /// orbit radius of 13.72 and so could never be false. That reasoning was
+    /// wrong: both the enemy and the player sit on the ring, so the distance
+    /// between them runs up to the *diameter*, 27.44, not the radius. 15 is a
+    /// real threshold there - it covers about 66 degrees of arc either side of
+    /// the player, a wide band but far from the whole ring.
+    ///
+    /// Setting it to a tenth, which is what the arena's tenfold shrink would
+    /// imply if the original intent was an arc, collapsed the band to about 6
+    /// degrees and the chase all but stopped happening. The default restores
+    /// what the game actually played like; it is serialized because this is a
+    /// feel value, not a constant, and different enemies may want different
+    /// answers.
+    /// </summary>
+    private float ChaseRadius => ArenaGeometry.OrbitRadius * chaseRadiusFraction;
 
     void Start()
     {

@@ -216,6 +216,7 @@ MonoBehaviour:
   rotationSpeed: 25
   leftOrRight: 0
   spawnSpeed: 0.2
+  chaseRadiusFraction: 1.2
 --- !u!114 &8257310908387811799
 MonoBehaviour:
   m_ObjectHideFlags: 0
