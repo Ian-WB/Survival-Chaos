@@ -17119,7 +17119,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.5213118, g: 1, b: 0, a: 1}
-  m_Intensity: 23.873241
+  m_Intensity: 11.936621
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -17323,7 +17323,7 @@ Transform:
   m_GameObject: {fileID: 1138035252}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 52.73, y: 6.996, z: 14.02}
+  m_LocalPosition: {x: 8.23, y: 6.996, z: 14.02}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24682,7 +24682,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db796f92195f87443a66d442d2ce75f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerHit: {fileID: 2580088172133245437, guid: eae78c9d20e0fab47856610202de9a0b, type: 3}
+  playerHit: {fileID: 5610984665463037239, guid: c2a804a71e5790e47adc7d3f0e9ff293, type: 3}
   healthPoints: 20
   shootPivot: {fileID: 211850492}
   shootPrefab: {fileID: 6051693256502410095, guid: 0172e631f10defe46b80815a12e43d15, type: 3}

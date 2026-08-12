@@ -322,8 +322,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   childObject: {fileID: 8250396819246391718}
-  enemyHit: {fileID: 156155281887586458, guid: 6102a1d0085d78b4da69579e895802ce, type: 3}
-  explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
+  enemyHit: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
+  explosion: {fileID: 488202066062453081, guid: ee68ecc6938e6ca4ebf9ccf8e00f4bca, type: 3}
   definition: {fileID: 11400000, guid: 758023a95c130bd4aaa38b6ff0c465dc, type: 2}
   healthPoints: 2
   EnemyShip: {fileID: 2752971980227408059}

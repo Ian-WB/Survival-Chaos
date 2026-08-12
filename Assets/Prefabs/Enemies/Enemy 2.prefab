@@ -229,7 +229,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5c5d5f1a03e4ad4eafb9690dcc10bec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  explosion: {fileID: 8869618921236630029, guid: 33d8a55c3359efd479604d0f77a8f6ab, type: 3}
+  explosion: {fileID: 488202066062453081, guid: ee68ecc6938e6ca4ebf9ccf8e00f4bca, type: 3}
+  enemyHit: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   definition: {fileID: 11400000, guid: 24381a0953e00da428e15036dd2c8a75, type: 2}
   healthPoints: 1
   EnemyShip: {fileID: 2752971980227408059}
