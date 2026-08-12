@@ -81,6 +81,19 @@ namespace SurvivalChaos.EditorTools
             /// </summary>
             public bool RayTracing;
 
+            /// <summary>
+            /// Size of the reflection probe texture cache.
+            ///
+            /// A tier lever rather than a fixed value because it is reserved up
+            /// front by setting, and the stock 4096x4096 the bases ship reports 89
+            /// MB at runtime. The scenes contain no reflection probes at all -
+            /// neither cube nor planar, in either scene or any prefab - so that is
+            /// 89 MB held for nothing at every tier. The ladder below is headroom
+            /// for probes that might get added later, not capacity anything needs
+            /// today; if none ever appear, the top tiers could take 512 too.
+            /// </summary>
+            public ReflectionProbeTextureCacheResolution ReflectionCache;
+
             public int ShadowAtlas;
             public int MaxShadowRequests;
             public HDShadowFilteringQuality Filtering;
@@ -128,6 +141,7 @@ namespace SurvivalChaos.EditorTools
                 // the honest description of what it is - a machine-specific
                 // fallback rather than a tier anyone else should pick.
                 Name = "Ubirajara", Base = BasePerformant, RayTracing = false,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution512x512,
                 ShadowAtlas = 256, MaxShadowRequests = 1,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
@@ -151,6 +165,7 @@ namespace SurvivalChaos.EditorTools
                 // guard - a NullReferenceException every frame, on a screen that
                 // never draws. Verified in HDRP 17.5.0.
                 Name = "Very Low", Base = BasePerformant, RayTracing = true,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution512x512,
                 ShadowAtlas = 256, MaxShadowRequests = 1,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
@@ -162,6 +177,7 @@ namespace SurvivalChaos.EditorTools
             new Tier
             {
                 Name = "Low", Base = BasePerformant, RayTracing = true,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution512x512,
                 ShadowAtlas = 1024, MaxShadowRequests = 4,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
@@ -173,6 +189,7 @@ namespace SurvivalChaos.EditorTools
             new Tier
             {
                 Name = "Medium", Base = BaseBalanced, RayTracing = true,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution1024x1024,
                 ShadowAtlas = 2048, MaxShadowRequests = 8,
                 Filtering = HDShadowFilteringQuality.Medium,
                 ContactShadows = false, ScreenSpaceShadows = false,
@@ -184,6 +201,7 @@ namespace SurvivalChaos.EditorTools
             new Tier
             {
                 Name = "High", Base = BaseHighFidelity, RayTracing = true,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution1024x1024,
                 ShadowAtlas = 4096, MaxShadowRequests = 16,
                 Filtering = HDShadowFilteringQuality.Medium,
                 ContactShadows = true, ScreenSpaceShadows = true,
@@ -197,6 +215,7 @@ namespace SurvivalChaos.EditorTools
                 // High Fidelity, same as High and Ultra either side of it - the
                 // mapping given named those two, and this sits between them.
                 Name = "Very High", Base = BaseHighFidelity, RayTracing = true,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution2048x2048,
                 ShadowAtlas = 4096, MaxShadowRequests = 24,
                 Filtering = HDShadowFilteringQuality.High,
                 ContactShadows = true, ScreenSpaceShadows = true,
@@ -208,6 +227,7 @@ namespace SurvivalChaos.EditorTools
             new Tier
             {
                 Name = "Ultra", Base = BaseHighFidelity, RayTracing = true,
+                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution2048x2048,
                 ShadowAtlas = 8192, MaxShadowRequests = 32,
                 Filtering = HDShadowFilteringQuality.High,
                 ContactShadows = true, ScreenSpaceShadows = true,
@@ -448,14 +468,10 @@ namespace SurvivalChaos.EditorTools
             lights.maxAreaLightsOnScreen = 1;
             lights.maxDecalsOnScreen = 1;
 
-            // The reflection probe cache is the same shape of problem the probe
-            // volume budget was: reserved by setting rather than by use. The
-            // inspector reports the 4096x4096 default reserving 89 MB at runtime,
-            // which is two thirds of this machine's entire video memory for an
-            // arena that has no reflection probes worth the name. 512 is the
-            // smallest the enum offers.
-            lights.reflectionProbeTexCacheSize =
-                ReflectionProbeTextureCacheResolution.Resolution512x512;
+            // Cache size is the tier's ReflectionCache, set for every tier rather
+            // than only this one. What stays here is the on-screen counts, which
+            // size their own buffers and have no business being 32 and 16 on a
+            // machine with 128 MB.
             lights.maxCubeReflectionOnScreen = 2;
             lights.maxPlanarReflectionOnScreen = 1;
             settings.lightLoopSettings = lights;
@@ -535,6 +551,10 @@ namespace SurvivalChaos.EditorTools
             GlobalGPUResidentDrawerSettings drawer = settings.gpuResidentDrawerSettings;
             drawer.mode = GPUResidentDrawerMode.Disabled;
             settings.gpuResidentDrawerSettings = drawer;
+
+            GlobalLightLoopSettings reflections = settings.lightLoopSettings;
+            reflections.reflectionProbeTexCacheSize = tier.ReflectionCache;
+            settings.lightLoopSettings = reflections;
 
             settings.supportSSAO = tier.Ssao;
             settings.supportSSR = tier.Ssr;
