@@ -23,7 +23,11 @@ namespace SurvivalChaos
             current = Max;
         }
 
-        public int Max { get; }
+        /// <summary>
+        /// The ceiling. Settable only through <see cref="RaiseMax"/>, so a skill
+        /// cannot leave current health above a maximum that no longer allows it.
+        /// </summary>
+        public int Max { get; private set; }
 
         public int Current => current;
 
@@ -52,6 +56,46 @@ namespace SurvivalChaos
 
             killReported = true;
             return true;
+        }
+
+        /// <summary>
+        /// Restores health, never past <see cref="Max"/>.
+        ///
+        /// Refused once dead. A heal arriving after the killing hit - a level-up
+        /// resolving in the same frame as a collision - would otherwise put the
+        /// entity back above zero while the death screen was already up.
+        /// </summary>
+        public void Heal(int amount)
+        {
+            if (killReported || amount <= 0)
+            {
+                return;
+            }
+
+            current += amount;
+
+            if (current > Max)
+            {
+                current = Max;
+            }
+        }
+
+        /// <summary>
+        /// Raises the ceiling, granting the same amount as current health.
+        ///
+        /// Both move together because that is what the Max Health skill promises:
+        /// raising the ceiling alone would hand the player a bar that got longer
+        /// without making them any harder to kill.
+        /// </summary>
+        public void RaiseMax(int amount)
+        {
+            if (killReported || amount <= 0)
+            {
+                return;
+            }
+
+            Max += amount;
+            current += amount;
         }
     }
 }

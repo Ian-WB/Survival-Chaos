@@ -38,6 +38,17 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// The shortest gap the loop will honour, whatever a stream asks for.
+        ///
+        /// A stream added through the inspector arrives zero-filled - Unity does
+        /// not run field initializers on a newly inserted list element - so both
+        /// its interval and its floor are 0, and the loop would spawn an enemy
+        /// every frame. That reads as the game locking up rather than as a
+        /// mis-authored stream.
+        /// </summary>
+        private const float HardMinimumInterval = 0.05f;
+
         private IEnumerator RunStream(SpawnStream stream)
         {
             yield return new WaitForSeconds(stream.startDelay);
@@ -53,7 +64,7 @@ namespace SurvivalChaos
                     stream.minInterval,
                     Elapsed);
 
-                yield return new WaitForSeconds(interval);
+                yield return new WaitForSeconds(Mathf.Max(interval, HardMinimumInterval));
             }
         }
 

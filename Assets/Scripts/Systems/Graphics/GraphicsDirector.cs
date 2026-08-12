@@ -160,7 +160,28 @@ namespace SurvivalChaos
             if (Instance == this)
             {
                 Instance = null;
+
+                // The scaler is a closure over this object, parked in a static
+                // slot inside HDRP. Left in place it outlives the director that
+                // owns it and keeps answering with a value nothing is updating
+                // any more. Handing back a constant 100 is the honest reading
+                // once there is no director to ask.
+                DynamicResolutionHandler.SetDynamicResScaler(
+                    () => 100f, DynamicResScalePolicyType.ReturnsPercentage);
             }
+        }
+
+        /// <summary>
+        /// Drops every subscriber to the static event, for the same reason
+        /// <see cref="AudioDirector"/> does: static state outlives play mode when
+        /// domain reload is disabled, and every other static in the project is
+        /// already reset this way.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            SettingsChanged = null;
+            Instance = null;
         }
 
         // ---------- available options ----------
@@ -225,6 +246,7 @@ namespace SurvivalChaos
                 DisplaySize size = Sizes[Mathf.Clamp(value, 0, Sizes.Count - 1)];
                 PlayerPrefs.SetInt(Prefix + "Width", size.Width);
                 PlayerPrefs.SetInt(Prefix + "Height", size.Height);
+                SettingsStore.MarkDirty();
                 Apply();
             }
         }
@@ -426,12 +448,38 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// The scale the game actually renders at. An upscaler owns this outright;
-        /// the Render Scale control only applies when none is selected.
+        /// The scale currently being asked for, whoever is deciding it.
+        ///
+        /// Three things can own this number and only one of them is the Render
+        /// Scale control. An upscaler owns it outright; dynamic resolution moves
+        /// it every frame; otherwise it is the stored value.
+        ///
+        /// The dynamic case used to be missing, so with a target set and the
+        /// controller holding 60% the menu row and the F3 report both still read
+        /// the stored 100%. The row said "Set by dynamic resolution" underneath
+        /// while showing a number that was not it.
         /// </summary>
-        public float EffectiveRenderScale => Method == UpscaleMethod.Off
-            ? RenderScale
-            : DisplayOptions.ApproximateScale((int)Quality);
+        public float EffectiveRenderScale
+        {
+            get
+            {
+                if (Method != UpscaleMethod.Off)
+                {
+                    return DisplayOptions.ApproximateScale((int)Quality);
+                }
+
+                return DynamicResolutionOn ? RequestedRenderScale : RenderScale;
+            }
+        }
+
+        /// <summary>
+        /// What the scaler is handing HDRP right now, as a fraction.
+        ///
+        /// Distinct from <see cref="ActualRenderScale"/>, which is what the
+        /// pipeline resolved. Keeping both is the point: they can legitimately
+        /// disagree, and a report showing only one hides which of them is wrong.
+        /// </summary>
+        public float RequestedRenderScale => Mathf.Clamp01(requestedPercentage / 100f);
 
         public LightingMode Lighting
         {
@@ -710,6 +758,7 @@ namespace SurvivalChaos
         private void SetInt(string key, int value)
         {
             PlayerPrefs.SetInt(Prefix + key, value);
+            SettingsStore.MarkDirty();
             Apply();
         }
 
@@ -721,6 +770,7 @@ namespace SurvivalChaos
         private void SetFloat(string key, float value)
         {
             PlayerPrefs.SetFloat(Prefix + key, value);
+            SettingsStore.MarkDirty();
             Apply();
         }
 
@@ -732,6 +782,7 @@ namespace SurvivalChaos
         {
             level = Mathf.Clamp(level, 0, Mathf.Max(0, QualityNames.Length - 1));
             PlayerPrefs.SetInt(Prefix + "Quality", level);
+            SettingsStore.MarkDirty();
             QualitySettings.SetQualityLevel(level, applyExpensiveChanges: true);
             Apply();
         }

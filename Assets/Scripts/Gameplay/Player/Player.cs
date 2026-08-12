@@ -7,11 +7,19 @@ using SurvivalChaos;
 public class Player : MonoBehaviour, ISkillTarget
 {
     public GameObject playerHit;
-    [SerializeField] private int healthPoints = 1;
 
-    [Header("Bounds")]
     [SerializeField]
-    private BoxCollider2D playerBounds;
+    [Tooltip("Starting health. The live value is held by HealthState from Awake onwards.")]
+    private int healthPoints = 1;
+
+    /// <summary>
+    /// The player's health, under the same rules as every other combatant.
+    ///
+    /// Only the hit that brings this to zero reports a kill, and only once - so
+    /// three colliders arriving in one physics step cannot each open the death
+    /// screen and stack the death sound on top of itself.
+    /// </summary>
+    private HealthState health;
 
     [Header("Shoot")]
     [SerializeField]
@@ -107,8 +115,8 @@ public class Player : MonoBehaviour, ISkillTarget
 
     // Start is called before the first frame update
     void Start()
-    {   
-        healthBar.SetMaxHealth(healthPoints);
+    {
+        healthBar.SetMaxHealth(health.Max);
         rotate = false;
         instantiatedChild = Instantiate(childPrefab, childObject);
         //Rigidbody childRigidbody = instantiatedChild.GetComponent<Rigidbody>();
@@ -132,74 +140,59 @@ public class Player : MonoBehaviour, ISkillTarget
         }
     }
 
+    /// <summary>
+    /// The three ways of being hurt, resolved through one path.
+    ///
+    /// They used to be three copied blocks, which is how the Boss branch ended up
+    /// as the only one without a hit effect. The only thing that actually differs
+    /// between them is whether the other object is consumed by the collision.
+    /// </summary>
     private void OnTriggerEnter(Collider other)
     {
-
         if (other.CompareTag("enemy_Shoot"))
         {
-
-            healthPoints--;
-            ObjectPool.Spawn(playerHit, transform.position , transform.rotation);
-
-            // Was missing, so bullet damage was invisible until death.
-            healthBar.SetHealth(healthPoints);
-            PlayDamageSound();
-
-            if (healthPoints <= 0)
-            {
-
-                deathMenu.ShowDeathMenu();
-            }
+            TakeHit(spawnHitEffect: true);
         }
-        if (other.CompareTag("Enemy"))
+        else if (other.CompareTag("Enemy"))
         {
-
             Destroy(other.gameObject);
-
-            // Update Health Points
-
-            healthPoints--;
-             ObjectPool.Spawn(playerHit, transform.position , transform.rotation);
-
-            healthBar.SetHealth(healthPoints);
-            PlayDamageSound();
-
-            // Check if Health Points is below 0 to destroy it
-
-            if (healthPoints <= 0)
-            {
-
-                deathMenu.ShowDeathMenu();
-            }
-        } else if (other.CompareTag("Boss"))
-        {
-
-
-            // Update Health Points
-
-            healthPoints--;
-            healthBar.SetHealth(healthPoints);
-            PlayDamageSound();
-
-            // Check if Health Points is below 0 to destroy it
-
-            if (healthPoints <= 0)
-            {
-
-                deathMenu.ShowDeathMenu();
-            }
+            TakeHit(spawnHitEffect: true);
         }
-
+        else if (other.CompareTag("Boss"))
+        {
+            TakeHit(spawnHitEffect: false);
+        }
     }
 
-    /// <summary>
-    /// The hit sound, or the death sound when that hit was the last one.
-    ///
-    /// Kept as one method called from each damage branch rather than inlined
-    /// three times, so the three ways of being hurt cannot drift apart - which is
-    /// how the Boss branch ended up as the only one without a hit effect.
-    /// </summary>
-    private void PlayDamageSound()
+    private void TakeHit(bool spawnHitEffect)
+    {
+        // Already dead: the death screen is up and time has stopped, but queued
+        // trigger events from the same physics step still arrive. Ignoring them
+        // is what stops the death sound stacking on itself.
+        if (health.IsDead)
+        {
+            return;
+        }
+
+        bool killed = health.TakeDamage(1);
+
+        if (spawnHitEffect)
+        {
+            ObjectPool.Spawn(playerHit, transform.position, transform.rotation);
+        }
+
+        // Was missing, so bullet damage was invisible until death.
+        healthBar.SetHealth(health.Current);
+        PlayDamageSound(killed);
+
+        if (killed)
+        {
+            deathMenu.ShowDeathMenu();
+        }
+    }
+
+    /// <summary>The hit sound, or the death sound when that hit was the last one.</summary>
+    private void PlayDamageSound(bool killed)
     {
         GameSounds sounds = GameSounds.Instance;
         if (sounds == null)
@@ -207,11 +200,12 @@ public class Player : MonoBehaviour, ISkillTarget
             return;
         }
 
-        GameSounds.Play(healthPoints <= 0 ? sounds.PlayerDeath : sounds.PlayerHit);
+        GameSounds.Play(killed ? sounds.PlayerDeath : sounds.PlayerHit);
     }
 
     private void Awake()
     {
+        health = new HealthState(healthPoints);
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
     }
     private void Shoot()
@@ -278,7 +272,6 @@ public class Player : MonoBehaviour, ISkillTarget
                 ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
                 ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
                 ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
                 ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
@@ -341,20 +334,29 @@ public class Player : MonoBehaviour, ISkillTarget
     }
 
     public void Heal(int hp){
-        healthPoints += hp;
-        if(healthBar.slider.maxValue < healthPoints){
-            healthPoints = (int) healthBar.slider.maxValue;
-        }
-        healthBar.slider.value = healthPoints;
+        health.Heal(hp);
+        healthBar.SetHealth(health.Current);
     }
 
     public void AddMaxHealth(int hp){
-        healthPoints += hp;
+        health.RaiseMax(hp);
         healthBar.AddMaxHealth(hp);
     }
 
+    /// <summary>
+    /// The shortest gap between volleys the fire rate may reach.
+    ///
+    /// IncreaseAttackSpeed multiplies rather than subtracts, so nothing in the
+    /// arithmetic itself ever reaches zero - but it approaches it, and
+    /// InvokeRepeating at a near-zero rate is a hang rather than a fast gun. The
+    /// AttackSpeed asset is authored at three picks, which lands at 0.216s and
+    /// nowhere near this floor; the floor is here so that raising maxPicks stays
+    /// a balance decision rather than a crash.
+    /// </summary>
+    public const float MinShotInterval = 0.05f;
+
     public void IncreaseAttackSpeed(){
-        spawnDelay = spawnDelay - (0.40f * spawnDelay);
+        spawnDelay = Mathf.Max(MinShotInterval, spawnDelay - (0.40f * spawnDelay));
         CancelInvoke(nameof(Shoot));
         InvokeRepeating(nameof(Shoot), spawnDelay, spawnDelay);
     }

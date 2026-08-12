@@ -88,6 +88,45 @@ namespace SurvivalChaos
             GraphicsDirector.SettingsChanged -= Refresh;
         }
 
+        /// <summary>How often the one live row re-reads its value.</summary>
+        private const float LiveRefreshInterval = 0.25f;
+
+        private float nextLiveRefresh;
+
+        /// <summary>
+        /// Keeps the Render Scale row honest while dynamic resolution is moving.
+        ///
+        /// Every other row changes only when the player changes it, so
+        /// SettingsChanged is enough. This one has a value that moves on its own,
+        /// and a row that reports a number it read once is worse than one that
+        /// reports nothing. Four times a second is legible without turning a
+        /// settings row into a per-frame string build.
+        /// </summary>
+        private void Update()
+        {
+            // An enum compare, not a disable: setting enabled false here would
+            // raise OnDisable and drop this row's SettingsChanged subscription,
+            // and it would never update again.
+            if (kind != GraphicsOptionKind.RenderScale)
+            {
+                return;
+            }
+
+            GraphicsDirector director = GraphicsDirector.Instance;
+            if (director == null || !director.DynamicResolutionOn)
+            {
+                return;
+            }
+
+            if (Time.unscaledTime < nextLiveRefresh)
+            {
+                return;
+            }
+
+            nextLiveRefresh = Time.unscaledTime + LiveRefreshInterval;
+            Refresh();
+        }
+
         /// <summary>Wired to the row's two buttons. +1 and -1.</summary>
         public void Step(int direction)
         {
@@ -425,9 +464,14 @@ namespace SurvivalChaos
             return 0;
         }
 
+        /// <summary>
+        /// The step matching a stored scale, falling back to native.
+        ///
+        /// A saved value can sit between steps - written by an older build, or by
+        /// dynamic resolution having moved it - and native is the safe reading.
+        /// </summary>
         private static int IndexOfScale(float scale)
         {
-            int best = RenderScales.Length - 1;
             for (int i = 0; i < RenderScales.Length; i++)
             {
                 if (Mathf.Abs(RenderScales[i] - scale) < 0.01f)
@@ -436,7 +480,7 @@ namespace SurvivalChaos
                 }
             }
 
-            return best;
+            return RenderScales.Length - 1;
         }
     }
 }

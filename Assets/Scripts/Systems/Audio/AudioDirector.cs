@@ -77,6 +77,22 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Drops every subscriber to the static event.
+        ///
+        /// Controls do unsubscribe in OnDisable, so nothing leaks today - but the
+        /// event is static, static state outlives play mode with domain reload
+        /// disabled, and every other static in the project is reset this way.
+        /// Leaving one exception is how the next subscriber that forgets finds
+        /// out the hard way.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            LevelsChanged = null;
+            Instance = null;
+        }
+
         private void BuildVoices()
         {
             voices = new AudioSource[VoiceCount];
@@ -135,6 +151,12 @@ namespace SurvivalChaos
 
             levels[channel] = value;
             PlayerPrefs.SetFloat(PrefsPrefix + channel, value);
+
+            // PlayerPrefs only reaches disk on a graceful quit, and this game can
+            // crash. Debounced rather than saved here, because a slider drag
+            // writes on every frame it moves.
+            SettingsStore.MarkDirty();
+
             ApplyLevels();
             LevelsChanged?.Invoke();
         }

@@ -9,13 +9,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform center;
     public float speed;
     public float Up_Down_Speed;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
     void Update()
     {
         if (center == null)

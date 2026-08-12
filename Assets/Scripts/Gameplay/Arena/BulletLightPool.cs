@@ -173,13 +173,19 @@ namespace SurvivalChaos
         /// <summary>
         /// Fills <see cref="bullets"/> with at most <paramref name="limit"/>
         /// bullets, nearest to the camera first.
+        ///
+        /// Reads the projectiles' own registry rather than calling
+        /// GameObject.FindGameObjectsWithTag, which allocated a fresh array of
+        /// every tagged object on every frame. Nothing here allocates now: the
+        /// shortlist is a field, and the registry is maintained by the
+        /// projectiles as they come and go.
         /// </summary>
         private void CollectNearestBullets(int limit)
         {
             bullets.Clear();
 
-            GameObject[] found = GameObject.FindGameObjectsWithTag(bulletTag);
-            if (found.Length == 0)
+            IReadOnlyList<Transform> found = ShootScript.Live;
+            if (found.Count == 0)
             {
                 return;
             }
@@ -189,9 +195,18 @@ namespace SurvivalChaos
             // Partial selection: for each bullet, insert it into the running
             // shortlist if it beats the worst entry. Cheaper than sorting the
             // whole set when only a handful are wanted.
-            for (int i = 0; i < found.Length; i++)
+            for (int i = 0; i < found.Count; i++)
             {
-                Transform candidate = found[i].transform;
+                Transform candidate = found[i];
+
+                // The registry carries the player's projectiles and the enemies'
+                // alike; only the player's are lit. A destroyed entry can survive
+                // a route that skipped OnDisable, so that is checked too.
+                if (candidate == null || !candidate.CompareTag(bulletTag))
+                {
+                    continue;
+                }
+
                 float distance = (candidate.position - eye).sqrMagnitude;
 
                 int slot = bullets.Count;

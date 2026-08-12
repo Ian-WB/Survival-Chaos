@@ -99,5 +99,27 @@ public class Enemy_1 : MonoBehaviour
         {
             EXP.Instance.AddEXP(reward);
         }
+
+        PlayDeathSound();
+    }
+
+    /// <summary>
+    /// This enemy's own death sound if it has one, otherwise the shared one.
+    ///
+    /// Matches Enemy.PlayDeathSound. This type had no death sound at all, which
+    /// also meant EnemyDefinition.DeathSound was only ever read on the other
+    /// enemy path - authoring one here looked wired and produced silence.
+    ///
+    /// Positional, because enemies die all around the ring and where a kill
+    /// happened is information the player can use.
+    /// </summary>
+    private void PlayDeathSound()
+    {
+        GameSounds sounds = GameSounds.Instance;
+        SoundDefinition sound = definition != null && definition.DeathSound != null
+            ? definition.DeathSound
+            : (sounds != null ? sounds.EnemyDeath : null);
+
+        GameSounds.PlayAt(sound, transform.position);
     }
 }

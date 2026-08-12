@@ -8,9 +8,36 @@ public class PauseMenu : MonoBehaviour
     public static bool GameIsPaused = false;
     public GameObject pauseMenuUI;
     public GameObject optionsUI;
+
+    /// <summary>
+    /// A fresh scene is a fresh run, so the flag starts down.
+    ///
+    /// It is static, and static state survives both a scene load and - with
+    /// domain reload disabled - play mode itself. Quitting to the menu while
+    /// paused used to carry a true value into the next run, where the first Esc
+    /// press took the resume branch and appeared to do nothing.
+    /// </summary>
+    void Awake()
+    {
+        GameIsPaused = false;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetOnEnterPlayMode()
+    {
+        GameIsPaused = false;
+    }
+
     void Update()
     {
         if (!GameInput.PausePressed){
+            return;
+        }
+
+        // The run is over and a death or victory screen is up. Pausing on top of
+        // it would let the player resume out of an ending they have already
+        // reached, and carry on playing at zero health.
+        if (RunOutcome.RunEnded){
             return;
         }
 

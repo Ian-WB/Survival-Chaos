@@ -40,7 +40,10 @@ namespace SurvivalChaos
             }
 
             // Stop the run regardless of whether the panel is wired, so "the
-            // boss died" always actually ends the game.
+            // boss died" always actually ends the game. Flagged before time
+            // stops so the pause menu cannot open into the gap - the same route
+            // that let a player resume out of the death screen.
+            RunOutcome.ReportRunEnded();
             Time.timeScale = 0f;
         }
 

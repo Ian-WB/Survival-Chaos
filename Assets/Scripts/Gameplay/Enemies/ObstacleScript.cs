@@ -5,8 +5,6 @@ using SurvivalChaos;
 
 public class ObstacleScript : MonoBehaviour
 {
-    
-    public float speed = 5.0f;
     private Transform player;
 
     private Vector3 center;
@@ -46,23 +44,22 @@ void Update()
         Vector3 pos = center;
         pos.y = transform.position.y;
 
-        Vector3 position1 = player.position;
-        Vector3 position2 = center;
-        Vector3 position3 = transform.position;
-
-        // Disregard the Y-axis component
-        position1.y = 0f;
-        position2.y = 0f;
-        position3.y = 0f;
-        float distance = Vector3.Distance(position1, position2);
+        // Distance from the axis, ignoring height.
+        Vector3 flat = transform.position;
+        flat.y = 0f;
 
         transform.LookAt(pos);
 
-        if(Vector3.Distance(position2, position3) >= ArenaGeometry.OrbitRadius)
+        if(Vector3.Distance(center, flat) >= ArenaGeometry.OrbitRadius)
         {
-            Vector3 dir = center - transform.position;
-            dir.y = 0;
-            transform.position += dir * Time.deltaTime * spawnSpeed;
+            // Through ShipMotion.Approach for the same reason as EnemyMovement:
+            // the original `position += (center - position) * deltaTime * speed`
+            // holds its curve only while deltaTime is small, and diverges once
+            // deltaTime * spawnSpeed passes 2.
+            Vector3 next = transform.position;
+            next.x = ShipMotion.Approach(next.x, center.x, spawnSpeed, Time.deltaTime);
+            next.z = ShipMotion.Approach(next.z, center.z, spawnSpeed, Time.deltaTime);
+            transform.position = next;
         }
     }
 }

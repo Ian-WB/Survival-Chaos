@@ -26,6 +26,12 @@ namespace SurvivalChaos
 
         private float hold;
 
+        /// <summary>
+        /// The value asked for last frame, which is how a fresh loss is told from
+        /// a fill still on its way down. See <see cref="Advance"/>.
+        /// </summary>
+        private float lastTarget;
+
         /// <summary>The bar's drawn length, 0..1.</summary>
         public float Fill { get; private set; }
 
@@ -39,6 +45,9 @@ namespace SurvivalChaos
             Fill = value;
             Ghost = value;
             hold = 0f;
+
+            // Or the next Advance would read the drop from here as a fresh hit.
+            lastTarget = value;
         }
 
         /// <summary>Advances one frame toward <paramref name="target"/>.</summary>
@@ -51,7 +60,25 @@ namespace SurvivalChaos
                 return;
             }
 
-            float previous = Fill;
+            // A fresh loss restarts the hold, so rapid hits keep the trail up
+            // rather than each one cutting the previous one short.
+            //
+            // Measured against the target, not against the fill. The fill eases
+            // toward its target exponentially and so is lower every single frame
+            // of a drain - which meant this restarted the hold on every frame and
+            // the ghost never drained at all. It went unnoticed because the fill
+            // does eventually settle onto a non-zero target exactly, releasing the
+            // hold; draining to *zero* takes hundreds of frames to reach exact
+            // zero, so the trail stayed up for the whole death screen. A full red
+            // bar behind an empty one, which is the failure this class was written
+            // to avoid.
+            if (target < lastTarget)
+            {
+                hold = HoldSeconds;
+            }
+
+            lastTarget = target;
+
             Fill = Approach(Fill, target, FillResponse, deltaTime);
 
             // Gaining: the ghost has nothing to show, so it rides along. Without
@@ -61,13 +88,6 @@ namespace SurvivalChaos
                 Ghost = Fill;
                 hold = 0f;
                 return;
-            }
-
-            // A fresh loss restarts the hold, so rapid hits keep the trail up
-            // rather than each one cutting the previous one short.
-            if (Fill < previous)
-            {
-                hold = HoldSeconds;
             }
 
             if (hold > 0f)

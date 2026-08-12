@@ -12,14 +12,31 @@ public class ColliderScript : MonoBehaviour
     private bool leftOrRight;
 
 
+    private bool warned;
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (!other.CompareTag("Player"))
         {
-            if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
+            return;
+        }
+
+        if (EnemyShip == null)
+        {
+            if (!warned)
             {
-                enemyMovement.leftOrRight = leftOrRight;
+                warned = true;
+                Debug.LogWarning(
+                    "ColliderScript has no Enemy Ship assigned, so crossing this trigger " +
+                    "will not turn the enemy around.", this);
             }
+
+            return;
+        }
+
+        if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
+        {
+            enemyMovement.leftOrRight = leftOrRight;
         }
     }
 }

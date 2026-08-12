@@ -80,6 +80,14 @@ namespace SurvivalChaos
 
         private void Awake()
         {
+            // IMGUI allocates a layout context per OnGUI event unless this is
+            // off, and this component is DontDestroyOnLoad - so that cost was
+            // being paid every frame by every player whether or not F3 was ever
+            // pressed. The early return inside OnGUI cannot help: the allocation
+            // happens before the callback is reached. Nothing here uses
+            // GUILayout, so there is nothing to give up.
+            useGUILayout = false;
+
             // Counter names have shifted between Unity versions, and not every
             // counter is exposed to a release player. Try the known spellings and
             // use whichever the runtime actually recognises.

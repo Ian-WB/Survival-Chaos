@@ -1,7 +1,25 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ShootScript : MonoBehaviour
 {
+
+    /// <summary>
+    /// Every projectile currently in flight, in no particular order.
+    ///
+    /// Exists so BulletLightPool can find the bullets nearest the camera without
+    /// calling GameObject.FindGameObjectsWithTag, which allocates a fresh array
+    /// on every call - roughly 200 entries, every frame, forever. That was the
+    /// largest steady garbage source left in the game, and garbage is what shows
+    /// up as frame time spikes against an otherwise flat graph.
+    ///
+    /// Projectiles add themselves as they appear and remove themselves as they
+    /// die, so the list needs no sweeping. It can still hold a destroyed entry if
+    /// something bypasses OnDisable - a scene unload - so readers check.
+    /// </summary>
+    private static readonly List<Transform> live = new List<Transform>();
+
+    public static IReadOnlyList<Transform> Live => live;
 
     // Resolved on enable - not serialized, so stale prefab references can't shadow it.
     private Transform center;
@@ -23,6 +41,8 @@ public class ShootScript : MonoBehaviour
     private void OnEnable()
     {
         transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+
+        live.Add(transform);
 
         if (sharedCenter == null)
         {
@@ -61,10 +81,21 @@ public class ShootScript : MonoBehaviour
         transform.LookAt(pos);
     }
 
+    /// <summary>
+    /// Pairs with the registration in OnEnable. Runs on every route out - going
+    /// back to the pool, being destroyed, the scene unloading - so the list
+    /// cannot accumulate entries across a run.
+    /// </summary>
+    private void OnDisable()
+    {
+        live.Remove(transform);
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
     {
         sharedCenter = null;
         warnedAboutMissingCenter = false;
+        live.Clear();
     }
 }

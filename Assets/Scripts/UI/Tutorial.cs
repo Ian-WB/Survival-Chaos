@@ -5,17 +5,18 @@ using UnityEngine;
 public class Tutorial : MonoBehaviour
 {
     public GameObject shiftTutorial;
-    // Start is called before the first frame update
+
     void Start()
     {
+        if (shiftTutorial == null)
+        {
+            Debug.LogWarning("Tutorial has no prompt assigned, so nothing will be shown.", this);
+            return;
+        }
+
         StartCoroutine(showShiftTutorial());
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     IEnumerator showShiftTutorial()
     {
         shiftTutorial.SetActive(true);

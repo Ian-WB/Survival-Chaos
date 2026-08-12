@@ -241,7 +241,10 @@ namespace SurvivalChaos.EditorTools
             foreach (BossHpBar target in Object.FindObjectsByType<BossHpBar>(FindObjectsInactive.Include))
             {
                 Undo.RecordObject(target, "Rewire HUD");
-                target.hpSlider = boss;
+                // Only the panel. BossHpBar's job is to reveal it; the slider
+                // itself is found by tag from BossEmitter, which is what actually
+                // drives the value - the second reference here was written and
+                // never read.
                 target.HpBar = boss != null ? boss.gameObject : null;
                 EditorUtility.SetDirty(target);
                 wired++;

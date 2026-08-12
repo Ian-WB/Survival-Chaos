@@ -27,5 +27,46 @@ namespace SurvivalChaos
         {
             streams = value ?? new List<SpawnStream>();
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Repairs streams added through the inspector's + button.
+        /// </summary>
+        /// <remarks>
+        /// Unity zero-fills a newly inserted list element rather than running the
+        /// C# constructor, so the field initializers on <see cref="SpawnStream"/>
+        /// never apply to one added by hand. A new stream therefore arrives with
+        /// rotation (0,0,0,0) - not identity, but a quaternion of zero length,
+        /// which is not a rotation at all and produces garbage orientation rather
+        /// than an obvious zero.
+        ///
+        /// The existing streams came through <see cref="SetStreams"/> from the
+        /// migration tool and are unaffected. This only catches the next one
+        /// someone adds by hand.
+        /// </remarks>
+        private void OnValidate()
+        {
+            if (streams == null)
+            {
+                return;
+            }
+
+            foreach (SpawnStream stream in streams)
+            {
+                if (stream == null)
+                {
+                    continue;
+                }
+
+                // Any near-zero quaternion, not just exactly zero: a normalised
+                // rotation always has length 1, so nothing legitimate lands here.
+                Quaternion r = stream.rotation;
+                if (r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w < 0.0001f)
+                {
+                    stream.rotation = Quaternion.identity;
+                }
+            }
+        }
+#endif
     }
 }
