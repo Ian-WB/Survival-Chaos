@@ -17,9 +17,9 @@ namespace SurvivalChaos.EditorTools
     /// a quality dropdown built on top of that would have been another control
     /// that looks functional and does nothing.
     ///
-    /// Each preset is a copy of the base asset with a handful of fields changed,
-    /// so anything not listed here - colour buffer format, lit shader mode, decal
-    /// settings, the lot - stays exactly as authored.
+    /// Each preset is a copy of one of Unity's three stock tiers with a handful of
+    /// fields changed, so anything not listed here - colour buffer format, lit
+    /// shader mode, decal settings, the lot - is whatever that tier ships with.
     ///
     /// The one exception is the bottom tier, which does touch the colour buffer
     /// format and the lit shader mode. See <see cref="ApplyMinimumSpec"/> - those
@@ -28,7 +28,28 @@ namespace SurvivalChaos.EditorTools
     /// </summary>
     public static class HdrpQualityPresetBuilder
     {
-        private const string BasePath = "Assets/Settings/HDRenderPipelineAsset.asset";
+        /// <summary>
+        /// The three assets Unity ships with a new HDRP project, used here as the
+        /// starting point each tier is cut down from.
+        ///
+        /// They replaced a single hand-authored base. The reason is that the old
+        /// base had drifted: ray tracing on, a 2048 cookie atlas, an 8192 cached
+        /// area shadow atlas, a probe volume budget reserving 416 MB. Every preset
+        /// inherited all of it, and the tier list below could only undo what it
+        /// explicitly named. Starting from Unity's own tiers means the parts this
+        /// file says nothing about are already sane rather than already inflated.
+        /// </summary>
+        /// <remarks>
+        /// Under an Editor folder deliberately. Unity excludes anything below one
+        /// from player builds by rule rather than by whether something happens to
+        /// reference it, and these are inputs to a menu item rather than assets the
+        /// game ever loads. A trailing ~ would have hidden them more thoroughly and
+        /// also from AssetDatabase, which is what reads them here.
+        /// </remarks>
+        private const string BasePerformant = "Assets/Settings/Quality/Editor/HDRP Performant.asset";
+        private const string BaseBalanced = "Assets/Settings/Quality/Editor/HDRP Balanced.asset";
+        private const string BaseHighFidelity = "Assets/Settings/Quality/Editor/HDRP High Fidelity.asset";
+
         private const string PresetFolder = "Assets/Settings/Quality";
 
         /// <summary>
@@ -42,6 +63,24 @@ namespace SurvivalChaos.EditorTools
         private struct Tier
         {
             public string Name;
+
+            /// <summary>
+            /// Which of Unity's three stock tiers this one is cut down from.
+            /// Everything this struct does not name is inherited from it.
+            /// </summary>
+            public string Base;
+
+            /// <summary>
+            /// Whether the pipeline compiles ray tracing support in.
+            ///
+            /// Named per tier rather than inherited because the three stock bases
+            /// all ship it off, while every preset here except Ubirajara has had
+            /// it on - and the lighting menu offers a ray-traced mode that would
+            /// quietly stop doing anything if the switch to those bases turned it
+            /// off everywhere.
+            /// </summary>
+            public bool RayTracing;
+
             public int ShadowAtlas;
             public int MaxShadowRequests;
             public HDShadowFilteringQuality Filtering;
@@ -88,7 +127,8 @@ namespace SurvivalChaos.EditorTools
                 // Named after the person it was measured against, which is also
                 // the honest description of what it is - a machine-specific
                 // fallback rather than a tier anyone else should pick.
-                Name = "Ubirajara", ShadowAtlas = 256, MaxShadowRequests = 1,
+                Name = "Ubirajara", Base = BasePerformant, RayTracing = false,
+                ShadowAtlas = 256, MaxShadowRequests = 1,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = false, Ssr = false, Ssgi = false,
@@ -110,7 +150,8 @@ namespace SurvivalChaos.EditorTools
                 // GetUnmanageDataForShadowRequestJobs then dereferences it with no
                 // guard - a NullReferenceException every frame, on a screen that
                 // never draws. Verified in HDRP 17.5.0.
-                Name = "Very Low", ShadowAtlas = 256, MaxShadowRequests = 1,
+                Name = "Very Low", Base = BasePerformant, RayTracing = true,
+                ShadowAtlas = 256, MaxShadowRequests = 1,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = false, Ssr = false, Ssgi = false,
@@ -120,7 +161,8 @@ namespace SurvivalChaos.EditorTools
             },
             new Tier
             {
-                Name = "Low", ShadowAtlas = 1024, MaxShadowRequests = 4,
+                Name = "Low", Base = BasePerformant, RayTracing = true,
+                ShadowAtlas = 1024, MaxShadowRequests = 4,
                 Filtering = HDShadowFilteringQuality.Low,
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = false, Ssr = false, Ssgi = false,
@@ -130,7 +172,8 @@ namespace SurvivalChaos.EditorTools
             },
             new Tier
             {
-                Name = "Medium", ShadowAtlas = 2048, MaxShadowRequests = 8,
+                Name = "Medium", Base = BaseBalanced, RayTracing = true,
+                ShadowAtlas = 2048, MaxShadowRequests = 8,
                 Filtering = HDShadowFilteringQuality.Medium,
                 ContactShadows = false, ScreenSpaceShadows = false,
                 Ssao = true, Ssr = false, Ssgi = false,
@@ -140,7 +183,8 @@ namespace SurvivalChaos.EditorTools
             },
             new Tier
             {
-                Name = "High", ShadowAtlas = 4096, MaxShadowRequests = 16,
+                Name = "High", Base = BaseHighFidelity, RayTracing = true,
+                ShadowAtlas = 4096, MaxShadowRequests = 16,
                 Filtering = HDShadowFilteringQuality.Medium,
                 ContactShadows = true, ScreenSpaceShadows = true,
                 Ssao = true, Ssr = true, Ssgi = false,
@@ -150,7 +194,10 @@ namespace SurvivalChaos.EditorTools
             },
             new Tier
             {
-                Name = "Very High", ShadowAtlas = 4096, MaxShadowRequests = 24,
+                // High Fidelity, same as High and Ultra either side of it - the
+                // mapping given named those two, and this sits between them.
+                Name = "Very High", Base = BaseHighFidelity, RayTracing = true,
+                ShadowAtlas = 4096, MaxShadowRequests = 24,
                 Filtering = HDShadowFilteringQuality.High,
                 ContactShadows = true, ScreenSpaceShadows = true,
                 Ssao = true, Ssr = true, Ssgi = true,
@@ -160,7 +207,8 @@ namespace SurvivalChaos.EditorTools
             },
             new Tier
             {
-                Name = "Ultra", ShadowAtlas = 8192, MaxShadowRequests = 32,
+                Name = "Ultra", Base = BaseHighFidelity, RayTracing = true,
+                ShadowAtlas = 8192, MaxShadowRequests = 32,
                 Filtering = HDShadowFilteringQuality.High,
                 ContactShadows = true, ScreenSpaceShadows = true,
                 Ssao = true, Ssr = true, Ssgi = true,
@@ -185,11 +233,14 @@ namespace SurvivalChaos.EditorTools
         [MenuItem("Survival Chaos/Graphics/Build Quality Presets", priority = 40)]
         public static void Build()
         {
-            HDRenderPipelineAsset baseAsset = AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(BasePath);
-            if (baseAsset == null)
+            foreach (string path in new[] { BasePerformant, BaseBalanced, BaseHighFidelity })
             {
-                Debug.LogError("No HDRP asset at " + BasePath + ".");
-                return;
+                if (AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(path) == null)
+                {
+                    Debug.LogError("No HDRP asset at " + path + ". All three stock tiers have to be " +
+                                   "present before presets can be built from them.");
+                    return;
+                }
             }
 
             EnsureFolder();
@@ -207,10 +258,10 @@ namespace SurvivalChaos.EditorTools
             int assigned = Assign(built);
 
             Debug.Log("Built " + built.Count + " HDRP quality presets in " + PresetFolder +
-                      " and assigned them to " + assigned + " quality levels. Ray tracing support is " +
-                      "left as the base asset had it everywhere except Ubirajara, which switches it " +
-                      "off - so the lighting toggle works at every tier a machine with DXR would " +
-                      "plausibly be running.");
+                      " and assigned them to " + assigned + " quality levels. Each is cut down from " +
+                      "one of Unity's three stock tiers - Performant below Medium, Balanced at " +
+                      "Medium, High Fidelity above it. Dynamic resolution is forced on for all of " +
+                      "them, because the stock tiers ship it off and this game drives it directly.");
         }
 
         private static ShadowQuality ShadowFor(string tierName)
@@ -301,6 +352,35 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
+        /// Turns dynamic resolution on for every tier.
+        ///
+        /// Applied unconditionally because the three stock bases all ship it off,
+        /// at 100% minimum, and this game drives it directly:
+        /// GraphicsDirector registers a scaler through
+        /// DynamicResolutionHandler.SetDynamicResScaler, DynamicResolutionController
+        /// decides the scale, and the graphics menu exposes a render scale row. All
+        /// of that goes quiet if the pipeline asset says the feature is disabled -
+        /// no error, no warning, the scaler simply never takes effect. Inheriting
+        /// the bases without this would have switched off a whole subsystem, and
+        /// its thirteen tests would still have passed, because they test the
+        /// controller's arithmetic rather than whether HDRP is listening.
+        ///
+        /// 50% floor matches what the presets carried before the bases changed.
+        /// </summary>
+        private static void ApplyDynamicResolution(ref RenderPipelineSettings settings)
+        {
+            GlobalDynamicResolutionSettings resolution = settings.dynamicResolutionSettings;
+
+            resolution.enabled = true;
+            resolution.minPercentage = 50f;
+            resolution.maxPercentage = 100f;
+            resolution.upsampleFilter = DynamicResUpscaleFilter.TAAU;
+            resolution.useMipBias = true;
+
+            settings.dynamicResolutionSettings = resolution;
+        }
+
+        /// <summary>
         /// The bottom tier's extra austerity, which is about video memory rather
         /// than about effects.
         ///
@@ -325,10 +405,6 @@ namespace SurvivalChaos.EditorTools
             settings.supportedLitShaderMode = RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
             settings.colorBufferFormat = RenderPipelineSettings.ColorBufferFormat.R11G11B10;
 
-            // No DXR on a 2012 integrated part, so this is allocation with nothing
-            // on the other end of it.
-            settings.supportRayTracing = false;
-
             // Motion vectors are a full-screen target that only TAA, motion blur
             // and the advanced upscalers read. None of the three is reachable at
             // this tier.
@@ -344,9 +420,9 @@ namespace SurvivalChaos.EditorTools
             // msaaSampleCount 1, which is MSAASamples.None rather than one sample,
             // so there is nothing to turn off.
 
-            // Ray tracing has two switches and turning off only the first leaves
-            // the VFX one on. Unity's own default has it off; this asset inherited
-            // it on from the project's base.
+            // Ray tracing has two switches. The tier's RayTracing field covers the
+            // first one; this is the second, which is off in all three stock bases
+            // and has no reason to be on anywhere the first one is off.
             settings.supportVFXRayTracing = false;
 
             // The probe volume pool is sized by this setting rather than by how
@@ -371,6 +447,17 @@ namespace SurvivalChaos.EditorTools
             lights.maxPunctualLightsOnScreen = 32;
             lights.maxAreaLightsOnScreen = 1;
             lights.maxDecalsOnScreen = 1;
+
+            // The reflection probe cache is the same shape of problem the probe
+            // volume budget was: reserved by setting rather than by use. The
+            // inspector reports the 4096x4096 default reserving 89 MB at runtime,
+            // which is two thirds of this machine's entire video memory for an
+            // arena that has no reflection probes worth the name. 512 is the
+            // smallest the enum offers.
+            lights.reflectionProbeTexCacheSize =
+                ReflectionProbeTextureCacheResolution.Resolution512x512;
+            lights.maxCubeReflectionOnScreen = 2;
+            lights.maxPlanarReflectionOnScreen = 1;
             settings.lightLoopSettings = lights;
 
             // The cached atlases are reserved up front, and the area one ships at
@@ -419,10 +506,35 @@ namespace SurvivalChaos.EditorTools
                 AssetDatabase.DeleteAsset(path);
             }
 
-            AssetDatabase.CopyAsset(BasePath, path);
+            AssetDatabase.CopyAsset(tier.Base, path);
             HDRenderPipelineAsset asset = AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(path);
 
             RenderPipelineSettings settings = asset.currentPlatformRenderPipelineSettings;
+
+            settings.supportRayTracing = tier.RayTracing;
+
+            // Adaptive Probe Volumes at every tier, because that is what the Game
+            // scene bakes: two ProbeVolumePerSceneData and no LightProbeGroup
+            // anywhere in it. Performant and Balanced ship set to LegacyLightProbes,
+            // so four of the seven tiers would have gone looking for probe groups
+            // that do not exist. That is not a cheaper kind of probe lighting, it
+            // is none - dynamic objects fall back to flat ambient while the top
+            // three tiers light correctly, which reads as the low tiers being
+            // broken rather than cheap.
+            settings.lightProbeSystem =
+                RenderPipelineSettings.LightProbeSystem.AdaptiveProbeVolumes;
+
+            // Off, which is what this project's own base asset had. The stock
+            // tiers turn it on, and it needs DOTS instancing shader variants kept
+            // in the build - hence the BatchRendererGroup warning that appeared
+            // the moment the presets were rebuilt. Keeping those variants costs
+            // build size and shader compile time to accelerate draw submission,
+            // and the profiler puts this game's main thread at 99% idle waiting on
+            // present. There is no draw-call problem to solve here, so this is a
+            // cost with nothing on the other side of it.
+            GlobalGPUResidentDrawerSettings drawer = settings.gpuResidentDrawerSettings;
+            drawer.mode = GPUResidentDrawerMode.Disabled;
+            settings.gpuResidentDrawerSettings = drawer;
 
             settings.supportSSAO = tier.Ssao;
             settings.supportSSR = tier.Ssr;
@@ -449,8 +561,10 @@ namespace SurvivalChaos.EditorTools
 
             settings.hdShadowInitParams = shadows;
 
-            // Last, so it reads the shadow parameters the tier just wrote rather
-            // than the base asset's.
+            ApplyDynamicResolution(ref settings);
+
+            // Last, so it reads the shadow and resolution parameters the tier just
+            // wrote rather than the base asset's.
             if (tier.MinimumSpec)
             {
                 ApplyMinimumSpec(ref settings);

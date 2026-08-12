@@ -4,7 +4,8 @@
     "references": [
         "SurvivalChaos",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [
         "Editor"
