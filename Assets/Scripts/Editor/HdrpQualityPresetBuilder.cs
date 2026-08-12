@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos.EditorTools
@@ -339,12 +340,29 @@ namespace SurvivalChaos.EditorTools
             settings.supportTransparentDepthPrepass = false;
             settings.supportTransparentDepthPostpass = false;
 
-            // MSAA is deliberately not set here. The base asset already carries
+            // MSAA is deliberately not set. The base asset already carries
             // msaaSampleCount 1, which is MSAASamples.None rather than one sample,
-            // so there is nothing to turn off - and MSAASamples lives in
-            // Core.Runtime, which this assembly does not reference. Naming it
-            // would mean widening the asmdef to write a value that is already
-            // correct.
+            // so there is nothing to turn off.
+
+            // Ray tracing has two switches and turning off only the first leaves
+            // the VFX one on. Unity's own default has it off; this asset inherited
+            // it on from the project's base.
+            settings.supportVFXRayTracing = false;
+
+            // The probe volume pool is sized by this setting rather than by how
+            // much was baked, and the editor is blunt about the result: at
+            // MemoryBudgetHigh it reserves 416 MB to hold roughly 2.4 MB of
+            // actual probe data. On a 128 MB card that one line is fatal on its
+            // own, well ahead of anything else in this method. GPU streaming
+            // stays on precisely because the pool is now small - it pages bricks
+            // in rather than needing the set resident.
+            settings.probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetLow;
+
+            // Disk streaming trades memory for disk reads. The reference machine
+            // has 12 GB of RAM and 2.4 MB of probe data, so there is nothing to
+            // trade away, and its disk is the last thing worth blocking a frame
+            // on.
+            settings.supportProbeVolumeDiskStreaming = false;
 
             // These size GPU-side buffers whether or not the lights exist. The
             // arena runs a directional light, the lava lights and the bullet
@@ -363,7 +381,29 @@ namespace SurvivalChaos.EditorTools
             shadows.maxDirectionalShadowMapResolution = 256;
             shadows.maxPunctualShadowMapResolution = 256;
             shadows.maxAreaShadowMapResolution = 256;
+
+            // The Tier struct's Filtering covers punctual and directional only.
+            // Area shadows have their own quality enum and their own default, and
+            // this asset inherited High from the base while Unity's default is
+            // Medium - the one place the stock settings were cheaper than the
+            // tier built to undercut them.
+            shadows.areaShadowFilteringQuality = HDAreaShadowFilteringQuality.Medium;
             settings.hdShadowInitParams = shadows;
+
+            // CatmullRom rather than the inherited TAAU, for two reasons. It is
+            // the cheap one - the package describes it as very cheap and blurry,
+            // which is the correct trade here. And TAAU is temporal: it needs the
+            // motion vectors this method switched off thirty lines ago, so
+            // leaving it selected would have asked for an upscaler that cannot
+            // run.
+            GlobalDynamicResolutionSettings resolution = settings.dynamicResolutionSettings;
+            resolution.upsampleFilter = DynamicResUpscaleFilter.CatmullRom;
+
+            // Mip bias sharpens textures when rendering below native, but it
+            // relies on a temporal filter to resolve the extra aliasing it
+            // introduces. With CatmullRom there is no such filter.
+            resolution.useMipBias = false;
+            settings.dynamicResolutionSettings = resolution;
         }
 
         /// <summary>

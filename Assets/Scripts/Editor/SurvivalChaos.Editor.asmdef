@@ -3,7 +3,8 @@
     "rootNamespace": "SurvivalChaos.EditorTools",
     "references": [
         "SurvivalChaos",
-        "Unity.RenderPipelines.HighDefinition.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"
