@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 9026344384276379720}
   - component: {fileID: -5128755240325758037}
   - component: {fileID: 1819180099937646346}
+  - component: {fileID: -6918760015558142462}
   - component: {fileID: 4338439029050199374}
   - component: {fileID: 6629138651888844002}
   m_Layer: 0
@@ -27,6 +28,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6051693256502410095}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.65542364, y: 0.65542364, z: 0.65542364}
@@ -34,7 +36,6 @@ Transform:
   m_Children:
   - {fileID: 4034355877726522907}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &-5128755240325758037
 MeshFilter:
@@ -57,6 +58,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   delay: 3
+--- !u!54 &-6918760015558142462
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6051693256502410095}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!65 &4338439029050199374
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -65,9 +93,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6051693256502410095}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 6.4999332, y: 1.6401111, z: 1.6134982}
   m_Center: {x: -0.55698884, y: 5.105131, z: 2.3436768}
 --- !u!114 &6629138651888844002
@@ -82,13 +118,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a64cbc280cd0f418d140a7976d52a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  center: {fileID: 919132149155446097, guid: 6f9f8175f43a7704b9962bdf08038c47, type: 3}
   speed: -80
 --- !u!1001 &3492066757216791024
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 9026344384276379720}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: af4437873dda558478d10f70f8b78a1e, type: 3}
@@ -152,6 +188,9 @@ PrefabInstance:
       value: tiro_inimigo_2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af4437873dda558478d10f70f8b78a1e, type: 3}
 --- !u!4 &4034355877726522907 stripped
 Transform:

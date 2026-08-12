@@ -33,6 +33,27 @@ namespace SurvivalChaos
         /// </summary>
         private const float RefreshInterval = 0.25f;
 
+        /// <summary>
+        /// How often the two process-level counters below are read. Far rarer
+        /// than the readout refresh, and deliberately so.
+        ///
+        /// Process.Refresh() re-reads the OS process table, which on Windows
+        /// means a system-wide query rather than a look at our own block. It
+        /// costs milliseconds, not microseconds. Running it at RefreshInterval
+        /// put a 15 ms spike into roughly every other refresh - a rhythmic
+        /// hitch every half second, in an otherwise 2 ms frame, produced
+        /// entirely by the thing measuring the frame. A profiler capture blamed
+        /// the game for it until the overlay was hidden and the periodicity
+        /// vanished outright.
+        ///
+        /// Resident memory and process CPU share do not move meaningfully in a
+        /// quarter of a second, so nothing readable is lost by sampling them
+        /// eight times more slowly. The frame timings above stay at
+        /// RefreshInterval - those come from a Unity-side ring buffer and are
+        /// genuinely cheap.
+        /// </summary>
+        private const float ProcessSampleInterval = 2f;
+
         private const float NoticeDuration = 4f;
 
         private readonly FrameTimeStats stats = new FrameTimeStats(WindowSize);
@@ -40,6 +61,7 @@ namespace SurvivalChaos
 
         private bool visible;
         private float nextRefresh;
+        private float nextProcessSample;
 
         // Held rather than rebuilt per repaint. An overlay that allocates every
         // frame would show up in the very measurements it exists to report.
@@ -186,10 +208,14 @@ namespace SurvivalChaos
                 gpuFrameMs = timings[0].gpuFrameTime;
             }
 
-            if (process == null)
+            // Everything above is cheap and stays at the readout's own cadence.
+            // Everything below is not - see ProcessSampleInterval.
+            if (process == null || Time.unscaledTime < nextProcessSample)
             {
                 return;
             }
+
+            nextProcessSample = Time.unscaledTime + ProcessSampleInterval;
 
             try
             {
