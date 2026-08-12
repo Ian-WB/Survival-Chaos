@@ -415,8 +415,14 @@ namespace SurvivalChaos
                     return "DLSS quality at full resolution; costs more than TAA";
 
 
+                // Asked of QualitySettings rather than compared against index 0.
+                // Two tiers now disable shadows rather than one, and a third
+                // inserted below would have moved the answer again - the level
+                // itself already records this, so read it instead of counting.
                 case GraphicsOptionKind.Quality:
-                    return director.QualityLevel == 0 ? "Dynamic shadows are off at this level" : string.Empty;
+                    return QualitySettings.shadows == ShadowQuality.Disable
+                        ? "Dynamic shadows are off at this level"
+                        : string.Empty;
 
                 default:
                     return string.Empty;

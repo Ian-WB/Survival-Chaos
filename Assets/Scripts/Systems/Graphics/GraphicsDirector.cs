@@ -37,6 +37,18 @@ namespace SurvivalChaos
     {
         private const string Prefix = "SurvivalChaos.Graphics.";
 
+        /// <summary>
+        /// Bumped whenever quality level indices move, so a saved choice can be
+        /// corrected once rather than silently meaning a different tier.
+        ///
+        /// 1: the Ubirajara tier was inserted below Very Low, shifting every
+        /// existing level up by one. Without this, anyone who had picked Low would
+        /// come back to Very Low, and anyone on Very Low would come back to a tier
+        /// built for a 2012 integrated GPU - a real graphics downgrade that
+        /// nobody asked for and that reads as the update having broken something.
+        /// </summary>
+        private const int QualityEpoch = 1;
+
         public static GraphicsDirector Instance { get; private set; }
 
         /// <summary>Raised after anything changes, so controls can follow along.</summary>
@@ -85,6 +97,7 @@ namespace SurvivalChaos
             }
 
             Instance = this;
+            MigrateQualityIndex();
             BuildOverrideVolume();
             RegisterScaler();
             ApplyAll();
@@ -749,6 +762,31 @@ namespace SurvivalChaos
         }
 
         // ---------- storage ----------
+
+        /// <summary>
+        /// Shifts a saved quality index when tiers have been inserted below it.
+        ///
+        /// Runs before anything reads QualityLevel, writes through PlayerPrefs
+        /// directly rather than through SetInt - that one calls Apply, and there
+        /// is nothing to apply to yet this early in Awake - and does nothing at
+        /// all for a player who has never touched the setting, whose absent key
+        /// should stay absent so the platform default still decides.
+        /// </summary>
+        private static void MigrateQualityIndex()
+        {
+            if (PlayerPrefs.GetInt(Prefix + "QualityEpoch", 0) >= QualityEpoch)
+            {
+                return;
+            }
+
+            if (PlayerPrefs.HasKey(Prefix + "Quality"))
+            {
+                PlayerPrefs.SetInt(Prefix + "Quality", PlayerPrefs.GetInt(Prefix + "Quality") + 1);
+            }
+
+            PlayerPrefs.SetInt(Prefix + "QualityEpoch", QualityEpoch);
+            SettingsStore.MarkDirty();
+        }
 
         private static int GetInt(string key, int fallback)
         {

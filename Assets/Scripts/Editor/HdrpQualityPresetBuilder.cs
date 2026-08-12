@@ -19,6 +19,11 @@ namespace SurvivalChaos.EditorTools
     /// Each preset is a copy of the base asset with a handful of fields changed,
     /// so anything not listed here - colour buffer format, lit shader mode, decal
     /// settings, the lot - stays exactly as authored.
+    ///
+    /// The one exception is the bottom tier, which does touch the colour buffer
+    /// format and the lit shader mode. See <see cref="ApplyMinimumSpec"/> - those
+    /// two are where the video memory actually is, and that tier exists for a
+    /// machine that has almost none.
     /// </summary>
     public static class HdrpQualityPresetBuilder
     {
@@ -57,10 +62,40 @@ namespace SurvivalChaos.EditorTools
             /// the render pipeline.
             /// </summary>
             public ShadowQuality Shadows;
+
+            /// <summary>
+            /// Applies the extra block in <see cref="ApplyMinimumSpec"/> on top of
+            /// everything above. Left false on every tier that does not say
+            /// otherwise, so the six original presets are untouched by its
+            /// existence.
+            /// </summary>
+            public bool MinimumSpec;
         }
 
         private static readonly Tier[] Tiers =
         {
+            new Tier
+            {
+                // Below Very Low, for hardware below what HDRP is built for.
+                //
+                // The reference machine is an Intel HD Graphics 4000 with 128 MB
+                // of dedicated video memory - a 2012 integrated part. Every lever
+                // above is already at its floor by the time Very Low is reached,
+                // so what separates this tier from that one is not effects but
+                // memory: see ApplyMinimumSpec.
+                //
+                // Named after the person it was measured against, which is also
+                // the honest description of what it is - a machine-specific
+                // fallback rather than a tier anyone else should pick.
+                Name = "Ubirajara", ShadowAtlas = 256, MaxShadowRequests = 1,
+                Filtering = HDShadowFilteringQuality.Low,
+                ContactShadows = false, ScreenSpaceShadows = false,
+                Ssao = false, Ssr = false, Ssgi = false,
+                Volumetrics = false, VolumetricClouds = false,
+                SubsurfaceScattering = false, Decals = false,
+                Shadows = ShadowQuality.Disable,
+                MinimumSpec = true
+            },
             new Tier
             {
                 // Effectively no dynamic shadows: one request, the smallest
@@ -137,6 +172,7 @@ namespace SurvivalChaos.EditorTools
         /// <summary>Which preset each existing quality level gets, one for one.</summary>
         private static readonly Dictionary<string, string> LevelToTier = new Dictionary<string, string>
         {
+            { "Ubirajara", "Ubirajara" },
             { "Very Low", "Very Low" },
             { "Low", "Low" },
             { "Medium", "Medium" },
@@ -156,6 +192,7 @@ namespace SurvivalChaos.EditorTools
             }
 
             EnsureFolder();
+            EnsureLevel("Ubirajara");
 
             Dictionary<string, HDRenderPipelineAsset> built =
                 new Dictionary<string, HDRenderPipelineAsset>();
@@ -169,8 +206,10 @@ namespace SurvivalChaos.EditorTools
             int assigned = Assign(built);
 
             Debug.Log("Built " + built.Count + " HDRP quality presets in " + PresetFolder +
-                      " and assigned them to " + assigned + " quality levels. Ray tracing support " +
-                      "is left as the base asset had it, so the lighting toggle works at every tier.");
+                      " and assigned them to " + assigned + " quality levels. Ray tracing support is " +
+                      "left as the base asset had it everywhere except Ubirajara, which switches it " +
+                      "off - so the lighting toggle works at every tier a machine with DXR would " +
+                      "plausibly be running.");
         }
 
         private static ShadowQuality ShadowFor(string tierName)
@@ -192,6 +231,139 @@ namespace SurvivalChaos.EditorTools
             {
                 AssetDatabase.CreateFolder("Assets/Settings", "Quality");
             }
+        }
+
+        /// <summary>
+        /// Adds a quality level at index 0 if the project has none by that name,
+        /// so the new bottom tier can be built without anyone opening Project
+        /// Settings first.
+        ///
+        /// QualitySettings offers no API for adding a level - names is read-only -
+        /// so this goes at the serialised asset directly. Inserting duplicates
+        /// element 0, which is the behaviour wanted here: the new tier starts life
+        /// as a copy of Very Low and Assign then points it at its own preset.
+        ///
+        /// Inserting at the bottom shifts every existing level's index up by one.
+        /// Two places store an index rather than a name and both have to move with
+        /// it: the per-platform defaults below, and the player's saved choice,
+        /// which GraphicsDirector migrates on next launch.
+        /// </summary>
+        private static bool EnsureLevel(string levelName)
+        {
+            if (System.Array.IndexOf(QualitySettings.names, levelName) >= 0)
+            {
+                return true;
+            }
+
+            Object[] loaded = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/QualitySettings.asset");
+            SerializedProperty levels = null;
+            SerializedObject serialized = null;
+
+            if (loaded != null && loaded.Length > 0)
+            {
+                serialized = new SerializedObject(loaded[0]);
+                levels = serialized.FindProperty("m_QualitySettings");
+            }
+
+            if (levels == null || !levels.isArray)
+            {
+                Debug.LogError(
+                    "Could not add a '" + levelName + "' quality level automatically. Add it by hand " +
+                    "in Project Settings > Quality as the first entry, then run this again.");
+                return false;
+            }
+
+            levels.InsertArrayElementAtIndex(0);
+            levels.GetArrayElementAtIndex(0).FindPropertyRelative("name").stringValue = levelName;
+
+            SerializedProperty defaults = serialized.FindProperty("m_PerPlatformDefaultQuality");
+            if (defaults != null && defaults.isArray)
+            {
+                for (int i = 0; i < defaults.arraySize; i++)
+                {
+                    SerializedProperty index = defaults.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative("second");
+
+                    if (index != null)
+                    {
+                        index.intValue += 1;
+                    }
+                }
+            }
+
+            serialized.ApplyModifiedProperties();
+            AssetDatabase.SaveAssets();
+
+            Debug.Log("Added quality level '" + levelName + "' at index 0. Every level below it moved " +
+                      "up one, and saved player preferences will be migrated on next launch.");
+            return true;
+        }
+
+        /// <summary>
+        /// The bottom tier's extra austerity, which is about video memory rather
+        /// than about effects.
+        ///
+        /// The reference machine reports 128 MB. Everything the tier list above
+        /// controls is already off by the time Very Low is reached, and none of it
+        /// is what fills that budget - the render targets are. So this goes after
+        /// the two allocations that dominate:
+        ///
+        /// Deferred shading keeps a full-screen GBuffer alive for the whole frame,
+        /// several render targets wide. Forward drops it outright, and this game
+        /// has few enough lights per pixel that forward is the cheaper shape
+        /// anyway. R11G11B10 then halves the main colour buffer against the
+        /// R16G16B16A16 the other tiers use, at a cost in banding that matters
+        /// less than launching does.
+        ///
+        /// The rest is the long tail: passes and buffers that are individually
+        /// small, allocated whether or not anything uses them, and all switched
+        /// off here because at this budget the tail is the difference.
+        /// </summary>
+        private static void ApplyMinimumSpec(ref RenderPipelineSettings settings)
+        {
+            settings.supportedLitShaderMode = RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            settings.colorBufferFormat = RenderPipelineSettings.ColorBufferFormat.R11G11B10;
+
+            // No DXR on a 2012 integrated part, so this is allocation with nothing
+            // on the other end of it.
+            settings.supportRayTracing = false;
+
+            // Motion vectors are a full-screen target that only TAA, motion blur
+            // and the advanced upscalers read. None of the three is reachable at
+            // this tier.
+            settings.supportMotionVectors = false;
+
+            settings.supportDistortion = false;
+            settings.supportSSRTransparent = false;
+            settings.supportTransparentBackface = false;
+            settings.supportTransparentDepthPrepass = false;
+            settings.supportTransparentDepthPostpass = false;
+
+            // MSAA is deliberately not set here. The base asset already carries
+            // msaaSampleCount 1, which is MSAASamples.None rather than one sample,
+            // so there is nothing to turn off - and MSAASamples lives in
+            // Core.Runtime, which this assembly does not reference. Naming it
+            // would mean widening the asmdef to write a value that is already
+            // correct.
+
+            // These size GPU-side buffers whether or not the lights exist. The
+            // arena runs a directional light, the lava lights and the bullet
+            // light pool, which is well inside 32.
+            GlobalLightLoopSettings lights = settings.lightLoopSettings;
+            lights.maxPunctualLightsOnScreen = 32;
+            lights.maxAreaLightsOnScreen = 1;
+            lights.maxDecalsOnScreen = 1;
+            settings.lightLoopSettings = lights;
+
+            // The cached atlases are reserved up front, and the area one ships at
+            // 8192 - by itself larger than this machine's entire video memory.
+            HDShadowInitParameters shadows = settings.hdShadowInitParams;
+            shadows.cachedPunctualLightShadowAtlas = 256;
+            shadows.cachedAreaLightShadowAtlas = 256;
+            shadows.maxDirectionalShadowMapResolution = 256;
+            shadows.maxPunctualShadowMapResolution = 256;
+            shadows.maxAreaShadowMapResolution = 256;
+            settings.hdShadowInitParams = shadows;
         }
 
         /// <summary>
@@ -236,6 +408,14 @@ namespace SurvivalChaos.EditorTools
             shadows.areaLightShadowAtlas = area;
 
             settings.hdShadowInitParams = shadows;
+
+            // Last, so it reads the shadow parameters the tier just wrote rather
+            // than the base asset's.
+            if (tier.MinimumSpec)
+            {
+                ApplyMinimumSpec(ref settings);
+            }
+
             asset.currentPlatformRenderPipelineSettings = settings;
 
             EditorUtility.SetDirty(asset);
