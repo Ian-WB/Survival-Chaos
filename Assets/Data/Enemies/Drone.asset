@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Drone
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.EnemyDefinition
   displayName: Drone
-  maxHealth: 1
+  maxHealth: 3
   experienceReward: 5

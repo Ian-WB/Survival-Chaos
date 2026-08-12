@@ -47,17 +47,25 @@ public class Enemy_1 : MonoBehaviour
     {
         if (other.CompareTag("Shoot"))
         {
-            ObjectPool.Despawn(other.gameObject);
+            Vector3 impact = other.transform.position;
 
-            ObjectPool.Spawn(enemyHit, childObject.transform.position, childObject.transform.rotation);
+            ObjectPool.Despawn(other.gameObject);
 
             // Death effects and the reward now fire here rather than from
             // Update(), which only ever ran because Destroy is deferred.
+            //
+            // One effect per outcome, matching Enemy.cs. This used to play the
+            // spark on every hit including the fatal one, so a kill fired both
+            // and the two outcomes read as the same event.
             if (health.TakeDamage(1))
             {
                 ObjectPool.Spawn(explosion, transform.position, transform.rotation);
                 Death();
                 Destroy(gameObject);
+            }
+            else if (enemyHit != null)
+            {
+                ObjectPool.Spawn(enemyHit, impact, transform.rotation);
             }
         }
     }
