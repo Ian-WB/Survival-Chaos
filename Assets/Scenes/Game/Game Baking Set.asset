@@ -186,7 +186,7 @@ MonoBehaviour:
         elementCount: 1
       - offset: 57344
         elementCount: 1
-    m_Asset: {fileID: 4900000, guid: f719fd398963561448bfed591b5d7055, type: 3}
+    m_Asset: {fileID: 0}
   scenarios:
     m_Keys:
     - Default
@@ -215,7 +215,7 @@ MonoBehaviour:
             elementCount: 1
           - offset: 917504
             elementCount: 1
-        m_Asset: {fileID: 4900000, guid: 2189f29ba139cf64aa90071294aebec2, type: 3}
+        m_Asset: {fileID: 0}
       cellOptionalDataAsset:
         m_AssetGUID: 2f9b29574db044f40b43c610a9644c94
         m_StreamableAssetPath: APVStreamingAssets\fd9a2bc191e349c458c9287bf0b4da82\2f9b29574db044f40b43c610a9644c94.bytes
@@ -239,29 +239,29 @@ MonoBehaviour:
             elementCount: 1
           - offset: 917504
             elementCount: 1
-        m_Asset: {fileID: 4900000, guid: 2f9b29574db044f40b43c610a9644c94, type: 3}
+        m_Asset: {fileID: 0}
       cellProbeOcclusionDataAsset:
-        m_AssetGUID: 
-        m_StreamableAssetPath: APVStreamingAssets\fd9a2bc191e349c458c9287bf0b4da82\.bytes
-        m_ElementSize: 0
+        m_AssetGUID: 379b7e9edb7a96645a978e24d55f7cdf
+        m_StreamableAssetPath: APVStreamingAssets\fd9a2bc191e349c458c9287bf0b4da82\379b7e9edb7a96645a978e24d55f7cdf.bytes
+        m_ElementSize: 32768
         m_StreamableCellDescs:
           m_Keys: 0000000009000000030000000c000000010000000a000000040000000d000000
           m_Values:
           - offset: 0
             elementCount: 1
-          - offset: 0
+          - offset: 32768
             elementCount: 1
-          - offset: 0
+          - offset: 65536
             elementCount: 1
-          - offset: 0
+          - offset: 98304
             elementCount: 1
-          - offset: 0
+          - offset: 131072
             elementCount: 1
-          - offset: 0
+          - offset: 163840
             elementCount: 1
-          - offset: 0
+          - offset: 196608
             elementCount: 1
-          - offset: 0
+          - offset: 229376
             elementCount: 1
         m_Asset: {fileID: 0}
   cellBricksDataAsset:
@@ -287,7 +287,7 @@ MonoBehaviour:
         elementCount: 113
       - offset: 8512
         elementCount: 99
-    m_Asset: {fileID: 4900000, guid: 92a7de8569dfbd145ba5df6590c55691, type: 3}
+    m_Asset: {fileID: 0}
   cellSupportDataAsset:
     m_AssetGUID: e9a2bb8c194cfc246ac3321b8654f083
     m_StreamableAssetPath: APVStreamingAssets\fd9a2bc191e349c458c9287bf0b4da82\e9a2bb8c194cfc246ac3321b8654f083.bytes
@@ -311,7 +311,7 @@ MonoBehaviour:
         elementCount: 1
       - offset: 1835008
         elementCount: 1
-    m_Asset: {fileID: 4900000, guid: e9a2bb8c194cfc246ac3321b8654f083, type: 3}
+    m_Asset: {fileID: 0}
   chunkSizeInBricks: 128
   maxCellPosition: {x: 1, y: 1, z: 1}
   minCellPosition: {x: -1, y: -1, z: -1}
@@ -320,7 +320,7 @@ MonoBehaviour:
     m_Extent: {x: 81, y: 81, z: 81}
   bakedSimplificationLevels: 3
   bakedMinDistanceBetweenProbes: 1
-  bakedProbeOcclusion: 0
+  bakedProbeOcclusion: 1
   bakedSkyOcclusionValue: 0
   bakedSkyShadingDirectionValue: 0
   bakedProbeOffset: {x: 0, y: 0, z: 0}
@@ -334,7 +334,7 @@ MonoBehaviour:
   L0ChunkSize: 65536
   L1ChunkSize: 32768
   L2TextureChunkSize: 32768
-  ProbeOcclusionChunkSize: 0
+  ProbeOcclusionChunkSize: 32768
   sharedValidityMaskChunkSize: 8192
   sharedSkyOcclusionL0L1ChunkSize: 0
   sharedSkyShadingDirectionIndicesChunkSize: 0
