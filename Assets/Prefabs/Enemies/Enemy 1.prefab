@@ -232,7 +232,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  delay: 40
+  delay: 120
 --- !u!114 &-1196103576992989831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,7 +249,7 @@ MonoBehaviour:
   rotationSpeed: 15
   leftOrRight: 0
   spawnSpeed: 0.2
-  chaseRadiusFraction: 1.1
+  chaseRadiusFraction: 1.2
 --- !u!114 &6340613703622318322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,8 +263,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   childObject: {fileID: 7294817249652333329}
-  enemyHit: {fileID: 6621846319529363594, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
-  explosion: {fileID: 3453942969722131627, guid: ee68ecc6938e6ca4ebf9ccf8e00f4bca, type: 3}
+  enemyHit: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
+  explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   definition: {fileID: 11400000, guid: 852fa96b92184fa43bbcbeecba6f2e05, type: 2}
   healthPoints: 7
   EnemyShip: {fileID: 2752971980227408059}

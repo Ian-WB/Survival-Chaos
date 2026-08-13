@@ -291,7 +291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  delay: 40
+  delay: 120
 --- !u!114 &-1196103576992989831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,7 +308,7 @@ MonoBehaviour:
   rotationSpeed: 28
   leftOrRight: 0
   spawnSpeed: 0.1
-  chaseRadiusFraction: 1.1
+  chaseRadiusFraction: 1.2
 --- !u!114 &-6739958517522978217
 MonoBehaviour:
   m_ObjectHideFlags: 0
