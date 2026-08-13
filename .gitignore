@@ -70,3 +70,17 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# --- Added after the LFS migration -------------------------------------------
+# Everything below was found in the repo's history and purged from it. These
+# rules exist so the same files cannot be committed a second time.
+
+# Visual Scripting's generated node database. Unity rebuilds it on demand, and
+# it was 30 MB per version - 102 MB of history for a package nothing references.
+/[Aa]ssets/Unity.VisualScripting.Generated/
+
+# The AI Assistant package ships a relay binary per platform: Linux, macOS x64,
+# macOS arm64 and Windows, plus a bundled ripgrep. Around 300 MB, none of which
+# a Windows build needs. Registry packages resolve into Library/ and should
+# never be embedded here.
+/[Pp]ackages/com.unity.ai.assistant/
