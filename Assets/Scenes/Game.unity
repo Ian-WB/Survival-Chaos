@@ -18057,6 +18057,65 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1177368060}
   m_CullTransparentMesh: 1
+--- !u!1 &1185721724
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1185721726}
+  - component: {fileID: 1185721725}
+  m_Layer: 0
+  m_Name: Pickups
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1185721725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185721724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75612221683bd334f81db0132101daec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.PickupSpawner
+  arenaCenter: {fileID: 7023528544965449322}
+  player: {fileID: 543450652934991866}
+  playerTarget: {fileID: 1345772188}
+  pickupPrefab: {fileID: 8608544084365656578, guid: 308c2599b8172db4d854ddf274596e5a, type: 3}
+  warmup: 5
+  offerSize: 3
+  offerSeparation: 55
+  offerLifetime: 14
+  healthInterval: 30
+  healthStartDelay: 20
+  healthAmount: 2
+  healthLifetime: 20
+  healthColor: {r: 0.2, g: 2, b: 0.6, a: 1}
+  skillSelect: {fileID: 919132148744893763}
+  collectEffect: {fileID: 0}
+--- !u!4 &1185721726
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185721724}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1212490520
 GameObject:
   m_ObjectHideFlags: 0
@@ -36087,6 +36146,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 75af1891fdaf3ea47bb6e732c55e1967, type: 2}
   - {fileID: 11400000, guid: aef71a62eff2c5e4e9e40f1947a5f2a1, type: 2}
   - {fileID: 11400000, guid: 08720b058429e204cbf065362250e301, type: 2}
+  pickups: {fileID: 1185721725}
   player: {fileID: 1345772188}
   skillText: {fileID: 1995353126}
   skillTextObject: {fileID: 1839901835}
@@ -43487,3 +43547,4 @@ SceneRoots:
   - {fileID: 1355022397}
   - {fileID: 1369704980}
   - {fileID: 399814156}
+  - {fileID: 1185721726}

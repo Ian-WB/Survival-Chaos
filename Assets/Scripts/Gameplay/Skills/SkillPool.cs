@@ -67,21 +67,92 @@ namespace SurvivalChaos
         /// </summary>
         public SkillDefinition Next()
         {
-            RefreshAvailable();
+            SkillDefinition chosen = TakeOne(availableBuffer, refresh: true);
 
-            if (availableBuffer.Count == 0)
+            if (chosen != null)
+            {
+                RecordPick(chosen);
+            }
+
+            return chosen;
+        }
+
+        /// <summary>
+        /// Draws up to <paramref name="count"/> distinct skills <em>without</em>
+        /// recording anything.
+        ///
+        /// This exists because an offer is not a pick. When a level-up puts three
+        /// pickups on the ring the player collects one and forfeits the rest, so
+        /// charging all three against their limits would burn the pool three
+        /// times as fast - and a one-pick skill would be spent by an offer the
+        /// player never touched. Call <see cref="RecordPick"/> when one is
+        /// actually taken.
+        ///
+        /// Fewer than <paramref name="count"/> come back when the pool cannot
+        /// field that many distinct skills; an offer of two is still an offer.
+        /// </summary>
+        public List<SkillDefinition> Draw(int count)
+        {
+            var drawn = new List<SkillDefinition>();
+
+            if (count < 1)
+            {
+                return drawn;
+            }
+
+            // A copy, because entries are removed as they are drawn to keep the
+            // set distinct - and the shared buffer is refreshed from the pool
+            // rather than owned by this call.
+            RefreshAvailable();
+            var remaining = new List<SkillDefinition>(availableBuffer);
+
+            while (drawn.Count < count && remaining.Count > 0)
+            {
+                drawn.Add(TakeOne(remaining, refresh: false));
+            }
+
+            return drawn;
+        }
+
+        /// <summary>
+        /// Charges one pick against a skill's limit. Safe to call with null, and
+        /// with a skill this pool does not hold - both do nothing.
+        /// </summary>
+        public void RecordPick(SkillDefinition definition)
+        {
+            if (definition != null && pickCounts.ContainsKey(definition))
+            {
+                pickCounts[definition] = pickCounts[definition] + 1;
+            }
+        }
+
+        /// <summary>
+        /// Chooses an entry through <see cref="selectIndex"/> and removes it from
+        /// the list it came from, clamping a selector that returns out of range.
+        /// </summary>
+        private SkillDefinition TakeOne(List<SkillDefinition> from, bool refresh)
+        {
+            if (refresh)
+            {
+                RefreshAvailable();
+            }
+
+            if (from.Count == 0)
             {
                 return null;
             }
 
-            int index = selectIndex(availableBuffer.Count);
-            if (index < 0 || index >= availableBuffer.Count)
+            int index = selectIndex(from.Count);
+            if (index < 0 || index >= from.Count)
             {
                 index = 0;
             }
 
-            SkillDefinition chosen = availableBuffer[index];
-            pickCounts[chosen] = pickCounts[chosen] + 1;
+            SkillDefinition chosen = from[index];
+
+            // The shared buffer is rebuilt on every refresh, so removing from it
+            // here costs nothing and keeps this one method serving both callers.
+            from.RemoveAt(index);
             return chosen;
         }
 
