@@ -32,13 +32,6 @@ namespace SurvivalChaos.EditorTools
         private const string PackPath = "Assets/BigRookGames/Subgraphs/Effects Pack 1.prefab";
         private const string OutputFolder = "Assets/Prefabs/VFX/Extracted";
 
-        /// <summary>
-        /// Added to the measured particle duration before it becomes the retire
-        /// delay, so an effect is never cut off by its own timer while the last
-        /// particles are still fading.
-        /// </summary>
-        private const float RetireMargin = 0.5f;
-
         [MenuItem("Survival Chaos/Extract Effect Prefabs", priority = 47)]
         public static void Extract()
         {
@@ -77,7 +70,11 @@ namespace SurvivalChaos.EditorTools
 
                 MakeOneShot(child.gameObject);
 
-                float retireAfter = MeasureDuration(child.gameObject) + RetireMargin;
+                // Through EffectTiming rather than duration + lifetime. Duration
+                // is the emission window, and every system in these packs fires
+                // one burst at zero and then emits nothing for the rest of it -
+                // so adding the window inflated every timer by its whole length.
+                float retireAfter = EffectTiming.RetireDelayFor(child.gameObject);
                 ApplyRetireTimer(child.gameObject, retireAfter);
 
                 string path = AssetDatabase.GenerateUniqueAssetPath(
@@ -132,37 +129,60 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// How long the effect actually plays: the longest duration plus lifetime
-        /// of any particle system under it.
+        /// Retimes every effect prefab already in the output folder, without
+        /// re-extracting them.
         ///
-        /// Measured rather than left at DestroyAfterTime's ten second default,
-        /// because these fire on every hit. A quarter-second spark held for ten
-        /// seconds keeps forty dead objects alive per second of combat - all of
-        /// them drawing nothing, all of them still in the pool's active set.
+        /// Separate from the extraction so the timing can be corrected on
+        /// prefabs that are already wired into enemies. Re-extracting would
+        /// produce new assets with new GUIDs and quietly unhook every reference
+        /// to the old ones.
         /// </summary>
-        private static float MeasureDuration(GameObject effect)
+        [MenuItem("Survival Chaos/Retime Effect Prefabs", priority = 53)]
+        public static void Retime()
         {
-            float longest = 0f;
+            int changed = 0;
 
-            foreach (ParticleSystem system in effect.GetComponentsInChildren<ParticleSystem>(true))
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/VFX" }))
             {
-                ParticleSystem.MainModule main = system.main;
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                GameObject contents = PrefabUtility.LoadPrefabContents(path);
 
-                // constantMax covers constant and random-between-two-constants.
-                // For curve modes it is the curve's own maximum, which is the
-                // upper bound wanted here either way.
-                // Runs after MakeOneShot, so every system here is non-looping and
-                // duration + lifetime is when it genuinely finishes.
-                float lifetime = main.startLifetime.constantMax;
-                float total = main.duration + lifetime;
-
-                if (total > longest)
+                try
                 {
-                    longest = total;
+                    float before = CurrentRetireDelay(contents);
+                    float after = EffectTiming.RetireDelayFor(contents);
+
+                    if (Mathf.Abs(before - after) < 0.01f)
+                    {
+                        continue;
+                    }
+
+                    ApplyRetireTimer(contents, after);
+                    PrefabUtility.SaveAsPrefabAsset(contents, path);
+                    changed++;
+
+                    Debug.Log($"{contents.name}: retire {before:0.##}s -> {after:0.##}s " +
+                              $"(ends at {EffectTiming.MeasureEnd(contents):0.##}s)");
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(contents);
                 }
             }
 
-            return longest;
+            AssetDatabase.SaveAssets();
+            Debug.Log($"Retimed {changed} effect prefab(s).");
+        }
+
+        private static float CurrentRetireDelay(GameObject effect)
+        {
+            if (!effect.TryGetComponent(out DestroyAfterTime timer))
+            {
+                return -1f;
+            }
+
+            SerializedProperty delay = new SerializedObject(timer).FindProperty("delay");
+            return delay != null ? delay.floatValue : -1f;
         }
 
         /// <summary>

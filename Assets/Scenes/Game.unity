@@ -9776,7 +9776,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
-  m_Intensity: 256
+  m_Intensity: 512
   m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -9821,9 +9821,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 6.2e-44, z: 3.7472e-41, w: 0}
+  m_BoundingSphereOverride: {x: 7.58e-43, y: -1.4617213e-38, z: 7.58e-43, w: 1.05e-43}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -14867,7 +14867,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
-  m_Intensity: 256
+  m_Intensity: 512
   m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -14912,9 +14912,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 7.7e-44}
+  m_BoundingSphereOverride: {x: 4.591e-41, y: -2.489215e-38, z: 2.7106802e-20, w: 1.653144e-39}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -25443,33 +25443,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.11112417
-    'sh[ 1]': -0.07797935
-    'sh[ 2]': 0.0009982372
-    'sh[ 3]': 0.009435178
-    'sh[ 4]': -0.0041988506
-    'sh[ 5]': 0.00021642527
-    'sh[ 6]': -0.002095416
-    'sh[ 7]': -0.000002388705
-    'sh[ 8]': -0.010322109
-    'sh[ 9]': 0.04955582
-    'sh[10]': -0.0067388834
-    'sh[11]': -0.0035165986
-    'sh[12]': 0.0004942375
-    'sh[13]': -0.00079849036
-    'sh[14]': -0.0013223013
-    'sh[15]': -0.000014785003
-    'sh[16]': 0.0006362014
-    'sh[17]': -0.0029670252
-    'sh[18]': 0.045460105
-    'sh[19]': 0.012391294
-    'sh[20]': -0.0062311282
-    'sh[21]': -0.0022153691
-    'sh[22]': -0.00007784345
-    'sh[23]': -0.0015106206
-    'sh[24]': 0.00068982295
-    'sh[25]': 0.0010566168
-    'sh[26]': -0.0014341553
+    'sh[ 0]': 0.10597217
+    'sh[ 1]': -0.072491795
+    'sh[ 2]': -0.0058953683
+    'sh[ 3]': 0.0072355573
+    'sh[ 4]': -0.0029498646
+    'sh[ 5]': 0.0036419306
+    'sh[ 6]': -0.0019283597
+    'sh[ 7]': 0.000112137226
+    'sh[ 8]': -0.009665758
+    'sh[ 9]': 0.046586964
+    'sh[10]': -0.0037717468
+    'sh[11]': -0.004372126
+    'sh[12]': -0.00042807276
+    'sh[13]': -0.00031525447
+    'sh[14]': -0.00086204207
+    'sh[15]': 0.00006367875
+    'sh[16]': 0.0007645664
+    'sh[17]': -0.0026469002
+    'sh[18]': 0.044735525
+    'sh[19]': 0.013114232
+    'sh[20]': -0.0064273
+    'sh[21]': -0.002438549
+    'sh[22]': 0.00003894459
+    'sh[23]': -0.0014042013
+    'sh[24]': 0.0007089324
+    'sh[25]': 0.0010884202
+    'sh[26]': -0.0013564788
   m_SHValidForCapturePosition: {x: 0, y: 15.21, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.21, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -34841,7 +34841,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
-  m_Intensity: 256
+  m_Intensity: 512
   m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -34886,9 +34886,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.5649436e-37, y: 1.5502502e-37, z: 1.5796375e-37, w: 1.5796376e-37}
+  m_BoundingSphereOverride: {x: 0, y: 2.2011721e-25, z: 2.7210914e-20, w: 1.469473e-39}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0

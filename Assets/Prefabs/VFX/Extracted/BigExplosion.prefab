@@ -34178,7 +34178,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::DestroyAfterTime
-  delay: 4.5
+  delay: 2.75
 --- !u!1 &8575911981860376453
 GameObject:
   m_ObjectHideFlags: 0
