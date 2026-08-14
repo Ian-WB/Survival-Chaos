@@ -9823,7 +9823,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 6.2e-44, z: 3.7472e-41, w: 0}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -14914,7 +14914,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 7.7e-44}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -17620,7 +17620,7 @@ MonoBehaviour:
   healthStartDelay: 20
   healthAmount: 2
   healthLifetime: 20
-  healthColor: {r: 0.2, g: 2, b: 0.6, a: 1}
+  healthColor: {r: 0.3, g: 3, b: 0.90000004, a: 1}
   skillSelect: {fileID: 919132148744893763}
   collectEffect: {fileID: 0}
 --- !u!4 &1185721726
@@ -34888,7 +34888,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 1.5649436e-37, y: 1.5502502e-37, z: 1.5796375e-37, w: 1.5796376e-37}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
