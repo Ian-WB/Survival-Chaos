@@ -213,10 +213,10 @@ MonoBehaviour:
   m_ShouldUseConservativeEnclosingSphere: 0
   m_NumIterationsEnclosingSphere: 64
   m_RenderPipelineSettings:
-    supportShadowMask: 0
+    supportShadowMask: 1
     supportSSR: 0
     supportSSRTransparent: 0
-    supportSSAO: 0
+    supportSSAO: 1
     supportSSGI: 0
     supportSubsurfaceScattering: 0
     subsurfaceScatteringAttenuation: 1
@@ -262,7 +262,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 000100000002000000040000
+      m_Values: 800000008000000000010000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 0
@@ -330,7 +330,7 @@ MonoBehaviour:
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
-        shadowAtlasResolution: 1024
+        shadowAtlasResolution: 256
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 0
       cachedPunctualLightShadowAtlas: 2048
@@ -349,7 +349,7 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 1024
-      maxPunctualShadowMapResolution: 2048
+      maxPunctualShadowMapResolution: 512
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 0
       supportContactShadows: 0
@@ -453,13 +453,13 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
-      AOStepCount: 030000000400000006000000
+      AOStepCount: 040000000800000010000000
       AOFullRes: 000000
       AOMaximumRadiusPixels: 180000002000000020000000
       AOBilateralUpsample: 000000
       AODirectionCount: 010000000100000002000000
-      ContactShadowSampleCount: 04000000060000000a000000
-      SSRMaxRaySteps: 080000001000000020000000
+      ContactShadowSampleCount: 060000000a00000010000000
+      SSRMaxRaySteps: 100000002000000040000000
       SSGIRaySteps: 200000004000000080000000
       SSGIDenoise: 010101
       SSGIHalfResDenoise: 010000
@@ -517,8 +517,8 @@ MonoBehaviour:
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
       - 0.125
-      - 0.25
-      - 0.5
+      - 0.33
+      - 0.66
       Fog_DepthRatio:
       - 0.5
       - 0.5

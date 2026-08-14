@@ -174,7 +174,9 @@ namespace SurvivalChaos.EditorTools
         [MenuItem("Survival Chaos/Normalise Health Drop Colour", priority = 52)]
         public static void NormaliseHealthDropColour()
         {
-            PickupSpawner spawner = Object.FindFirstObjectByType<PickupSpawner>();
+            // Any rather than First: there is only ever one spawner, and the
+            // ordered variant is deprecated for depending on instance ID order.
+            PickupSpawner spawner = Object.FindAnyObjectByType<PickupSpawner>();
             if (spawner == null)
             {
                 Debug.LogWarning("No PickupSpawner in the open scene.");

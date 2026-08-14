@@ -541,29 +541,50 @@ namespace SurvivalChaos.EditorTools
         /// Fills a panel with what is actually in the image, as opposed to how it
         /// gets drawn — that half now lives on the display screen.
         ///
-        /// One column: these are six independent switches with no ordering between
-        /// them, and splitting six rows across two columns only makes a reader
-        /// check both sides for something that could have been a list.
+        /// Two columns, where this used to be one. It grew from six rows to ten
+        /// when every effect became a Low/Medium/High ladder rather than a switch,
+        /// and ten will not fit down one side. Scrolling was the alternative and
+        /// was rejected: a settings list that hides rows below a fold is the same
+        /// failure as a setting that does nothing invisibly, which is the whole
+        /// reason this screen was rebuilt.
+        ///
+        /// The split is by what the setting spends money on. Left is the lighting
+        /// solution — how shadows and indirect light are computed. Right is
+        /// everything layered on top of it.
         /// </summary>
         public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
         {
             const float top = -170f;
             const float step = 84f;
 
-            (GraphicsOptionKind kind, string label)[] effects =
+            (GraphicsOptionKind kind, string label)[] lighting =
             {
                 (GraphicsOptionKind.Quality, "Quality"),
-                (GraphicsOptionKind.Lighting, "Lighting"),
-                (GraphicsOptionKind.Reflections, "Reflections"),
+                (GraphicsOptionKind.ShadowQuality, "Shadow Quality"),
+                (GraphicsOptionKind.RayTracedShadows, "Ray Traced Shadows"),
                 (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
-                (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
-                (GraphicsOptionKind.MotionBlur, "Motion Blur")
+                (GraphicsOptionKind.GlobalIllumination, "Global Illumination")
             };
 
-            for (int i = 0; i < effects.Length; i++)
+            (GraphicsOptionKind kind, string label)[] image =
             {
-                CreateOptionRow(panel, effects[i].kind, effects[i].label,
-                    OneColumn, top - i * step, panelMaterial);
+                (GraphicsOptionKind.Reflections, "Reflections"),
+                (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
+                (GraphicsOptionKind.MotionBlur, "Motion Blur"),
+                (GraphicsOptionKind.TextureQuality, "Texture Quality"),
+                (GraphicsOptionKind.Anisotropic, "Anisotropic Filtering")
+            };
+
+            for (int i = 0; i < lighting.Length; i++)
+            {
+                CreateOptionRow(panel, lighting[i].kind, lighting[i].label,
+                    LeftColumn, top - i * step, panelMaterial);
+            }
+
+            for (int i = 0; i < image.Length; i++)
+            {
+                CreateOptionRow(panel, image[i].kind, image[i].label,
+                    RightColumn, top - i * step, panelMaterial);
             }
         }
 

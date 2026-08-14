@@ -6,16 +6,6 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos
 {
-    /// <summary>Which system lights the scene.</summary>
-    public enum LightingMode
-    {
-        /// <summary>Baked lighting and probes only. Works on any hardware.</summary>
-        Baked = 0,
-
-        /// <summary>Ray-traced global illumination on top. Needs DXR hardware.</summary>
-        RayTraced = 1
-    }
-
     /// <summary>
     /// Holds the graphics settings and applies them, the same shape as
     /// <see cref="AudioDirector"/>: it creates itself, survives scene loads, and
@@ -46,8 +36,20 @@ namespace SurvivalChaos
         /// come back to Very Low, and anyone on Very Low would come back to a tier
         /// built for a 2012 integrated GPU - a real graphics downgrade that
         /// nobody asked for and that reads as the update having broken something.
+        ///
+        /// 2: the effect rows stopped being on/off switches and became Off, Low,
+        /// Medium, High and three ray-traced rungs. The keys did not change name,
+        /// so a saved "on" - stored as 1 - would come back as Low, the weakest
+        /// rung there is, while the quality row still read whatever preset the
+        /// player had picked. A silent downgrade wearing the right label.
+        ///
+        /// 3: the top two presets briefly shipped with ray-traced global
+        /// illumination on. GI replaces this scene's baked indirect rather than
+        /// adding to it, so every dynamic object rendered as a black silhouette.
+        /// Rebuilding the presets fixes what a preset hands out, but not a row
+        /// already frozen into a player's prefs, so those are cleared too.
         /// </summary>
-        private const int QualityEpoch = 1;
+        private const int QualityEpoch = 3;
 
         public static GraphicsDirector Instance { get; private set; }
 
@@ -60,6 +62,54 @@ namespace SurvivalChaos
         private Fog fog;
         private MotionBlur motionBlur;
         private GlobalIllumination globalIllumination;
+        private ContactShadows contactShadows;
+        private HDShadowSettings shadowSettings;
+
+        /// <summary>
+        /// The preset asset the Custom level's clone is cut from.
+        ///
+        /// Held as a live reference to a real asset, never to a clone. Assigning
+        /// a clone to QualitySettings.renderPipeline writes it into a persistent
+        /// project setting, so once the clone is destroyed the Custom level is
+        /// left pointing at a dead object - and the next SetQualityLevel makes
+        /// HDRP adopt it, which is sixteen "referenced script is missing"
+        /// warnings per entry. Cloning from here instead means the stale pointer
+        /// is always overwritten before anything reads it.
+        /// </summary>
+        private HDRenderPipelineAsset customBaseAsset;
+
+        /// <summary>The clone actually in use while the Custom level is selected.</summary>
+        private HDRenderPipelineAsset customClone;
+
+        /// <summary>Which preset asset <see cref="customClone"/> was cut from.</summary>
+        private HDRenderPipelineAsset cloneSource;
+
+        /// <summary>
+        /// A clone swapped out but not yet destroyed.
+        ///
+        /// HDRP tears the outgoing pipeline down lazily, so destroying a clone in
+        /// the same frame it stopped being current pulls the asset out from under
+        /// a teardown still in progress. The symptom is fourteen to sixteen
+        /// "referenced script is missing" warnings on the next repaint - measured,
+        /// not guessed: swapping without the destroy produced none, and the
+        /// destroy on its own produced them every time.
+        ///
+        /// Holding it for one generation costs one live object and removes the
+        /// race entirely.
+        /// </summary>
+        private HDRenderPipelineAsset retiredClone;
+
+        /// <summary>
+        /// When the pending pipeline rebuild should run, or zero when none is due.
+        ///
+        /// Swapping the pipeline asset rebuilds render resources and hitches
+        /// visibly, so the rows that need one settle after the player stops
+        /// pressing rather than rebuilding on every step. Cycling five values
+        /// costs one rebuild instead of five.
+        /// </summary>
+        private float pipelineRebuildDue;
+
+        private const float PipelineRebuildDelay = 0.5f;
 
         private List<DisplaySize> sizes;
 
@@ -131,6 +181,16 @@ namespace SurvivalChaos
         {
             DriveDynamicResolution();
 
+            // Settles after the player stops stepping, so cycling a row through
+            // five values costs one pipeline rebuild rather than five.
+            if (pipelineRebuildDue > 0f && Time.unscaledTime >= pipelineRebuildDue)
+            {
+                pipelineRebuildDue = 0f;
+                RebuildCustomPipeline();
+                ApplyOverrides();
+                SettingsChanged?.Invoke();
+            }
+
             if (FrameCap != DisplayOptions.MatchDisplay || Time.unscaledTime < nextRefreshCheck)
             {
                 return;
@@ -169,6 +229,29 @@ namespace SurvivalChaos
         private void OnDestroy()
         {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+
+            // The Custom level is put back onto a real asset rather than a clone
+            // that dies with this object. Best-effort: it only reaches the level
+            // currently selected, so a player who quits from a preset leaves the
+            // dead pointer behind. That is why RestoreSavedCustom exists and
+            // never trusts what it finds there.
+            if (customBaseAsset != null && QualitySettings.renderPipeline == customClone)
+            {
+                QualitySettings.renderPipeline = customBaseAsset;
+            }
+
+            if (retiredClone != null)
+            {
+                Destroy(retiredClone);
+                retiredClone = null;
+            }
+
+            if (customClone != null)
+            {
+                Destroy(customClone);
+                customClone = null;
+                cloneSource = null;
+            }
 
             if (Instance == this)
             {
@@ -243,7 +326,11 @@ namespace SurvivalChaos
         {
             get => Mathf.Clamp(GetInt("Quality", QualitySettings.GetQualityLevel()), 0,
                 Mathf.Max(0, QualityNames.Length - 1));
-            set => SetInt("Quality", value);
+
+            // Through SetQuality rather than a bare write, so selecting a preset
+            // always clears the per-row keys. A direct write would leave the rows
+            // set while the label read the preset's name.
+            set => SetQuality(value);
         }
 
         public int SizeIndex
@@ -494,36 +581,138 @@ namespace SurvivalChaos
         /// </summary>
         public float RequestedRenderScale => Mathf.Clamp01(requestedPercentage / 100f);
 
-        public LightingMode Lighting
+        /// <summary>
+        /// The preset the per-effect rows fall back to when the player has not
+        /// set one themselves.
+        ///
+        /// Picking a preset clears every row's stored value, so they all resolve
+        /// through here and a preset is genuinely one decision rather than eleven
+        /// writes that can half-fail.
+        /// </summary>
+        private GraphicsPreset CurrentPreset => GraphicsPresets.At(QualityLevel);
+
+        /// <summary>True when the player has tuned rows away from any preset.</summary>
+        public bool IsCustom => GraphicsPresets.IsCustom(QualityLevel);
+
+        /// <summary>
+        /// Where the Custom level sits in the quality list.
+        ///
+        /// Appended after the seven presets by the preset builder, so preset
+        /// indices stay stable and a saved choice keeps meaning the tier it meant
+        /// when it was written.
+        /// </summary>
+        private int CustomLevel => Mathf.Max(0, QualityNames.Length - 1);
+
+        public ShadowQualityLevel Shadows
         {
-            get => RayTracingAvailable
-                ? (LightingMode)GetInt("Lighting", (int)LightingMode.Baked)
-                : LightingMode.Baked;
-            set => SetInt("Lighting", (int)value);
+            get
+            {
+                int stored = GetInt("Shadows", -1);
+                return stored < 0
+                    ? CurrentPreset.Shadows
+                    : (ShadowQualityLevel)Mathf.Clamp(stored, 0, QualityLadder.ShadowNames.Length - 1);
+            }
+            set => SetRow("Shadows", (int)value, rebuildsPipeline: true);
         }
 
-        public bool Reflections
+        /// <summary>
+        /// Ray-traced shadows, which are a plain toggle because HDRP has no
+        /// scalable quality table for them - they are a per-light property rather
+        /// than a tiered effect.
+        /// </summary>
+        public bool RayTracedShadows
         {
-            get => GetInt("SSR", 1) != 0;
-            set => SetInt("SSR", value ? 1 : 0);
+            get => RayTracingAvailable && GetInt("RTShadows", CurrentPreset.RayTracedShadows ? 1 : 0) != 0;
+            set => SetRow("RTShadows", value ? 1 : 0, rebuildsPipeline: true);
         }
 
-        public bool AmbientOcclusion
+        public EffectQuality AmbientOcclusion
         {
-            get => GetInt("AO", 1) != 0;
-            set => SetInt("AO", value ? 1 : 0);
+            get => Effect("AO", CurrentPreset.AmbientOcclusion);
+            set => SetRow("AO", (int)value, rebuildsPipeline: NeedsPipeline(AmbientOcclusion, value));
         }
 
-        public bool VolumetricFog
+        public EffectQuality Reflections
         {
-            get => GetInt("Fog", 1) != 0;
-            set => SetInt("Fog", value ? 1 : 0);
+            get => Effect("SSR", CurrentPreset.Reflections);
+            set => SetRow("SSR", (int)value, rebuildsPipeline: NeedsPipeline(Reflections, value));
         }
 
-        public bool MotionBlurEnabled
+        public EffectQuality GlobalIlluminationQuality
         {
-            get => GetInt("MotionBlur", 1) != 0;
-            set => SetInt("MotionBlur", value ? 1 : 0);
+            get => Effect("GI", CurrentPreset.GlobalIllumination);
+            set => SetRow("GI", (int)value, rebuildsPipeline: NeedsPipeline(GlobalIlluminationQuality, value));
+        }
+
+        public EffectQuality VolumetricFog
+        {
+            get => Effect("Fog", CurrentPreset.VolumetricFog);
+            set => SetRow("Fog", (int)value, rebuildsPipeline: NeedsPipeline(VolumetricFog, value));
+        }
+
+        /// <summary>
+        /// Motion blur, which never needs a pipeline rebuild: motion vectors are
+        /// compiled in for TAA and the upscalers regardless, so turning blur on
+        /// and off only moves a volume value.
+        /// </summary>
+        public EffectQuality MotionBlurQuality
+        {
+            get => Effect("MotionBlur", CurrentPreset.MotionBlur);
+            set => SetRow("MotionBlur", (int)value, rebuildsPipeline: false);
+        }
+
+        /// <summary>0 renders textures at full resolution, 1 at half.</summary>
+        public int TextureMipLimit
+        {
+            get => Mathf.Clamp(GetInt("TextureMip", CurrentPreset.TextureMipLimit), 0, 1);
+            set => SetRow("TextureMip", Mathf.Clamp(value, 0, 1), rebuildsPipeline: false);
+        }
+
+        public AnisotropicFiltering Anisotropic
+        {
+            get => (AnisotropicFiltering)Mathf.Clamp(
+                GetInt("Aniso", (int)CurrentPreset.Anisotropic), 0, 2);
+            set => SetRow("Aniso", (int)value, rebuildsPipeline: false);
+        }
+
+        /// <summary>
+        /// A stored rung, clamped back to screen space where ray tracing cannot
+        /// run.
+        ///
+        /// A settings file can outlive the graphics card it was written on, and a
+        /// row offering RT High on a machine with no DXR is the dead control this
+        /// project keeps finding. Same treatment DLAA already gets.
+        /// </summary>
+        private EffectQuality Effect(string key, EffectQuality fallback)
+        {
+            int stored = GetInt(key, -1);
+
+            EffectQuality quality = stored < 0
+                ? fallback
+                : (EffectQuality)Mathf.Clamp(stored, 0, QualityLadder.EffectNames.Length - 1);
+
+            if (QualityLadder.IsRayTraced(quality) && !RayTracingAvailable)
+            {
+                // Same rung, screen-space half. Dropping to Off instead would
+                // silently turn the effect off on a machine that can render it.
+                return (EffectQuality)(QualityLadder.ScalableLevel(quality) + 1);
+            }
+
+            return quality;
+        }
+
+        /// <summary>
+        /// Whether moving between two rungs changes something the pipeline asset
+        /// compiles, rather than only a volume value.
+        ///
+        /// Crossing the off boundary does - a support flag decides whether the
+        /// effect exists at all. Moving between Low, Medium and High does not, and
+        /// neither does crossing into the ray-traced half, because ray tracing
+        /// support is compiled in at every tier that has it.
+        /// </summary>
+        private static bool NeedsPipeline(EffectQuality from, EffectQuality to)
+        {
+            return QualityLadder.IsOn(from) != QualityLadder.IsOn(to);
         }
 
         // ---------- applying ----------
@@ -532,7 +721,15 @@ namespace SurvivalChaos
         {
             // Quality first: it swaps the pipeline asset, and everything below
             // layers on top of whichever one ends up active.
-            QualitySettings.SetQualityLevel(QualityLevel, applyExpensiveChanges: true);
+            if (IsCustom)
+            {
+                RestoreSavedCustom();
+            }
+            else
+            {
+                QualitySettings.SetQualityLevel(QualityLevel, applyExpensiveChanges: true);
+            }
+
             Apply();
         }
 
@@ -571,6 +768,12 @@ namespace SurvivalChaos
                 requestedPercentage = RenderScale * 100f;
             }
 
+            // The two things HDRP still leaves to QualitySettings. Written every
+            // Apply rather than only on a preset change, because on the Custom
+            // level they are rows the player can move.
+            QualitySettings.globalTextureMipmapLimit = TextureMipLimit;
+            QualitySettings.anisotropicFiltering = Anisotropic;
+
             ApplyCamera();
             ApplyOverrides();
             SettingsChanged?.Invoke();
@@ -596,6 +799,19 @@ namespace SurvivalChaos
             fog = overrides.profile.Add<Fog>();
             motionBlur = overrides.profile.Add<MotionBlur>();
             globalIllumination = overrides.profile.Add<GlobalIllumination>();
+            contactShadows = overrides.profile.Add<ContactShadows>();
+            shadowSettings = overrides.profile.Add<HDShadowSettings>();
+
+            // Set once rather than tiered. maxShadowDistance is chiefly the
+            // directional cascade split, and there is no directional light in this
+            // project - five lights, all point - so what it still does is fade
+            // shadows out, which wants one sane number rather than a ladder.
+            //
+            // 60 against an arena 27.44 units across. The scene volume used to pin
+            // 300 and the HDRP default profile hands out 400, which spread the
+            // cascades over roughly fifteen times the entire playable space.
+            shadowSettings.maxShadowDistance.overrideState = true;
+            shadowSettings.maxShadowDistance.value = 60f;
         }
 
         /// <summary>
@@ -731,6 +947,21 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Writes every effect row onto the override volume.
+        ///
+        /// Authoritative now, where it used to only ever subtract - the old code
+        /// overrode a setting when the player turned it off and stood aside when
+        /// they turned it on, so the scene's authored value decided the on-state.
+        /// That is why two rows were dead in both directions: the scene authored
+        /// reflections off, and the default profile authored AO at intensity 0, so
+        /// "On" resolved to the same nothing as "Off".
+        ///
+        /// What is deliberately still not overridden is intensity where the effect
+        /// is on. Quality is how much work the effect does - step counts, ray
+        /// counts - and that is what these rows sell. How strong it looks is an
+        /// authored value, and a settings menu has no business replacing it.
+        /// </summary>
         private void ApplyOverrides()
         {
             if (overrides == null)
@@ -738,27 +969,92 @@ namespace SurvivalChaos
                 return;
             }
 
-            // Only override what the player has actually turned off. Leaving
-            // overrideState false where a setting is on means the scene's own
-            // authored value still applies, rather than this quietly replacing it.
-            reflections.enabled.overrideState = !Reflections;
-            reflections.enabled.value = false;
+            ApplyAmbientOcclusion();
+            ApplyReflections();
+            ApplyGlobalIllumination();
+            ApplyFog();
+            ApplyMotionBlur();
 
-            occlusion.intensity.overrideState = !AmbientOcclusion;
+            // Contact shadows come with the shadow rung rather than a row of their
+            // own. The pipeline flag decides whether the pass exists; this decides
+            // whether it runs.
+            PipelineTuning.ShadowRung rung = PipelineTuning.ShadowsFor(Shadows);
+            contactShadows.enable.overrideState = true;
+            contactShadows.enable.value = rung.ContactShadows;
+        }
+
+        private void ApplyAmbientOcclusion()
+        {
+            EffectQuality quality = AmbientOcclusion;
+            bool on = QualityLadder.IsOn(quality);
+
+            occlusion.quality.overrideState = true;
+            occlusion.quality.value = QualityLadder.ScalableLevel(quality);
+
+            occlusion.rayTracing.overrideState = true;
+            occlusion.rayTracing.value = QualityLadder.IsRayTraced(quality);
+
+            // Intensity is the only way to silence AO - the component has no
+            // enabled flag of its own.
+            occlusion.intensity.overrideState = !on;
             occlusion.intensity.value = 0f;
+        }
 
-            fog.enableVolumetricFog.overrideState = !VolumetricFog;
-            fog.enableVolumetricFog.value = false;
+        private void ApplyReflections()
+        {
+            EffectQuality quality = Reflections;
 
-            motionBlur.intensity.overrideState = !MotionBlurEnabled;
-            motionBlur.intensity.value = 0f;
+            reflections.enabled.overrideState = true;
+            reflections.enabled.value = QualityLadder.IsOn(quality);
 
-            // Ray-traced global illumination is the difference between the two
-            // lighting modes: off leaves the baked lighting and probes doing the
-            // work, which is what every machine without DXR falls back to anyway.
-            bool rayTraced = Lighting == LightingMode.RayTraced && RayTracingAvailable;
+            reflections.quality.overrideState = true;
+            reflections.quality.value = QualityLadder.ScalableLevel(quality);
+
+            reflections.tracing.overrideState = true;
+            reflections.tracing.value = QualityLadder.IsRayTraced(quality)
+                ? RayCastingMode.RayTracing
+                : RayCastingMode.RayMarching;
+        }
+
+        private void ApplyGlobalIllumination()
+        {
+            EffectQuality quality = GlobalIlluminationQuality;
+
             globalIllumination.enable.overrideState = true;
-            globalIllumination.enable.value = rayTraced;
+            globalIllumination.enable.value = QualityLadder.IsOn(quality);
+
+            globalIllumination.quality.overrideState = true;
+            globalIllumination.quality.value = QualityLadder.ScalableLevel(quality);
+
+            globalIllumination.tracing.overrideState = true;
+            globalIllumination.tracing.value = QualityLadder.IsRayTraced(quality)
+                ? RayCastingMode.RayTracing
+                : RayCastingMode.RayMarching;
+        }
+
+        private void ApplyFog()
+        {
+            EffectQuality quality = VolumetricFog;
+
+            // Only the volumetric half. Fog itself stays as the scene authored it,
+            // because turning the row off should thin the scene out rather than
+            // delete the atmosphere the arena was lit against.
+            fog.enableVolumetricFog.overrideState = true;
+            fog.enableVolumetricFog.value = QualityLadder.IsOn(quality);
+
+            fog.quality.overrideState = true;
+            fog.quality.value = QualityLadder.ScalableLevel(quality);
+        }
+
+        private void ApplyMotionBlur()
+        {
+            EffectQuality quality = MotionBlurQuality;
+
+            motionBlur.quality.overrideState = true;
+            motionBlur.quality.value = QualityLadder.ScalableLevel(quality);
+
+            motionBlur.intensity.overrideState = !QualityLadder.IsOn(quality);
+            motionBlur.intensity.value = 0f;
         }
 
         // ---------- storage ----------
@@ -774,14 +1070,32 @@ namespace SurvivalChaos
         /// </summary>
         private static void MigrateQualityIndex()
         {
-            if (PlayerPrefs.GetInt(Prefix + "QualityEpoch", 0) >= QualityEpoch)
+            int epoch = PlayerPrefs.GetInt(Prefix + "QualityEpoch", 0);
+
+            if (epoch >= QualityEpoch)
             {
                 return;
             }
 
-            if (PlayerPrefs.HasKey(Prefix + "Quality"))
+            if (epoch < 1 && PlayerPrefs.HasKey(Prefix + "Quality"))
             {
                 PlayerPrefs.SetInt(Prefix + "Quality", PlayerPrefs.GetInt(Prefix + "Quality") + 1);
+            }
+
+            if (epoch < 3)
+            {
+                // Dropped rather than converted, for both epochs that need it. An
+                // old on/off carried no rung to convert to, and a frozen
+                // ray-traced rung is the thing being taken back. Clearing lets
+                // every row fall back to the chosen preset, which is the closest
+                // honest reading of what the player had.
+                foreach (string key in RowKeys)
+                {
+                    PlayerPrefs.DeleteKey(Prefix + key);
+                }
+
+                // Retired with the Lighting row it belonged to.
+                PlayerPrefs.DeleteKey(Prefix + "Lighting");
             }
 
             PlayerPrefs.SetInt(Prefix + "QualityEpoch", QualityEpoch);
@@ -813,16 +1127,229 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Quality changes swap the pipeline asset, which is expensive enough that
-        /// it is not folded into the general Apply path.
+        /// Every per-row key, so a preset can clear the lot in one place.
+        ///
+        /// A list rather than a loop over the properties because forgetting one
+        /// is silent: the row would keep its old value while the label said the
+        /// preset's name, which is exactly the lying-label problem this design
+        /// exists to avoid.
+        /// </summary>
+        private static readonly string[] RowKeys =
+        {
+            "Shadows", "RTShadows", "AO", "SSR", "GI", "Fog", "MotionBlur",
+            "TextureMip", "Aniso", "CustomBase"
+        };
+
+        /// <summary>
+        /// Picking a preset: clear every row so they all fall back to it, then
+        /// switch level.
+        ///
+        /// Clearing rather than writing each row's value means one source of
+        /// truth. If this wrote nine keys instead, a preset whose table later
+        /// changed would keep handing out the old values to anyone who had
+        /// selected it before.
         /// </summary>
         public void SetQuality(int level)
         {
             level = Mathf.Clamp(level, 0, Mathf.Max(0, QualityNames.Length - 1));
+
+            // Custom is not selectable from the Quality row - there is nothing to
+            // load, since it means whatever is currently set. Stepping onto it
+            // carries on to the far end of the list instead.
+            if (GraphicsPresets.IsCustom(level))
+            {
+                level = 0;
+            }
+
+            foreach (string key in RowKeys)
+            {
+                PlayerPrefs.DeleteKey(Prefix + key);
+            }
+
             PlayerPrefs.SetInt(Prefix + "Quality", level);
             SettingsStore.MarkDirty();
+
             QualitySettings.SetQualityLevel(level, applyExpensiveChanges: true);
             Apply();
+        }
+
+        /// <summary>
+        /// Brings a saved Custom selection back up, without ever letting HDRP
+        /// adopt what the Custom level is pointing at.
+        ///
+        /// That pointer is a clone from the previous session, which no longer
+        /// exists. So this stands on the preset Custom was derived from - a real
+        /// asset - takes the clone source from there, and only then moves onto
+        /// the Custom level, with the rebuild overwriting the dead pointer before
+        /// a frame is drawn.
+        /// </summary>
+        private void RestoreSavedCustom()
+        {
+            int baseLevel = Mathf.Clamp(
+                GetInt("CustomBase", MediumLevel), 0, GraphicsPresets.Count - 1);
+
+            QualitySettings.SetQualityLevel(baseLevel, applyExpensiveChanges: true);
+            customBaseAsset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
+
+            if (customBaseAsset == null)
+            {
+                // Nothing to clone from. Staying on the preset is a worse answer
+                // than the player's own settings but a far better one than a
+                // pipeline that does not resolve.
+                PlayerPrefs.SetInt(Prefix + "Quality", baseLevel);
+                SettingsStore.MarkDirty();
+                return;
+            }
+
+            QualitySettings.SetQualityLevel(CustomLevel, applyExpensiveChanges: false);
+            RebuildCustomPipeline();
+        }
+
+        /// <summary>The preset a Custom selection falls back to when none was recorded.</summary>
+        private const int MediumLevel = 3;
+
+        /// <summary>
+        /// Writes one row, moves the selection to Custom, and schedules a pipeline
+        /// rebuild if the row needs one.
+        /// </summary>
+        private void SetRow(string key, int value, bool rebuildsPipeline)
+        {
+            SnapshotRowsIfLeavingPreset();
+
+            PlayerPrefs.SetInt(Prefix + key, value);
+            SettingsStore.MarkDirty();
+
+            if (rebuildsPipeline)
+            {
+                pipelineRebuildDue = Time.unscaledTime + PipelineRebuildDelay;
+            }
+
+            Apply();
+        }
+
+        /// <summary>
+        /// Freezes the preset's values into every row before the selection becomes
+        /// Custom.
+        ///
+        /// Without this, rows the player never touched would have no stored value
+        /// and would fall back through CurrentPreset - which, once the level is
+        /// Custom, is no longer the preset they started from. Changing one row
+        /// would silently move the other eight.
+        /// </summary>
+        private void SnapshotRowsIfLeavingPreset()
+        {
+            if (IsCustom)
+            {
+                return;
+            }
+
+            GraphicsPreset preset = CurrentPreset;
+
+            // Recorded before the level moves. It is both the clone source and
+            // the thing a saved Custom selection has to be rebuilt from on the
+            // next launch, when there is no preset to be standing on.
+            PlayerPrefs.SetInt(Prefix + "CustomBase", QualityLevel);
+            customBaseAsset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
+
+            PlayerPrefs.SetInt(Prefix + "Shadows", (int)preset.Shadows);
+            PlayerPrefs.SetInt(Prefix + "RTShadows", preset.RayTracedShadows ? 1 : 0);
+            PlayerPrefs.SetInt(Prefix + "AO", (int)preset.AmbientOcclusion);
+            PlayerPrefs.SetInt(Prefix + "SSR", (int)preset.Reflections);
+            PlayerPrefs.SetInt(Prefix + "GI", (int)preset.GlobalIllumination);
+            PlayerPrefs.SetInt(Prefix + "Fog", (int)preset.VolumetricFog);
+            PlayerPrefs.SetInt(Prefix + "MotionBlur", (int)preset.MotionBlur);
+            PlayerPrefs.SetInt(Prefix + "TextureMip", preset.TextureMipLimit);
+            PlayerPrefs.SetInt(Prefix + "Aniso", (int)preset.Anisotropic);
+
+            PlayerPrefs.SetInt(Prefix + "Quality", CustomLevel);
+
+            // applyExpensiveChanges false on purpose. True would have HDRP adopt
+            // whatever the Custom level is currently pointing at - which, after
+            // any previous session, is a destroyed clone. Moving without
+            // rebuilding lets the assignment below overwrite it first.
+            QualitySettings.SetQualityLevel(CustomLevel, applyExpensiveChanges: false);
+
+            // Immediately rather than on the settle timer: the level is pointing
+            // at something dead until this runs, and a frame rendered in that
+            // window is where the warnings came from. Later row changes are the
+            // ones worth debouncing.
+            RebuildCustomPipeline();
+        }
+
+        /// <summary>
+        /// Rebuilds the Custom level's pipeline asset from the current rows.
+        ///
+        /// Works on a runtime clone, never on an asset. Asset edits made in play
+        /// mode are not rolled back when play mode ends, so writing the real one
+        /// would mean a player dragging a control in the editor permanently
+        /// rewrites the shipped defaults.
+        /// </summary>
+        private void RebuildCustomPipeline()
+        {
+            if (!IsCustom || customBaseAsset == null)
+            {
+                return;
+            }
+
+            // Last generation's clone goes now. HDRP finished with it a rebuild
+            // ago, so there is no teardown left to disturb.
+            if (retiredClone != null)
+            {
+                Destroy(retiredClone);
+                retiredClone = null;
+            }
+
+            // One clone per base preset, reused. Rebuilding by instantiating a
+            // fresh asset every time meant destroying the outgoing one, which is
+            // the race described on retiredClone. ApplyPreset writes every field
+            // it owns from the preset rather than reading what is there, so
+            // reusing the object cannot accumulate drift.
+            if (customClone == null || cloneSource != customBaseAsset)
+            {
+                retiredClone = customClone;
+                customClone = Instantiate(customBaseAsset);
+                customClone.name = "HDRP Custom (runtime)";
+                cloneSource = customBaseAsset;
+            }
+
+            RenderPipelineSettings settings = customClone.currentPlatformRenderPipelineSettings;
+            PipelineTuning.ApplyPreset(ref settings, RowsAsPreset());
+            customClone.currentPlatformRenderPipelineSettings = settings;
+
+            if (QualitySettings.renderPipeline != customClone)
+            {
+                QualitySettings.renderPipeline = customClone;
+                return;
+            }
+
+            // Already current, so assigning it again changes nothing HDRP would
+            // notice. Atlas sizes and support flags are structural - they are
+            // read when the pipeline is built - so it has to be rebuilt.
+            QualitySettings.SetQualityLevel(QualitySettings.GetQualityLevel(), applyExpensiveChanges: true);
+        }
+
+        /// <summary>The current rows, in the shape the pipeline writer expects.</summary>
+        private GraphicsPreset RowsAsPreset()
+        {
+            // Starts from the preset the Custom level rests on so the handful of
+            // fields with no row - subsurface scattering, decals, minimum spec -
+            // keep sane values rather than defaulting to false.
+            GraphicsPreset preset = GraphicsPresets.At(GraphicsPresets.Count - 1);
+
+            preset.Name = GraphicsPresets.CustomName;
+            preset.Shadows = Shadows;
+            preset.RayTracedShadows = RayTracedShadows;
+            preset.AmbientOcclusion = AmbientOcclusion;
+            preset.Reflections = Reflections;
+            preset.GlobalIllumination = GlobalIlluminationQuality;
+            preset.VolumetricFog = VolumetricFog;
+            preset.MotionBlur = MotionBlurQuality;
+            preset.TextureMipLimit = TextureMipLimit;
+            preset.Anisotropic = Anisotropic;
+            preset.RayTracing = RayTracingAvailable;
+            preset.MinimumSpec = false;
+
+            return preset;
         }
     }
 }

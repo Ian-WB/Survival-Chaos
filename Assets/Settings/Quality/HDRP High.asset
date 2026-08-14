@@ -212,7 +212,7 @@ MonoBehaviour:
   m_ShouldUseConservativeEnclosingSphere: 0
   m_NumIterationsEnclosingSphere: 64
   m_RenderPipelineSettings:
-    supportShadowMask: 0
+    supportShadowMask: 1
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
@@ -228,7 +228,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 1
+    supportVolumetricClouds: 0
     supportLightLayers: 1
     renderingLayerMaskBuffer: 0
     supportWater: 0
@@ -261,7 +261,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 000100000002000000040000
+      m_Values: 800000000001000000020000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -304,7 +304,7 @@ MonoBehaviour:
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
-      skyReflectionSize: 1024
+      skyReflectionSize: 512
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
@@ -329,7 +329,7 @@ MonoBehaviour:
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 256
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 0
       cachedPunctualLightShadowAtlas: 4096
@@ -348,9 +348,9 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 4096
-      maxPunctualShadowMapResolution: 4096
+      maxPunctualShadowMapResolution: 1024
       maxAreaShadowMapResolution: 4096
-      supportScreenSpaceShadows: 1
+      supportScreenSpaceShadows: 0
       supportContactShadows: 1
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
@@ -452,7 +452,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
-      AOStepCount: 040000000600000010000000
+      AOStepCount: 040000000800000010000000
       AOFullRes: 000001
       AOMaximumRadiusPixels: 200000002800000050000000
       AOBilateralUpsample: 000101
@@ -515,9 +515,9 @@ MonoBehaviour:
       - 1
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
-      - 0.25
-      - 0.5
-      - 0.75
+      - 0.125
+      - 0.33
+      - 0.66
       Fog_DepthRatio:
       - 0.5
       - 0.5

@@ -19,7 +19,6 @@ namespace SurvivalChaos
         VSync = 3,
         FrameCap = 4,
         RenderScale = 5,
-        Lighting = 6,
         Reflections = 7,
         AmbientOcclusion = 8,
         VolumetricFog = 9,
@@ -27,11 +26,24 @@ namespace SurvivalChaos
         UpscaleMethod = 12,
         UpscaleQuality = 13,
         AntiAliasing = 14,
-        DynamicResolution = 16
+        DynamicResolution = 16,
+        GlobalIllumination = 17,
+        ShadowQuality = 18,
+        RayTracedShadows = 19,
+        TextureQuality = 20,
+        Anisotropic = 21
 
         // 15 was Sharpness, before it became a slider rather than a cycler. The
         // number stays retired rather than reused: a row serialised as 15 by an
         // older build would otherwise silently become whatever took its place.
+        //
+        // 6 was Lighting, a two-way Baked/Ray traced switch whose only job was
+        // toggling global illumination. GlobalIllumination replaced it with a
+        // ladder that carries the same choice plus how much to spend on it, so 6
+        // is retired for the same reason.
+        //
+        // 11 was Volumetric Clouds. There is no sky to cloud in an arena that
+        // sits inside a cubemap, so the row is gone and the tier is off.
     }
 
     /// <summary>
@@ -61,6 +73,17 @@ namespace SurvivalChaos
         private static readonly string[] ScreenModeNames =
         {
             "Fullscreen", "Borderless", "Windowed"
+        };
+
+        /// <summary>
+        /// In AnisotropicFiltering order: Disable, Enable, ForceEnable.
+        ///
+        /// "Per-texture" rather than "On" because that is what Enable means - each
+        /// texture's own import setting decides, and plenty of them ask for none.
+        /// </summary>
+        private static readonly string[] AnisotropicNames =
+        {
+            "Off", "Per-texture", "Forced"
         };
 
         /// <summary>Render scale in whole tens; anything finer is false precision.</summary>
@@ -173,7 +196,10 @@ namespace SurvivalChaos
         {
             switch (kind)
             {
-                case GraphicsOptionKind.Lighting:
+                // A plain toggle with nothing to toggle. The three effect ladders
+                // stay available because their screen-space half still works;
+                // this one is ray traced or nothing.
+                case GraphicsOptionKind.RayTracedShadows:
                     return director.RayTracingAvailable;
 
                 // Inert while anything else is driving the resolution - an
@@ -220,11 +246,48 @@ namespace SurvivalChaos
             return available;
         }
 
+        /// <summary>
+        /// How many rungs an effect row offers.
+        ///
+        /// The ray-traced half is left out entirely rather than shown and
+        /// refused, for the same reason the upscaler list omits DLSS on an AMD
+        /// card: the director clamps a stored RT rung back to screen space on
+        /// hardware that cannot run it, so a selectable RT High would snap back
+        /// the moment it was chosen and read as a broken control.
+        /// </summary>
+        private static int EffectRungs(GraphicsDirector director)
+        {
+            return director.RayTracingAvailable
+                ? QualityLadder.EffectNames.Length
+                : QualityLadder.ScreenSpaceCount;
+        }
+
         private int Count(GraphicsDirector director)
         {
             switch (kind)
             {
-                case GraphicsOptionKind.Quality: return director.QualityNames.Length;
+                // Custom is a place the row can be, not one it can be stepped to -
+                // there is nothing to load, since it means whatever is currently
+                // set. It joins the cycle only while the player is standing on it,
+                // so stepping off leads back into the presets.
+                case GraphicsOptionKind.Quality:
+                    return director.IsCustom
+                        ? director.QualityNames.Length
+                        : Mathf.Max(1, director.QualityNames.Length - 1);
+
+                case GraphicsOptionKind.ShadowQuality: return QualityLadder.ShadowNames.Length;
+
+                case GraphicsOptionKind.AmbientOcclusion:
+                case GraphicsOptionKind.Reflections:
+                case GraphicsOptionKind.GlobalIllumination:
+                    return EffectRungs(director);
+
+                // No ray-traced form, so these stop at High.
+                case GraphicsOptionKind.VolumetricFog:
+                case GraphicsOptionKind.MotionBlur:
+                    return QualityLadder.ScreenSpaceCount;
+
+                case GraphicsOptionKind.Anisotropic: return 3;
                 case GraphicsOptionKind.Resolution: return director.Sizes.Count;
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
                 case GraphicsOptionKind.FrameCap: return DisplayOptions.FrameRateCaps.Length;
@@ -239,7 +302,7 @@ namespace SurvivalChaos
                         ? DisplayOptions.AntiAliasingNames.Length
                         : DisplayOptions.AntiAliasingNames.Length - 1;
 
-                case GraphicsOptionKind.Lighting: return 2;
+                // Ray Traced Shadows and Texture Quality are both two-way.
                 default: return 2;
             }
         }
@@ -258,11 +321,18 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
-                case GraphicsOptionKind.Lighting: return (int)director.Lighting;
-                case GraphicsOptionKind.Reflections: return director.Reflections ? 1 : 0;
-                case GraphicsOptionKind.AmbientOcclusion: return director.AmbientOcclusion ? 1 : 0;
-                case GraphicsOptionKind.VolumetricFog: return director.VolumetricFog ? 1 : 0;
-                case GraphicsOptionKind.MotionBlur: return director.MotionBlurEnabled ? 1 : 0;
+                case GraphicsOptionKind.ShadowQuality: return (int)director.Shadows;
+                case GraphicsOptionKind.RayTracedShadows: return director.RayTracedShadows ? 1 : 0;
+                case GraphicsOptionKind.Reflections: return (int)director.Reflections;
+                case GraphicsOptionKind.AmbientOcclusion: return (int)director.AmbientOcclusion;
+                case GraphicsOptionKind.GlobalIllumination: return (int)director.GlobalIlluminationQuality;
+                case GraphicsOptionKind.VolumetricFog: return (int)director.VolumetricFog;
+                case GraphicsOptionKind.MotionBlur: return (int)director.MotionBlurQuality;
+
+                // Full resolution reads as the right-hand end of the row, so the
+                // index is inverted against the mipmap limit it stores.
+                case GraphicsOptionKind.TextureQuality: return director.TextureMipLimit == 0 ? 1 : 0;
+                case GraphicsOptionKind.Anisotropic: return (int)director.Anisotropic;
                 default: return 0;
             }
         }
@@ -281,11 +351,15 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
-                case GraphicsOptionKind.Lighting: director.Lighting = (LightingMode)index; break;
-                case GraphicsOptionKind.Reflections: director.Reflections = index == 1; break;
-                case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = index == 1; break;
-                case GraphicsOptionKind.VolumetricFog: director.VolumetricFog = index == 1; break;
-                case GraphicsOptionKind.MotionBlur: director.MotionBlurEnabled = index == 1; break;
+                case GraphicsOptionKind.ShadowQuality: director.Shadows = (ShadowQualityLevel)index; break;
+                case GraphicsOptionKind.RayTracedShadows: director.RayTracedShadows = index == 1; break;
+                case GraphicsOptionKind.Reflections: director.Reflections = (EffectQuality)index; break;
+                case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = (EffectQuality)index; break;
+                case GraphicsOptionKind.GlobalIllumination: director.GlobalIlluminationQuality = (EffectQuality)index; break;
+                case GraphicsOptionKind.VolumetricFog: director.VolumetricFog = (EffectQuality)index; break;
+                case GraphicsOptionKind.MotionBlur: director.MotionBlurQuality = (EffectQuality)index; break;
+                case GraphicsOptionKind.TextureQuality: director.TextureMipLimit = index == 1 ? 0 : 1; break;
+                case GraphicsOptionKind.Anisotropic: director.Anisotropic = (AnisotropicFiltering)index; break;
             }
         }
 
@@ -339,18 +413,33 @@ namespace SurvivalChaos
                         ? DisplayOptions.AntiAliasingNames[(int)director.AntiAliasing]
                         : DisplayOptions.UpscaleMethodNames[(int)director.Method];
 
-                case GraphicsOptionKind.Lighting:
-                    if (!director.RayTracingAvailable)
-                    {
-                        return "Baked";
-                    }
+                case GraphicsOptionKind.ShadowQuality:
+                    return QualityLadder.Describe(director.Shadows);
 
-                    return director.Lighting == LightingMode.RayTraced ? "Ray traced" : "Baked";
+                case GraphicsOptionKind.RayTracedShadows:
+                    return director.RayTracedShadows ? "On" : "Off";
 
-                case GraphicsOptionKind.Reflections: return director.Reflections ? "On" : "Off";
-                case GraphicsOptionKind.AmbientOcclusion: return director.AmbientOcclusion ? "On" : "Off";
-                case GraphicsOptionKind.VolumetricFog: return director.VolumetricFog ? "On" : "Off";
-                case GraphicsOptionKind.MotionBlur: return director.MotionBlurEnabled ? "On" : "Off";
+                case GraphicsOptionKind.Reflections:
+                    return QualityLadder.Describe(director.Reflections);
+
+                case GraphicsOptionKind.AmbientOcclusion:
+                    return QualityLadder.Describe(director.AmbientOcclusion);
+
+                case GraphicsOptionKind.GlobalIllumination:
+                    return QualityLadder.Describe(director.GlobalIlluminationQuality);
+
+                case GraphicsOptionKind.VolumetricFog:
+                    return QualityLadder.Describe(director.VolumetricFog);
+
+                case GraphicsOptionKind.MotionBlur:
+                    return QualityLadder.Describe(director.MotionBlurQuality);
+
+                case GraphicsOptionKind.TextureQuality:
+                    return director.TextureMipLimit == 0 ? "Full" : "Half";
+
+                case GraphicsOptionKind.Anisotropic:
+                    return AnisotropicNames[Mathf.Clamp((int)director.Anisotropic, 0, AnisotropicNames.Length - 1)];
+
                 default: return "-";
             }
         }
@@ -364,8 +453,26 @@ namespace SurvivalChaos
         {
             switch (kind)
             {
-                case GraphicsOptionKind.Lighting when !director.RayTracingAvailable:
+                case GraphicsOptionKind.RayTracedShadows when !director.RayTracingAvailable:
                     return "This GPU has no ray tracing support";
+
+                // Says why the ladder stops at High rather than leaving the
+                // ray-traced rungs to be looked for and not found.
+                case GraphicsOptionKind.AmbientOcclusion when !director.RayTracingAvailable:
+                case GraphicsOptionKind.Reflections when !director.RayTracingAvailable:
+                case GraphicsOptionKind.GlobalIllumination when !director.RayTracingAvailable:
+                    return "Ray traced levels need a DXR GPU";
+
+                // Shadowmask is baked, so the arena keeps its shadows here. Worth
+                // saying, because "Off" on a shadow row reads as no shadows at all.
+                case GraphicsOptionKind.ShadowQuality when director.Shadows == ShadowQualityLevel.Off:
+                    return "No dynamic shadows, and no baked shadowmask either";
+
+                case GraphicsOptionKind.ShadowQuality when director.Shadows == ShadowQualityLevel.Low:
+                    return "Baked shadowmask only; moving objects cast none";
+
+                case GraphicsOptionKind.Quality when director.IsCustom:
+                    return "Pick a preset to reset every row below";
 
                 case GraphicsOptionKind.FrameCap when director.VSync:
                     return "Ignored while VSync is on";
