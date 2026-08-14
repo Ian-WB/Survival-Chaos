@@ -343,20 +343,52 @@ public class Player : MonoBehaviour, ISkillTarget
         healthBar.AddMaxHealth(hp);
     }
 
+    [Header("Attack speed")]
+    [SerializeField]
+    [Range(0.05f, 0.6f)]
+    [Tooltip("Fraction taken off the gap between volleys per Attack Speed pick. At 0.4 each " +
+             "pick is 40% faster than the last, which compounds: three picks nearly quintuple " +
+             "the fire rate. Lower it to spread the gain more evenly across the picks.")]
+    private float attackSpeedStep = 0.40f;
+
+    [SerializeField]
+    [Range(MinShotInterval, 1f)]
+    [Tooltip("The fastest the player may ever fire, in seconds between volleys. This is the " +
+             "balance cap - the one to move when the gun feels too strong. It is separate from " +
+             "MinShotInterval, which only exists to stop the game hanging.")]
+    private float shotIntervalFloor = 0.15f;
+
     /// <summary>
-    /// The shortest gap between volleys the fire rate may reach.
+    /// The shortest gap between volleys the game will tolerate at all.
     ///
-    /// IncreaseAttackSpeed multiplies rather than subtracts, so nothing in the
-    /// arithmetic itself ever reaches zero - but it approaches it, and
-    /// InvokeRepeating at a near-zero rate is a hang rather than a fast gun. The
-    /// AttackSpeed asset is authored at three picks, which lands at 0.216s and
-    /// nowhere near this floor; the floor is here so that raising maxPicks stays
-    /// a balance decision rather than a crash.
+    /// IncreaseAttackSpeed multiplies rather than subtracts, so the arithmetic
+    /// never reaches zero on its own - but it approaches it, and InvokeRepeating
+    /// at a near-zero rate is a hang rather than a fast gun.
+    ///
+    /// This is a safety limit, not a balance one. Balance lives in
+    /// shotIntervalFloor above, which is authored per scene and sits well
+    /// clear of this. Keeping the two apart is the point: tuning the gun should
+    /// never be able to walk the game into a freeze, and raising maxPicks on the
+    /// AttackSpeed asset should stay a design decision rather than a crash.
     /// </summary>
     public const float MinShotInterval = 0.05f;
 
+    /// <summary>
+    /// Speeds the gun up by one pick, and stops where the cap says to.
+    ///
+    /// The compounding is what needed bounding. Each pick takes a fraction off
+    /// whatever the interval currently is, so the picks multiply rather than
+    /// add - from the scene's 0.5s start, three picks at 0.4 reach 0.108s, which
+    /// is nine volleys a second and the widest shot pattern firing five bullets
+    /// in each. The only thing that used to stand in the way of that was the
+    /// hang guard.
+    /// </summary>
     public void IncreaseAttackSpeed(){
-        spawnDelay = Mathf.Max(MinShotInterval, spawnDelay - (0.40f * spawnDelay));
+        // Clamped up to the safety limit, so a floor authored below it in the
+        // Inspector cannot reintroduce the hang this is all guarding against.
+        float floor = Mathf.Max(MinShotInterval, shotIntervalFloor);
+
+        spawnDelay = Mathf.Max(floor, spawnDelay - (attackSpeedStep * spawnDelay));
         CancelInvoke(nameof(Shoot));
         InvokeRepeating(nameof(Shoot), spawnDelay, spawnDelay);
     }
