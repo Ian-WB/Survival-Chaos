@@ -462,19 +462,26 @@ namespace SurvivalChaos.EditorTools
         public static readonly Vector2 DisplayPanelSize = new Vector2(1400f, 700f);
 
         /// <summary>
-        /// Graphics needs one column now that display has moved out, so the panel
-        /// is narrow enough not to look half empty - but tall enough for six rows
-        /// and their notes. Six rows from -170 in steps of 84 put the last note at
-        /// -624, so a Back button at -620 sat on top of it.
+        /// The same as display, because it is now the same shape: two columns of
+        /// five rows.
+        ///
+        /// It was 780 wide back when graphics was a single centred column. The
+        /// columns sit at plus and minus 340 and a row spans from columnX - 300 to
+        /// columnX + 313, so two-column content runs from -640 to +653 - close to
+        /// 1300 wide, against a 780 panel. Every label and every stepper hung
+        /// outside the frame.
         /// </summary>
-        public static readonly Vector2 GraphicsPanelSize = new Vector2(780f, 800f);
+        public static readonly Vector2 GraphicsPanelSize = DisplayPanelSize;
 
         /// <summary>
         /// Where the Back button goes on each panel. Far enough below the last row
         /// that the note line underneath it still has somewhere to go.
+        ///
+        /// Both panels carry five rows from -170 in steps of 84, putting the last
+        /// note at -530, so both use the same value.
         /// </summary>
         public const float DisplayBackY = -620f;
-        public const float GraphicsBackY = -700f;
+        public const float GraphicsBackY = DisplayBackY;
 
         /// <summary>Horizontal centre of each column, relative to the panel.</summary>
         private const float LeftColumn = -340f;
@@ -561,14 +568,13 @@ namespace SurvivalChaos.EditorTools
             {
                 (GraphicsOptionKind.Quality, "Quality"),
                 (GraphicsOptionKind.ShadowQuality, "Shadow Quality"),
-                (GraphicsOptionKind.RayTracedShadows, "Ray Traced Shadows"),
                 (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
-                (GraphicsOptionKind.GlobalIllumination, "Global Illumination")
+                (GraphicsOptionKind.GlobalIllumination, "Global Illumination"),
+                (GraphicsOptionKind.Reflections, "Reflections")
             };
 
             (GraphicsOptionKind kind, string label)[] image =
             {
-                (GraphicsOptionKind.Reflections, "Reflections"),
                 (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
                 (GraphicsOptionKind.MotionBlur, "Motion Blur"),
                 (GraphicsOptionKind.TextureQuality, "Texture Quality"),
@@ -637,6 +643,12 @@ namespace SurvivalChaos.EditorTools
             so.FindProperty("kind").intValue = (int)kind;
             so.FindProperty("value").objectReferenceValue = current;
             so.FindProperty("note").objectReferenceValue = note;
+
+            // So the row can grey itself out. Without these it can still refuse
+            // the click, but it looks identical to a row that would accept one.
+            so.FindProperty("previousButton").objectReferenceValue = previous;
+            so.FindProperty("nextButton").objectReferenceValue = next;
+
             so.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddVoidPersistentListener(previous.onClick, new UnityAction(option.Previous));

@@ -52,6 +52,10 @@ namespace SurvivalChaos
         [Tooltip("How sharply it settles. Higher is snappier.")]
         private float response = 16f;
 
+        [SerializeField]
+        [Tooltip("How much of its brightness the frame keeps while the button is not interactable.")]
+        private float disabledDim = 0.3f;
+
         private static readonly int GlowId = Shader.PropertyToID("_Glow");
         private static readonly int BracketId = Shader.PropertyToID("_BracketArm");
         private static readonly int FillId = Shader.PropertyToID("_FillColor");
@@ -67,8 +71,25 @@ namespace SurvivalChaos
         private float target;
         private float sweep = 1f;
 
+        private Button button;
+        private bool wasInteractable = true;
+
+        /// <summary>
+        /// Whether the button will accept a click.
+        ///
+        /// Unity's own transition is set to None on these buttons, so
+        /// interactable blocks the click and changes nothing on screen. Without
+        /// this, a disabled stepper still lit up on hover, still played the hover
+        /// sound and still played a click sound for a click that did nothing -
+        /// which is worse than no feedback, because it claims something happened.
+        /// </summary>
+        private bool Interactable => button == null || button.interactable;
+
         private void Awake()
         {
+            button = GetComponent<Button>();
+            wasInteractable = Interactable;
+
             if (panel == null || panel.material == null)
             {
                 enabled = false;
@@ -129,6 +150,13 @@ namespace SurvivalChaos
         /// </summary>
         public void OnPointerClick(PointerEventData eventData)
         {
+            // A disabled Selectable still delivers pointer events to the other
+            // handlers on the object, so this has to decline for itself.
+            if (!Interactable)
+            {
+                return;
+            }
+
             if (GameSounds.Instance != null)
             {
                 GameSounds.Play(GameSounds.Instance.UiClick);
@@ -137,6 +165,11 @@ namespace SurvivalChaos
 
         private void Highlight()
         {
+            if (!Interactable)
+            {
+                return;
+            }
+
             target = 1f;
             sweep = 0f;
 
@@ -155,6 +188,24 @@ namespace SurvivalChaos
         /// </summary>
         private void Update()
         {
+            // Nothing raises an event when interactable changes, and the settled
+            // check below would otherwise skip the frame that needs to react to
+            // it - leaving a row that just went inert still looking live.
+            if (Interactable != wasInteractable)
+            {
+                wasInteractable = Interactable;
+
+                if (!Interactable)
+                {
+                    target = 0f;
+                    highlight = 0f;
+                    sweep = 1f;
+                }
+
+                Apply();
+                return;
+            }
+
             bool settled = Mathf.Approximately(highlight, target) && sweep >= 1f;
             if (settled)
             {
@@ -174,11 +225,17 @@ namespace SurvivalChaos
 
         private void Apply()
         {
-            instance.SetFloat(GlowId, Mathf.Lerp(baseGlow, baseGlow * glowBoost, highlight));
+            float dim = Interactable ? 1f : Mathf.Clamp01(disabledDim);
+
+            instance.SetFloat(GlowId, Mathf.Lerp(baseGlow, baseGlow * glowBoost, highlight) * dim);
+
+            // The bracket arm is a length rather than a brightness, so it is left
+            // alone: a disabled button should read as dimmer, not as a different
+            // shape from the ones beside it.
             instance.SetFloat(BracketId, Mathf.Lerp(baseBracket, baseBracket * bracketBoost, highlight));
 
             Color fill = baseFill;
-            fill.a = Mathf.Lerp(baseFill.a, Mathf.Min(1f, baseFill.a * fillBoost), highlight);
+            fill.a = Mathf.Lerp(baseFill.a, Mathf.Min(1f, baseFill.a * fillBoost), highlight) * dim;
             instance.SetColor(FillId, fill);
 
             // 1 means settled; anything less draws the travelling line.
@@ -186,7 +243,9 @@ namespace SurvivalChaos
 
             if (label != null)
             {
-                label.color = Color.Lerp(baseLabel, Color.white, highlight * 0.6f);
+                Color colour = Color.Lerp(baseLabel, Color.white, highlight * 0.6f);
+                colour.a = baseLabel.a * dim;
+                label.color = colour;
             }
         }
     }

@@ -589,7 +589,20 @@ namespace SurvivalChaos
         /// through here and a preset is genuinely one decision rather than eleven
         /// writes that can half-fail.
         /// </summary>
-        private GraphicsPreset CurrentPreset => GraphicsPresets.At(QualityLevel);
+        private GraphicsPreset CurrentPreset => GraphicsPresets.At(IsCustom ? CustomBase : QualityLevel);
+
+        /// <summary>
+        /// Which preset a Custom selection was derived from.
+        ///
+        /// Rows normally all have stored values by the time the selection is
+        /// Custom, so this is only reached when one does not - and it has to be
+        /// reached correctly, because GraphicsPresets.At clamps. Passing the
+        /// Custom index straight in would clamp to the last entry and hand out
+        /// Ultra's values, which on a low-end machine is a silent jump to the most
+        /// expensive settings in the game.
+        /// </summary>
+        private int CustomBase => Mathf.Clamp(
+            GetInt("CustomBase", GraphicsPresets.DefaultIndex), 0, GraphicsPresets.Count - 1);
 
         /// <summary>True when the player has tuned rows away from any preset.</summary>
         public bool IsCustom => GraphicsPresets.IsCustom(QualityLevel);
@@ -613,17 +626,6 @@ namespace SurvivalChaos
                     : (ShadowQualityLevel)Mathf.Clamp(stored, 0, QualityLadder.ShadowNames.Length - 1);
             }
             set => SetRow("Shadows", (int)value, rebuildsPipeline: true);
-        }
-
-        /// <summary>
-        /// Ray-traced shadows, which are a plain toggle because HDRP has no
-        /// scalable quality table for them - they are a per-light property rather
-        /// than a tiered effect.
-        /// </summary>
-        public bool RayTracedShadows
-        {
-            get => RayTracingAvailable && GetInt("RTShadows", CurrentPreset.RayTracedShadows ? 1 : 0) != 0;
-            set => SetRow("RTShadows", value ? 1 : 0, rebuildsPipeline: true);
         }
 
         public EffectQuality AmbientOcclusion
@@ -1084,6 +1086,12 @@ namespace SurvivalChaos
 
             if (epoch < 3)
             {
+                // Which preset a Custom selection came from, read before the loop
+                // below deletes it.
+                int customBase = Mathf.Clamp(
+                    PlayerPrefs.GetInt(Prefix + "CustomBase", GraphicsPresets.DefaultIndex),
+                    0, GraphicsPresets.Count - 1);
+
                 // Dropped rather than converted, for both epochs that need it. An
                 // old on/off carried no rung to convert to, and a frozen
                 // ray-traced rung is the thing being taken back. Clearing lets
@@ -1096,6 +1104,16 @@ namespace SurvivalChaos
 
                 // Retired with the Lighting row it belonged to.
                 PlayerPrefs.DeleteKey(Prefix + "Lighting");
+
+                // A Custom selection cannot survive its own rows being cleared -
+                // Custom means "these rows", and there are none left. Landing back
+                // on the preset it was built from is the closest thing to what the
+                // player had; leaving it on Custom would have every row fall
+                // through to a preset nobody picked.
+                if (PlayerPrefs.GetInt(Prefix + "Quality", -1) >= GraphicsPresets.Count)
+                {
+                    PlayerPrefs.SetInt(Prefix + "Quality", customBase);
+                }
             }
 
             PlayerPrefs.SetInt(Prefix + "QualityEpoch", QualityEpoch);
@@ -1136,8 +1154,12 @@ namespace SurvivalChaos
         /// </summary>
         private static readonly string[] RowKeys =
         {
-            "Shadows", "RTShadows", "AO", "SSR", "GI", "Fog", "MotionBlur",
-            "TextureMip", "Aniso", "CustomBase"
+            "Shadows", "AO", "SSR", "GI", "Fog", "MotionBlur",
+            "TextureMip", "Aniso", "CustomBase",
+
+            // Retired with the Ray Traced Shadows row. Still cleared, so a value
+            // saved by a build that had the row does not sit in prefs forever.
+            "RTShadows"
         };
 
         /// <summary>
@@ -1158,7 +1180,7 @@ namespace SurvivalChaos
             // carries on to the far end of the list instead.
             if (GraphicsPresets.IsCustom(level))
             {
-                level = 0;
+                level = GraphicsPresets.DefaultIndex;
             }
 
             foreach (string key in RowKeys)
@@ -1185,8 +1207,7 @@ namespace SurvivalChaos
         /// </summary>
         private void RestoreSavedCustom()
         {
-            int baseLevel = Mathf.Clamp(
-                GetInt("CustomBase", MediumLevel), 0, GraphicsPresets.Count - 1);
+            int baseLevel = CustomBase;
 
             QualitySettings.SetQualityLevel(baseLevel, applyExpensiveChanges: true);
             customBaseAsset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
@@ -1204,9 +1225,6 @@ namespace SurvivalChaos
             QualitySettings.SetQualityLevel(CustomLevel, applyExpensiveChanges: false);
             RebuildCustomPipeline();
         }
-
-        /// <summary>The preset a Custom selection falls back to when none was recorded.</summary>
-        private const int MediumLevel = 3;
 
         /// <summary>
         /// Writes one row, moves the selection to Custom, and schedules a pipeline
@@ -1252,7 +1270,6 @@ namespace SurvivalChaos
             customBaseAsset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
 
             PlayerPrefs.SetInt(Prefix + "Shadows", (int)preset.Shadows);
-            PlayerPrefs.SetInt(Prefix + "RTShadows", preset.RayTracedShadows ? 1 : 0);
             PlayerPrefs.SetInt(Prefix + "AO", (int)preset.AmbientOcclusion);
             PlayerPrefs.SetInt(Prefix + "SSR", (int)preset.Reflections);
             PlayerPrefs.SetInt(Prefix + "GI", (int)preset.GlobalIllumination);
@@ -1338,7 +1355,6 @@ namespace SurvivalChaos
 
             preset.Name = GraphicsPresets.CustomName;
             preset.Shadows = Shadows;
-            preset.RayTracedShadows = RayTracedShadows;
             preset.AmbientOcclusion = AmbientOcclusion;
             preset.Reflections = Reflections;
             preset.GlobalIllumination = GlobalIlluminationQuality;

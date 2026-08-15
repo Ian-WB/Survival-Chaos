@@ -14,7 +14,6 @@ namespace SurvivalChaos
     {
         public string Name;
         public ShadowQualityLevel Shadows;
-        public bool RayTracedShadows;
         public EffectQuality AmbientOcclusion;
         public EffectQuality Reflections;
         public EffectQuality GlobalIllumination;
@@ -114,7 +113,7 @@ namespace SurvivalChaos
                 // dedicated video memory. What separates it from Very Low is not
                 // effects - those are already at their floor - but memory.
                 Name = "Ubirajara",
-                Shadows = ShadowQualityLevel.Off, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.Off,
                 AmbientOcclusion = EffectQuality.Off,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
@@ -130,7 +129,7 @@ namespace SurvivalChaos
             new GraphicsPreset
             {
                 Name = "Very Low",
-                Shadows = ShadowQualityLevel.Off, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.Off,
                 AmbientOcclusion = EffectQuality.Off,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
@@ -145,7 +144,7 @@ namespace SurvivalChaos
             new GraphicsPreset
             {
                 Name = "Low",
-                Shadows = ShadowQualityLevel.Low, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.Low,
                 AmbientOcclusion = EffectQuality.Low,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
@@ -160,7 +159,7 @@ namespace SurvivalChaos
             new GraphicsPreset
             {
                 Name = "Medium",
-                Shadows = ShadowQualityLevel.Medium, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.Medium,
                 AmbientOcclusion = EffectQuality.Medium,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
@@ -175,7 +174,7 @@ namespace SurvivalChaos
             new GraphicsPreset
             {
                 Name = "High",
-                Shadows = ShadowQualityLevel.High, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.High,
                 AmbientOcclusion = EffectQuality.High,
                 Reflections = EffectQuality.Medium,
                 GlobalIllumination = EffectQuality.Off,
@@ -190,7 +189,7 @@ namespace SurvivalChaos
             new GraphicsPreset
             {
                 Name = "Very High",
-                Shadows = ShadowQualityLevel.VeryHigh, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.VeryHigh,
                 AmbientOcclusion = EffectQuality.High,
                 Reflections = EffectQuality.High,
                 GlobalIllumination = EffectQuality.Off,
@@ -205,7 +204,7 @@ namespace SurvivalChaos
             new GraphicsPreset
             {
                 Name = "Ultra",
-                Shadows = ShadowQualityLevel.Ultra, RayTracedShadows = false,
+                Shadows = ShadowQualityLevel.Ultra,
                 AmbientOcclusion = EffectQuality.High,
                 Reflections = EffectQuality.High,
                 GlobalIllumination = EffectQuality.Off,
@@ -227,6 +226,19 @@ namespace SurvivalChaos
         /// saved choice keeps meaning the tier it meant when it was written.
         /// </summary>
         public const string CustomName = "Custom";
+
+        /// <summary>
+        /// The preset anything ambiguous falls back to: Medium.
+        ///
+        /// One constant rather than a 3 written in each place that needs it. The
+        /// director and the preset builder both used their own, which is how two
+        /// numbers that must agree drift apart.
+        ///
+        /// Deliberately not Ubirajara. Index 0 is the tempting default because it
+        /// is first, but it is a machine-specific fallback for a 2012 integrated
+        /// GPU - landing there by accident is a severe downgrade nobody chose.
+        /// </summary>
+        public const int DefaultIndex = 3;
 
         public static int Count => All.Length;
 

@@ -91,7 +91,6 @@ namespace SurvivalChaos.EditorTools
             sb.AppendLine("--- MENU ROWS ---");
             sb.AppendLine($"  custom          : {director.IsCustom}");
             sb.AppendLine($"  shadow quality  : {QualityLadder.Describe(director.Shadows)}");
-            sb.AppendLine($"  ray traced shad : {director.RayTracedShadows}");
             sb.AppendLine($"  ambient occl.   : {QualityLadder.Describe(director.AmbientOcclusion)}");
             sb.AppendLine($"  reflections     : {QualityLadder.Describe(director.Reflections)}");
             sb.AppendLine($"  global illum.   : {QualityLadder.Describe(director.GlobalIlluminationQuality)}");

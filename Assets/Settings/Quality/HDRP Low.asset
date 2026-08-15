@@ -372,7 +372,9 @@ MonoBehaviour:
       enabled: 1
       useMipBias: 1
       advancedUpscalersByPriority: 
-      advancedUpscalerNames: []
+      advancedUpscalerNames:
+      - DLSS
+      - FSR2
       DLSSPerfQualitySetting: 0
       DLSSInjectionPoint: 0
       TAAUInjectionPoint: 0

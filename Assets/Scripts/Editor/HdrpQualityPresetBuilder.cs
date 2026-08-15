@@ -92,7 +92,8 @@ namespace SurvivalChaos.EditorTools
                       "tables, so Low, Medium and High mean one thing across all of them.");
         }
 
-        private const int MediumIndex = 3;
+        /// <summary>Medium, shared with the runtime so the two cannot drift.</summary>
+        private const int MediumIndex = GraphicsPresets.DefaultIndex;
 
         /// <summary>
         /// Custom starts life as Medium under a different name, so a player who
@@ -216,6 +217,25 @@ namespace SurvivalChaos.EditorTools
             resolution.upsampleFilter = DynamicResUpscaleFilter.TAAU;
             resolution.useMipBias = true;
 
+            // The upscalers the asset is willing to run, which all three stock
+            // bases ship empty.
+            //
+            // HDRP only walks the upscalers named here, so one the card can run
+            // but the asset omits simply never activates - and GraphicsDirector
+            // checks this list before offering a row, precisely so it does not
+            // present a control that cannot work. With the list empty that check
+            // did its job too well: FSR2 is detected on AMD hardware and the
+            // Upscaling row still had nothing to offer but Off.
+            //
+            // Both are named regardless of hardware. Detection is the director's
+            // job - it asks HDRP whether DLSS and FSR2 are actually present - and
+            // this list is the separate question of whether the asset permits
+            // them at all.
+            resolution.advancedUpscalerNames = new System.Collections.Generic.List<string>
+            {
+                "DLSS", "FSR2"
+            };
+
             settings.dynamicResolutionSettings = resolution;
         }
 
@@ -289,6 +309,13 @@ namespace SurvivalChaos.EditorTools
             GlobalDynamicResolutionSettings resolution = settings.dynamicResolutionSettings;
             resolution.upsampleFilter = DynamicResUpscaleFilter.CatmullRom;
             resolution.useMipBias = false;
+
+            // No advanced upscalers at this tier. DLSS and FSR2 are both temporal
+            // and read the motion vectors this method switched off, so offering
+            // either would be a row that cannot work - and the Upscaling row will
+            // correctly grey itself out here rather than pretend otherwise.
+            resolution.advancedUpscalerNames = new System.Collections.Generic.List<string>();
+
             settings.dynamicResolutionSettings = resolution;
         }
 

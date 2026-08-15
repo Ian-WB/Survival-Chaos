@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SurvivalChaos
 {
@@ -29,7 +30,6 @@ namespace SurvivalChaos
         DynamicResolution = 16,
         GlobalIllumination = 17,
         ShadowQuality = 18,
-        RayTracedShadows = 19,
         TextureQuality = 20,
         Anisotropic = 21
 
@@ -44,6 +44,11 @@ namespace SurvivalChaos
         //
         // 11 was Volumetric Clouds. There is no sky to cloud in an arena that
         // sits inside a cubemap, so the row is gone and the tier is off.
+        //
+        // 19 was Ray Traced Shadows, which could not work as built. HDRP delivers
+        // ray-traced shadows per light and the row only set a pipeline flag, so
+        // it allocated a screen-space shadow buffer nothing wrote to - no effect
+        // in the editor, haze in a build.
     }
 
     /// <summary>
@@ -99,6 +104,37 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Shown under the row when the setting needs explaining.")]
         private TMP_Text note;
+
+        [SerializeField]
+        [Tooltip("The two steppers, dimmed and blocked while the row cannot do anything.")]
+        private Button previousButton;
+
+        [SerializeField]
+        private Button nextButton;
+
+        /// <summary>
+        /// How much of its colour a row keeps once it has nothing to offer.
+        ///
+        /// Dimmed rather than hidden. A row that vanishes moves everything below
+        /// it and reads as a setting the build does not have; a row that stays put
+        /// and goes quiet reads as a setting that is unavailable right now, which
+        /// is what it is - and its note line is sitting underneath saying why.
+        /// </summary>
+        private const float DimmedAlpha = 0.3f;
+
+        /// <summary>
+        /// The colours the menu builder gave this row, captured before anything
+        /// dims them.
+        ///
+        /// Read from the objects rather than hardcoded, so a change to the holo
+        /// palette does not leave every disabled row restoring itself to a colour
+        /// that is no longer used anywhere.
+        /// </summary>
+        private Color labelColour;
+        private Color valueColour;
+        private bool capturedColours;
+
+        private TMP_Text label;
 
         private void OnEnable()
         {
@@ -189,6 +225,70 @@ namespace SurvivalChaos
                 note.text = director == null ? string.Empty : Note(director);
                 note.gameObject.SetActive(note.text.Length > 0);
             }
+
+            // A row with one entry cannot be stepped either, so it greys out for
+            // the same reason an unavailable one does - the arrows would do
+            // nothing. That is how the ray-traced rungs disappearing on a machine
+            // without DXR can leave a row with nothing left to choose.
+            bool live = director != null && Available(director) && Count(director) > 1;
+            ApplyEnabledLook(live);
+        }
+
+        /// <summary>
+        /// Dims the row and blocks its steppers when there is nothing to change.
+        ///
+        /// Until this existed an inert row looked exactly like a working one and
+        /// simply swallowed the click, which is the same failure as a setting that
+        /// silently does nothing - the thing this whole screen was rebuilt to stop
+        /// doing.
+        /// </summary>
+        private void ApplyEnabledLook(bool live)
+        {
+            CaptureColours();
+
+            if (label != null)
+            {
+                label.color = live ? labelColour : Dim(labelColour);
+            }
+
+            if (value != null)
+            {
+                value.color = live ? valueColour : Dim(valueColour);
+            }
+
+            // interactable rather than disabling the object: it stops the click,
+            // takes the button through its own disabled tint, and leaves the
+            // arrows in place so the row keeps its shape.
+            if (previousButton != null)
+            {
+                previousButton.interactable = live;
+            }
+
+            if (nextButton != null)
+            {
+                nextButton.interactable = live;
+            }
+        }
+
+        private void CaptureColours()
+        {
+            if (capturedColours)
+            {
+                return;
+            }
+
+            // The label lives on this same object - the menu builder adds this
+            // component to the caption.
+            label = GetComponent<TMP_Text>();
+
+            labelColour = label != null ? label.color : Color.white;
+            valueColour = value != null ? value.color : Color.white;
+            capturedColours = true;
+        }
+
+        private static Color Dim(Color colour)
+        {
+            return new Color(colour.r, colour.g, colour.b, colour.a * DimmedAlpha);
         }
 
         /// <summary>False when the machine cannot offer the setting at all.</summary>
@@ -196,12 +296,6 @@ namespace SurvivalChaos
         {
             switch (kind)
             {
-                // A plain toggle with nothing to toggle. The three effect ladders
-                // stay available because their screen-space half still works;
-                // this one is ray traced or nothing.
-                case GraphicsOptionKind.RayTracedShadows:
-                    return director.RayTracingAvailable;
-
                 // Inert while anything else is driving the resolution - an
                 // upscaler, or dynamic resolution moving it every frame.
                 case GraphicsOptionKind.RenderScale:
@@ -302,7 +396,7 @@ namespace SurvivalChaos
                         ? DisplayOptions.AntiAliasingNames.Length
                         : DisplayOptions.AntiAliasingNames.Length - 1;
 
-                // Ray Traced Shadows and Texture Quality are both two-way.
+                // Texture Quality and VSync are both two-way.
                 default: return 2;
             }
         }
@@ -322,7 +416,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
                 case GraphicsOptionKind.ShadowQuality: return (int)director.Shadows;
-                case GraphicsOptionKind.RayTracedShadows: return director.RayTracedShadows ? 1 : 0;
                 case GraphicsOptionKind.Reflections: return (int)director.Reflections;
                 case GraphicsOptionKind.AmbientOcclusion: return (int)director.AmbientOcclusion;
                 case GraphicsOptionKind.GlobalIllumination: return (int)director.GlobalIlluminationQuality;
@@ -352,7 +445,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
                 case GraphicsOptionKind.ShadowQuality: director.Shadows = (ShadowQualityLevel)index; break;
-                case GraphicsOptionKind.RayTracedShadows: director.RayTracedShadows = index == 1; break;
                 case GraphicsOptionKind.Reflections: director.Reflections = (EffectQuality)index; break;
                 case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = (EffectQuality)index; break;
                 case GraphicsOptionKind.GlobalIllumination: director.GlobalIlluminationQuality = (EffectQuality)index; break;
@@ -416,9 +508,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.ShadowQuality:
                     return QualityLadder.Describe(director.Shadows);
 
-                case GraphicsOptionKind.RayTracedShadows:
-                    return director.RayTracedShadows ? "On" : "Off";
-
                 case GraphicsOptionKind.Reflections:
                     return QualityLadder.Describe(director.Reflections);
 
@@ -453,9 +542,6 @@ namespace SurvivalChaos
         {
             switch (kind)
             {
-                case GraphicsOptionKind.RayTracedShadows when !director.RayTracingAvailable:
-                    return "This GPU has no ray tracing support";
-
                 // Says why the ladder stops at High rather than leaving the
                 // ray-traced rungs to be looked for and not found.
                 case GraphicsOptionKind.AmbientOcclusion when !director.RayTracingAvailable:

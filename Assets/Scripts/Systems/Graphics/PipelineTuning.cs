@@ -179,11 +179,17 @@ namespace SurvivalChaos
 
             settings.supportRayTracing = preset.RayTracing;
 
-            // Screen-space shadows are what ray-traced shadows are delivered
-            // through, so the flag rides with that row rather than with the
-            // shadow rung.
+            // Off everywhere, and there is no row to turn it on.
+            //
+            // This flag compiles the screen-space shadow path in and allocates
+            // its buffer, but it does not make anything use it: HDRP delivers
+            // ray-traced shadows per light, through HDAdditionalLightData, and
+            // nothing in this project sets that. Turning the flag on without the
+            // per-light half allocates a buffer no light writes to - invisible in
+            // the editor and composited as haze in a build. That shipped once as
+            // a Ray Traced Shadows row.
             HDShadowInitParameters shadows = settings.hdShadowInitParams;
-            shadows.supportScreenSpaceShadows = preset.RayTracedShadows;
+            shadows.supportScreenSpaceShadows = false;
             settings.hdShadowInitParams = shadows;
 
             // A support flag is what makes an effect reachable at all; the rung
