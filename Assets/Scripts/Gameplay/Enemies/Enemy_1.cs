@@ -61,7 +61,7 @@ public class Enemy_1 : MonoBehaviour
             {
                 ObjectPool.Spawn(explosion, transform.position, transform.rotation);
                 Death();
-                Destroy(gameObject);
+                ObjectPool.Despawn(gameObject);
             }
             else if (enemyHit != null)
             {
@@ -72,14 +72,37 @@ public class Enemy_1 : MonoBehaviour
 
     private void Awake()
     {
-        health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
-
+        // Once is enough: the reference is to a child of this same prefab, so it
+        // survives a trip through the pool.
         if (EnemyShip != null)
         {
             EnemyShip.TryGetComponent(out movement);
         }
+    }
 
+    /// <summary>
+    /// Everything that has to be true at the start of a life, rather than at the
+    /// start of the object's existence.
+    ///
+    /// Enemies are pooled, so Awake runs once and OnEnable runs on every spawn.
+    /// Health left in Awake would come back at zero on a reused enemy - it died
+    /// there - and it would fall to the next bullet whatever its definition says.
+    ///
+    /// The firing invoke is cancelled before it is armed because a repeat left
+    /// over from the previous life would stack: two invokes, then three, and an
+    /// enemy that fires faster the more times it has been recycled.
+    /// </summary>
+    private void OnEnable()
+    {
+        health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
+
+        CancelInvoke(nameof(Shoot));
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
+    }
+
+    private void OnDisable()
+    {
+        CancelInvoke(nameof(Shoot));
     }
 
     private void Shoot()

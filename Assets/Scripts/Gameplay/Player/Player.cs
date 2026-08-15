@@ -151,7 +151,11 @@ public class Player : MonoBehaviour, ISkillTarget
         }
         else if (other.CompareTag("Enemy"))
         {
-            Destroy(other.gameObject);
+            // Despawned rather than destroyed: enemies are pooled now, and
+            // destroying one leaves a dead entry in its bucket for the pool to
+            // trip over and discard later. Ramming still kills it silently - no
+            // reward, no explosion - which is the existing behaviour.
+            ObjectPool.Despawn(other.gameObject);
             TakeHit(spawnHitEffect: true);
         }
         else if (other.CompareTag("Boss"))

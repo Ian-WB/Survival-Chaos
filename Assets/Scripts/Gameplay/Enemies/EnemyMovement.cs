@@ -47,6 +47,32 @@ public class EnemyMovement : MonoBehaviour
     /// </summary>
     private float ChaseRadius => ArenaGeometry.OrbitRadius * chaseRadiusFraction;
 
+    /// <summary>
+    /// The direction the prefab was authored to travel, captured before anything
+    /// can turn it.
+    ///
+    /// leftOrRight is not read-only state: ColliderScript writes to it when the
+    /// player crosses a trigger, which is how enemies turn around. Enemies are
+    /// pooled, so without restoring this a reused one would set off in whatever
+    /// direction it was last turned to rather than the one its prefab says - and
+    /// that reads as enemies spawning already going the wrong way, with nothing
+    /// about the bug pointing at a trigger volume.
+    /// </summary>
+    private bool authoredDirection;
+
+    private void Awake()
+    {
+        authoredDirection = leftOrRight;
+    }
+
+    /// <summary>
+    /// Runs on every spawn, including reuse from the pool. Awake does not.
+    /// </summary>
+    private void OnEnable()
+    {
+        leftOrRight = authoredDirection;
+    }
+
     void Start()
     {
         GameObject playerObj = GameObject.Find("Player");

@@ -28,6 +28,27 @@ namespace SurvivalChaos
         [Tooltip("Random offset added to y.")]
         public Vector2 yOffsetRange = Vector2.zero;
 
+        /// <summary>
+        /// Pins the stream to the exact point above instead of sending each enemy
+        /// in from a random direction at the same distance and height.
+        /// </summary>
+        /// <remarks>
+        /// Phrased as a lock rather than as "randomise" on purpose. Unity keeps
+        /// what it already serialized and zero-fills fields it has not seen
+        /// before, so a bool meaning "randomise" would arrive false on all
+        /// nineteen existing streams however its initializer was written, and the
+        /// spread would silently not happen. False is the useful default, so
+        /// false has to mean randomise.
+        /// </remarks>
+        [Tooltip("Keeps this stream spawning at exactly the point above. Off - the default - " +
+                 "sends each enemy in from a random bearing around the arena, at the same " +
+                 "distance from the axis and the same height.")]
+        public bool lockBearing;
+
+        [Tooltip("Random variation in how far out the enemy appears, in world units. Widens " +
+                 "the band they fly in from so arrivals do not all cross the same circle.")]
+        public Vector2 radiusOffsetRange = Vector2.zero;
+
         [Header("Timing")]
         [Tooltip("Seconds before the first spawn.")]
         public float startDelay = 1f;

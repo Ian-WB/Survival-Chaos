@@ -38,11 +38,30 @@ namespace SurvivalChaos
 
         private void Awake()
         {
-            health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
-
             if (enemyShip != null)
             {
                 enemyShip.TryGetComponent(out movement);
+            }
+        }
+
+        /// <summary>
+        /// The state that belongs to a life rather than to the object.
+        ///
+        /// The boss arrives through a spawn stream, so it comes from the pool and
+        /// Awake runs only on its first appearance. Health left there would come
+        /// back at zero, and volley timers would still be counting from whenever
+        /// the previous boss entered. In practice its stream fires once a run and
+        /// the pool is cleared between runs, so neither is reachable today - but
+        /// "unreachable" is a property of the wave asset, not of this file.
+        /// </summary>
+        private void OnEnable()
+        {
+            health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
+
+            timers = new VolleyTimer[attacks.Count];
+            for (int i = 0; i < attacks.Count; i++)
+            {
+                timers[i] = new VolleyTimer(Time.time, attacks[i].initialDelay);
             }
         }
 
@@ -58,12 +77,6 @@ namespace SurvivalChaos
             {
                 hpBar.maxValue = health.Max;
                 hpBar.value = health.Current;
-            }
-
-            timers = new VolleyTimer[attacks.Count];
-            for (int i = 0; i < attacks.Count; i++)
-            {
-                timers[i] = new VolleyTimer(Time.time, attacks[i].initialDelay);
             }
 
             WarmProjectilePools();
@@ -165,7 +178,10 @@ namespace SurvivalChaos
             if (killed)
             {
                 Death();
-                Destroy(gameObject);
+
+                // The boss arrives through a spawn stream like everything else,
+                // so it comes from the pool and goes back to it.
+                ObjectPool.Despawn(gameObject);
             }
         }
 

@@ -30,7 +30,15 @@ public class Enemy : MonoBehaviour
 
     private HealthState health;
 
-    private void Awake()
+    /// <summary>
+    /// Health is rebuilt on every spawn, not just the first.
+    ///
+    /// This was Awake, which only runs on an object's first life. Enemies are
+    /// pooled now, so a reused one would come back with whatever health it died
+    /// on - which is zero, so it would die to the next bullet that touched it
+    /// regardless of what its definition says.
+    /// </summary>
+    private void OnEnable()
     {
         health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
     }
@@ -55,7 +63,7 @@ public class Enemy : MonoBehaviour
             {
                 ObjectPool.Spawn(explosion, transform.position, transform.rotation);
                 Death();
-                Destroy(gameObject);
+                ObjectPool.Despawn(gameObject);
             }
             else if (enemyHit != null)
             {

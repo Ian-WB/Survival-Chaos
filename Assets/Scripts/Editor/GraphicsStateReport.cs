@@ -132,8 +132,10 @@ namespace SurvivalChaos.EditorTools
             sb.AppendLine();
 
             sb.AppendLine("--- LIGHTS (ray-traced shadows are per-light, not a pipeline setting) ---");
-            foreach (Light light in Object.FindObjectsByType<Light>(
-                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            // No sort mode: the overload taking one is deprecated, and this only
+            // ever prints the lights, so the order they come back in is nobody's
+            // business.
+            foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include))
             {
                 HDAdditionalLightData data = light.GetComponent<HDAdditionalLightData>();
                 sb.AppendLine($"  {light.gameObject.name}: {light.type}, {light.lightmapBakeType}, " +

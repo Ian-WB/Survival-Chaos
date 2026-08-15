@@ -14,9 +14,21 @@ namespace SurvivalChaos
     /// an otherwise flat frame time. A hitch is more noticeable than a lower
     /// steady frame rate, which is the whole reason this exists.
     ///
-    /// Enemies are deliberately not pooled: they spawn once or twice a second,
-    /// and reusing one would mean resetting health, invoke timers and movement
-    /// state - all risk for no measurable gain.
+    /// Enemies are pooled too, which they were not at first. The argument
+    /// against was that they spawn once or twice a second, so resetting health,
+    /// invoke timers and movement state was risk for no gain. The first half of
+    /// that was measured against the wave asset and only holds early: nineteen
+    /// streams each ramp their own interval and the curve compounds, giving 1.3
+    /// spawns a second at two minutes, 4.1 at four, and 7.6 by the five minute
+    /// mark - which is also when the most bullets, effects and lights are
+    /// competing for the frame.
+    ///
+    /// The second half was accurate, and the three pieces of state it named are
+    /// exactly the three that had to be handled: health rebuilds in OnEnable,
+    /// Enemy_1 cancels its firing invoke before re-arming it, and EnemyMovement
+    /// restores the travel direction its prefab was authored with - that one is
+    /// written at runtime by ColliderScript, so a reused enemy would otherwise
+    /// set off whichever way it was last turned.
     /// </summary>
     public static class ObjectPool
     {

@@ -12,6 +12,17 @@ namespace SurvivalChaos
         [SerializeField]
         private WaveDefinition wave;
 
+        [SerializeField]
+        [Tooltip("The arena axis enemies fly in towards. Falls back to the object tagged " +
+                 "Scenario, and to the world origin if there is none.")]
+        private Transform arenaCenter;
+
+        [SerializeField]
+        [Min(0)]
+        [Tooltip("Idle enemies to build per stream before the run starts, so the first " +
+                 "arrivals do not pay to create themselves mid-frame.")]
+        private int warmupPerStream = 4;
+
         private float startTime;
 
         /// <summary>Seconds since spawning began.</summary>
@@ -20,6 +31,15 @@ namespace SurvivalChaos
         private void Start()
         {
             startTime = Time.time;
+
+            if (arenaCenter == null)
+            {
+                GameObject scenario = GameObject.FindWithTag("Scenario");
+                if (scenario != null)
+                {
+                    arenaCenter = scenario.transform;
+                }
+            }
 
             if (wave == null)
             {
@@ -34,9 +54,12 @@ namespace SurvivalChaos
                     continue;
                 }
 
+                ObjectPool.Warm(stream.prefab, warmupPerStream);
                 StartCoroutine(RunStream(stream));
             }
         }
+
+        private Vector3 Center => arenaCenter != null ? arenaCenter.position : Vector3.zero;
 
         /// <summary>
         /// The shortest gap the loop will honour, whatever a stream asks for.
@@ -83,7 +106,52 @@ namespace SurvivalChaos
                 stream.position.y + offsetY,
                 stream.position.z);
 
-            Instantiate(stream.prefab, position, stream.rotation);
+            if (!stream.lockBearing)
+            {
+                position = AtRandomBearing(position, stream);
+            }
+
+            // Pooled. Enemies were the last thing in the game still going through
+            // Instantiate and Destroy, on the argument that they arrive "once or
+            // twice a second" - true for the first half of a run, and measured at
+            // 7.5 a second by the five minute mark, because nineteen streams each
+            // ramp their own interval and the curve compounds.
+            //
+            // The rotation is whatever the stream authored. It stops mattering
+            // within a frame either way: EnemyMovement calls LookAt towards the
+            // axis every update, so a spawn brought in on a random bearing turns
+            // to face the arena immediately.
+            ObjectPool.Spawn(stream.prefab, position, stream.rotation);
+        }
+
+        /// <summary>
+        /// The same distance out and the same height, in a random direction.
+        ///
+        /// Every stream in the wave asset authored a single world point with no
+        /// horizontal spread at all - xOffsetRange is zero on all nineteen - so
+        /// enemies arrived from nineteen fixed compass points and varied only in
+        /// height. Keeping the authored radius keeps each stream's character,
+        /// which is how far out it comes from; only the bearing changes.
+        /// </summary>
+        private Vector3 AtRandomBearing(Vector3 authored, SpawnStream stream)
+        {
+            Vector3 center = Center;
+
+            Vector3 flat = authored - center;
+            flat.y = 0f;
+
+            float radius = flat.magnitude
+                           + Random.Range(stream.radiusOffsetRange.x, stream.radiusOffsetRange.y);
+
+            // A stream authored on the axis has no direction to preserve and no
+            // radius to randomise around, so it stays where it was put.
+            if (radius <= 0.01f)
+            {
+                return authored;
+            }
+
+            return PickupPlacement.PointAt(
+                Random.Range(-180f, 180f), center, radius, authored.y);
         }
 
         private void OnDrawGizmosSelected()

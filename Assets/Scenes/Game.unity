@@ -8538,6 +8538,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.WaveDirector
   wave: {fileID: 11400000, guid: 6ebba137b94870842ae44eebd10f23d1, type: 2}
+  arenaCenter: {fileID: 0}
+  warmupPerStream: 4
 --- !u!4 &581903989
 Transform:
   m_ObjectHideFlags: 0
@@ -25151,11 +25153,8 @@ MonoBehaviour:
   currentExperience: 0
   maxExperience: 50
   currentLevel: 1
-  tiroDuplo: 0
-  tiroTriplo: 0
-  tiroAtras: 0
-  sextuplo: 0
   skillSelect: {fileID: 919132148744893763}
+  shotUpgrades: 0
   attackSpeedStep: 0.4
   shotIntervalFloor: 0.15
 --- !u!1 &1346861254
