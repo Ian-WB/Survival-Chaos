@@ -304,10 +304,15 @@ public class Player : MonoBehaviour, ISkillTarget
             GameSounds.Play(GameSounds.Instance.LevelUp);
         }
 
+        // Counted before the offer goes out, so what PickSkill sees is the level
+        // just reached rather than the one being left. The health cadence keys
+        // off it, and off-by-one there is the difference between health on the
+        // even levels and health on the odd ones.
+        currentLevel += 1;
+
         //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
         skillSelect.PickSkill();
-        currentLevel += 1;
-        
+
         currentExperience = 0;
         expBar.setCurrentExp(currentExperience);
         maxExperience += 35;

@@ -16981,8 +16981,7 @@ MonoBehaviour:
   offerSize: 3
   offerSeparation: 55
   offerLifetime: 14
-  healthInterval: 30
-  healthStartDelay: 20
+  healthEveryLevels: 2
   healthAmount: 2
   healthLifetime: 20
   healthColor: {r: 0.3, g: 3, b: 0.90000004, a: 1}

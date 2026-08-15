@@ -16,7 +16,8 @@ using SurvivalChaos;
 public class SkillSelect : MonoBehaviour
 {
     [SerializeField]
-    [Tooltip("Skills this run can draw from. Include an unlimited skill (Heal) so the pool never runs dry.")]
+    [Tooltip("Skills this run can draw from. Healing is not one - it arrives on its own " +
+             "cadence from PickupSpawner, and any HealSkill listed here is ignored.")]
     private List<SkillDefinition> skills = new List<SkillDefinition>();
 
     [SerializeField]
@@ -38,7 +39,42 @@ public class SkillSelect : MonoBehaviour
 
     void Start()
     {
-        pool = new SkillPool(skills);
+        pool = new SkillPool(Upgrades());
+    }
+
+    /// <summary>
+    /// The offerable skills, which is everything in the list that is not healing.
+    ///
+    /// Filtered here rather than left to whoever edits the scene, because putting
+    /// Heal back in the list is a one-click mistake with a confusing symptom:
+    /// healing would silently become a skill again, and taking it would forfeit
+    /// the two upgrades beside it. The list is data; this is the rule.
+    /// </summary>
+    private List<SkillDefinition> Upgrades()
+    {
+        var upgrades = new List<SkillDefinition>();
+        int healing = 0;
+
+        foreach (SkillDefinition skill in skills)
+        {
+            if (skill is HealSkill)
+            {
+                healing++;
+                continue;
+            }
+
+            upgrades.Add(skill);
+        }
+
+        if (healing > 0)
+        {
+            Debug.Log(
+                $"SkillSelect ignored {healing} healing skill(s) in its list. Health is not an " +
+                "upgrade any more - PickupSpawner drops it on its own level cadence, so that it " +
+                "does not cost the player an upgrade to take.", this);
+        }
+
+        return upgrades;
     }
 
     void Update()
@@ -55,7 +91,7 @@ public class SkillSelect : MonoBehaviour
     /// </summary>
     public void PickSkill(){
         if(pool == null){
-            pool = new SkillPool(skills);
+            pool = new SkillPool(Upgrades());
         }
 
         if (pickups == null)
@@ -64,13 +100,15 @@ public class SkillSelect : MonoBehaviour
             return;
         }
 
-        List<SkillDefinition> offered = pool.Draw(pickups.OfferSize);
-        if (offered.Count == 0)
-        {
-            return;
-        }
-
-        pickups.OfferSkills(offered);
+        // Drawn here, placed there. The spawner decides whether health is due and
+        // lays everything out in one go - two separate placements from the same
+        // player bearing landed on top of each other.
+        //
+        // An empty draw is not a special case: every upgrade being spent is
+        // something the spawner handles, by sending health out on its own.
+        pickups.OfferLevelUp(
+            player != null ? player.currentLevel : 0,
+            pool.Draw(pickups.OfferSize));
     }
 
     /// <summary>

@@ -12,11 +12,19 @@ namespace SurvivalChaos
     /// are the reward for killing things, and making them a choice is what stops
     /// a run being the same build every time.
     ///
-    /// Health arrives on a timer instead. Tying it to level-ups made healing a
-    /// consequence of killing well, which is backwards - the player who most
-    /// needs it is the one who is struggling to kill anything. On a clock it
-    /// arrives when it arrives, and the player has to decide whether breaking
-    /// position to reach it is worth more than holding a firing line.
+    /// Health arrives on its own cadence, every few levels, and is never part of
+    /// an offer. It used to be both a timed drop and a skill in the pool, which
+    /// meant the commonest way to meet it was as one of three pickups - so
+    /// healing cost an upgrade, and taking an upgrade cost the heal. Neither is a
+    /// trade worth making the player think about: one is a reward for killing
+    /// well and the other is what you need when you are not.
+    ///
+    /// Separating them costs the tension a timer had - health no longer arrives
+    /// mid-fight and forces a decision about breaking position - and buys a
+    /// player who is losing a reliable idea of when relief comes. It also means
+    /// health cannot arrive during the stretch when a struggling player most
+    /// needs it, because they are levelling slowly. That is the known cost of
+    /// this arrangement.
     /// </summary>
     public class PickupSpawner : MonoBehaviour
     {
@@ -65,12 +73,10 @@ namespace SurvivalChaos
 
         [Header("Health drops")]
         [SerializeField]
-        [Tooltip("Seconds between health drops. Zero or less turns them off.")]
-        private float healthInterval = 30f;
-
-        [SerializeField]
-        [Tooltip("Seconds before the first one.")]
-        private float healthStartDelay = 20f;
+        [Min(0)]
+        [Tooltip("Levels between health drops. 2 means one on every even level. Zero turns " +
+                 "them off entirely.")]
+        private int healthEveryLevels = 2;
 
         [SerializeField]
         private int healthAmount = 2;
@@ -106,8 +112,6 @@ namespace SurvivalChaos
         /// </summary>
         private readonly List<SkillOffer> offers = new List<SkillOffer>();
 
-        private float nextHealthAt;
-
         private void Start()
         {
             ResolveReferences();
@@ -116,32 +120,51 @@ namespace SurvivalChaos
             {
                 ObjectPool.Warm(pickupPrefab, warmup);
             }
-
-            nextHealthAt = Time.time + Mathf.Max(0f, healthStartDelay);
         }
 
-        private void Update()
+        /// <summary>Whether the level just reached is one the cadence drops on.</summary>
+        private bool HealthDueAt(int level)
         {
-            if (healthInterval <= 0f || Time.time < nextHealthAt)
+            return healthEveryLevels > 0 && level > 0 && level % healthEveryLevels == 0;
+        }
+
+        /// <summary>
+        /// Puts everything a level-up brings on the ring: the upgrade offer, and
+        /// a health drop when the level is due one.
+        ///
+        /// One call because they share the ring. Placed separately, each went
+        /// through PickupPlacement.Bearings from the same player bearing with its
+        /// own coin flip for direction - and the nearest bearing of a set is the
+        /// same number whatever the set's size, so whenever the two flips agreed
+        /// the health drop landed exactly on top of the first upgrade. Asking for
+        /// all of them at once is what lets the spacing do its job.
+        ///
+        /// Sharing a placement does not make health part of the offer. It goes
+        /// down with no SkillOffer attached, so taking it forfeits no upgrade and
+        /// taking an upgrade does not clear it.
+        /// </summary>
+        /// <param name="level">The level just reached, for the health cadence.</param>
+        /// <param name="skills">
+        /// What to offer, already drawn from the pool but not yet charged
+        /// against it - see SkillPool.Draw. May be empty once every upgrade is
+        /// spent, in which case health goes out on its own.
+        /// </param>
+        public void OfferLevelUp(int level, IReadOnlyList<SkillDefinition> skills)
+        {
+            if (pickupPrefab == null)
             {
                 return;
             }
 
-            nextHealthAt = Time.time + healthInterval;
-            SpawnHealth();
-        }
+            int skillCount = skills != null ? skills.Count : 0;
 
-        /// <summary>
-        /// Puts an offer on the ring. Called on level-up in place of granting a
-        /// skill outright.
-        /// </summary>
-        /// <param name="skills">
-        /// What to offer, already drawn from the pool but not yet charged
-        /// against it - see SkillPool.Draw.
-        /// </param>
-        public void OfferSkills(IReadOnlyList<SkillDefinition> skills)
-        {
-            if (skills == null || skills.Count == 0 || pickupPrefab == null)
+            // Health also stands in when there is nothing left to offer: a
+            // level-up that puts nothing on the ring reads as broken pickups
+            // rather than as a finished build.
+            bool health = HealthDueAt(level) || skillCount == 0;
+
+            int total = skillCount + (health ? 1 : 0);
+            if (total == 0)
             {
                 return;
             }
@@ -151,22 +174,33 @@ namespace SurvivalChaos
 
             float[] bearings = PickupPlacement.Bearings(
                 bearing,
-                skills.Count,
+                total,
                 offerSeparation,
                 clockwise: Random.value < 0.5f);
 
-            var offer = new SkillOffer();
+            // A slot at random rather than always the nearest or always the
+            // furthest. Either fixed choice teaches the player which pickup to
+            // fly at before they have looked at what is on offer.
+            int healthSlot = health ? Random.Range(0, total) : -1;
 
-            for (int i = 0; i < skills.Count && i < bearings.Length; i++)
+            var offer = new SkillOffer();
+            int nextSkill = 0;
+
+            for (int i = 0; i < total && i < bearings.Length; i++)
             {
-                SkillDefinition skill = skills[i];
+                if (i == healthSlot)
+                {
+                    Place(bearings[i], height, null, healthAmount, healthColor, healthLifetime);
+                    continue;
+                }
+
+                SkillDefinition skill = skills[nextSkill++];
                 if (skill == null)
                 {
                     continue;
                 }
 
-                Pickup pickup = Place(bearings[i], height, skill, 0, skill.PickupColor, offerLifetime);
-                offer.Add(pickup);
+                offer.Add(Place(bearings[i], height, skill, 0, skill.PickupColor, offerLifetime));
             }
 
             if (offer.LiveCount > 0)
@@ -176,29 +210,13 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// A single health drop, on the ring, with no offer attached. Placed
-        /// clear of the player for the same reason an offer is - a drop that
-        /// lands underfoot is a grant, not a decision.
+        /// Puts one pickup on the ring at a bearing.
+        ///
+        /// A null skill with a heal amount is a health drop: no SkillOffer is
+        /// attached, so Pickup.Offer stays null and ClearOffer walks away from it
+        /// when an upgrade is taken - and it walks away from the upgrades when it
+        /// is taken. That absence is the whole of what makes health independent.
         /// </summary>
-        private void SpawnHealth()
-        {
-            if (pickupPrefab == null)
-            {
-                return;
-            }
-
-            float bearing = CurrentPlayerBearing();
-            float height = player != null ? player.position.y : transform.position.y;
-
-            float[] bearings = PickupPlacement.Bearings(
-                bearing,
-                count: 1,
-                minSeparationDegrees: offerSeparation,
-                clockwise: Random.value < 0.5f);
-
-            Place(bearings[0], height, null, healthAmount, healthColor, healthLifetime);
-        }
-
         private Pickup Place(
             float bearing,
             float height,
