@@ -653,14 +653,37 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Motion blur, which never needs a pipeline rebuild: motion vectors are
-        /// compiled in for TAA and the upscalers regardless, so turning blur on
-        /// and off only moves a volume value.
+        /// What motion blur is set to when the player has never said.
+        ///
+        /// Medium rather than off: it is what most of the presets used to hand
+        /// out before this row left the preset system, so an existing player's
+        /// picture does not change underneath them.
+        /// </summary>
+        private const EffectQuality DefaultMotionBlur = EffectQuality.Medium;
+
+        /// <summary>
+        /// Motion blur, which is outside the preset system entirely.
+        ///
+        /// It is taste, not fidelity. Players turn it off on hardware that could
+        /// run it at maximum, and a preset stamping over that every time quality
+        /// changes would be the settings screen arguing with them. So picking a
+        /// preset leaves this row alone, and changing it does not make the
+        /// selection Custom - it is not a departure from a preset, because no
+        /// preset has an opinion about it.
+        ///
+        /// It can afford to be independent because it costs no pipeline rebuild:
+        /// motion vectors are compiled in for TAA and the upscalers regardless,
+        /// so this only ever moves a volume value.
         /// </summary>
         public EffectQuality MotionBlurQuality
         {
-            get => Effect("MotionBlur", CurrentPreset.MotionBlur);
-            set => SetRow("MotionBlur", (int)value, rebuildsPipeline: false);
+            get => Effect("MotionBlur", DefaultMotionBlur);
+            set
+            {
+                PlayerPrefs.SetInt(Prefix + "MotionBlur", (int)value);
+                SettingsStore.MarkDirty();
+                Apply();
+            }
         }
 
         /// <summary>0 renders textures at full resolution, 1 at half.</summary>
@@ -1154,12 +1177,16 @@ namespace SurvivalChaos
         /// </summary>
         private static readonly string[] RowKeys =
         {
-            "Shadows", "AO", "SSR", "GI", "Fog", "MotionBlur",
+            "Shadows", "AO", "SSR", "GI", "Fog",
             "TextureMip", "Aniso", "CustomBase",
 
             // Retired with the Ray Traced Shadows row. Still cleared, so a value
             // saved by a build that had the row does not sit in prefs forever.
             "RTShadows"
+
+            // MotionBlur is deliberately absent. It sits outside the preset
+            // system, so picking a preset must not clear it - that is the whole
+            // of what makes it independent.
         };
 
         /// <summary>
@@ -1274,7 +1301,6 @@ namespace SurvivalChaos
             PlayerPrefs.SetInt(Prefix + "SSR", (int)preset.Reflections);
             PlayerPrefs.SetInt(Prefix + "GI", (int)preset.GlobalIllumination);
             PlayerPrefs.SetInt(Prefix + "Fog", (int)preset.VolumetricFog);
-            PlayerPrefs.SetInt(Prefix + "MotionBlur", (int)preset.MotionBlur);
             PlayerPrefs.SetInt(Prefix + "TextureMip", preset.TextureMipLimit);
             PlayerPrefs.SetInt(Prefix + "Aniso", (int)preset.Anisotropic);
 
@@ -1359,7 +1385,6 @@ namespace SurvivalChaos
             preset.Reflections = Reflections;
             preset.GlobalIllumination = GlobalIlluminationQuality;
             preset.VolumetricFog = VolumetricFog;
-            preset.MotionBlur = MotionBlurQuality;
             preset.TextureMipLimit = TextureMipLimit;
             preset.Anisotropic = Anisotropic;
             preset.RayTracing = RayTracingAvailable;

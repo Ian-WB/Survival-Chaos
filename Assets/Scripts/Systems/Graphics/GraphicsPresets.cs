@@ -17,8 +17,16 @@ namespace SurvivalChaos
         public EffectQuality AmbientOcclusion;
         public EffectQuality Reflections;
         public EffectQuality GlobalIllumination;
+        /// <summary>
+        /// Capped at Medium, and only Ultra reaches even that.
+        ///
+        /// High is deliberately out of reach of every preset. Volumetric fog at
+        /// the top rung costs more than its visible difference is worth in an
+        /// arena this size, so nobody should arrive at it by picking a preset -
+        /// but the row still offers it, for anyone who wants to spend the frame
+        /// time knowingly.
+        /// </summary>
         public EffectQuality VolumetricFog;
-        public EffectQuality MotionBlur;
 
         /// <summary>0 renders textures at full resolution, 1 at half.</summary>
         public int TextureMipLimit;
@@ -101,6 +109,14 @@ namespace SurvivalChaos
     ///
     /// Ray tracing is off by default because it is untested rather than because
     /// it is wrong. Shipped games treat RT as opt-in for the same reason.
+    ///
+    /// **Motion blur is not here at all.** It is taste rather than fidelity -
+    /// plenty of players turn it off on hardware that could run it at maximum,
+    /// and some cannot stand it at any setting. A preset stamping over that
+    /// choice every time the player changes quality would be the settings screen
+    /// arguing with them. GraphicsDirector keeps it outside the preset system:
+    /// picking a preset leaves it alone, and changing it does not make the
+    /// selection Custom.
     /// </summary>
     public static class GraphicsPresets
     {
@@ -118,7 +134,6 @@ namespace SurvivalChaos
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Off,
-                MotionBlur = EffectQuality.Off,
                 TextureMipLimit = 1, Anisotropic = AnisotropicFiltering.Disable,
                 RayTracing = false, SubsurfaceScattering = false, Decals = false,
                 SkyReflection = SkyResolution.SkyResolution128,
@@ -134,7 +149,6 @@ namespace SurvivalChaos
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Off,
-                MotionBlur = EffectQuality.Low,
                 TextureMipLimit = 1, Anisotropic = AnisotropicFiltering.Disable,
                 RayTracing = true, SubsurfaceScattering = false, Decals = false,
                 SkyReflection = SkyResolution.SkyResolution256,
@@ -149,7 +163,6 @@ namespace SurvivalChaos
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Off,
-                MotionBlur = EffectQuality.Low,
                 TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.Disable,
                 RayTracing = true, SubsurfaceScattering = false, Decals = false,
                 SkyReflection = SkyResolution.SkyResolution256,
@@ -164,7 +177,6 @@ namespace SurvivalChaos
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Low,
-                MotionBlur = EffectQuality.Medium,
                 TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.Enable,
                 RayTracing = true, SubsurfaceScattering = true, Decals = true,
                 SkyReflection = SkyResolution.SkyResolution512,
@@ -178,8 +190,7 @@ namespace SurvivalChaos
                 AmbientOcclusion = EffectQuality.High,
                 Reflections = EffectQuality.Medium,
                 GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Medium,
-                MotionBlur = EffectQuality.Medium,
+                VolumetricFog = EffectQuality.Low,
                 TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.Enable,
                 RayTracing = true, SubsurfaceScattering = true, Decals = true,
                 SkyReflection = SkyResolution.SkyResolution512,
@@ -193,8 +204,7 @@ namespace SurvivalChaos
                 AmbientOcclusion = EffectQuality.High,
                 Reflections = EffectQuality.High,
                 GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.High,
-                MotionBlur = EffectQuality.High,
+                VolumetricFog = EffectQuality.Low,
                 TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.ForceEnable,
                 RayTracing = true, SubsurfaceScattering = true, Decals = true,
                 SkyReflection = SkyResolution.SkyResolution1024,
@@ -208,8 +218,7 @@ namespace SurvivalChaos
                 AmbientOcclusion = EffectQuality.High,
                 Reflections = EffectQuality.High,
                 GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.High,
-                MotionBlur = EffectQuality.High,
+                VolumetricFog = EffectQuality.Medium,
                 TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.ForceEnable,
                 RayTracing = true, SubsurfaceScattering = true, Decals = true,
                 SkyReflection = SkyResolution.SkyResolution1024,
