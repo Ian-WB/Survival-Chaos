@@ -88,10 +88,6 @@ public class Player : MonoBehaviour, ISkillTarget
     public DeathMenu deathMenu;
 
     [SerializeField] public int currentExperience = 0, maxExperience = 40, currentLevel = 1;
-    public bool tiroDuplo = false;
-    public bool tiroTriplo = false;
-    public bool tiroAtras = false;
-    public bool sextuplo = false;
     public SkillSelect skillSelect;
 
     private void OnEnable()
@@ -208,81 +204,77 @@ public class Player : MonoBehaviour, ISkillTarget
         health = new HealthState(healthPoints);
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
     }
+    /// <summary>
+    /// Where each upgrade stage puts its shots, as vertical offsets in multiples
+    /// of <see cref="shotSpacing"/>. Indexed by how many shot upgrades have been
+    /// taken, so stage 0 is the opening single shot.
+    ///
+    /// A table rather than a branch per stage. The same five patterns used to be
+    /// written out twice - once per direction of travel - as about seventy lines
+    /// of near-identical Spawn calls, and that is how the sextuple stage came to
+    /// fire five shots with nobody noticing.
+    ///
+    /// The sextuple row is offset by half a step so its six sit symmetrically
+    /// about the pivot. The stages either side put a shot dead centre and pair
+    /// the rest around it, which only works for odd counts.
+    /// </summary>
+    private static readonly float[][] ForwardPattern =
+    {
+        new[] { 0f },
+        new[] { 0f, 1f },
+        new[] { 0f, 1f, -1f },
+        new[] { 0.5f, -0.5f, 1.5f, -1.5f, 2.5f, -2.5f },
+        new[] { 0f, 1f, -1f, 2f, -2f }
+    };
+
+    /// <summary>
+    /// The same, for shots sent the other way round the ring. Only the last
+    /// stage fires backwards - that is what it buys.
+    /// </summary>
+    private static readonly float[][] BackwardPattern =
+    {
+        new float[0],
+        new float[0],
+        new float[0],
+        new float[0],
+        new[] { 1f, -1f, 2f, -2f }
+    };
+
     private void Shoot()
     {
-        // Once per volley, not once per bullet. The widest pattern fires ten at
+        // Once per volley, not once per bullet. The widest pattern fires nine at
         // the same instant and should still read as one shot.
         if (GameSounds.Instance != null)
         {
             GameSounds.Play(GameSounds.Instance.PlayerShot);
         }
 
-        if (rotate)
-        {
-            ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+        int stage = Mathf.Clamp(shotUpgrades, 0, ForwardPattern.Length - 1);
 
-            // tiro duplo
-            if(tiroDuplo){
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
-            // tiro triplo
-            else if(tiroTriplo){
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
-            // tiro para ambos os lados
-            else if(tiroAtras)
-            {
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                
-            }
-            else if(sextuplo)
-            {
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
+        // Which prefab travels with the ship is the whole difference between the
+        // two directions: they carry opposite angular speeds, so the one that
+        // goes forward while flipped is the one that goes backward otherwise.
+        GameObject forward = rotate ? shootPrefab : shootPrefab1;
+        GameObject backward = rotate ? shootPrefab1 : shootPrefab;
+
+        FireLine(forward, ForwardPattern[stage]);
+        FireLine(backward, BackwardPattern[stage]);
+    }
+
+    /// <summary>Spawns one bullet per offset, spaced up the pivot.</summary>
+    private void FireLine(GameObject prefab, float[] offsets)
+    {
+        if (prefab == null || shootPivot == null)
+        {
+            return;
         }
-        else
-        {
-            ObjectPool.Spawn(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
 
-            // tiro duplo
-            if(tiroDuplo){
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
-            // tiro triplo
-            else if(tiroTriplo){
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
-            // tiro para ambos os lados
-            else if(tiroAtras)
-            {
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
-            else if(sextuplo)
-            {
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position + new Vector3(0f, -shotSpacing * 2f, 0f), Quaternion.Euler(0f, 0f, 90f));
-            }
+        foreach (float offset in offsets)
+        {
+            ObjectPool.Spawn(
+                prefab,
+                shootPivot.position + new Vector3(0f, offset * shotSpacing, 0f),
+                Quaternion.Euler(0f, 0f, 90f));
         }
     }
 
@@ -321,6 +313,10 @@ public class Player : MonoBehaviour, ISkillTarget
 
     // How many shot upgrades have been taken. Drives the pattern flags below,
     // which Shoot() reads.
+    [SerializeField]
+    [Tooltip("Shot pattern stage: 0 single, 1 double, 2 triple, 3 sextuple, 4 plus rear shots. " +
+             "Serialized so a stage can be tried from here without playing up to it - it " +
+             "replaced four separate bools that had to be kept mutually exclusive by hand.")]
     private int shotUpgrades;
 
     /// <summary>The number of upgrades after which the pattern stops changing.</summary>
@@ -332,10 +328,6 @@ public class Player : MonoBehaviour, ISkillTarget
         }
 
         shotUpgrades++;
-        tiroDuplo = shotUpgrades == 1;
-        tiroTriplo = shotUpgrades == 2;
-        sextuplo = shotUpgrades == 3;
-        tiroAtras = shotUpgrades == 4;
     }
 
     public void Heal(int hp){
