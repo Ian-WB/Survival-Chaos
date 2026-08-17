@@ -10273,9 +10273,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 8.03e-43, y: -1.2641381e+30, z: 8.03e-43, w: 1.1856505e-33}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -15521,9 +15521,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 1e-45}
+  m_BoundingSphereOverride: {x: 0, y: 1.0239159e-27, z: 2.721093e-20, w: 9.1846e-40}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -25468,6 +25468,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1335758245}
   m_CullTransparentMesh: 1
+--- !u!1 &1336738275
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1336738277}
+  - component: {fileID: 1336738276}
+  m_Layer: 0
+  m_Name: StaticLightingSky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1336738276
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336738275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.StaticLightingSky
+  m_Profile: {fileID: 11400000, guid: ca30be2006202f64c8332d607097a82f, type: 2}
+  m_StaticLightingSkyUniqueID: 1
+  m_StaticLightingCloudsUniqueID: 0
+  m_StaticLightingVolumetricClouds: 0
+  bounces: 1
+--- !u!4 &1336738277
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336738275}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1345772185
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -26446,7 +26495,7 @@ MonoBehaviour:
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
       m_BoxSideFadeNegative: {x: 1, y: 1, z: 1}
-      m_SphereRadius: 50
+      m_SphereRadius: 27.3
       m_SphereBlendDistance: 0
       m_SphereBlendNormalDistance: 0
     proxy:
@@ -26672,35 +26721,35 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.09062884
-    'sh[ 1]': -0.09312686
-    'sh[ 2]': -0.0063396567
-    'sh[ 3]': 0.011077551
-    'sh[ 4]': -0.0051733432
-    'sh[ 5]': 0.0027608066
-    'sh[ 6]': -0.0031231141
-    'sh[ 7]': -0.0014199285
-    'sh[ 8]': -0.010590019
-    'sh[ 9]': 0.01864536
-    'sh[10]': -0.019471038
-    'sh[11]': 0.0001677551
-    'sh[12]': 0.0019276688
-    'sh[13]': -0.000904835
-    'sh[14]': -0.000110976565
-    'sh[15]': -0.0006966427
-    'sh[16]': -0.00017094005
-    'sh[17]': -0.0022704948
-    'sh[18]': 0.0044279424
-    'sh[19]': -0.0046296227
-    'sh[20]': 0.000044439417
-    'sh[21]': 0.0004507879
-    'sh[22]': -0.00021177933
-    'sh[23]': -0.000028502582
-    'sh[24]': -0.0001662517
-    'sh[25]': -0.000040778443
-    'sh[26]': -0.0005410046
-  m_SHValidForCapturePosition: {x: 0, y: 15.21, z: -0.19}
-  m_SHValidForSourcePosition: {x: 0, y: 15.21, z: -0.19}
+    'sh[ 0]': 0.13428561
+    'sh[ 1]': -0.09454705
+    'sh[ 2]': -0.0023304448
+    'sh[ 3]': 0.020146213
+    'sh[ 4]': -0.021066278
+    'sh[ 5]': 0.00864519
+    'sh[ 6]': -0.003947461
+    'sh[ 7]': 0.0021161262
+    'sh[ 8]': -0.034368753
+    'sh[ 9]': 0.07731998
+    'sh[10]': 0.01400336
+    'sh[11]': -0.011220319
+    'sh[12]': -0.00095635524
+    'sh[13]': -0.0029861997
+    'sh[14]': -0.007963953
+    'sh[15]': 0.0027404965
+    'sh[16]': 0.0051991963
+    'sh[17]': -0.011229316
+    'sh[18]': 0.086460575
+    'sh[19]': 0.043908738
+    'sh[20]': -0.018075587
+    'sh[21]': -0.007358213
+    'sh[22]': 0.00025109726
+    'sh[23]': -0.010658973
+    'sh[24]': 0.0055367528
+    'sh[25]': 0.0075082923
+    'sh[26]': -0.0077764783
+  m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
+  m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
   m_ObsoleteInfluenceShape: 0
   m_ObsoleteInfluenceSphereRadius: 3
@@ -26725,7 +26774,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 100, y: 100, z: 100}
+  m_BoxSize: {x: 54.6, y: 54.6, z: 54.6}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -26752,7 +26801,7 @@ Transform:
   m_GameObject: {fileID: 1369704977}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 15.21, z: -0.19}
+  m_LocalPosition: {x: 0, y: 15.98, z: -0.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -37475,9 +37524,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 4e-45, z: -2.0000029, w: -3.981316e+29}
+  m_BoundingSphereOverride: {x: 0, y: 1.0239159e-27, z: 2.721093e-20, w: 1.285802e-39}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1.36
   m_ShadowAngle: 0
@@ -46219,3 +46268,4 @@ SceneRoots:
   - {fileID: 1369704980}
   - {fileID: 1185721726}
   - {fileID: 7023528544965449322}
+  - {fileID: 1336738277}
