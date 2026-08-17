@@ -10273,7 +10273,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0.0009284822, y: 1.3563128e-19, z: 4.5449518e+30, w: 1.8523599e+28}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -14838,13 +14838,13 @@ MonoBehaviour:
   volumeAnchorOverride: {fileID: 0}
   antialiasing: 2
   SMAAQuality: 2
-  dithering: 1
+  dithering: 0
   stopNaNs: 0
   taaSharpenStrength: 0
   TAAQuality: 2
   taaSharpenMode: 1
   taaRingingReduction: 0
-  taaHistorySharpening: 0.01
+  taaHistorySharpening: 0
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
@@ -14877,7 +14877,7 @@ MonoBehaviour:
   deepLearningSuperSamplingUseCustomAttributes: 0
   deepLearningSuperSamplingUseOptimalSettings: 1
   deepLearningSuperSamplingSharpening: 0
-  allowFidelityFX2SuperResolution: 0
+  allowFidelityFX2SuperResolution: 1
   fidelityFX2SuperResolutionUseCustomQualitySettings: 0
   fidelityFX2SuperResolutionQuality: 0
   fidelityFX2SuperResolutionUseCustomAttributes: 0
@@ -15521,7 +15521,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1.0239159e-27, z: 2.721093e-20, w: 9.1846e-40}
+  m_BoundingSphereOverride: {x: 1.2777e-41, y: -5.8951575e-27, z: 7.57e-43, w: 1e-45}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -37524,7 +37524,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1.0239159e-27, z: 2.721093e-20, w: 1.285802e-39}
+  m_BoundingSphereOverride: {x: 0.000000052667204, y: 1.3311113e+22, z: 8.4117136e+20, w: 7.922331e+34}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
