@@ -1,122 +1,73 @@
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-
 namespace SurvivalChaos
 {
     /// <summary>
-    /// What one quality preset sets every row to.
+    /// Where each per-effect row sits when the player picks a quality tier and
+    /// changes nothing else.
     ///
-    /// This is the thing "Custom" is defined against: picking a preset stamps all
-    /// of these, and changing any single row afterwards leaves the rest where the
-    /// preset put them and renames the selection to Custom.
+    /// Every field here is a Volume override. Nothing in this file reaches the
+    /// pipeline asset, and nothing writes one - the tier's asset is Unity's own,
+    /// shipped as authored, and the only thing selecting a tier does is call
+    /// QualitySettings.SetQualityLevel.
+    ///
+    /// That is the whole of the difference from what this file used to be. It
+    /// once carried shadow atlas sizes, texture mip limits, anisotropic modes,
+    /// sky and cube reflection resolutions and a reflection cache size, all of
+    /// which were stamped into eight generated .asset files by a builder tool.
+    /// Those numbers were invented here rather than measured, and several were
+    /// wrong in ways that took a build to find: a flat 512 reflection cache
+    /// failed its allocation every frame, and ray-traced GI on the top tiers
+    /// rendered every dynamic object as a black silhouette.
     /// </summary>
     public struct GraphicsPreset
     {
         public string Name;
-        public ShadowQualityLevel Shadows;
+
+        /// <summary>
+        /// Contact shadows: the short-range contact darkening HDRP traces in
+        /// screen space.
+        ///
+        /// All that is left of what used to be a six-rung Shadow Quality row.
+        /// The rest of that row - shadowmask, atlas size, request count,
+        /// filtering - lives in the pipeline asset, which is no longer ours to
+        /// write.
+        /// </summary>
+        public EffectQuality ContactShadows;
+
         public EffectQuality AmbientOcclusion;
         public EffectQuality Reflections;
         public EffectQuality GlobalIllumination;
-        /// <summary>
-        /// Capped at Medium, and only Ultra reaches even that.
-        ///
-        /// High is deliberately out of reach of every preset. Volumetric fog at
-        /// the top rung costs more than its visible difference is worth in an
-        /// arena this size, so nobody should arrive at it by picking a preset -
-        /// but the row still offers it, for anyone who wants to spend the frame
-        /// time knowingly.
-        /// </summary>
         public EffectQuality VolumetricFog;
-
-        /// <summary>0 renders textures at full resolution, 1 at half.</summary>
-        public int TextureMipLimit;
-
-        public AnisotropicFiltering Anisotropic;
-
-        /// <summary>
-        /// Whether the pipeline compiles ray tracing support in at all.
-        ///
-        /// Separate from the per-effect rungs because it is a build-time cost -
-        /// shader variants and memory - paid whether or not any effect is
-        /// currently using it. Only the minimum-spec tier declines it.
-        /// </summary>
-        public bool RayTracing;
-
-        public bool SubsurfaceScattering;
-        public bool Decals;
-
-        /// <summary>How sharply the sky is reflected off the ships.</summary>
-        public SkyResolution SkyReflection;
-
-        /// <summary>
-        /// The High rung of the cube reflection resolution table, which is what
-        /// the arena's one baked reflection probe is authored to use.
-        /// </summary>
-        public CubeReflectionResolution CubeReflection;
-
-        /// <summary>
-        /// The atlas the sky reflection and the reflection probe are both packed
-        /// into.
-        ///
-        /// Has to stay ahead of the two of them together. Sized below, HDRP fails
-        /// the allocation and logs that the atlas is full once per frame forever -
-        /// which is exactly what a flat 512 here did.
-        ///
-        /// This looked like a dead lever twice over and is not. The comment this
-        /// file inherited said the project has no reflection probes; Game.unity
-        /// has had one since before any of this work. And even with none, HDRP
-        /// packs the sky reflection into the same atlas, and this arena is lit
-        /// entirely by an HDRI cubemap. Check the scene, not the comment.
-        /// </summary>
-        public ReflectionProbeTextureCacheResolution ReflectionCache;
-
-        /// <summary>
-        /// Applies the extra video-memory austerity in the builder's
-        /// ApplyMinimumSpec on top of everything else.
-        ///
-        /// Its own field rather than inferred from ray tracing being off. They
-        /// happen to coincide on the one tier that sets both, and a reader who
-        /// took that for a rule would be wrong the moment a tier wants one
-        /// without the other.
-        /// </summary>
-        public bool MinimumSpec;
     }
 
     /// <summary>
-    /// The seven presets, in quality level order.
+    /// The three tiers, in quality level order, matching Unity's own stock HDRP
+    /// assets: Performant, Balanced and High Fidelity, renamed Low, Medium and
+    /// High.
     ///
-    /// Every ladder here is monotonic on purpose. The previous arrangement was
-    /// not: LOD bias ran 1.0 on the bottom tier against 0.3 on the one above it,
-    /// and the shadowmask mode alternated 1, 0, 0, 0, 1, 1, 1 - values nobody
-    /// chose, left over from duplicating quality levels.
+    /// Three rather than seven because these are the assets Unity ships and
+    /// keeps self-consistent. Anything above or below is a new asset to author
+    /// by hand, not a table of numbers for this file to invent.
     ///
-    /// Volumetric clouds appear nowhere. There is no sky worth clouding in an
-    /// arena that sits inside a cubemap, so they are off at every tier and have
-    /// no row.
+    /// **Reflections are off at every tier, and not by taste.** All three stock
+    /// assets ship `supportSSR: false`, which is a hard gate - the volume
+    /// override cannot switch on an effect the pipeline did not compile. The row
+    /// still exists and greys itself out, which is the honest reading; defaulting
+    /// it to Low would just be a row that claims to do something and does not.
     ///
-    /// **No preset turns on global illumination, and no preset selects a
-    /// ray-traced rung.** Both are reachable from the rows; neither is a default,
-    /// for two separate reasons.
+    /// **GI is off at every tier**, for the reason it has always been off: this
+    /// scene's indirect light is baked, into lightmaps and Adaptive Probe
+    /// Volumes, and screen-space or ray-traced GI replaces that rather than
+    /// adding to it. Dynamic objects - the ships, the only things the player
+    /// actually watches - lose their indirect light entirely and render as black
+    /// silhouettes against terrain that kept its lightmap. That shipped once.
     ///
-    /// GI is not an addition here, it is a replacement. This scene's indirect
-    /// light comes from baked lightmaps and Adaptive Probe Volumes, carefully
-    /// enough that a bake costs tens of megabytes of LFS quota. Switching on
-    /// screen-space or ray-traced GI hands that job to a solver that has never
-    /// seen the bake, and dynamic objects - the ships, which are the only things
-    /// the player actually looks at - lose their indirect light entirely and
-    /// render as black silhouettes against a terrain that kept its lightmap.
-    /// That shipped once in a build and looked like the shadow rows were broken.
+    /// The ray-traced rungs are unreachable here too: `supportRayTracing` is
+    /// false in all three stock assets. The rows drop to four entries and say so.
     ///
-    /// Ray tracing is off by default because it is untested rather than because
-    /// it is wrong. Shipped games treat RT as opt-in for the same reason.
-    ///
-    /// **Motion blur is not here at all.** It is taste rather than fidelity -
-    /// plenty of players turn it off on hardware that could run it at maximum,
-    /// and some cannot stand it at any setting. A preset stamping over that
-    /// choice every time the player changes quality would be the settings screen
-    /// arguing with them. GraphicsDirector keeps it outside the preset system:
-    /// picking a preset leaves it alone, and changing it does not make the
-    /// selection Custom.
+    /// **Motion blur is deliberately absent**, as it has been since it left the
+    /// preset system. It is taste rather than fidelity, and a tier stamping over
+    /// that choice every time quality changes would be the settings screen
+    /// arguing with the player.
     /// </summary>
     public static class GraphicsPresets
     {
@@ -124,130 +75,46 @@ namespace SurvivalChaos
         {
             new GraphicsPreset
             {
-                // Below Very Low, for hardware below what HDRP is built for. The
-                // reference machine is an Intel HD Graphics 4000 with 128 MB of
-                // dedicated video memory. What separates it from Very Low is not
-                // effects - those are already at their floor - but memory.
-                Name = "Ubirajara",
-                Shadows = ShadowQualityLevel.Off,
-                AmbientOcclusion = EffectQuality.Off,
-                Reflections = EffectQuality.Off,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Off,
-                TextureMipLimit = 1, Anisotropic = AnisotropicFiltering.Disable,
-                RayTracing = false, SubsurfaceScattering = false, Decals = false,
-                SkyReflection = SkyResolution.SkyResolution128,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution128,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution512x512,
-                MinimumSpec = true
-            },
-            new GraphicsPreset
-            {
-                Name = "Very Low",
-                Shadows = ShadowQualityLevel.Off,
-                AmbientOcclusion = EffectQuality.Off,
-                Reflections = EffectQuality.Off,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Off,
-                TextureMipLimit = 1, Anisotropic = AnisotropicFiltering.Disable,
-                RayTracing = true, SubsurfaceScattering = false, Decals = false,
-                SkyReflection = SkyResolution.SkyResolution256,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution256,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution512x512
-            },
-            new GraphicsPreset
-            {
+                // Unity's HDRP Performant. Also the only tier where volumetric
+                // fog is gated off in the asset (supportVolumetrics: false), so
+                // the fog row here is inert whatever it is set to.
                 Name = "Low",
-                Shadows = ShadowQualityLevel.Low,
+                ContactShadows = EffectQuality.Off,
                 AmbientOcclusion = EffectQuality.Low,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Off,
-                TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.Disable,
-                RayTracing = true, SubsurfaceScattering = false, Decals = false,
-                SkyReflection = SkyResolution.SkyResolution256,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution256,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution512x512
+                VolumetricFog = EffectQuality.Off
             },
             new GraphicsPreset
             {
+                // Unity's HDRP Balanced.
                 Name = "Medium",
-                Shadows = ShadowQualityLevel.Medium,
+                ContactShadows = EffectQuality.Low,
                 AmbientOcclusion = EffectQuality.Medium,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Low,
-                TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.Enable,
-                RayTracing = true, SubsurfaceScattering = true, Decals = true,
-                SkyReflection = SkyResolution.SkyResolution512,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution512,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution1024x1024
+                VolumetricFog = EffectQuality.Low
             },
             new GraphicsPreset
             {
+                // Unity's HDRP High Fidelity. The only tier with
+                // AdaptiveProbeVolumes, and so the only one that uses this
+                // scene's probe volume bake.
                 Name = "High",
-                Shadows = ShadowQualityLevel.High,
+                ContactShadows = EffectQuality.Medium,
                 AmbientOcclusion = EffectQuality.High,
-                Reflections = EffectQuality.Medium,
+                Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Low,
-                TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.Enable,
-                RayTracing = true, SubsurfaceScattering = true, Decals = true,
-                SkyReflection = SkyResolution.SkyResolution512,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution512,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution1024x1024
-            },
-            new GraphicsPreset
-            {
-                Name = "Very High",
-                Shadows = ShadowQualityLevel.VeryHigh,
-                AmbientOcclusion = EffectQuality.High,
-                Reflections = EffectQuality.High,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Low,
-                TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.ForceEnable,
-                RayTracing = true, SubsurfaceScattering = true, Decals = true,
-                SkyReflection = SkyResolution.SkyResolution1024,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution1024,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution2048x2048
-            },
-            new GraphicsPreset
-            {
-                Name = "Ultra",
-                Shadows = ShadowQualityLevel.Ultra,
-                AmbientOcclusion = EffectQuality.High,
-                Reflections = EffectQuality.High,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Medium,
-                TextureMipLimit = 0, Anisotropic = AnisotropicFiltering.ForceEnable,
-                RayTracing = true, SubsurfaceScattering = true, Decals = true,
-                SkyReflection = SkyResolution.SkyResolution1024,
-                CubeReflection = CubeReflectionResolution.CubeReflectionResolution1024,
-                ReflectionCache = ReflectionProbeTextureCacheResolution.Resolution2048x2048
+                VolumetricFog = EffectQuality.Medium
             }
         };
 
         /// <summary>
-        /// The name the quality level carries for anything the player has tuned
-        /// themselves.
+        /// The tier anything ambiguous falls back to: Medium.
         ///
-        /// Appended after the seven presets, so preset indices stay stable and a
-        /// saved choice keeps meaning the tier it meant when it was written.
+        /// One constant rather than a 1 written in each place that needs it.
         /// </summary>
-        public const string CustomName = "Custom";
-
-        /// <summary>
-        /// The preset anything ambiguous falls back to: Medium.
-        ///
-        /// One constant rather than a 3 written in each place that needs it. The
-        /// director and the preset builder both used their own, which is how two
-        /// numbers that must agree drift apart.
-        ///
-        /// Deliberately not Ubirajara. Index 0 is the tempting default because it
-        /// is first, but it is a machine-specific fallback for a 2012 integrated
-        /// GPU - landing there by accident is a severe downgrade nobody chose.
-        /// </summary>
-        public const int DefaultIndex = 3;
+        public const int DefaultIndex = 1;
 
         public static int Count => All.Length;
 
@@ -264,15 +131,6 @@ namespace SurvivalChaos
             }
 
             return All[index];
-        }
-
-        /// <summary>
-        /// True when <paramref name="index"/> is the Custom level rather than one
-        /// of the seven presets.
-        /// </summary>
-        public static bool IsCustom(int index)
-        {
-            return index >= All.Length;
         }
     }
 }

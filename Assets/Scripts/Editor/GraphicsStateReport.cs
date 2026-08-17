@@ -88,17 +88,30 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
-            sb.AppendLine("--- MENU ROWS ---");
-            sb.AppendLine($"  custom          : {director.IsCustom}");
-            sb.AppendLine($"  shadow quality  : {QualityLadder.Describe(director.Shadows)}");
-            sb.AppendLine($"  ambient occl.   : {QualityLadder.Describe(director.AmbientOcclusion)}");
-            sb.AppendLine($"  reflections     : {QualityLadder.Describe(director.Reflections)}");
-            sb.AppendLine($"  global illum.   : {QualityLadder.Describe(director.GlobalIlluminationQuality)}");
-            sb.AppendLine($"  volumetric fog  : {QualityLadder.Describe(director.VolumetricFog)}");
+            sb.AppendLine("--- MENU ROWS ---   (gated: the tier's asset never compiled it)");
+            sb.AppendLine($"  contact shadows : {Row(director.ContactShadowQuality, director.ContactShadowsSupported)}");
+            sb.AppendLine($"  ambient occl.   : {Row(director.AmbientOcclusion, director.AmbientOcclusionSupported)}");
+            sb.AppendLine($"  reflections     : {Row(director.Reflections, director.ReflectionsSupported)}");
+            sb.AppendLine($"  global illum.   : {Row(director.GlobalIlluminationQuality, director.GlobalIlluminationSupported)}");
+            sb.AppendLine($"  volumetric fog  : {Row(director.VolumetricFog, director.VolumetricFogSupported)}");
             sb.AppendLine($"  motion blur     : {QualityLadder.Describe(director.MotionBlurQuality)}");
-            sb.AppendLine($"  texture mip     : {director.TextureMipLimit} (0 full, 1 half)");
-            sb.AppendLine($"  anisotropic     : {director.Anisotropic}");
+            sb.AppendLine($"  dynamic res.    : {(director.DynamicResolutionSupported ? "available" : "gated")}");
             sb.AppendLine();
+        }
+
+        /// <summary>
+        /// A row's rung, marked when the pipeline gate makes it moot.
+        ///
+        /// The whole point of this report is catching the case where the three
+        /// layers disagree, and "High" on a row whose effect was never compiled
+        /// is exactly that - it reads as working right up until you look at the
+        /// pipeline section below and find the support flag off.
+        /// </summary>
+        private static string Row(EffectQuality quality, bool supported)
+        {
+            return supported
+                ? QualityLadder.Describe(quality)
+                : QualityLadder.Describe(quality) + "   <- GATED";
         }
 
         /// <summary>What the pipeline compiled in, which is the hard gate.</summary>

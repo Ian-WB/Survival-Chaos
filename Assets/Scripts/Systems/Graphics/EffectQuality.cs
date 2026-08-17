@@ -24,27 +24,12 @@ namespace SurvivalChaos
         RayTracedHigh = 6
     }
 
-    /// <summary>
-    /// How much of the shadow budget a tier spends.
-    ///
-    /// One rung covers seven pipeline fields - shadowmask, dynamic shadows,
-    /// atlas size, request count, per-shadow resolution, filtering and contact
-    /// shadows - because they are not independent choices. Raising the request
-    /// count without the atlas to hold them just makes every shadow smaller, and
-    /// nobody picking a settings row means to do that.
-    ///
-    /// Named to match the quality presets so "Shadow Quality: Medium" reads as
-    /// "shadows the way the Medium preset has them" with no legend needed.
-    /// </summary>
-    public enum ShadowQualityLevel
-    {
-        Off = 0,
-        Low = 1,
-        Medium = 2,
-        High = 3,
-        VeryHigh = 4,
-        Ultra = 5
-    }
+    // ShadowQualityLevel was here: a six-rung ladder covering shadowmask,
+    // dynamic shadows, atlas size, request count, per-shadow resolution and
+    // filtering. Every one of those is a field in the pipeline asset, and the
+    // asset is no longer written from code - the stock HDRP tier decides them
+    // now. What survived is contact shadows, which is a volume override, and it
+    // rides the ordinary EffectQuality ladder like every other effect.
 
     /// <summary>
     /// Names and conversions for the quality ladders.
@@ -57,11 +42,6 @@ namespace SurvivalChaos
         public static readonly string[] EffectNames =
         {
             "Off", "Low", "Medium", "High", "RT Low", "RT Medium", "RT High"
-        };
-
-        public static readonly string[] ShadowNames =
-        {
-            "Off", "Low", "Medium", "High", "Very High", "Ultra"
         };
 
         /// <summary>The first ray-traced rung; everything below it is screen space.</summary>
@@ -116,12 +96,6 @@ namespace SurvivalChaos
         {
             int index = (int)quality;
             return index >= 0 && index < EffectNames.Length ? EffectNames[index] : "-";
-        }
-
-        public static string Describe(ShadowQualityLevel level)
-        {
-            int index = (int)level;
-            return index >= 0 && index < ShadowNames.Length ? ShadowNames[index] : "-";
         }
     }
 }

@@ -12,16 +12,22 @@ namespace SurvivalChaos
     /// persists every choice, so a setting made on the title screen is still in
     /// force in the game.
     ///
-    /// The quality preset does most of the work — under HDRP the shadows and
-    /// screen-space effects live in the pipeline asset, one per level, built by
-    /// the Build Quality Presets tool. What is here is everything the pipeline
-    /// asset cannot express: display settings, and per-effect overrides the player
-    /// wants on top of their chosen preset.
+    /// The quality tier does most of the work — under HDRP the shadows, the
+    /// atlases and every support flag live in the pipeline asset, one per level.
+    /// Those assets are Unity's own stock HDRP tiers and this class never writes
+    /// to one. Selecting a tier is a single SetQualityLevel call; what is here is
+    /// everything the asset cannot express: display settings, and per-effect
+    /// overrides the player wants on top of their chosen tier.
     ///
     /// Those overrides go through a Volume this class owns, at a priority above
     /// anything in the scene. Overriding is the only way to force an effect off:
     /// disabling a component on a lower-priority volume just lets the scene's own
     /// setting win.
+    ///
+    /// A volume override cannot switch an effect *on* that the pipeline asset did
+    /// not compile, though — the support flags are a hard gate above everything
+    /// here. Rows whose effect is gated off in the current tier grey themselves
+    /// out rather than appearing to work.
     /// </summary>
     public sealed class GraphicsDirector : MonoBehaviour
     {
@@ -48,8 +54,16 @@ namespace SurvivalChaos
         /// adding to it, so every dynamic object rendered as a black silhouette.
         /// Rebuilding the presets fixes what a preset hands out, but not a row
         /// already frozen into a player's prefs, so those are cleared too.
+        ///
+        /// 4: the eight generated quality levels were replaced by Unity's three
+        /// stock HDRP tiers. Every saved index now means a different tier, and
+        /// five of the eight no longer exist at all - a saved Ultra, index 6,
+        /// would land past the end of a three-entry list. The old indices are
+        /// folded onto the nearest surviving tier rather than cleared, so a
+        /// player who had chosen the top of the range still comes back to the top
+        /// of the range.
         /// </summary>
-        private const int QualityEpoch = 3;
+        private const int QualityEpoch = 4;
 
         public static GraphicsDirector Instance { get; private set; }
 
@@ -65,51 +79,19 @@ namespace SurvivalChaos
         private ContactShadows contactShadows;
         private HDShadowSettings shadowSettings;
 
-        /// <summary>
-        /// The preset asset the Custom level's clone is cut from.
-        ///
-        /// Held as a live reference to a real asset, never to a clone. Assigning
-        /// a clone to QualitySettings.renderPipeline writes it into a persistent
-        /// project setting, so once the clone is destroyed the Custom level is
-        /// left pointing at a dead object - and the next SetQualityLevel makes
-        /// HDRP adopt it, which is sixteen "referenced script is missing"
-        /// warnings per entry. Cloning from here instead means the stale pointer
-        /// is always overwritten before anything reads it.
-        /// </summary>
-        private HDRenderPipelineAsset customBaseAsset;
-
-        /// <summary>The clone actually in use while the Custom level is selected.</summary>
-        private HDRenderPipelineAsset customClone;
-
-        /// <summary>Which preset asset <see cref="customClone"/> was cut from.</summary>
-        private HDRenderPipelineAsset cloneSource;
-
-        /// <summary>
-        /// A clone swapped out but not yet destroyed.
-        ///
-        /// HDRP tears the outgoing pipeline down lazily, so destroying a clone in
-        /// the same frame it stopped being current pulls the asset out from under
-        /// a teardown still in progress. The symptom is fourteen to sixteen
-        /// "referenced script is missing" warnings on the next repaint - measured,
-        /// not guessed: swapping without the destroy produced none, and the
-        /// destroy on its own produced them every time.
-        ///
-        /// Holding it for one generation costs one live object and removes the
-        /// race entirely.
-        /// </summary>
-        private HDRenderPipelineAsset retiredClone;
-
-        /// <summary>
-        /// When the pending pipeline rebuild should run, or zero when none is due.
-        ///
-        /// Swapping the pipeline asset rebuilds render resources and hitches
-        /// visibly, so the rows that need one settle after the player stops
-        /// pressing rather than rebuilding on every step. Cycling five values
-        /// costs one rebuild instead of five.
-        /// </summary>
-        private float pipelineRebuildDue;
-
-        private const float PipelineRebuildDelay = 0.5f;
+        // A Custom quality level used to live here, backed by a runtime clone of
+        // whichever preset asset it rested on, rebuilt from the rows on a settle
+        // timer. All of it is gone with the generated assets: there is nothing to
+        // clone, because no row writes a pipeline field any more.
+        //
+        // Three bugs went with it, and they are worth remembering as the cost of
+        // that design rather than as history. Destroying a swapped-out clone
+        // raced HDRP's lazy teardown and produced fourteen to sixteen "referenced
+        // script is missing" warnings per row change. Assigning a clone to
+        // QualitySettings.renderPipeline wrote it into a persistent project
+        // setting, so the Custom level came back next session pointing at a
+        // destroyed object. And rebuilding the pipeline hitched visibly enough to
+        // need debouncing. None of the three is reachable now.
 
         private List<DisplaySize> sizes;
 
@@ -181,16 +163,6 @@ namespace SurvivalChaos
         {
             DriveDynamicResolution();
 
-            // Settles after the player stops stepping, so cycling a row through
-            // five values costs one pipeline rebuild rather than five.
-            if (pipelineRebuildDue > 0f && Time.unscaledTime >= pipelineRebuildDue)
-            {
-                pipelineRebuildDue = 0f;
-                RebuildCustomPipeline();
-                ApplyOverrides();
-                SettingsChanged?.Invoke();
-            }
-
             if (FrameCap != DisplayOptions.MatchDisplay || Time.unscaledTime < nextRefreshCheck)
             {
                 return;
@@ -230,28 +202,8 @@ namespace SurvivalChaos
         {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
 
-            // The Custom level is put back onto a real asset rather than a clone
-            // that dies with this object. Best-effort: it only reaches the level
-            // currently selected, so a player who quits from a preset leaves the
-            // dead pointer behind. That is why RestoreSavedCustom exists and
-            // never trusts what it finds there.
-            if (customBaseAsset != null && QualitySettings.renderPipeline == customClone)
-            {
-                QualitySettings.renderPipeline = customBaseAsset;
-            }
-
-            if (retiredClone != null)
-            {
-                Destroy(retiredClone);
-                retiredClone = null;
-            }
-
-            if (customClone != null)
-            {
-                Destroy(customClone);
-                customClone = null;
-                cloneSource = null;
-            }
+            // Nothing to hand back. Every quality level points at a real asset in
+            // the project, and this class never replaced one.
 
             if (Instance == this)
             {
@@ -314,11 +266,18 @@ namespace SurvivalChaos
         public string[] QualityNames => QualitySettings.names;
 
         /// <summary>
-        /// Whether ray tracing can be offered at all. False on hardware without
-        /// DXR, and the control hides rather than presenting a setting that
-        /// silently does nothing.
+        /// Whether ray tracing can be offered at all, which takes both a DXR GPU
+        /// and a pipeline asset that compiled support for it.
+        ///
+        /// The asset half is not academic: all three stock HDRP tiers ship
+        /// supportRayTracing false, so on this project the ray-traced rungs are
+        /// currently unreachable on any hardware. Asking only SystemInfo would
+        /// offer three rungs on an RTX card that the pipeline then ignores - the
+        /// dead control this screen exists to stop shipping.
         /// </summary>
-        public bool RayTracingAvailable => SystemInfo.supportsRayTracing;
+        public bool RayTracingAvailable =>
+            SystemInfo.supportsRayTracing &&
+            TryPipelineSettings(out RenderPipelineSettings s) && s.supportRayTracing;
 
         // ---------- stored settings ----------
 
@@ -582,74 +541,51 @@ namespace SurvivalChaos
         public float RequestedRenderScale => Mathf.Clamp01(requestedPercentage / 100f);
 
         /// <summary>
-        /// The preset the per-effect rows fall back to when the player has not
-        /// set one themselves.
+        /// The tier the per-effect rows fall back to when the player has not set
+        /// one themselves.
         ///
-        /// Picking a preset clears every row's stored value, so they all resolve
-        /// through here and a preset is genuinely one decision rather than eleven
+        /// Picking a tier clears every row's stored value, so they all resolve
+        /// through here and a tier is genuinely one decision rather than six
         /// writes that can half-fail.
         /// </summary>
-        private GraphicsPreset CurrentPreset => GraphicsPresets.At(IsCustom ? CustomBase : QualityLevel);
+        private GraphicsPreset CurrentPreset => GraphicsPresets.At(QualityLevel);
 
         /// <summary>
-        /// Which preset a Custom selection was derived from.
+        /// Contact shadows, all that survives of the old Shadow Quality row.
         ///
-        /// Rows normally all have stored values by the time the selection is
-        /// Custom, so this is only reached when one does not - and it has to be
-        /// reached correctly, because GraphicsPresets.At clamps. Passing the
-        /// Custom index straight in would clamp to the last entry and hand out
-        /// Ultra's values, which on a low-end machine is a silent jump to the most
-        /// expensive settings in the game.
+        /// The other six things that row set - shadowmask, dynamic shadows, atlas
+        /// size, request count, per-shadow resolution and filtering - are all
+        /// pipeline asset fields, and the asset belongs to the tier now. This one
+        /// is a volume override, so it is still ours to move.
         /// </summary>
-        private int CustomBase => Mathf.Clamp(
-            GetInt("CustomBase", GraphicsPresets.DefaultIndex), 0, GraphicsPresets.Count - 1);
-
-        /// <summary>True when the player has tuned rows away from any preset.</summary>
-        public bool IsCustom => GraphicsPresets.IsCustom(QualityLevel);
-
-        /// <summary>
-        /// Where the Custom level sits in the quality list.
-        ///
-        /// Appended after the seven presets by the preset builder, so preset
-        /// indices stay stable and a saved choice keeps meaning the tier it meant
-        /// when it was written.
-        /// </summary>
-        private int CustomLevel => Mathf.Max(0, QualityNames.Length - 1);
-
-        public ShadowQualityLevel Shadows
+        public EffectQuality ContactShadowQuality
         {
-            get
-            {
-                int stored = GetInt("Shadows", -1);
-                return stored < 0
-                    ? CurrentPreset.Shadows
-                    : (ShadowQualityLevel)Mathf.Clamp(stored, 0, QualityLadder.ShadowNames.Length - 1);
-            }
-            set => SetRow("Shadows", (int)value, rebuildsPipeline: true);
+            get => Effect("ContactShadows", CurrentPreset.ContactShadows);
+            set => SetRow("ContactShadows", (int)value);
         }
 
         public EffectQuality AmbientOcclusion
         {
             get => Effect("AO", CurrentPreset.AmbientOcclusion);
-            set => SetRow("AO", (int)value, rebuildsPipeline: NeedsPipeline(AmbientOcclusion, value));
+            set => SetRow("AO", (int)value);
         }
 
         public EffectQuality Reflections
         {
             get => Effect("SSR", CurrentPreset.Reflections);
-            set => SetRow("SSR", (int)value, rebuildsPipeline: NeedsPipeline(Reflections, value));
+            set => SetRow("SSR", (int)value);
         }
 
         public EffectQuality GlobalIlluminationQuality
         {
             get => Effect("GI", CurrentPreset.GlobalIllumination);
-            set => SetRow("GI", (int)value, rebuildsPipeline: NeedsPipeline(GlobalIlluminationQuality, value));
+            set => SetRow("GI", (int)value);
         }
 
         public EffectQuality VolumetricFog
         {
             get => Effect("Fog", CurrentPreset.VolumetricFog);
-            set => SetRow("Fog", (int)value, rebuildsPipeline: NeedsPipeline(VolumetricFog, value));
+            set => SetRow("Fog", (int)value);
         }
 
         /// <summary>
@@ -662,18 +598,17 @@ namespace SurvivalChaos
         private const EffectQuality DefaultMotionBlur = EffectQuality.Medium;
 
         /// <summary>
-        /// Motion blur, which is outside the preset system entirely.
+        /// Motion blur, which is outside the tier system entirely.
         ///
         /// It is taste, not fidelity. Players turn it off on hardware that could
-        /// run it at maximum, and a preset stamping over that every time quality
+        /// run it at maximum, and a tier stamping over that every time quality
         /// changes would be the settings screen arguing with them. So picking a
-        /// preset leaves this row alone, and changing it does not make the
-        /// selection Custom - it is not a departure from a preset, because no
-        /// preset has an opinion about it.
+        /// tier leaves this row alone, which is why its key is the one absent
+        /// from RowKeys.
         ///
-        /// It can afford to be independent because it costs no pipeline rebuild:
-        /// motion vectors are compiled in for TAA and the upscalers regardless,
-        /// so this only ever moves a volume value.
+        /// It is also the one row with no support flag to check: motion vectors
+        /// are compiled in for TAA and the upscalers regardless, so every tier can
+        /// run it and the row never greys out.
         /// </summary>
         public EffectQuality MotionBlurQuality
         {
@@ -686,19 +621,75 @@ namespace SurvivalChaos
             }
         }
 
-        /// <summary>0 renders textures at full resolution, 1 at half.</summary>
-        public int TextureMipLimit
+        // Texture Quality and Anisotropic Filtering were rows here. Both are
+        // QualitySettings fields rather than volume overrides - globalTextureMipmapLimit
+        // and anisotropicFiltering - and each quality level carries its own pair.
+        // Writing them from here overrode whatever the tier's asset said, which is
+        // exactly what this class no longer does. They are the tier's to set.
+
+        // ---------- what the tier's asset actually compiled ----------
+
+        /// <summary>
+        /// The pipeline asset in force, or null before one resolves.
+        ///
+        /// Read only, always. The support flags below are the hard gate above
+        /// every volume override this class writes: an effect the asset did not
+        /// compile cannot be switched on by a volume, however high its priority.
+        /// Asking the asset is what lets a gated row grey itself out instead of
+        /// sitting there swallowing clicks - the dead-control failure this screen
+        /// keeps finding.
+        /// </summary>
+        private static HDRenderPipelineAsset PipelineAsset =>
+            GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+
+        private static bool TryPipelineSettings(out RenderPipelineSettings settings)
         {
-            get => Mathf.Clamp(GetInt("TextureMip", CurrentPreset.TextureMipLimit), 0, 1);
-            set => SetRow("TextureMip", Mathf.Clamp(value, 0, 1), rebuildsPipeline: false);
+            HDRenderPipelineAsset asset = PipelineAsset;
+
+            if (asset == null)
+            {
+                settings = default;
+                return false;
+            }
+
+            settings = asset.currentPlatformRenderPipelineSettings;
+            return true;
         }
 
-        public AnisotropicFiltering Anisotropic
-        {
-            get => (AnisotropicFiltering)Mathf.Clamp(
-                GetInt("Aniso", (int)CurrentPreset.Anisotropic), 0, 2);
-            set => SetRow("Aniso", (int)value, rebuildsPipeline: false);
-        }
+        /// <summary>False in all three stock tiers, which ship supportSSR off.</summary>
+        public bool ReflectionsSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) && s.supportSSR;
+
+        /// <summary>True only in High Fidelity among the stock tiers.</summary>
+        public bool GlobalIlluminationSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) && (s.supportSSGI || s.supportRayTracing);
+
+        /// <summary>False in Performant, which ships supportVolumetrics off.</summary>
+        public bool VolumetricFogSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) && s.supportVolumetrics;
+
+        /// <summary>
+        /// True in all three stock tiers. Nested under hdShadowInitParams rather
+        /// than sitting on RenderPipelineSettings like the other support flags.
+        /// </summary>
+        public bool ContactShadowsSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) &&
+            s.hdShadowInitParams.supportContactShadows;
+
+        public bool AmbientOcclusionSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) && s.supportSSAO;
+
+        /// <summary>
+        /// Whether the tier compiled dynamic resolution at all.
+        ///
+        /// False in all three stock tiers, which ship dynamicResolutionSettings
+        /// disabled and no advanced upscalers listed. It gates Render Scale as
+        /// well as the Dynamic Resolution row: HDRP resolves both through the
+        /// same handler, so with this off a render scale below 100% is requested
+        /// every frame and discarded every frame.
+        /// </summary>
+        public bool DynamicResolutionSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) && s.dynamicResolutionSettings.enabled;
 
         /// <summary>
         /// A stored rung, clamped back to screen space where ray tracing cannot
@@ -726,34 +717,13 @@ namespace SurvivalChaos
             return quality;
         }
 
-        /// <summary>
-        /// Whether moving between two rungs changes something the pipeline asset
-        /// compiles, rather than only a volume value.
-        ///
-        /// Crossing the off boundary does - a support flag decides whether the
-        /// effect exists at all. Moving between Low, Medium and High does not, and
-        /// neither does crossing into the ray-traced half, because ray tracing
-        /// support is compiled in at every tier that has it.
-        /// </summary>
-        private static bool NeedsPipeline(EffectQuality from, EffectQuality to)
-        {
-            return QualityLadder.IsOn(from) != QualityLadder.IsOn(to);
-        }
-
         // ---------- applying ----------
 
         private void ApplyAll()
         {
             // Quality first: it swaps the pipeline asset, and everything below
             // layers on top of whichever one ends up active.
-            if (IsCustom)
-            {
-                RestoreSavedCustom();
-            }
-            else
-            {
-                QualitySettings.SetQualityLevel(QualityLevel, applyExpensiveChanges: true);
-            }
+            QualitySettings.SetQualityLevel(QualityLevel, applyExpensiveChanges: true);
 
             Apply();
         }
@@ -793,11 +763,10 @@ namespace SurvivalChaos
                 requestedPercentage = RenderScale * 100f;
             }
 
-            // The two things HDRP still leaves to QualitySettings. Written every
-            // Apply rather than only on a preset change, because on the Custom
-            // level they are rows the player can move.
-            QualitySettings.globalTextureMipmapLimit = TextureMipLimit;
-            QualitySettings.anisotropicFiltering = Anisotropic;
+            // globalTextureMipmapLimit and anisotropicFiltering were written here.
+            // They are per-quality-level values that the chosen level already
+            // carries, so writing them from here overrode the tier with a number
+            // this class invented. Left to the tier now.
 
             ApplyCamera();
             ApplyOverrides();
@@ -999,13 +968,25 @@ namespace SurvivalChaos
             ApplyGlobalIllumination();
             ApplyFog();
             ApplyMotionBlur();
+            ApplyContactShadows();
+        }
 
-            // Contact shadows come with the shadow rung rather than a row of their
-            // own. The pipeline flag decides whether the pass exists; this decides
-            // whether it runs.
-            PipelineTuning.ShadowRung rung = PipelineTuning.ShadowsFor(Shadows);
+        /// <summary>
+        /// Contact shadows, now a row of their own rather than something that
+        /// came along with a shadow rung.
+        ///
+        /// The pipeline flag decides whether the pass exists at all; this decides
+        /// whether it runs and how many samples it spends.
+        /// </summary>
+        private void ApplyContactShadows()
+        {
+            EffectQuality quality = ContactShadowQuality;
+
             contactShadows.enable.overrideState = true;
-            contactShadows.enable.value = rung.ContactShadows;
+            contactShadows.enable.value = QualityLadder.IsOn(quality);
+
+            contactShadows.quality.overrideState = true;
+            contactShadows.quality.value = QualityLadder.ScalableLevel(quality);
         }
 
         private void ApplyAmbientOcclusion()
@@ -1107,40 +1088,64 @@ namespace SurvivalChaos
                 PlayerPrefs.SetInt(Prefix + "Quality", PlayerPrefs.GetInt(Prefix + "Quality") + 1);
             }
 
-            if (epoch < 3)
+            if (epoch < 4)
             {
-                // Which preset a Custom selection came from, read before the loop
-                // below deletes it.
-                int customBase = Mathf.Clamp(
-                    PlayerPrefs.GetInt(Prefix + "CustomBase", GraphicsPresets.DefaultIndex),
-                    0, GraphicsPresets.Count - 1);
+                // Folded before the rows are cleared, because the Custom case
+                // reads CustomBase and the clear takes it away.
+                if (PlayerPrefs.HasKey(Prefix + "Quality"))
+                {
+                    PlayerPrefs.SetInt(Prefix + "Quality",
+                        FoldedTier(PlayerPrefs.GetInt(Prefix + "Quality")));
+                }
 
-                // Dropped rather than converted, for both epochs that need it. An
-                // old on/off carried no rung to convert to, and a frozen
-                // ray-traced rung is the thing being taken back. Clearing lets
-                // every row fall back to the chosen preset, which is the closest
-                // honest reading of what the player had.
+                // Dropped rather than converted, for every epoch that needs it.
+                // An old on/off carried no rung to convert to, a frozen ray-traced
+                // rung is the thing being taken back, and a rung chosen against
+                // one of the old generated tiers means nothing against a stock
+                // one. Clearing lets every row fall back to the chosen tier, which
+                // is the closest honest reading of what the player had.
                 foreach (string key in RowKeys)
                 {
                     PlayerPrefs.DeleteKey(Prefix + key);
                 }
 
-                // Retired with the Lighting row it belonged to.
-                PlayerPrefs.DeleteKey(Prefix + "Lighting");
-
-                // A Custom selection cannot survive its own rows being cleared -
-                // Custom means "these rows", and there are none left. Landing back
-                // on the preset it was built from is the closest thing to what the
-                // player had; leaving it on Custom would have every row fall
-                // through to a preset nobody picked.
-                if (PlayerPrefs.GetInt(Prefix + "Quality", -1) >= GraphicsPresets.Count)
+                foreach (string key in RetiredRowKeys)
                 {
-                    PlayerPrefs.SetInt(Prefix + "Quality", customBase);
+                    PlayerPrefs.DeleteKey(Prefix + key);
                 }
             }
 
             PlayerPrefs.SetInt(Prefix + "QualityEpoch", QualityEpoch);
             SettingsStore.MarkDirty();
+        }
+
+        /// <summary>
+        /// Which of the three tiers an index from the old eight-level scheme
+        /// becomes.
+        ///
+        /// Folded onto the nearest survivor rather than reset to the default. The
+        /// eight levels were Ubirajara, Very Low, Low, Medium, High, Very High,
+        /// Ultra and Custom; someone who had chosen Ultra wanted the top of the
+        /// range, and landing them on Medium because the list got shorter would
+        /// read as the update having quietly downgraded them.
+        /// </summary>
+        private static int FoldedTier(int saved)
+        {
+            // Custom was index 7 and meant "whatever the rows say", which is not a
+            // tier at all. The preset it was derived from is the honest answer,
+            // and CustomBase is still in prefs at this point.
+            if (saved >= 7)
+            {
+                saved = PlayerPrefs.GetInt(Prefix + "CustomBase", 3);
+            }
+
+            if (saved <= 2)
+            {
+                // Ubirajara, Very Low and Low.
+                return 0;
+            }
+
+            return saved == 3 ? 1 : 2;
         }
 
         private static int GetInt(string key, int fallback)
@@ -1177,38 +1182,44 @@ namespace SurvivalChaos
         /// </summary>
         private static readonly string[] RowKeys =
         {
-            "Shadows", "AO", "SSR", "GI", "Fog",
-            "TextureMip", "Aniso", "CustomBase",
+            "ContactShadows", "AO", "SSR", "GI", "Fog"
 
-            // Retired with the Ray Traced Shadows row. Still cleared, so a value
-            // saved by a build that had the row does not sit in prefs forever.
-            "RTShadows"
-
-            // MotionBlur is deliberately absent. It sits outside the preset
-            // system, so picking a preset must not clear it - that is the whole
+            // MotionBlur is deliberately absent. It sits outside the tier
+            // system, so picking a tier must not clear it - that is the whole
             // of what makes it independent.
         };
 
         /// <summary>
-        /// Picking a preset: clear every row so they all fall back to it, then
+        /// Keys no row writes any more, cleared once by the migration.
+        ///
+        /// Separate from <see cref="RowKeys"/> because picking a tier should not
+        /// keep paying to delete keys nothing has written since the build that
+        /// retired them - but leaving them in the settings file forever is worse,
+        /// so the migration sweeps them once.
+        ///
+        /// Shadows was the six-rung Shadow Quality row, TextureMip and Aniso were
+        /// QualitySettings values now left to the tier, CustomBase recorded which
+        /// preset a Custom selection was cut from, RTShadows was a row that
+        /// allocated a buffer nothing wrote to, and Lighting was a Baked/Ray
+        /// traced switch that GlobalIllumination replaced.
+        /// </summary>
+        private static readonly string[] RetiredRowKeys =
+        {
+            "Shadows", "TextureMip", "Aniso", "CustomBase", "RTShadows", "Lighting"
+        };
+
+        /// <summary>
+        /// Picking a tier: clear every row so they all fall back to it, then
         /// switch level.
         ///
         /// Clearing rather than writing each row's value means one source of
-        /// truth. If this wrote nine keys instead, a preset whose table later
+        /// truth. If this wrote five keys instead, a tier whose table later
         /// changed would keep handing out the old values to anyone who had
         /// selected it before.
         /// </summary>
         public void SetQuality(int level)
         {
             level = Mathf.Clamp(level, 0, Mathf.Max(0, QualityNames.Length - 1));
-
-            // Custom is not selectable from the Quality row - there is nothing to
-            // load, since it means whatever is currently set. Stepping onto it
-            // carries on to the far end of the list instead.
-            if (GraphicsPresets.IsCustom(level))
-            {
-                level = GraphicsPresets.DefaultIndex;
-            }
 
             foreach (string key in RowKeys)
             {
@@ -1223,174 +1234,20 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Brings a saved Custom selection back up, without ever letting HDRP
-        /// adopt what the Custom level is pointing at.
+        /// Writes one row and applies it.
         ///
-        /// That pointer is a clone from the previous session, which no longer
-        /// exists. So this stands on the preset Custom was derived from - a real
-        /// asset - takes the clone source from there, and only then moves onto
-        /// the Custom level, with the rebuild overwriting the dead pointer before
-        /// a frame is drawn.
+        /// Every row is a volume override now, so this is the whole of it. There
+        /// is no snapshot of the other rows to take and no pipeline asset to
+        /// rebuild: moving a row changes one value on a volume, the tier keeps
+        /// whichever stock asset it was pointing at, and the rows the player has
+        /// not touched carry on resolving through that tier.
         /// </summary>
-        private void RestoreSavedCustom()
+        private void SetRow(string key, int value)
         {
-            int baseLevel = CustomBase;
-
-            QualitySettings.SetQualityLevel(baseLevel, applyExpensiveChanges: true);
-            customBaseAsset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
-
-            if (customBaseAsset == null)
-            {
-                // Nothing to clone from. Staying on the preset is a worse answer
-                // than the player's own settings but a far better one than a
-                // pipeline that does not resolve.
-                PlayerPrefs.SetInt(Prefix + "Quality", baseLevel);
-                SettingsStore.MarkDirty();
-                return;
-            }
-
-            QualitySettings.SetQualityLevel(CustomLevel, applyExpensiveChanges: false);
-            RebuildCustomPipeline();
-        }
-
-        /// <summary>
-        /// Writes one row, moves the selection to Custom, and schedules a pipeline
-        /// rebuild if the row needs one.
-        /// </summary>
-        private void SetRow(string key, int value, bool rebuildsPipeline)
-        {
-            SnapshotRowsIfLeavingPreset();
-
             PlayerPrefs.SetInt(Prefix + key, value);
             SettingsStore.MarkDirty();
-
-            if (rebuildsPipeline)
-            {
-                pipelineRebuildDue = Time.unscaledTime + PipelineRebuildDelay;
-            }
-
             Apply();
         }
 
-        /// <summary>
-        /// Freezes the preset's values into every row before the selection becomes
-        /// Custom.
-        ///
-        /// Without this, rows the player never touched would have no stored value
-        /// and would fall back through CurrentPreset - which, once the level is
-        /// Custom, is no longer the preset they started from. Changing one row
-        /// would silently move the other eight.
-        /// </summary>
-        private void SnapshotRowsIfLeavingPreset()
-        {
-            if (IsCustom)
-            {
-                return;
-            }
-
-            GraphicsPreset preset = CurrentPreset;
-
-            // Recorded before the level moves. It is both the clone source and
-            // the thing a saved Custom selection has to be rebuilt from on the
-            // next launch, when there is no preset to be standing on.
-            PlayerPrefs.SetInt(Prefix + "CustomBase", QualityLevel);
-            customBaseAsset = QualitySettings.renderPipeline as HDRenderPipelineAsset;
-
-            PlayerPrefs.SetInt(Prefix + "Shadows", (int)preset.Shadows);
-            PlayerPrefs.SetInt(Prefix + "AO", (int)preset.AmbientOcclusion);
-            PlayerPrefs.SetInt(Prefix + "SSR", (int)preset.Reflections);
-            PlayerPrefs.SetInt(Prefix + "GI", (int)preset.GlobalIllumination);
-            PlayerPrefs.SetInt(Prefix + "Fog", (int)preset.VolumetricFog);
-            PlayerPrefs.SetInt(Prefix + "TextureMip", preset.TextureMipLimit);
-            PlayerPrefs.SetInt(Prefix + "Aniso", (int)preset.Anisotropic);
-
-            PlayerPrefs.SetInt(Prefix + "Quality", CustomLevel);
-
-            // applyExpensiveChanges false on purpose. True would have HDRP adopt
-            // whatever the Custom level is currently pointing at - which, after
-            // any previous session, is a destroyed clone. Moving without
-            // rebuilding lets the assignment below overwrite it first.
-            QualitySettings.SetQualityLevel(CustomLevel, applyExpensiveChanges: false);
-
-            // Immediately rather than on the settle timer: the level is pointing
-            // at something dead until this runs, and a frame rendered in that
-            // window is where the warnings came from. Later row changes are the
-            // ones worth debouncing.
-            RebuildCustomPipeline();
-        }
-
-        /// <summary>
-        /// Rebuilds the Custom level's pipeline asset from the current rows.
-        ///
-        /// Works on a runtime clone, never on an asset. Asset edits made in play
-        /// mode are not rolled back when play mode ends, so writing the real one
-        /// would mean a player dragging a control in the editor permanently
-        /// rewrites the shipped defaults.
-        /// </summary>
-        private void RebuildCustomPipeline()
-        {
-            if (!IsCustom || customBaseAsset == null)
-            {
-                return;
-            }
-
-            // Last generation's clone goes now. HDRP finished with it a rebuild
-            // ago, so there is no teardown left to disturb.
-            if (retiredClone != null)
-            {
-                Destroy(retiredClone);
-                retiredClone = null;
-            }
-
-            // One clone per base preset, reused. Rebuilding by instantiating a
-            // fresh asset every time meant destroying the outgoing one, which is
-            // the race described on retiredClone. ApplyPreset writes every field
-            // it owns from the preset rather than reading what is there, so
-            // reusing the object cannot accumulate drift.
-            if (customClone == null || cloneSource != customBaseAsset)
-            {
-                retiredClone = customClone;
-                customClone = Instantiate(customBaseAsset);
-                customClone.name = "HDRP Custom (runtime)";
-                cloneSource = customBaseAsset;
-            }
-
-            RenderPipelineSettings settings = customClone.currentPlatformRenderPipelineSettings;
-            PipelineTuning.ApplyPreset(ref settings, RowsAsPreset());
-            customClone.currentPlatformRenderPipelineSettings = settings;
-
-            if (QualitySettings.renderPipeline != customClone)
-            {
-                QualitySettings.renderPipeline = customClone;
-                return;
-            }
-
-            // Already current, so assigning it again changes nothing HDRP would
-            // notice. Atlas sizes and support flags are structural - they are
-            // read when the pipeline is built - so it has to be rebuilt.
-            QualitySettings.SetQualityLevel(QualitySettings.GetQualityLevel(), applyExpensiveChanges: true);
-        }
-
-        /// <summary>The current rows, in the shape the pipeline writer expects.</summary>
-        private GraphicsPreset RowsAsPreset()
-        {
-            // Starts from the preset the Custom level rests on so the handful of
-            // fields with no row - subsurface scattering, decals, minimum spec -
-            // keep sane values rather than defaulting to false.
-            GraphicsPreset preset = GraphicsPresets.At(GraphicsPresets.Count - 1);
-
-            preset.Name = GraphicsPresets.CustomName;
-            preset.Shadows = Shadows;
-            preset.AmbientOcclusion = AmbientOcclusion;
-            preset.Reflections = Reflections;
-            preset.GlobalIllumination = GlobalIlluminationQuality;
-            preset.VolumetricFog = VolumetricFog;
-            preset.TextureMipLimit = TextureMipLimit;
-            preset.Anisotropic = Anisotropic;
-            preset.RayTracing = RayTracingAvailable;
-            preset.MinimumSpec = false;
-
-            return preset;
-        }
     }
 }

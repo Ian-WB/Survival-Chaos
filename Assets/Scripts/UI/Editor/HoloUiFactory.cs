@@ -555,9 +555,15 @@ namespace SurvivalChaos.EditorTools
         /// failure as a setting that does nothing invisibly, which is the whole
         /// reason this screen was rebuilt.
         ///
-        /// The split is by what the setting spends money on. Left is the lighting
-        /// solution — how shadows and indirect light are computed. Right is
-        /// everything layered on top of it.
+        /// The split is by what the setting spends money on. Left is how light and
+        /// shadow are computed; right is what gets layered over the image once
+        /// they have been.
+        ///
+        /// Shorter than it was by four rows. Texture Quality and Anisotropic
+        /// Filtering are values the quality tier already carries, so they went
+        /// with the code that used to override them; Shadow Quality narrowed to
+        /// the one thing in it a volume can still reach and is now Contact
+        /// Shadows.
         /// </summary>
         public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
         {
@@ -567,18 +573,16 @@ namespace SurvivalChaos.EditorTools
             (GraphicsOptionKind kind, string label)[] lighting =
             {
                 (GraphicsOptionKind.Quality, "Quality"),
-                (GraphicsOptionKind.ShadowQuality, "Shadow Quality"),
+                (GraphicsOptionKind.ContactShadows, "Contact Shadows"),
                 (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
-                (GraphicsOptionKind.GlobalIllumination, "Global Illumination"),
-                (GraphicsOptionKind.Reflections, "Reflections")
+                (GraphicsOptionKind.GlobalIllumination, "Global Illumination")
             };
 
             (GraphicsOptionKind kind, string label)[] image =
             {
+                (GraphicsOptionKind.Reflections, "Reflections"),
                 (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
-                (GraphicsOptionKind.MotionBlur, "Motion Blur"),
-                (GraphicsOptionKind.TextureQuality, "Texture Quality"),
-                (GraphicsOptionKind.Anisotropic, "Anisotropic Filtering")
+                (GraphicsOptionKind.MotionBlur, "Motion Blur")
             };
 
             for (int i = 0; i < lighting.Length; i++)

@@ -214,7 +214,7 @@ MonoBehaviour:
   m_ShouldUseConservativeEnclosingSphere: 0
   m_NumIterationsEnclosingSphere: 64
   m_RenderPipelineSettings:
-    supportShadowMask: 1
+    supportShadowMask: 0
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
@@ -263,7 +263,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 800000000001000000020000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -279,7 +279,7 @@ MonoBehaviour:
     supportDitheringCrossFade: 1
     supportRuntimeAOVAPI: 0
     supportTerrainHole: 0
-    lightProbeSystem: 1
+    lightProbeSystem: 0
     oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
     supportProbeVolumeGPUStreaming: 0
@@ -288,7 +288,7 @@ MonoBehaviour:
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
     probeVolumeBlendingMemoryBudget: 128
-    supportRayTracing: 1
+    supportRayTracing: 0
     supportVFXRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
@@ -302,7 +302,7 @@ MonoBehaviour:
       maxEnvLightsOnScreen: 32
       reflectionCacheCompressed: 1
       reflectionProbeFormat: 74
-      reflectionProbeTexCacheSize: 1024
+      reflectionProbeTexCacheSize: 4096
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
@@ -321,17 +321,17 @@ MonoBehaviour:
       maxLocalVolumetricFogSize: 32
       maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
-      maxShadowRequests: 8
+      maxShadowRequests: 128
       directionalShadowsDepthBits: 16
       punctualShadowFilteringQuality: 1
       directionalShadowFilteringQuality: 1
       areaShadowFilteringQuality: 0
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 2048
+        shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
-        shadowAtlasResolution: 256
+        shadowAtlasResolution: 2048
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 0
       cachedPunctualLightShadowAtlas: 2048
@@ -350,10 +350,10 @@ MonoBehaviour:
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 2048
-      maxPunctualShadowMapResolution: 1024
+      maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
       supportScreenSpaceShadows: 0
-      supportContactShadows: 0
+      supportContactShadows: 1
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
     decalSettings:
@@ -370,12 +370,10 @@ MonoBehaviour:
       lutFormat: 48
       bufferFormat: 74
     dynamicResolutionSettings:
-      enabled: 1
-      useMipBias: 1
+      enabled: 0
+      useMipBias: 0
       advancedUpscalersByPriority: 
-      advancedUpscalerNames:
-      - DLSS
-      - FSR2
+      advancedUpscalerNames: []
       DLSSPerfQualitySetting: 0
       DLSSInjectionPoint: 0
       TAAUInjectionPoint: 0
@@ -396,9 +394,9 @@ MonoBehaviour:
       fsrOverrideSharpness: 0
       fsrSharpness: 0.92
       maxPercentage: 100
-      minPercentage: 50
+      minPercentage: 100
       dynResType: 1
-      upsampleFilter: 5
+      upsampleFilter: 1
       forceResolution: 0
       forcedPercentage: 100
       lowResTransparencyMinimumThreshold: 0
@@ -456,13 +454,13 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     lightingQualitySettings:
-      AOStepCount: 040000000800000010000000
+      AOStepCount: 040000000600000006000000
       AOFullRes: 000000
       AOMaximumRadiusPixels: 200000002000000028000000
       AOBilateralUpsample: 000001
       AODirectionCount: 010000000200000002000000
-      ContactShadowSampleCount: 060000000a00000010000000
-      SSRMaxRaySteps: 100000002000000040000000
+      ContactShadowSampleCount: 04000000080000000c000000
+      SSRMaxRaySteps: 0c0000001800000030000000
       SSGIRaySteps: 200000004000000080000000
       SSGIDenoise: 010101
       SSGIHalfResDenoise: 010000
@@ -519,15 +517,15 @@ MonoBehaviour:
       - 1
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
-      - 0.125
-      - 0.33
-      - 0.66
+      - 0.166
+      - 0.333
+      - 0.666
       Fog_DepthRatio:
       - 0.5
       - 0.5
       - 0.5
     gpuResidentDrawerSettings:
-      mode: 0
+      mode: 1
       smallMeshScreenPercentage: 0
       enableOcclusionCullingInCameras: 0
       useDepthPrepassForOccluders: 1
