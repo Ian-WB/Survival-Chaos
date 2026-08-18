@@ -22,18 +22,6 @@ namespace SurvivalChaos
     {
         public string Name;
 
-        /// <summary>
-        /// Contact shadows: the short-range contact darkening HDRP traces in
-        /// screen space.
-        ///
-        /// All that is left of what used to be a six-rung Shadow Quality row.
-        /// The rest of that row - shadowmask, atlas size, request count,
-        /// filtering - lives in the pipeline asset, which is no longer ours to
-        /// write.
-        /// </summary>
-        public EffectQuality ContactShadows;
-
-        public EffectQuality AmbientOcclusion;
         public EffectQuality Reflections;
         public EffectQuality GlobalIllumination;
         public EffectQuality VolumetricFog;
@@ -48,11 +36,13 @@ namespace SurvivalChaos
     /// keeps self-consistent. Anything above or below is a new asset to author
     /// by hand, not a table of numbers for this file to invent.
     ///
-    /// **Reflections are off at every tier, and not by taste.** All three stock
-    /// assets ship `supportSSR: false`, which is a hard gate - the volume
-    /// override cannot switch on an effect the pipeline did not compile. The row
-    /// still exists and greys itself out, which is the honest reading; defaulting
-    /// it to Low would just be a row that claims to do something and does not.
+    /// **Reflections are off on Low and on above it.** Low's asset ships
+    /// `supportSSR: false`, which is a hard gate - a volume override cannot
+    /// switch on an effect the pipeline never compiled - so the row greys
+    /// itself out there instead of pretending. Medium and High do compile it,
+    /// and each gets the rung its tier can afford. High also compiles SSR on
+    /// transparent surfaces; that is a pipeline flag with no row of its own,
+    /// so it simply comes with the tier.
     ///
     /// **GI is off at every tier**, for the reason it has always been off: this
     /// scene's indirect light is baked, into lightmaps and Adaptive Probe
@@ -61,8 +51,11 @@ namespace SurvivalChaos
     /// actually watches - lose their indirect light entirely and render as black
     /// silhouettes against terrain that kept its lightmap. That shipped once.
     ///
-    /// The ray-traced rungs are unreachable here too: `supportRayTracing` is
-    /// false in all three stock assets. The rows drop to four entries and say so.
+    /// The ray-traced rungs are reachable on Medium and High, which compile
+    /// `supportRayTracing`, wherever the GPU reports DXR. Low keeps four
+    /// entries and its rows say why. Nothing here defaults to a ray-traced
+    /// rung: they are opt-in, and ray-traced global illumination in particular
+    /// is the exact setting that produced the silhouettes described above.
     ///
     /// **Motion blur is deliberately absent**, as it has been since it left the
     /// preset system. It is taste rather than fidelity, and a tier stamping over
@@ -79,8 +72,6 @@ namespace SurvivalChaos
                 // fog is gated off in the asset (supportVolumetrics: false), so
                 // the fog row here is inert whatever it is set to.
                 Name = "Low",
-                ContactShadows = EffectQuality.Off,
-                AmbientOcclusion = EffectQuality.Low,
                 Reflections = EffectQuality.Off,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Off
@@ -89,21 +80,17 @@ namespace SurvivalChaos
             {
                 // Unity's HDRP Balanced.
                 Name = "Medium",
-                ContactShadows = EffectQuality.Low,
-                AmbientOcclusion = EffectQuality.Medium,
-                Reflections = EffectQuality.Off,
+                Reflections = EffectQuality.Medium,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Low
             },
             new GraphicsPreset
             {
-                // Unity's HDRP High Fidelity. The only tier with
-                // AdaptiveProbeVolumes, and so the only one that uses this
-                // scene's probe volume bake.
+                // Unity's HDRP High Fidelity. Compiles the same set of effects
+                // as Medium does now; what still separates the two is sky
+                // reflection resolution and the rungs below.
                 Name = "High",
-                ContactShadows = EffectQuality.Medium,
-                AmbientOcclusion = EffectQuality.High,
-                Reflections = EffectQuality.Off,
+                Reflections = EffectQuality.High,
                 GlobalIllumination = EffectQuality.Off,
                 VolumetricFog = EffectQuality.Medium
             }

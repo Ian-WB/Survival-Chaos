@@ -21,7 +21,6 @@ namespace SurvivalChaos
         FrameCap = 4,
         RenderScale = 5,
         Reflections = 7,
-        AmbientOcclusion = 8,
         VolumetricFog = 9,
         MotionBlur = 10,
         UpscaleMethod = 12,
@@ -29,18 +28,6 @@ namespace SurvivalChaos
         AntiAliasing = 14,
         DynamicResolution = 16,
         GlobalIllumination = 17,
-
-        /// <summary>
-        /// Was Shadow Quality, a six-rung ladder over the pipeline asset's
-        /// shadowmask, atlas size, request count, resolution and filtering.
-        ///
-        /// The number is kept rather than retired because the row survived in
-        /// place: contact shadows was always part of what that rung set, and it
-        /// is the only part that is still ours to move now the tier owns its
-        /// asset. A row serialised as 18 by an older build lands on the right
-        /// control - a narrower one, wearing an accurate label.
-        /// </summary>
-        ContactShadows = 18
 
         // 15 was Sharpness, before it became a slider rather than a cycler. The
         // number stays retired rather than reused: a row serialised as 15 by an
@@ -63,6 +50,12 @@ namespace SurvivalChaos
         // QualitySettings values that every quality level already carries, so the
         // rows were overriding the chosen tier with numbers the menu invented.
         // The tier decides them now, and both numbers stay retired.
+        //
+        // 8 was Ambient Occlusion and 18 Contact Shadows. Both rows worked, and
+        // both stopped being reachable when the tiers stopped compiling
+        // supportSSAO and supportContactShadows - leaving them would have meant
+        // two permanently grey rows, which is worse than no row at all. Re-tick
+        // either flag and the row has to come back with its number.
     }
 
     /// <summary>
@@ -332,12 +325,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VolumetricFog:
                     return director.VolumetricFogSupported;
 
-                case GraphicsOptionKind.ContactShadows:
-                    return director.ContactShadowsSupported;
-
-                case GraphicsOptionKind.AmbientOcclusion:
-                    return director.AmbientOcclusionSupported;
-
                 default:
                     return true;
             }
@@ -394,7 +381,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Quality:
                     return Mathf.Max(1, director.QualityNames.Length);
 
-                case GraphicsOptionKind.AmbientOcclusion:
                 case GraphicsOptionKind.Reflections:
                 case GraphicsOptionKind.GlobalIllumination:
                     return EffectRungs(director);
@@ -402,7 +388,6 @@ namespace SurvivalChaos
                 // No ray-traced form, so these stop at High.
                 case GraphicsOptionKind.VolumetricFog:
                 case GraphicsOptionKind.MotionBlur:
-                case GraphicsOptionKind.ContactShadows:
                     return QualityLadder.ScreenSpaceCount;
 
                 case GraphicsOptionKind.Resolution: return director.Sizes.Count;
@@ -438,9 +423,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
-                case GraphicsOptionKind.ContactShadows: return (int)director.ContactShadowQuality;
                 case GraphicsOptionKind.Reflections: return (int)director.Reflections;
-                case GraphicsOptionKind.AmbientOcclusion: return (int)director.AmbientOcclusion;
                 case GraphicsOptionKind.GlobalIllumination: return (int)director.GlobalIlluminationQuality;
                 case GraphicsOptionKind.VolumetricFog: return (int)director.VolumetricFog;
                 case GraphicsOptionKind.MotionBlur: return (int)director.MotionBlurQuality;
@@ -462,9 +445,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
-                case GraphicsOptionKind.ContactShadows: director.ContactShadowQuality = (EffectQuality)index; break;
                 case GraphicsOptionKind.Reflections: director.Reflections = (EffectQuality)index; break;
-                case GraphicsOptionKind.AmbientOcclusion: director.AmbientOcclusion = (EffectQuality)index; break;
                 case GraphicsOptionKind.GlobalIllumination: director.GlobalIlluminationQuality = (EffectQuality)index; break;
                 case GraphicsOptionKind.VolumetricFog: director.VolumetricFog = (EffectQuality)index; break;
                 case GraphicsOptionKind.MotionBlur: director.MotionBlurQuality = (EffectQuality)index; break;
@@ -521,14 +502,8 @@ namespace SurvivalChaos
                         ? DisplayOptions.AntiAliasingNames[(int)director.AntiAliasing]
                         : DisplayOptions.UpscaleMethodNames[(int)director.Method];
 
-                case GraphicsOptionKind.ContactShadows:
-                    return QualityLadder.Describe(director.ContactShadowQuality);
-
                 case GraphicsOptionKind.Reflections:
                     return QualityLadder.Describe(director.Reflections);
-
-                case GraphicsOptionKind.AmbientOcclusion:
-                    return QualityLadder.Describe(director.AmbientOcclusion);
 
                 case GraphicsOptionKind.GlobalIllumination:
                     return QualityLadder.Describe(director.GlobalIlluminationQuality);
@@ -563,8 +538,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Reflections when !director.ReflectionsSupported:
                 case GraphicsOptionKind.GlobalIllumination when !director.GlobalIlluminationSupported:
                 case GraphicsOptionKind.VolumetricFog when !director.VolumetricFogSupported:
-                case GraphicsOptionKind.ContactShadows when !director.ContactShadowsSupported:
-                case GraphicsOptionKind.AmbientOcclusion when !director.AmbientOcclusionSupported:
                     return "Not compiled into this quality tier";
 
                 case GraphicsOptionKind.RenderScale when !director.DynamicResolutionSupported:
@@ -574,16 +547,9 @@ namespace SurvivalChaos
                 // Says why the ladder stops at High rather than leaving the
                 // ray-traced rungs to be looked for and not found. Two things can
                 // withhold them and the row cannot tell which, so it names both.
-                case GraphicsOptionKind.AmbientOcclusion when !director.RayTracingAvailable:
                 case GraphicsOptionKind.Reflections when !director.RayTracingAvailable:
                 case GraphicsOptionKind.GlobalIllumination when !director.RayTracingAvailable:
                     return "Ray traced levels need a DXR GPU and a tier that compiled them";
-
-                // "Off" on a row with "shadows" in its name reads as no shadows at
-                // all, which is not what this one does - the tier's own shadow
-                // maps are untouched by it.
-                case GraphicsOptionKind.ContactShadows when director.ContactShadowQuality == EffectQuality.Off:
-                    return "Only the short-range contact darkening; other shadows are unaffected";
 
                 case GraphicsOptionKind.FrameCap when director.VSync:
                     return "Ignored while VSync is on";

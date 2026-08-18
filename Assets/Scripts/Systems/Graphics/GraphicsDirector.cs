@@ -72,11 +72,9 @@ namespace SurvivalChaos
 
         private Volume overrides;
         private ScreenSpaceReflection reflections;
-        private ScreenSpaceAmbientOcclusion occlusion;
         private Fog fog;
         private MotionBlur motionBlur;
         private GlobalIllumination globalIllumination;
-        private ContactShadows contactShadows;
         private HDShadowSettings shadowSettings;
 
         // A Custom quality level used to live here, backed by a runtime clone of
@@ -550,26 +548,6 @@ namespace SurvivalChaos
         /// </summary>
         private GraphicsPreset CurrentPreset => GraphicsPresets.At(QualityLevel);
 
-        /// <summary>
-        /// Contact shadows, all that survives of the old Shadow Quality row.
-        ///
-        /// The other six things that row set - shadowmask, dynamic shadows, atlas
-        /// size, request count, per-shadow resolution and filtering - are all
-        /// pipeline asset fields, and the asset belongs to the tier now. This one
-        /// is a volume override, so it is still ours to move.
-        /// </summary>
-        public EffectQuality ContactShadowQuality
-        {
-            get => Effect("ContactShadows", CurrentPreset.ContactShadows);
-            set => SetRow("ContactShadows", (int)value);
-        }
-
-        public EffectQuality AmbientOcclusion
-        {
-            get => Effect("AO", CurrentPreset.AmbientOcclusion);
-            set => SetRow("AO", (int)value);
-        }
-
         public EffectQuality Reflections
         {
             get => Effect("SSR", CurrentPreset.Reflections);
@@ -667,17 +645,6 @@ namespace SurvivalChaos
         /// <summary>False in Performant, which ships supportVolumetrics off.</summary>
         public bool VolumetricFogSupported =>
             TryPipelineSettings(out RenderPipelineSettings s) && s.supportVolumetrics;
-
-        /// <summary>
-        /// True in all three stock tiers. Nested under hdShadowInitParams rather
-        /// than sitting on RenderPipelineSettings like the other support flags.
-        /// </summary>
-        public bool ContactShadowsSupported =>
-            TryPipelineSettings(out RenderPipelineSettings s) &&
-            s.hdShadowInitParams.supportContactShadows;
-
-        public bool AmbientOcclusionSupported =>
-            TryPipelineSettings(out RenderPipelineSettings s) && s.supportSSAO;
 
         /// <summary>
         /// Whether the tier compiled dynamic resolution at all.
@@ -789,11 +756,9 @@ namespace SurvivalChaos
             overrides.profile = ScriptableObject.CreateInstance<VolumeProfile>();
 
             reflections = overrides.profile.Add<ScreenSpaceReflection>();
-            occlusion = overrides.profile.Add<ScreenSpaceAmbientOcclusion>();
             fog = overrides.profile.Add<Fog>();
             motionBlur = overrides.profile.Add<MotionBlur>();
             globalIllumination = overrides.profile.Add<GlobalIllumination>();
-            contactShadows = overrides.profile.Add<ContactShadows>();
             shadowSettings = overrides.profile.Add<HDShadowSettings>();
 
             // Set once rather than tiered. maxShadowDistance is chiefly the
@@ -963,47 +928,10 @@ namespace SurvivalChaos
                 return;
             }
 
-            ApplyAmbientOcclusion();
             ApplyReflections();
             ApplyGlobalIllumination();
             ApplyFog();
             ApplyMotionBlur();
-            ApplyContactShadows();
-        }
-
-        /// <summary>
-        /// Contact shadows, now a row of their own rather than something that
-        /// came along with a shadow rung.
-        ///
-        /// The pipeline flag decides whether the pass exists at all; this decides
-        /// whether it runs and how many samples it spends.
-        /// </summary>
-        private void ApplyContactShadows()
-        {
-            EffectQuality quality = ContactShadowQuality;
-
-            contactShadows.enable.overrideState = true;
-            contactShadows.enable.value = QualityLadder.IsOn(quality);
-
-            contactShadows.quality.overrideState = true;
-            contactShadows.quality.value = QualityLadder.ScalableLevel(quality);
-        }
-
-        private void ApplyAmbientOcclusion()
-        {
-            EffectQuality quality = AmbientOcclusion;
-            bool on = QualityLadder.IsOn(quality);
-
-            occlusion.quality.overrideState = true;
-            occlusion.quality.value = QualityLadder.ScalableLevel(quality);
-
-            occlusion.rayTracing.overrideState = true;
-            occlusion.rayTracing.value = QualityLadder.IsRayTraced(quality);
-
-            // Intensity is the only way to silence AO - the component has no
-            // enabled flag of its own.
-            occlusion.intensity.overrideState = !on;
-            occlusion.intensity.value = 0f;
         }
 
         private void ApplyReflections()
@@ -1182,7 +1110,7 @@ namespace SurvivalChaos
         /// </summary>
         private static readonly string[] RowKeys =
         {
-            "ContactShadows", "AO", "SSR", "GI", "Fog"
+            "SSR", "GI", "Fog"
 
             // MotionBlur is deliberately absent. It sits outside the tier
             // system, so picking a tier must not clear it - that is the whole
@@ -1201,11 +1129,15 @@ namespace SurvivalChaos
         /// QualitySettings values now left to the tier, CustomBase recorded which
         /// preset a Custom selection was cut from, RTShadows was a row that
         /// allocated a buffer nothing wrote to, and Lighting was a Baked/Ray
-        /// traced switch that GlobalIllumination replaced.
+        /// traced switch that GlobalIllumination replaced. AO and ContactShadows
+        /// went when their tiers stopped compiling supportSSAO and
+        /// supportContactShadows - a row that can never do anything is worse than
+        /// no row, so both were removed rather than left permanently grey.
         /// </summary>
         private static readonly string[] RetiredRowKeys =
         {
-            "Shadows", "TextureMip", "Aniso", "CustomBase", "RTShadows", "Lighting"
+            "Shadows", "TextureMip", "Aniso", "CustomBase", "RTShadows",
+            "Lighting", "AO", "ContactShadows"
         };
 
         /// <summary>

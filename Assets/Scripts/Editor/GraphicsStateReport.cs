@@ -89,8 +89,6 @@ namespace SurvivalChaos.EditorTools
             }
 
             sb.AppendLine("--- MENU ROWS ---   (gated: the tier's asset never compiled it)");
-            sb.AppendLine($"  contact shadows : {Row(director.ContactShadowQuality, director.ContactShadowsSupported)}");
-            sb.AppendLine($"  ambient occl.   : {Row(director.AmbientOcclusion, director.AmbientOcclusionSupported)}");
             sb.AppendLine($"  reflections     : {Row(director.Reflections, director.ReflectionsSupported)}");
             sb.AppendLine($"  global illum.   : {Row(director.GlobalIlluminationQuality, director.GlobalIlluminationSupported)}");
             sb.AppendLine($"  volumetric fog  : {Row(director.VolumetricFog, director.VolumetricFogSupported)}");

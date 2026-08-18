@@ -548,22 +548,22 @@ namespace SurvivalChaos.EditorTools
         /// Fills a panel with what is actually in the image, as opposed to how it
         /// gets drawn — that half now lives on the display screen.
         ///
-        /// Two columns, where this used to be one. It grew from six rows to ten
-        /// when every effect became a Low/Medium/High ladder rather than a switch,
-        /// and ten will not fit down one side. Scrolling was the alternative and
-        /// was rejected: a settings list that hides rows below a fold is the same
-        /// failure as a setting that does nothing invisibly, which is the whole
-        /// reason this screen was rebuilt.
+        /// Down to five rows from ten, and still two columns: the split is by what
+        /// the setting spends money on, left for how light is computed and right
+        /// for what gets layered over the image afterwards.
         ///
-        /// The split is by what the setting spends money on. Left is how light and
-        /// shadow are computed; right is what gets layered over the image once
-        /// they have been.
+        /// What left, and why, because the pattern matters more than the list.
+        /// Texture Quality and Anisotropic Filtering are per-level QualitySettings
+        /// values the tier already carries, so they went with the code that used
+        /// to override them. Shadow Quality narrowed to contact shadows, then went
+        /// too. Ambient Occlusion followed it. Both of those last two are volume
+        /// overrides that the tier assets stopped compiling - supportSSAO and
+        /// supportContactShadows are off on all three now - and a row that can
+        /// never take effect is worse than no row, which is the same principle
+        /// that got the greyed-out state built in the first place.
         ///
-        /// Shorter than it was by four rows. Texture Quality and Anisotropic
-        /// Filtering are values the quality tier already carries, so they went
-        /// with the code that used to override them; Shadow Quality narrowed to
-        /// the one thing in it a volume can still reach and is now Contact
-        /// Shadows.
+        /// So the count moves with the tiers rather than being authored here. Turn
+        /// either flag back on and its row has to come back with it.
         /// </summary>
         public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
         {
@@ -573,14 +573,12 @@ namespace SurvivalChaos.EditorTools
             (GraphicsOptionKind kind, string label)[] lighting =
             {
                 (GraphicsOptionKind.Quality, "Quality"),
-                (GraphicsOptionKind.ContactShadows, "Contact Shadows"),
-                (GraphicsOptionKind.AmbientOcclusion, "Ambient Occlusion"),
-                (GraphicsOptionKind.GlobalIllumination, "Global Illumination")
+                (GraphicsOptionKind.GlobalIllumination, "Global Illumination"),
+                (GraphicsOptionKind.Reflections, "Reflections")
             };
 
             (GraphicsOptionKind kind, string label)[] image =
             {
-                (GraphicsOptionKind.Reflections, "Reflections"),
                 (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
                 (GraphicsOptionKind.MotionBlur, "Motion Blur")
             };
