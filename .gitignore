@@ -84,3 +84,23 @@ crashlytics-build.properties
 # a Windows build needs. Registry packages resolve into Library/ and should
 # never be embedded here.
 /[Pp]ackages/com.unity.ai.assistant/
+
+# --- Baked lighting ----------------------------------------------------------
+# Output, not source. One bake of the Game scene is ~55 MB: a 45 MB lightmap
+# EXR, its directionality and shadowmask maps, and the Adaptive Probe Volume
+# cell data. All of it goes through LFS against a 1 GB quota, and it is re-baked
+# often enough that a couple of dozen commits would spend the whole thing.
+#
+# What stays tracked is everything that *produces* the bake - the Baking Set
+# asset, the Lighting Settings asset, the scene's volume profiles and the scene
+# itself - so a fresh clone can reproduce it with Window > Rendering > Lighting
+# > Generate Lighting. Until it does, the scene opens unlit: Game.unity still
+# names its LightingData asset by GUID, and that reference now dangles.
+#
+# The .meta files go with their assets. A meta with no asset beside it is an
+# orphan Unity deletes on the next import, so tracking those alone would just
+# produce a deletion to commit every time the project is opened.
+/[Aa]ssets/[Ss]cenes/**/[Ll]ightmap-*
+/[Aa]ssets/[Ss]cenes/**/[Rr]eflection[Pp]robe-*
+/[Aa]ssets/[Ss]cenes/**/[Ll]ighting[Dd]ata.asset*
+/[Aa]ssets/[Ss]cenes/**/*.[Cc]ell*.bytes*
