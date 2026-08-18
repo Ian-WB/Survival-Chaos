@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -33,6 +34,23 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>Edge length of the visible core. A bullet is roughly a third of this.</summary>
         private const float CoreScale = 0.45f;
+
+        /// <summary>
+        /// Where the interface typeface lives. Searched rather than referenced by
+        /// path so renaming the font asset does not silently produce unstyled
+        /// text - the same arrangement HoloUiFactory uses for the menus.
+        /// </summary>
+        private const string FontFolder = "Assets/UI/Fonts";
+
+        /// <summary>
+        /// How far above the core the label sits, in world units. The core is a
+        /// 0.45 cube stood on a corner, so its silhouette reaches about 0.39 out
+        /// from centre - this clears it without floating free of it.
+        /// </summary>
+        private const float LabelRise = 0.75f;
+
+        /// <summary>Where the caption board goes: a child of the overlay canvas.</summary>
+        private const string BoardName = "Pickup Labels (Holo)";
 
         [MenuItem("Survival Chaos/Build Pickup Prefab", priority = 48)]
         public static void Build()
@@ -110,31 +128,167 @@ namespace SurvivalChaos.EditorTools
             renderer.receiveShadows = false;
 
             Pickup pickup = root.AddComponent<Pickup>();
-            AssignTintTarget(pickup, renderer);
+            AssignReference(pickup, "tintTarget", renderer);
+            AssignReference(pickup, "label", BuildLabel(root));
         }
 
         /// <summary>
-        /// Points the Pickup component at the renderer it should tint. The field
-        /// is private and serialized, so it goes through SerializedObject.
+        /// The point the caption is drawn above, and the component that carries
+        /// what it says.
         ///
-        /// Pickup falls back to the first renderer in its children if this is
-        /// left empty, so this is belt and braces - but the fallback runs a
-        /// GetComponentInChildren on the first spawn of every pickup, and being
-        /// explicit costs nothing.
+        /// No text of its own. The caption is drawn by PickupLabelBoard on the
+        /// screen-space canvas, because a world-space TextMeshPro writes no
+        /// motion vectors and temporal antialiasing smeared it; this object only
+        /// has to say where above the pickup that caption belongs.
+        ///
+        /// A child of the root rather than of the core so it does not inherit the
+        /// core's 45-degree presentation rotation, and so the spin does not move
+        /// it - the root spins about its own axis, which leaves a point on that
+        /// axis exactly where it was.
         /// </summary>
-        private static void AssignTintTarget(Pickup pickup, Renderer renderer)
+        private static PickupLabel BuildLabel(GameObject root)
         {
-            SerializedObject serialized = new SerializedObject(pickup);
-            SerializedProperty target = serialized.FindProperty("tintTarget");
+            GameObject holder = new GameObject("Label");
+            holder.transform.SetParent(root.transform, worldPositionStays: false);
+            holder.transform.localPosition = new Vector3(0f, LabelRise, 0f);
+
+            return holder.AddComponent<PickupLabel>();
+        }
+
+        /// <summary>
+        /// Puts the caption board on the scene's overlay canvas, or brings an
+        /// existing one back up to date.
+        ///
+        /// Separate from the prefab build because it writes to the open scene
+        /// rather than to an asset, and running it is not something the prefab
+        /// build should do behind your back.
+        ///
+        /// It has to be the Screen Space - Overlay canvas specifically. That is
+        /// the whole point of the board: overlay UI is composited after HDRP has
+        /// finished, so temporal antialiasing never sees it. A world-space or
+        /// Screen Space - Camera canvas is drawn inside the frame and would be
+        /// smeared exactly as the world-space labels were.
+        /// </summary>
+        [MenuItem("Survival Chaos/Build Pickup Label Board", priority = 49)]
+        public static void BuildBoard()
+        {
+            Canvas canvas = null;
+
+            foreach (Canvas candidate in Object.FindObjectsByType<Canvas>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (candidate.isRootCanvas && candidate.renderMode == RenderMode.ScreenSpaceOverlay)
+                {
+                    canvas = candidate;
+                    break;
+                }
+            }
+
+            if (canvas == null)
+            {
+                Debug.LogError(
+                    "No Screen Space - Overlay canvas in the open scene, so there is nowhere " +
+                    "to put the caption board. The captions are drawn there precisely because " +
+                    "overlay UI escapes post-processing.");
+                return;
+            }
+
+            Transform existing = canvas.transform.Find(BoardName);
+            GameObject board;
+
+            if (existing != null)
+            {
+                board = existing.gameObject;
+            }
+            else
+            {
+                board = new GameObject(BoardName, typeof(RectTransform));
+                board.transform.SetParent(canvas.transform, worldPositionStays: false);
+                Undo.RegisterCreatedObjectUndo(board, "Build Pickup Label Board");
+            }
+
+            // Stretched to the full canvas. The captions are positioned in screen
+            // pixels, so the board only has to be a container that does not clip
+            // them - an inset rect would cut off any caption near an edge.
+            RectTransform rect = board.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            if (!board.TryGetComponent(out PickupLabelBoard component))
+            {
+                component = board.AddComponent<PickupLabelBoard>();
+            }
+
+            AssignReference(component, "font", InterfaceFont());
+
+            EditorUtility.SetDirty(board);
+            Selection.activeObject = board;
+
+            Debug.Log(
+                $"'{BoardName}' is on '{canvas.name}'. Save the scene to keep it. Caption size, " +
+                "distance falloff and glow strength are on the component.", board);
+        }
+
+        /// <summary>
+        /// The interface typeface, or null to leave TextMeshPro's default.
+        ///
+        /// Found by searching the font folder rather than by a hard path, so
+        /// replacing the font is a matter of dropping the new asset in. Null is a
+        /// legitimate answer: unstyled text is worse than styled text but far
+        /// better than a builder that refuses to run.
+        /// </summary>
+        private static TMP_FontAsset InterfaceFont()
+        {
+            if (!AssetDatabase.IsValidFolder(FontFolder))
+            {
+                Debug.LogWarning($"No '{FontFolder}' folder, so pickup labels will use " +
+                                 "TextMeshPro's default font.");
+                return null;
+            }
+
+            foreach (string guid in AssetDatabase.FindAssets("t:TMP_FontAsset", new[] { FontFolder }))
+            {
+                TMP_FontAsset font =
+                    AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(AssetDatabase.GUIDToAssetPath(guid));
+
+                if (font != null)
+                {
+                    return font;
+                }
+            }
+
+            Debug.LogWarning($"No TMP font asset in '{FontFolder}', so pickup labels will use " +
+                             "TextMeshPro's default font.");
+            return null;
+        }
+
+        /// <summary>
+        /// Fills in a private serialized reference, which has to go through
+        /// SerializedObject because the field is not public.
+        ///
+        /// Every field wired this way has a runtime fallback that finds the same
+        /// object with a GetComponentInChildren, so none of this is load-bearing
+        /// - but the fallback runs on the first spawn of every pickup, and being
+        /// explicit costs nothing. A missing field warns and moves on rather than
+        /// aborting the build, since a renamed field should cost you a wire-up,
+        /// not the whole prefab.
+        /// </summary>
+        private static void AssignReference(Object owner, string field, Object value)
+        {
+            SerializedObject serialized = new SerializedObject(owner);
+            SerializedProperty target = serialized.FindProperty(field);
 
             if (target == null)
             {
                 Debug.LogWarning(
-                    "Pickup has no 'tintTarget' field; it will find its renderer at runtime instead.");
+                    $"{owner.GetType().Name} has no '{field}' field; it will look the reference " +
+                    "up at runtime instead.");
                 return;
             }
 
-            target.objectReferenceValue = renderer;
+            target.objectReferenceValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

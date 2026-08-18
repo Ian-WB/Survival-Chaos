@@ -136,6 +136,31 @@ public class SkillSelect : MonoBehaviour
     }
 
     /// <summary>
+    /// What a skill would be called if the player took it next, for the label on
+    /// its pickup.
+    ///
+    /// One past the current count, not the current count. An offer is drawn but
+    /// not charged - the pick is only recorded in ApplyCollected - so at the
+    /// moment the pickup goes on the ring the pool still reads the number of
+    /// picks *before* this one. Passing that straight through would label the
+    /// second Shot Upgrade "Double Shot!", which is the stage the player already
+    /// has.
+    ///
+    /// Lives here rather than on the spawner because the pool does, and the pool
+    /// is the only thing that knows how far through a multi-stage skill a run is.
+    /// </summary>
+    public string PreviewName(SkillDefinition skill)
+    {
+        if (skill == null)
+        {
+            return string.Empty;
+        }
+
+        int taken = pool?.PicksTaken(skill) ?? 0;
+        return skill.GetPickupName(taken + 1);
+    }
+
+    /// <summary>
     /// The old behaviour, kept only as a fallback for a scene with no spawner
     /// assigned. Warns once, because silently reverting to free upgrades would
     /// look like the pickups were simply not working.

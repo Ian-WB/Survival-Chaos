@@ -4558,6 +4558,60 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 380971990}
   m_CullTransparentMesh: 1
+--- !u!1 &384866220
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 384866221}
+  - component: {fileID: 384866222}
+  m_Layer: 0
+  m_Name: Pickup Labels (Holo)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &384866221
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384866220}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1772477068}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &384866222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 384866220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5378160668231749a39096ade5718e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.PickupLabelBoard
+  view: {fileID: 0}
+  font: {fileID: 11400000, guid: 0fb93a97284033948a5b10590292f598, type: 2}
+  fontSize: 30
+  referenceDistance: 16
+  minimumScale: 0.55
+  glowPower: 0.4
 --- !u!1 &386023382
 GameObject:
   m_ObjectHideFlags: 0
@@ -7331,55 +7385,6 @@ RectTransform:
   m_AnchoredPosition: {x: 390, y: -422}
   m_SizeDelta: {x: 46, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &590248287
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 590248289}
-  - component: {fileID: 590248288}
-  m_Layer: 0
-  m_Name: Sky and Fog Global Volume
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &590248288
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 590248287}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
-  m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: 5a26d6cfd07ca3049a730bf39c960ff5, type: 2}
---- !u!4 &590248289
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 590248287}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.6233644, y: 7.06351, z: -12.155786}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &606612474
 GameObject:
   m_ObjectHideFlags: 0
@@ -9219,7 +9224,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 704
     m_UseOverride: 0
-    m_Level: 1
+    m_Level: 2
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -9270,8 +9275,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
-  m_Intensity: 512
-  m_Range: 13
+  m_Intensity: 1024
+  m_Range: 6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -9315,7 +9320,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 3.5266237e-30, y: 3.5759283e-30, z: 3.575928e-30, w: 3.625233e-30}
+  m_BoundingSphereOverride: {x: 0.000000002331629, y: 1.2686422e+31, z: 1.8464877e+25, w: 9.4017366e+26}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -12066,11 +12071,11 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
-  taaSharpenStrength: 0
+  taaSharpenStrength: 0.5
   TAAQuality: 2
   taaSharpenMode: 1
   taaRingingReduction: 0
-  taaHistorySharpening: 0
+  taaHistorySharpening: 0.35
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
@@ -14591,8 +14596,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.5213118, g: 1, b: 0, a: 1}
-  m_Intensity: 11.936621
-  m_Range: 5
+  m_Intensity: 15.915494
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -14746,7 +14751,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 512
     m_UseOverride: 0
-    m_Level: 1
+    m_Level: 0
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -14761,7 +14766,7 @@ MonoBehaviour:
   m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_AlwaysDrawDynamicShadows: 0
-  m_UpdateShadowOnLightMovement: 0
+  m_UpdateShadowOnLightMovement: 1
   m_CachedShadowTranslationThreshold: 0.01
   m_CachedShadowAngularThreshold: 0.5
   m_BarnDoorAngle: 90
@@ -14795,7 +14800,7 @@ Transform:
   m_GameObject: {fileID: 1138035252}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.23, y: 6.996, z: 46.3}
+  m_LocalPosition: {x: 8.23, y: 6.996, z: 30.79}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -23677,33 +23682,33 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.2057798
-    'sh[ 1]': -0.1389343
-    'sh[ 2]': -0.062023234
-    'sh[ 3]': 0.038463898
-    'sh[ 4]': -0.020881902
-    'sh[ 5]': 0.027967796
-    'sh[ 6]': -0.0027346518
-    'sh[ 7]': -0.005563478
-    'sh[ 8]': -0.019322714
-    'sh[ 9]': 0.07485884
-    'sh[10]': 0.009731759
-    'sh[11]': 0.004283212
-    'sh[12]': 0.0055500623
-    'sh[13]': -0.0017574314
-    'sh[14]': 0.002072418
-    'sh[15]': 0.0009790304
-    'sh[16]': 0.0015770671
-    'sh[17]': -0.003310896
-    'sh[18]': 0.08456369
-    'sh[19]': 0.029193223
-    'sh[20]': 0.009299423
-    'sh[21]': 0.0063570724
-    'sh[22]': -0.0009148751
-    'sh[23]': 0.0021558597
-    'sh[24]': 0.0018299948
-    'sh[25]': 0.002351815
-    'sh[26]': -0.002253647
+    'sh[ 0]': 0.23211332
+    'sh[ 1]': -0.19806135
+    'sh[ 2]': -0.062760845
+    'sh[ 3]': 0.044709925
+    'sh[ 4]': -0.021322114
+    'sh[ 5]': 0.027531845
+    'sh[ 6]': -0.0053317933
+    'sh[ 7]': -0.006849903
+    'sh[ 8]': -0.022975082
+    'sh[ 9]': 0.055447623
+    'sh[10]': -0.014196827
+    'sh[11]': 0.00022870357
+    'sh[12]': 0.0051258253
+    'sh[13]': -0.001881304
+    'sh[14]': 0.0017291518
+    'sh[15]': -0.00026868243
+    'sh[16]': 0.00041940375
+    'sh[17]': -0.003646458
+    'sh[18]': 0.04651
+    'sh[19]': 0.009610054
+    'sh[20]': 0.0040614293
+    'sh[21]': 0.0036204855
+    'sh[22]': -0.0006521383
+    'sh[23]': 0.0011216239
+    'sh[24]': 0.00062946475
+    'sh[25]': 0.0009589434
+    'sh[26]': -0.0014980749
   m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -28123,7 +28128,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.02338275e-30, y: 1.0295458e-30, z: 1.0480347e-30, w: 1.0418716e-30}
+  m_BoundingSphereOverride: {x: 0, y: -6.156784e+29, z: 5.69e-43, w: 1.28e-43}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -29540,6 +29545,7 @@ RectTransform:
   m_Children:
   - {fileID: 492099031}
   - {fileID: 1161830005}
+  - {fileID: 384866221}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -33787,7 +33793,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 704
     m_UseOverride: 0
-    m_Level: 1
+    m_Level: 2
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -33838,8 +33844,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
-  m_Intensity: 512
-  m_Range: 13
+  m_Intensity: 1024
+  m_Range: 6
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -33883,7 +33889,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 3.5266237e-30, y: 3.5759283e-30, z: 3.575928e-30, w: 3.625233e-30}
+  m_BoundingSphereOverride: {x: 5.69e-43, y: 2.73e-43, z: 0, w: -2.6808196e+30}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -42334,7 +42340,6 @@ SceneRoots:
   - {fileID: 784058706}
   - {fileID: 1931793263}
   - {fileID: 205885348}
-  - {fileID: 590248289}
   - {fileID: 1355022397}
   - {fileID: 1369704980}
   - {fileID: 1185721726}

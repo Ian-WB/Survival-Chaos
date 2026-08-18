@@ -9,8 +9,13 @@ namespace SurvivalChaos
     public abstract class SkillDefinition : ScriptableObject
     {
         [SerializeField]
-        [Tooltip("Shown on the level-up banner.")]
+        [Tooltip("Shown on the level-up banner, after the skill has been taken.")]
         private string displayName = "Skill";
+
+        [SerializeField]
+        [Tooltip("Shown on the pickup out on the ring, before it has been taken. Left empty, " +
+                 "the banner text is used instead.")]
+        private string pickupName = string.Empty;
 
         [SerializeField]
         [Tooltip("How many times this skill can be picked in a run. 0 means unlimited.")]
@@ -47,6 +52,26 @@ namespace SurvivalChaos
         public virtual string GetDisplayName(int picksTaken)
         {
             return displayName;
+        }
+
+        /// <summary>
+        /// What the pickup on the ring calls this, given the number of picks the
+        /// player would have after taking it.
+        ///
+        /// Separate from the banner because the two are spoken in different
+        /// tenses. The banner fires after the fact and announces what happened -
+        /// "Attack Speed Increased!" - which reads oddly floating above something
+        /// nobody has touched yet. The label names a thing on offer.
+        ///
+        /// Falls back to the banner text when no pickup name is authored, so a
+        /// skill asset that has not been given one still labels its pickup rather
+        /// than showing nothing.
+        /// </summary>
+        public virtual string GetPickupName(int picksTaken)
+        {
+            return string.IsNullOrWhiteSpace(pickupName)
+                ? GetDisplayName(picksTaken)
+                : pickupName;
         }
 
         public abstract void Apply(ISkillTarget target);

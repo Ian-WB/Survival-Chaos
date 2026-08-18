@@ -48,6 +48,11 @@ namespace SurvivalChaos
                  "found in the children is used.")]
         private Renderer tintTarget;
 
+        [SerializeField]
+        [Tooltip("Names the upgrade above the item. Optional - without one the pickup is " +
+                 "told apart by colour alone, which is how it worked before.")]
+        private PickupLabel label;
+
         /// <summary>
         /// HDRP's Unlit shader takes its emission from this property. Setting the
         /// base colour alone leaves the object lit but not glowing, which is the
@@ -96,12 +101,21 @@ namespace SurvivalChaos
         /// <param name="skill">The upgrade granted, or null for a health drop.</param>
         /// <param name="healAmount">Health granted when <paramref name="skill"/> is null.</param>
         /// <param name="color">Glow colour, normally the skill's own.</param>
+        /// <param name="caption">
+        /// What the label above the item says, or null or empty for none. A
+        /// finished string rather than something to derive from
+        /// <paramref name="skill"/>: the caller already knows how many times the
+        /// skill has been taken, which is what decides the wording of a
+        /// multi-stage upgrade, and this component knows nothing about its
+        /// payload on purpose.
+        /// </param>
         /// <param name="lifetime">Seconds before the pickup gives up and expires.</param>
         public void Configure(
             PickupSpawner spawner,
             SkillDefinition skill,
             int healAmount,
             Color color,
+            string caption,
             float lifetime)
         {
             owner = spawner;
@@ -119,6 +133,11 @@ namespace SurvivalChaos
             expiresAt = Time.time + Mathf.Max(0.1f, lifetime);
 
             Tint(color);
+
+            if (label != null)
+            {
+                label.Show(caption, color);
+            }
         }
 
         private void Update()
@@ -154,6 +173,10 @@ namespace SurvivalChaos
             position.y += Mathf.Sin(bobPhase + Time.time * bobFrequency * Mathf.PI * 2f) * bobHeight;
             transform.position = position;
 
+            // Only the core flashes. The label is left steady on purpose: the
+            // last three seconds are exactly when the player is still deciding,
+            // and text that is missing half of them is text they have to wait
+            // for. The warning is carried by the thing being warned about.
             if (remaining <= warnWithin && tintTarget != null)
             {
                 bool on = Mathf.Repeat(remaining * warnFlashRate, 1f) > 0.5f;

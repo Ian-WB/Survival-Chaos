@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: MaxHealth
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MaxHealthSkill
   displayName: Max HP Increased!
+  pickupName: Max HP
   maxPicks: 1
   pickupColor: {r: 2.75, g: 0.5625, b: 3, a: 1}
   amount: 20

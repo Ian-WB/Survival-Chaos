@@ -190,7 +190,9 @@ namespace SurvivalChaos
             {
                 if (i == healthSlot)
                 {
-                    Place(bearings[i], height, null, healthAmount, healthColor, healthLifetime);
+                    Place(
+                        bearings[i], height, null, healthAmount, healthColor,
+                        HealthCaption(), healthLifetime);
                     continue;
                 }
 
@@ -200,7 +202,9 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                offer.Add(Place(bearings[i], height, skill, 0, skill.PickupColor, offerLifetime));
+                offer.Add(Place(
+                    bearings[i], height, skill, 0, skill.PickupColor,
+                    CaptionFor(skill), offerLifetime));
             }
 
             if (offer.LiveCount > 0)
@@ -217,12 +221,51 @@ namespace SurvivalChaos
         /// when an upgrade is taken - and it walks away from the upgrades when it
         /// is taken. That absence is the whole of what makes health independent.
         /// </summary>
+        /// <summary>
+        /// What the label above an upgrade should say.
+        ///
+        /// Asked of SkillSelect rather than of the skill directly, because the
+        /// wording of a multi-stage upgrade depends on how many times it has
+        /// already been taken and only the pool knows that. Falls back to the
+        /// plain display name when no SkillSelect is wired - the same scene state
+        /// that makes OnCollected grant skills without recording them, where a
+        /// label naming the wrong stage would be a worse failure than a generic
+        /// one.
+        /// </summary>
+        private string CaptionFor(SkillDefinition skill)
+        {
+            if (skill == null)
+            {
+                return string.Empty;
+            }
+
+            // The fallback assumes a first pick, which is the best guess available
+            // without the pool. It only ever shows in a scene with no SkillSelect
+            // wired - the same state where OnCollected grants skills without
+            // recording them - so being one stage optimistic is the least of it.
+            return skillSelect != null ? skillSelect.PreviewName(skill) : skill.GetPickupName(1);
+        }
+
+        /// <summary>
+        /// What the label above a health drop says.
+        ///
+        /// Labelled for the same reason the upgrades are, even though health is
+        /// not one: it lands in the same set, at the same moment, looking like
+        /// the same kind of object. An unlabelled pickup among labelled ones
+        /// reads as a label that failed rather than as a different sort of thing.
+        /// </summary>
+        private string HealthCaption()
+        {
+            return $"+{healthAmount} Health";
+        }
+
         private Pickup Place(
             float bearing,
             float height,
             SkillDefinition skill,
             int healAmount,
             Color color,
+            string caption,
             float lifetime)
         {
             Vector3 center = arenaCenter != null ? arenaCenter.position : Vector3.zero;
@@ -242,7 +285,7 @@ namespace SurvivalChaos
                 return null;
             }
 
-            pickup.Configure(this, skill, healAmount, color, lifetime);
+            pickup.Configure(this, skill, healAmount, color, caption, lifetime);
             return pickup;
         }
 
