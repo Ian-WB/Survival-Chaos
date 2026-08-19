@@ -282,7 +282,7 @@ MonoBehaviour:
     probeVolumeMemoryBudget: 2048
     supportProbeVolumeGPUStreaming: 0
     supportProbeVolumeDiskStreaming: 0
-    probeVolumeSHBands: 1
+    probeVolumeSHBands: 2
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
     probeVolumeBlendingMemoryBudget: 128
@@ -290,7 +290,7 @@ MonoBehaviour:
     supportVFXRayTracing: 0
     supportedRayTracingMode: 1
     lightLoopSettings:
-      cookieAtlasSize: 1024
+      cookieAtlasSize: 4096
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
@@ -304,7 +304,7 @@ MonoBehaviour:
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
-      skyReflectionSize: 2048
+      skyReflectionSize: 4096
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
@@ -323,7 +323,7 @@ MonoBehaviour:
       directionalShadowsDepthBits: 16
       punctualShadowFilteringQuality: 2
       directionalShadowFilteringQuality: 2
-      areaShadowFilteringQuality: 0
+      areaShadowFilteringQuality: 1
       punctualLightShadowAtlas:
         shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 16

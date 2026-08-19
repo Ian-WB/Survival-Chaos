@@ -62,6 +62,16 @@ namespace SurvivalChaos
                  "cannot receive.")]
         private float glowPower = 0.4f;
 
+        [SerializeField]
+        [Tooltip("The arena axis the volcano stands on. Falls back to the world origin, which " +
+                 "is where the island already is.")]
+        private Transform arenaCenter;
+
+        [SerializeField]
+        [Tooltip("Radius of the volcano at the height everything sits at. Zero switches the " +
+                 "occlusion test off and draws every caption, hidden or not.")]
+        private float occluderRadius = 5f;
+
         /// <summary>
         /// The board every label talks to.
         ///
@@ -171,6 +181,14 @@ namespace SurvivalChaos
                     continue;
                 }
 
+                // In front of the camera is not the same as visible: the volcano
+                // stands in the middle of the ring, and a pickup on the far side
+                // projects to a perfectly good screen position behind it.
+                if (Occluded(camera.transform.position, label.transform.position))
+                {
+                    continue;
+                }
+
                 TextMeshProUGUI slot = Slot(drawn++);
 
                 slot.gameObject.SetActive(true);
@@ -201,6 +219,57 @@ namespace SurvivalChaos
             }
 
             return Mathf.Clamp(referenceDistance / distance, minimumScale, 1f);
+        }
+
+        /// <summary>
+        /// Whether the volcano stands between the camera and a label.
+        ///
+        /// Done as arithmetic rather than with Physics.Linecast because the scene
+        /// has no scenery colliders at all - not on the island, not on the ruins,
+        /// not on the volcano. Giving the island a MeshCollider would put 40,000
+        /// vertices of static geometry into the physics world for the first time,
+        /// where bullets and enemies would then have to be kept from noticing it.
+        /// That is a gameplay change to fix a caption.
+        ///
+        /// The test is flat because the arena is. Pickups spawn at the player's own
+        /// height (PickupSpawner passes player.position.y straight through) and the
+        /// camera holds that height and looks along the horizontal, so every sight
+        /// line that matters runs level at y = 7. A cone sliced at one height is a
+        /// circle, which reduces the whole question to two dimensions.
+        ///
+        /// The radius came off the island mesh rather than out of the air. Sampling
+        /// its 40,050 vertices in one-unit height bands gives a body of revolution
+        /// measuring 4.99 across the band around y = 7, tapering to 2.86 by y = 13.
+        /// Below roughly y = 6.5 the reading jumps to 17+, which is the island's own
+        /// rim rather than the cone, and is well under the sight line anyway.
+        /// </summary>
+        private bool Occluded(Vector3 eye, Vector3 target)
+        {
+            if (occluderRadius <= 0f)
+            {
+                return false;
+            }
+
+            Vector3 center = arenaCenter != null ? arenaCenter.position : Vector3.zero;
+
+            Vector2 fromEye = new Vector2(eye.x - center.x, eye.z - center.z);
+            Vector2 toTarget = new Vector2(target.x - center.x, target.z - center.z);
+            Vector2 span = toTarget - fromEye;
+
+            float lengthSquared = span.sqrMagnitude;
+            if (lengthSquared < 0.000001f)
+            {
+                return false;
+            }
+
+            // Clamped to the segment, which is the whole point. Unclamped, the
+            // nearest point on the infinite line can sit behind the camera or past
+            // the pickup, and a caption in the clear would be hidden by a volcano
+            // that is nowhere near the line of sight.
+            float along = Mathf.Clamp01(-Vector2.Dot(fromEye, span) / lengthSquared);
+            Vector2 nearest = fromEye + span * along;
+
+            return nearest.sqrMagnitude < occluderRadius * occluderRadius;
         }
 
         /// <summary>
