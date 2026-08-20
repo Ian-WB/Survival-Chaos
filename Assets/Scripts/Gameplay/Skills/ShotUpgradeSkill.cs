@@ -3,8 +3,13 @@ using UnityEngine;
 namespace SurvivalChaos
 {
     /// <summary>
-    /// Advances the player's shot pattern. Four picks walk the whole progression:
-    /// double, triple, sextuple, then shots to the rear.
+    /// Advances the player's shot pattern. Three picks walk the whole
+    /// progression: double, triple, sextuple.
+    ///
+    /// There was a fourth, Back Shot, which added four shots the other way round
+    /// the ring. It was the only upgrade that changed what the gun does rather
+    /// than how much of it there is, and it has been retired along with the
+    /// backward firing path in Player.
     /// </summary>
     [CreateAssetMenu(fileName = "ShotUpgrade", menuName = "Survival Chaos/Skills/Shot Upgrade")]
     public sealed class ShotUpgradeSkill : SkillDefinition
@@ -15,8 +20,7 @@ namespace SurvivalChaos
         {
             "Double Shot!",
             "Triple Shot!",
-            "SexTUPLO Shot!",
-            "Back Shot!"
+            "SexTUPLO Shot!"
         };
 
         [SerializeField]
@@ -26,8 +30,7 @@ namespace SurvivalChaos
         {
             "Double Shot",
             "Triple Shot",
-            "SexTUPLO Shot",
-            "Back Shot"
+            "SexTUPLO Shot"
         };
 
         public override string GetDisplayName(int picksTaken)

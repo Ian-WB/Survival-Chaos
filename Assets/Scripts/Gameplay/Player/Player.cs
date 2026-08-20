@@ -208,6 +208,12 @@ public class Player : MonoBehaviour, ISkillTarget
     private void Awake()
     {
         health = new HealthState(healthPoints);
+
+        // Captured before any pick can move it, so each Attack Speed pick is
+        // measured against the gun's starting rate rather than against whatever
+        // the previous pick left behind.
+        baseSpawnDelay = spawnDelay;
+
         InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
     }
     /// <summary>
@@ -215,7 +221,7 @@ public class Player : MonoBehaviour, ISkillTarget
     /// of <see cref="shotSpacing"/>. Indexed by how many shot upgrades have been
     /// taken, so stage 0 is the opening single shot.
     ///
-    /// A table rather than a branch per stage. The same five patterns used to be
+    /// A table rather than a branch per stage. The same patterns used to be
     /// written out twice - once per direction of travel - as about seventy lines
     /// of near-identical Spawn calls, and that is how the sextuple stage came to
     /// fire five shots with nobody noticing.
@@ -223,27 +229,20 @@ public class Player : MonoBehaviour, ISkillTarget
     /// The sextuple row is offset by half a step so its six sit symmetrically
     /// about the pivot. The stages either side put a shot dead centre and pair
     /// the rest around it, which only works for odd counts.
+    ///
+    /// There used to be a fifth row, Back Shot, which fired five forward and
+    /// four the other way round the ring. It is gone: it was the one upgrade
+    /// that changed what the gun *is* rather than how much of it there is, and
+    /// with the progression stretched over a run twice as long there are now
+    /// nineteen other picks doing the stretching. Nothing fires backwards, so
+    /// the backward table and the second FireLine went with it.
     /// </summary>
     private static readonly float[][] ForwardPattern =
     {
         new[] { 0f },
         new[] { 0f, 1f },
         new[] { 0f, 1f, -1f },
-        new[] { 0.5f, -0.5f, 1.5f, -1.5f, 2.5f, -2.5f },
-        new[] { 0f, 1f, -1f, 2f, -2f }
-    };
-
-    /// <summary>
-    /// The same, for shots sent the other way round the ring. Only the last
-    /// stage fires backwards - that is what it buys.
-    /// </summary>
-    private static readonly float[][] BackwardPattern =
-    {
-        new float[0],
-        new float[0],
-        new float[0],
-        new float[0],
-        new[] { 1f, -1f, 2f, -2f }
+        new[] { 0.5f, -0.5f, 1.5f, -1.5f, 2.5f, -2.5f }
     };
 
     private void Shoot()
@@ -260,11 +259,11 @@ public class Player : MonoBehaviour, ISkillTarget
         // Which prefab travels with the ship is the whole difference between the
         // two directions: they carry opposite angular speeds, so the one that
         // goes forward while flipped is the one that goes backward otherwise.
+        // Still needed with Back Shot gone - the flip decides which of the two
+        // counts as forward, even though only forward is ever fired now.
         GameObject forward = rotate ? shootPrefab : shootPrefab1;
-        GameObject backward = rotate ? shootPrefab1 : shootPrefab;
 
         FireLine(forward, ForwardPattern[stage]);
-        FireLine(backward, BackwardPattern[stage]);
     }
 
     /// <summary>Spawns one bullet per offset, spaced up the pivot.</summary>
@@ -348,11 +347,11 @@ public class Player : MonoBehaviour, ISkillTarget
 
     [Header("Attack speed")]
     [SerializeField]
-    [Range(0.05f, 0.6f)]
-    [Tooltip("Fraction taken off the gap between volleys per Attack Speed pick. At 0.4 each " +
-             "pick is 40% faster than the last, which compounds: three picks nearly quintuple " +
-             "the fire rate. Lower it to spread the gain more evenly across the picks.")]
-    private float attackSpeedStep = 0.40f;
+    [Range(0.02f, 0.5f)]
+    [Tooltip("Fire rate added per Attack Speed pick, as a fraction of the starting rate. " +
+             "0.1 is +10% a pick, and every pick is worth the same: eight of them is +80%, " +
+             "not eight compounding steps that are each smaller than the last.")]
+    private float attackSpeedStep = 0.10f;
 
     [SerializeField]
     [Range(MinShotInterval, 1f)]
@@ -361,12 +360,21 @@ public class Player : MonoBehaviour, ISkillTarget
              "MinShotInterval, which only exists to stop the game hanging.")]
     private float shotIntervalFloor = 0.15f;
 
+    [Header("Move speed")]
+    [SerializeField]
+    [Range(0.02f, 0.5f)]
+    [Tooltip("Movement added per Move Speed pick, as a fraction of the starting speed. " +
+             "Additive like attack speed above, so every pick is worth the same. Raises " +
+             "orbiting and climbing alike, and applies to the camera as well - it has to, " +
+             "or it falls behind the ship.")]
+    private float moveSpeedStep = 0.10f;
+
     /// <summary>
     /// The shortest gap between volleys the game will tolerate at all.
     ///
-    /// IncreaseAttackSpeed multiplies rather than subtracts, so the arithmetic
-    /// never reaches zero on its own - but it approaches it, and InvokeRepeating
-    /// at a near-zero rate is a hang rather than a fast gun.
+    /// The rate this divides by only ever grows, so the interval approaches zero
+    /// without reaching it - and InvokeRepeating at a near-zero rate is a hang
+    /// rather than a fast gun.
     ///
     /// This is a safety limit, not a balance one. Balance lives in
     /// shotIntervalFloor above, which is authored per scene and sits well
@@ -377,22 +385,52 @@ public class Player : MonoBehaviour, ISkillTarget
     public const float MinShotInterval = 0.05f;
 
     /// <summary>
+    /// The gap between volleys before any Attack Speed picks, captured once so
+    /// each pick can be measured against it rather than against the last one.
+    /// </summary>
+    private float baseSpawnDelay;
+
+    /// <summary>How many Attack Speed picks have been taken.</summary>
+    private int attackSpeedPicks;
+
+    /// <summary>
     /// Speeds the gun up by one pick, and stops where the cap says to.
     ///
-    /// The compounding is what needed bounding. Each pick takes a fraction off
-    /// whatever the interval currently is, so the picks multiply rather than
-    /// add - from the scene's 0.5s start, three picks at 0.4 reach 0.108s, which
-    /// is nine volleys a second and the widest shot pattern firing five bullets
-    /// in each. The only thing that used to stand in the way of that was the
-    /// hang guard.
+    /// Additive in *rate*, which is the thing a player feels. Each pick adds a
+    /// fixed slice of the starting rate, so the eighth is worth exactly what the
+    /// first was: at 0.1 a pick, from 0.5s between volleys, eight picks reach
+    /// 0.5 / 1.8 = 0.278s. Two volleys a second becomes 3.6.
+    ///
+    /// It used to subtract a fraction of the *current* interval, which compounds
+    /// the wrong way round: from the same start, three picks at 0.4 reached
+    /// 0.108s and hit the floor on the second, so the third pick bought 0.03s
+    /// and anything beyond it bought nothing at all. Eight picks of that would
+    /// have been five picks of nothing.
     /// </summary>
     public void IncreaseAttackSpeed(){
         // Clamped up to the safety limit, so a floor authored below it in the
         // Inspector cannot reintroduce the hang this is all guarding against.
         float floor = Mathf.Max(MinShotInterval, shotIntervalFloor);
 
-        spawnDelay = Mathf.Max(floor, spawnDelay - (attackSpeedStep * spawnDelay));
+        attackSpeedPicks++;
+        float rate = 1f + (attackSpeedStep * attackSpeedPicks);
+
+        spawnDelay = Mathf.Max(floor, baseSpawnDelay / rate);
         CancelInvoke(nameof(Shoot));
         InvokeRepeating(nameof(Shoot), spawnDelay, spawnDelay);
+    }
+
+    /// <summary>
+    /// Speeds the player up by one pick, orbiting and climbing alike.
+    ///
+    /// Handed to <see cref="PlayerMovement"/> rather than applied here, because
+    /// the ship is not the only thing that has to speed up: the Main Camera runs
+    /// its own copy of that component at the same speed, and that identity is
+    /// the whole of how the camera keeps station. Raise one without the other
+    /// and the player pulls away from the frame.
+    /// </summary>
+    public void IncreaseMoveSpeed()
+    {
+        PlayerMovement.AddSpeedBonus(moveSpeedStep);
     }
 }

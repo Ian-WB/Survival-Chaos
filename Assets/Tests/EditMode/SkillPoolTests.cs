@@ -126,20 +126,22 @@ namespace SurvivalChaos.Tests
         [Test]
         public void ShotUpgrade_NamesEachStageInPickOrder()
         {
-            ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(4);
+            ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(3);
 
             Assert.AreEqual("Double Shot!", shots.GetDisplayName(1));
             Assert.AreEqual("Triple Shot!", shots.GetDisplayName(2));
             Assert.AreEqual("SexTUPLO Shot!", shots.GetDisplayName(3));
-            Assert.AreEqual("Back Shot!", shots.GetDisplayName(4));
         }
 
         [Test]
         public void ShotUpgrade_ClampsStageNameBeyondTheLastStage()
         {
-            ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(4);
+            ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(3);
 
-            Assert.AreEqual("Back Shot!", shots.GetDisplayName(99));
+            // Clamped rather than wrapped: past the last stage the name holds at
+            // the one the player actually has, instead of starting over at
+            // "Double Shot!" and reading as the upgrade having been undone.
+            Assert.AreEqual("SexTUPLO Shot!", shots.GetDisplayName(99));
         }
 
         // Draw and RecordPick exist because an offer is not a pick. Level-up puts

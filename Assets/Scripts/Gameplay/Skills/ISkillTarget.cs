@@ -7,7 +7,7 @@ namespace SurvivalChaos
     /// </summary>
     public interface ISkillTarget
     {
-        /// <summary>Advances the shot pattern one step (double, triple, sextuple, back).</summary>
+        /// <summary>Advances the shot pattern one step (double, triple, sextuple).</summary>
         void UpgradeShotPattern();
 
         /// <summary>Raises the health ceiling and grants the same amount as current health.</summary>
@@ -18,5 +18,8 @@ namespace SurvivalChaos
 
         /// <summary>Reduces the delay between shots.</summary>
         void IncreaseAttackSpeed();
+
+        /// <summary>Raises how fast the player travels around the ring.</summary>
+        void IncreaseMoveSpeed();
     }
 }

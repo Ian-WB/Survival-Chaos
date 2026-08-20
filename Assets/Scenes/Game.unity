@@ -10707,7 +10707,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 1e-45}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 2
   m_ShadowAngle: 0
@@ -13734,8 +13734,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 7023528544965449322}
-  speed: 32
-  Up_Down_Speed: 5
+  orbitSpeed: 7
+  climbSpeed: 7
 --- !u!114 &963194231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23404,8 +23404,9 @@ MonoBehaviour:
   currentLevel: 1
   skillSelect: {fileID: 919132148744893763}
   shotUpgrades: 0
-  attackSpeedStep: 0.4
+  attackSpeedStep: 0.1
   shotIntervalFloor: 0.15
+  moveSpeedStep: 0.1
 --- !u!1 &1351581996
 GameObject:
   m_ObjectHideFlags: 0
@@ -24338,7 +24339,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::Timer
   bossHpBar: {fileID: 1276250006}
-  gameTime: 300
+  gameTime: 600
   timerSlider: {fileID: 618026828}
   timerBar: {fileID: 618026822}
   timeValue: 0
@@ -34064,7 +34065,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: -1.126937e+33, z: 2.7210917e-20, w: 4.59283e-40}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 2
   m_ShadowAngle: 0
@@ -34916,8 +34917,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 7023528544965449322}
-  speed: 32
-  Up_Down_Speed: 5
+  orbitSpeed: 7
+  climbSpeed: 7
 --- !u!114 &919132148744893762
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34948,6 +34949,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 75af1891fdaf3ea47bb6e732c55e1967, type: 2}
   - {fileID: 11400000, guid: aef71a62eff2c5e4e9e40f1947a5f2a1, type: 2}
   - {fileID: 11400000, guid: 08720b058429e204cbf065362250e301, type: 2}
+  - {fileID: 11400000, guid: 7692633bb53407840946c5840c85ab6f, type: 2}
   pickups: {fileID: 1185721725}
   player: {fileID: 1345772188}
   skillText: {fileID: 1995353126}
