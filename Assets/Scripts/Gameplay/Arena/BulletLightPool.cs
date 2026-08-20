@@ -15,8 +15,23 @@ namespace SurvivalChaos
     /// clean failure.
     ///
     /// Instead a fixed number of lights follow the bullets nearest the camera,
-    /// and only the closest few cast shadows. Nobody counts the lights; they read
+    /// and only a few of those cast shadows. Nobody counts the lights; they read
     /// the fact that the bullets are lit.
+    ///
+    /// The shadow casters are picked one per volley rather than by distance
+    /// alone. A volley is not a loose group that drifts apart: Player.FireLine
+    /// stacks its bullets up the pivot and every one of them orbits the same
+    /// centre at the same angular speed at its own fixed height, so a six-shot
+    /// volley is a rigid column about two units tall for the whole of its
+    /// flight. Six lights of range ten strung up two units cover very nearly the
+    /// same ground, and shadowing all six was six cubemap renders of one place.
+    ///
+    /// Picking by distance chose exactly those six, because the bullets nearest
+    /// the camera are overwhelmingly the newest volley. So the shadow cost used
+    /// to scale with Shot Upgrade - the pick that makes the gun feel good was
+    /// the pick that made the frame expensive. One per volley inverts that: the
+    /// more bullets a shot puts out, the fewer distinct volleys sit among the
+    /// lit ones, and the fewer shadows are drawn.
     /// </summary>
     public sealed class BulletLightPool : MonoBehaviour
     {
@@ -36,8 +51,11 @@ namespace SurvivalChaos
         private int lightCount = 8;
 
         [SerializeField]
-        [Tooltip("How many of those cast shadows, closest first. Each one costs six scene renders " +
-                 "per frame, so keep this very low.")]
+        [Range(0, 4)]
+        [Tooltip("At most how many volleys cast a shadow, nearest first - not how many bullets. " +
+                 "One shot's worth of bullets shares a single shadow however many of them there " +
+                 "are. Each caster is a point light, so it costs six scene renders per frame: " +
+                 "measured on this scene, one is about 165k triangles and 85 draw calls.")]
         private int shadowCastingCount = 1;
 
         [Header("Placement")]
@@ -48,9 +66,14 @@ namespace SurvivalChaos
         private Light[] pool;
         private Transform[] poolTransforms;
         private Camera view;
-        private bool shadowsAllowed = true;
 
-        private readonly List<Transform> bullets = new List<Transform>();
+        // Which volleys already have a shadow this frame. An array and a count
+        // rather than a HashSet: it holds at most shadowCastingCount entries, and
+        // at that size a linear scan beats hashing and allocates nothing.
+        private int[] volleysCovered;
+        private int volleysCoveredCount;
+
+        private readonly List<ShootScript> bullets = new List<ShootScript>();
 
         private void Awake()
         {
@@ -69,6 +92,7 @@ namespace SurvivalChaos
             int count = Mathf.Max(0, lightCount);
             pool = new Light[count];
             poolTransforms = new Transform[count];
+            volleysCovered = new int[Mathf.Max(1, count)];
 
             // The template itself stays in the scene as the reference copy; it is
             // switched off so it does not light anything on its own.
@@ -80,9 +104,11 @@ namespace SurvivalChaos
                 copy.name = $"Bullet Light {i + 1}";
                 copy.gameObject.SetActive(false);
 
-                // Shadows only on the first few. Everything else about the light
-                // comes from the template.
-                copy.shadows = ShadowsFor(i);
+                // Off to start with. Which lights cast is decided per frame from
+                // the volleys actually in flight, so there is no correct answer
+                // to bake in here - only a starting point that LateUpdate
+                // corrects before anything renders.
+                copy.shadows = LightShadows.None;
 
                 pool[i] = copy;
                 poolTransforms[i] = copy.transform;
@@ -90,56 +116,57 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Runs after movement so the lights land on this frame's bullet
-        /// positions rather than last frame's.
-        /// </summary>
-        /// <summary>
-        /// The shadow mode for the light at <paramref name="index"/>.
+        /// How many volleys may cast this frame.
         ///
-        /// At the lowest quality tier the answer is always None. That tier sets
+        /// At the lowest quality tier the answer is always none. That tier sets
         /// HDRP's shadow request budget to zero, so a shadow-casting light there
         /// would be paying to be marked as one and getting nothing back.
         /// QualitySettings.shadows carries the intent - HDRP does not read it
         /// itself, but it means this does not have to know the pipeline exists.
+        ///
+        /// Read every frame rather than watched for changes, which is what the
+        /// old RefreshShadows did. There is nothing left to watch: the casting
+        /// set turns over as volleys are fired and expire, so it is rebuilt each
+        /// frame anyway and the quality veto rides along in the same pass.
         /// </summary>
-        private LightShadows ShadowsFor(int index)
+        private int ShadowBudget()
         {
             if (QualitySettings.shadows == ShadowQuality.Disable)
             {
-                return LightShadows.None;
+                return 0;
             }
 
-            return index < shadowCastingCount ? lightTemplate.shadows : LightShadows.None;
+            return Mathf.Clamp(shadowCastingCount, 0, pool.Length);
         }
 
         /// <summary>
-        /// Reapplies shadow modes when the quality level changes mid-session,
-        /// which the graphics menu allows. Cheap enough to check every frame: it
-        /// is one enum comparison, and nothing is written unless it differs.
+        /// Records <paramref name="volley"/> as having a shadow, and reports
+        /// whether it was new.
         /// </summary>
-        private void RefreshShadows()
+        private bool ClaimVolley(int volley)
         {
-            bool allowed = QualitySettings.shadows != ShadowQuality.Disable;
-            if (allowed == shadowsAllowed)
+            for (int i = 0; i < volleysCoveredCount; i++)
             {
-                return;
+                if (volleysCovered[i] == volley)
+                {
+                    return false;
+                }
             }
 
-            shadowsAllowed = allowed;
-            for (int i = 0; i < pool.Length; i++)
-            {
-                pool[i].shadows = ShadowsFor(i);
-            }
+            volleysCovered[volleysCoveredCount++] = volley;
+            return true;
         }
 
+        /// <summary>
+        /// Runs after movement so the lights land on this frame's bullet
+        /// positions rather than last frame's.
+        /// </summary>
         private void LateUpdate()
         {
             if (pool == null || pool.Length == 0)
             {
                 return;
             }
-
-            RefreshShadows();
 
             if (view == null)
             {
@@ -152,13 +179,30 @@ namespace SurvivalChaos
 
             CollectNearestBullets(pool.Length);
 
+            int budget = ShadowBudget();
+            volleysCoveredCount = 0;
+
             for (int i = 0; i < pool.Length; i++)
             {
                 bool used = i < bullets.Count;
 
                 if (used)
                 {
-                    poolTransforms[i].position = bullets[i].position + offset;
+                    poolTransforms[i].position = bullets[i].Body.position + offset;
+                }
+
+                // Nearest first, one per volley, until the budget runs out. The
+                // second and later bullets of a volley still get a light - those
+                // are cheap - and no shadow, because the first one's already
+                // covers the same couple of units.
+                bool casts = used
+                    && volleysCoveredCount < budget
+                    && ClaimVolley(bullets[i].Volley);
+
+                LightShadows wanted = casts ? lightTemplate.shadows : LightShadows.None;
+                if (pool[i].shadows != wanted)
+                {
+                    pool[i].shadows = wanted;
                 }
 
                 // SetActive is cheap and keeps unused lights out of HDRP's
@@ -184,7 +228,7 @@ namespace SurvivalChaos
         {
             bullets.Clear();
 
-            IReadOnlyList<Transform> found = ShootScript.Live;
+            IReadOnlyList<ShootScript> found = ShootScript.Live;
             if (found.Count == 0)
             {
                 return;
@@ -197,7 +241,7 @@ namespace SurvivalChaos
             // whole set when only a handful are wanted.
             for (int i = 0; i < found.Count; i++)
             {
-                Transform candidate = found[i];
+                ShootScript candidate = found[i];
 
                 // The registry carries the player's projectiles and the enemies'
                 // alike; only the player's are lit. A destroyed entry can survive
@@ -207,11 +251,11 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                float distance = (candidate.position - eye).sqrMagnitude;
+                float distance = (candidate.Body.position - eye).sqrMagnitude;
 
                 int slot = bullets.Count;
                 while (slot > 0 &&
-                       (bullets[slot - 1].position - eye).sqrMagnitude > distance)
+                       (bullets[slot - 1].Body.position - eye).sqrMagnitude > distance)
                 {
                     slot--;
                 }

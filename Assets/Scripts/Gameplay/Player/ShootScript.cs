@@ -16,10 +16,40 @@ public class ShootScript : MonoBehaviour
     /// Projectiles add themselves as they appear and remove themselves as they
     /// die, so the list needs no sweeping. It can still hold a destroyed entry if
     /// something bypasses OnDisable - a scene unload - so readers check.
+    ///
+    /// Holds the component rather than the transform, so a reader can see which
+    /// volley an entry belongs to without a GetComponent per bullet per frame.
+    /// <see cref="Body"/> keeps the transform a lookup away for the callers that
+    /// only want the position.
     /// </summary>
-    private static readonly List<Transform> live = new List<Transform>();
+    private static readonly List<ShootScript> live = new List<ShootScript>();
 
-    public static IReadOnlyList<Transform> Live => live;
+    public static IReadOnlyList<ShootScript> Live => live;
+
+    /// <summary>
+    /// This projectile's transform, resolved once.
+    ///
+    /// The registry held transforms directly before it held components, for the
+    /// reason above: this is read for every live projectile every frame, and the
+    /// point of the list is that reading it costs nothing.
+    /// </summary>
+    public Transform Body { get; private set; }
+
+    /// <summary>
+    /// Which volley fired this projectile. Equal for every bullet of one shot,
+    /// different for every shot.
+    ///
+    /// The frame number, because a volley *is* a frame: Player.FireLine spawns
+    /// the whole pattern in a single loop, so bullets that share a shot share a
+    /// frame and nothing else can. Two volleys in one frame would merge, which
+    /// needs a fire interval below a frame to happen and costs a redundant
+    /// shadow if it ever does.
+    ///
+    /// Stamped in OnEnable rather than Awake so a projectile taken back out of
+    /// the pool belongs to the volley that fired it, not the one that first
+    /// created it.
+    /// </summary>
+    public int Volley { get; private set; }
 
     // Resolved on enable - not serialized, so stale prefab references can't shadow it.
     private Transform center;
@@ -41,9 +71,15 @@ public class ShootScript : MonoBehaviour
     /// </summary>
     private void OnEnable()
     {
-        transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        if (Body == null)
+        {
+            Body = transform;
+        }
 
-        live.Add(transform);
+        Body.rotation = Quaternion.Euler(0f, 0f, 90f);
+
+        Volley = Time.frameCount;
+        live.Add(this);
 
         if (sharedCenter == null)
         {
@@ -89,7 +125,7 @@ public class ShootScript : MonoBehaviour
     /// </summary>
     private void OnDisable()
     {
-        live.Remove(transform);
+        live.Remove(this);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -261,7 +261,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 000100000002000000040000
+      m_Values: 000400000008000000100000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -327,7 +327,7 @@ MonoBehaviour:
       punctualLightShadowAtlas:
         shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 1
+        useDynamicViewportRescale: 0
       areaLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
