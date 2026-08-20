@@ -5,10 +5,12 @@ using SurvivalChaos;
 
 public class EnemyMovement : MonoBehaviour
 {
-    public float speed = 5.0f;
+    [SerializeField]
+    private float speed= 5.0f;
     private Transform player;
 
-    public float rotationSpeed;
+    [SerializeField]
+    private float rotationSpeed;
 
     private Vector3 center;
     private float centerZ;
@@ -16,7 +18,8 @@ public class EnemyMovement : MonoBehaviour
 
     public bool leftOrRight = true;
 
-    public float spawnSpeed;
+    [SerializeField]
+    private float spawnSpeed;
 
     [SerializeField]
     [Tooltip("How close the player has to be before this enemy starts matching their height, " +

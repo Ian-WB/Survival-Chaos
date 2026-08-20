@@ -25,9 +25,12 @@ public class SkillSelect : MonoBehaviour
              "skill outright so the game still runs in a scene that has not been wired yet.")]
     private PickupSpawner pickups;
 
-    public Player player;
-    public TextMeshProUGUI skillText;
-    public GameObject skillTextObject;
+    [SerializeField]
+    private Player player;
+    [SerializeField]
+    private TextMeshProUGUI skillText;
+    [SerializeField]
+    private GameObject skillTextObject;
 
     private SkillPool pool;
 

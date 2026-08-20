@@ -286,6 +286,59 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
+        /// Points one of a component's serialized reference fields at a value, by
+        /// the field's name.
+        ///
+        /// The fields these builders wire are <c>[SerializeField] private</c>: the
+        /// component owns them, and nothing at runtime has any business repointing
+        /// the pause screen or the health bar. That leaves SerializedObject as the
+        /// way in, which is the same route ConfigureBar above already takes and the
+        /// one VictoryMenu's screen has always used.
+        ///
+        /// Applied with undo, so a builder run stays one Ctrl+Z. It also marks the
+        /// object dirty on its own, which is why the callers no longer need a
+        /// separate SetDirty for the references they set through here.
+        /// </summary>
+        /// <returns>False when the field does not exist, having said so.</returns>
+        public static bool Assign(Object owner, string field, Object value)
+        {
+            if (owner == null)
+            {
+                return false;
+            }
+
+            SerializedObject so = new SerializedObject(owner);
+            SerializedProperty property = so.FindProperty(field);
+
+            if (property == null)
+            {
+                // A rename on the component side would otherwise show up as a
+                // reference that silently never got wired, which is the same
+                // symptom as the builder not having run at all.
+                Debug.LogWarning(
+                    $"{owner.GetType().Name} has no serialized field named '{field}', so it was " +
+                    "left unwired.", owner);
+                return false;
+            }
+
+            property.objectReferenceValue = value;
+            so.ApplyModifiedProperties();
+            return true;
+        }
+
+        /// <summary>Reads one of a component's serialized reference fields by name.</summary>
+        public static Object Read(Object owner, string field)
+        {
+            if (owner == null)
+            {
+                return null;
+            }
+
+            SerializedProperty property = new SerializedObject(owner).FindProperty(field);
+            return property != null ? property.objectReferenceValue : null;
+        }
+
+        /// <summary>
         /// A button: a holo panel that takes raycasts, with a label.
         ///
         /// Highlighting is done by HoloButtonHighlight driving the shader, not by

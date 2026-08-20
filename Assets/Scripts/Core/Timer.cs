@@ -13,11 +13,16 @@ using UnityEngine.UI;
 /// </summary>
 public class Timer : MonoBehaviour
 {
-    public BossHpBar bossHpBar;
+    [SerializeField]
+    private BossHpBar bossHpBar;
     [SerializeField] private float gameTime = 60;
-    public Slider timerSlider;
-    public GameObject timerBar;
-    public float timeValue = 0;
+
+    [SerializeField]
+    private Slider timerSlider;
+    [SerializeField]
+    private GameObject timerBar;
+    [SerializeField]
+    private float timeValue= 0;
 
     /// <summary>True once the boss phase has been started. Latches the handover.</summary>
     private bool handedOver;

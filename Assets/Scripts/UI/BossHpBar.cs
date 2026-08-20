@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class BossHpBar : MonoBehaviour
 {
-    public GameObject HpBar;
+    [SerializeField]
+    private GameObject HpBar;
 
     public void showHpBar(){
         if (HpBar == null){

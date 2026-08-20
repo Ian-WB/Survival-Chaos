@@ -14,7 +14,8 @@ using SurvivalChaos;
 /// </summary>
 public class ColliderScript_3 : MonoBehaviour
 {
-    public GameObject EnemyShip;
+    [SerializeField]
+    private GameObject EnemyShip;
 
     private void OnTriggerEnter(Collider other)
     {

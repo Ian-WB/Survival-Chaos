@@ -5,7 +5,8 @@ using UnityEngine;
 public class EnemySpaceShip : MonoBehaviour
 {
 
-    public GameObject EnemyShip;
+    [SerializeField]
+    private GameObject EnemyShip;
 
     private EnemyMovement movement;
 

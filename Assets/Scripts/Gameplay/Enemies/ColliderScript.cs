@@ -5,7 +5,8 @@ using UnityEngine;
 public class ColliderScript : MonoBehaviour
 {
 
-    public GameObject EnemyShip;
+    [SerializeField]
+    private GameObject EnemyShip;
 
     // Value applied to EnemyMovement.leftOrRight when the player crosses this trigger.
     [SerializeField]

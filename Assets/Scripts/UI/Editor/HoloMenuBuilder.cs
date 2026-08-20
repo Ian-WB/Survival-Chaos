@@ -112,24 +112,23 @@ namespace SurvivalChaos.EditorTools
 
             foreach (PauseMenu menu in Object.FindObjectsByType<PauseMenu>(FindObjectsInactive.Include))
             {
-                Add(found, menu.pauseMenuUI);
-                Add(found, menu.optionsUI);
+                Add(found, HoloUiFactory.Read(menu, "pauseMenuUI") as GameObject);
+                Add(found, HoloUiFactory.Read(menu, "optionsUI") as GameObject);
             }
 
             foreach (DeathMenu menu in Object.FindObjectsByType<DeathMenu>(FindObjectsInactive.Include))
             {
-                Add(found, menu.deathMenuUI);
+                Add(found, HoloUiFactory.Read(menu, "deathMenuUI") as GameObject);
             }
 
             foreach (VictoryMenu menu in Object.FindObjectsByType<VictoryMenu>(FindObjectsInactive.Include))
             {
-                SerializedObject so = new SerializedObject(menu);
-                Add(found, so.FindProperty("victoryMenuUI").objectReferenceValue as GameObject);
+                Add(found, HoloUiFactory.Read(menu, "victoryMenuUI") as GameObject);
             }
 
             foreach (Tutorial tutorial in Object.FindObjectsByType<Tutorial>(FindObjectsInactive.Include))
             {
-                Add(found, tutorial.shiftTutorial);
+                Add(found, HoloUiFactory.Read(tutorial, "shiftTutorial") as GameObject);
             }
 
             return found;
@@ -391,42 +390,32 @@ namespace SurvivalChaos.EditorTools
 
             foreach (PauseMenu menu in Object.FindObjectsByType<PauseMenu>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(menu, "Rewire menus");
-                menu.pauseMenuUI = paused;
-                menu.optionsUI = options;
-                EditorUtility.SetDirty(menu);
+                HoloUiFactory.Assign(menu, "pauseMenuUI", paused);
+                HoloUiFactory.Assign(menu, "optionsUI", options);
                 wired++;
             }
 
             DeathMenu deathScript = EnsureComponent<DeathMenu>(canvas.gameObject);
-            Undo.RecordObject(deathScript, "Rewire menus");
-            deathScript.deathMenuUI = death;
-            EditorUtility.SetDirty(deathScript);
+            HoloUiFactory.Assign(deathScript, "deathMenuUI", death);
             wired++;
 
             // Player holds a direct reference to the DeathMenu component, and the
             // old one is about to be destroyed with the screen it sat on.
             foreach (Player player in Object.FindObjectsByType<Player>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(player, "Rewire menus");
-                player.deathMenu = deathScript;
-                EditorUtility.SetDirty(player);
+                HoloUiFactory.Assign(player, "deathMenu", deathScript);
                 wired++;
             }
 
             foreach (VictoryMenu menu in Object.FindObjectsByType<VictoryMenu>(FindObjectsInactive.Include))
             {
-                SerializedObject so = new SerializedObject(menu);
-                so.FindProperty("victoryMenuUI").objectReferenceValue = victory;
-                so.ApplyModifiedProperties();
+                HoloUiFactory.Assign(menu, "victoryMenuUI", victory);
                 wired++;
             }
 
             foreach (Tutorial tutorial in Object.FindObjectsByType<Tutorial>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(tutorial, "Rewire menus");
-                tutorial.shiftTutorial = prompt;
-                EditorUtility.SetDirty(tutorial);
+                HoloUiFactory.Assign(tutorial, "shiftTutorial", prompt);
                 wired++;
             }
 

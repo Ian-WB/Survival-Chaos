@@ -5,9 +5,12 @@ using SurvivalChaos;
 
 public class Enemy_1 : MonoBehaviour
 {
-    public GameObject childObject;
-    public GameObject enemyHit;
-    public GameObject explosion;
+    [SerializeField]
+    private GameObject childObject;
+    [SerializeField]
+    private GameObject enemyHit;
+    [SerializeField]
+    private GameObject explosion;
 
     [SerializeField]
     [Tooltip("Stats for this enemy. Falls back to the health value below when unset.")]
@@ -16,7 +19,8 @@ public class Enemy_1 : MonoBehaviour
     [SerializeField]
     private int healthPoints = 1;
 
-    public GameObject EnemyShip;
+    [SerializeField]
+    private GameObject EnemyShip;
 
     [Header("Shoot")]
     [SerializeField]

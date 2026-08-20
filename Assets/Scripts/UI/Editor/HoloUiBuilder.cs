@@ -220,18 +220,14 @@ namespace SurvivalChaos.EditorTools
 
             foreach (HealthBar target in Object.FindObjectsByType<HealthBar>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(target, "Rewire HUD");
-                target.slider = health;
-                EditorUtility.SetDirty(target);
+                HoloUiFactory.Assign(target, "slider", health);
                 wired++;
             }
 
             foreach (ExpBar target in Object.FindObjectsByType<ExpBar>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(target, "Rewire HUD");
-                target.xpBar = xp;
-                target.expText = levelText;
-                EditorUtility.SetDirty(target);
+                HoloUiFactory.Assign(target, "xpBar", xp);
+                HoloUiFactory.Assign(target, "expText", levelText);
                 wired++;
             }
 
@@ -240,24 +236,20 @@ namespace SurvivalChaos.EditorTools
 
             foreach (BossHpBar target in Object.FindObjectsByType<BossHpBar>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(target, "Rewire HUD");
                 // Only the panel. BossHpBar's job is to reveal it; the slider
                 // itself is found by tag from BossEmitter, which is what actually
                 // drives the value - the second reference here was written and
                 // never read.
-                target.HpBar = boss != null ? boss.gameObject : null;
-                EditorUtility.SetDirty(target);
+                HoloUiFactory.Assign(target, "HpBar", boss != null ? boss.gameObject : null);
                 wired++;
             }
 
             foreach (SkillSelect target in Object.FindObjectsByType<SkillSelect>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(target, "Rewire HUD");
-                target.skillText = levelUpText;
-                target.skillTextObject = levelUpText != null
+                HoloUiFactory.Assign(target, "skillText", levelUpText);
+                HoloUiFactory.Assign(target, "skillTextObject", levelUpText != null
                     ? levelUpText.transform.parent.gameObject
-                    : null;
-                EditorUtility.SetDirty(target);
+                    : null);
                 wired++;
             }
 
@@ -286,7 +278,7 @@ namespace SurvivalChaos.EditorTools
             if (xp != null && xp.GetComponent<ExpBar>() == null)
             {
                 ExpBar bar = Undo.AddComponent<ExpBar>(xp.gameObject);
-                bar.player = player;
+                HoloUiFactory.Assign(bar, "player", player);
             }
 
             Slider boss = HoloUiFactory.Find<Slider>(root, "Boss Bar");
@@ -341,12 +333,12 @@ namespace SurvivalChaos.EditorTools
 
             Timer timer = Undo.AddComponent<Timer>(host);
             Slider bar = HoloUiFactory.Find<Slider>(root, "Timer Bar");
-            timer.timerSlider = bar;
-            timer.timerBar = bar != null ? bar.gameObject : null;
+            HoloUiFactory.Assign(timer, "timerSlider", bar);
+            HoloUiFactory.Assign(timer, "timerBar", bar != null ? bar.gameObject : null);
             // Specifically the new one. A scene-wide search could return the old
             // BossHpBar, which is about to be destroyed - leaving the countdown
             // pointing at nothing exactly as the boss arrives.
-            timer.bossHpBar = HoloUiFactory.Find<BossHpBar>(root, "Boss Bar");
+            HoloUiFactory.Assign(timer, "bossHpBar", HoloUiFactory.Find<BossHpBar>(root, "Boss Bar"));
 
             SerializedObject so = new SerializedObject(timer);
             so.FindProperty("gameTime").floatValue = gameTime;
@@ -439,18 +431,15 @@ namespace SurvivalChaos.EditorTools
 
             foreach (Player player in Object.FindObjectsByType<Player>(FindObjectsInactive.Include))
             {
-                Undo.RecordObject(player, "Repoint HUD references");
                 if (health != null)
                 {
-                    player.healthBar = health;
+                    HoloUiFactory.Assign(player, "healthBar", health);
                 }
 
                 if (experience != null)
                 {
-                    player.expBar = experience;
+                    HoloUiFactory.Assign(player, "expBar", experience);
                 }
-
-                EditorUtility.SetDirty(player);
             }
         }
 

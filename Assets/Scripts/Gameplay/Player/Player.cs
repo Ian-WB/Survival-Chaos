@@ -6,7 +6,8 @@ using SurvivalChaos;
 
 public class Player : MonoBehaviour, ISkillTarget
 {
-    public GameObject playerHit;
+    [SerializeField]
+    private GameObject playerHit;
 
     [SerializeField]
     [Tooltip("Starting health. The live value is held by HealthState from Awake onwards.")]
@@ -60,10 +61,10 @@ public class Player : MonoBehaviour, ISkillTarget
     private float spawnDelay = 1;
     
     [SerializeField]
-    public GameObject childPrefab;
+    private GameObject childPrefab;
 
     [SerializeField]
-    public Transform childObject;
+    private Transform childObject;
     
     private GameObject instantiatedChild;
 
@@ -77,18 +78,19 @@ public class Player : MonoBehaviour, ISkillTarget
     public bool DirectionFlipped => rotate;
 
     [SerializeField]
-    public HealthBar healthBar;
+    private HealthBar healthBar;
 
     [Header("XP")]
     [SerializeField]
-    public ExpBar expBar;
+    private ExpBar expBar;
 
     [SerializeField]
-    public GameObject levelUpButton;
-    public DeathMenu deathMenu;
+    private DeathMenu deathMenu;
 
     [SerializeField] public int currentExperience = 0, maxExperience = 40, currentLevel = 1;
-    public SkillSelect skillSelect;
+
+    [SerializeField]
+    private SkillSelect skillSelect;
 
     private void OnEnable()
     {

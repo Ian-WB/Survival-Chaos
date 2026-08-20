@@ -6,8 +6,10 @@ using SurvivalChaos;
 public class PauseMenu : MonoBehaviour
 {
     public static bool GameIsPaused = false;
-    public GameObject pauseMenuUI;
-    public GameObject optionsUI;
+    [SerializeField]
+    private GameObject pauseMenuUI;
+    [SerializeField]
+    private GameObject optionsUI;
 
     /// <summary>
     /// A fresh scene is a fresh run, so the flag starts down.

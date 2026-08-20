@@ -174,8 +174,10 @@ namespace SurvivalChaos.EditorTools
         {
             Canvas canvas = null;
 
-            foreach (Canvas candidate in Object.FindObjectsByType<Canvas>(
-                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            // No sort mode: every overload taking one was deprecated in 6000.5.9
+            // for relying on instance-id ordering. Nothing here depended on the
+            // order anyway - the loop is looking for one specific canvas.
+            foreach (Canvas candidate in Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include))
             {
                 if (candidate.isRootCanvas && candidate.renderMode == RenderMode.ScreenSpaceOverlay)
                 {

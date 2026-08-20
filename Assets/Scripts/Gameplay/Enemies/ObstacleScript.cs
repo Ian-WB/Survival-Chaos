@@ -12,7 +12,8 @@ public class ObstacleScript : MonoBehaviour
     private float centerX;
 
 
-    public float spawnSpeed;
+    [SerializeField]
+    private float spawnSpeed;
 
 
 

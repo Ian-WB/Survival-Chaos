@@ -6,11 +6,16 @@ using TMPro;
 
 public class ExpBar : MonoBehaviour
 {
-    public int thisMaxExp;
-    public float thisCurrentExp;
-    public Image xpBar;
-    public TextMeshProUGUI expText;
-    public Player player;
+    [SerializeField]
+    private int thisMaxExp;
+    [SerializeField]
+    private float thisCurrentExp;
+    [SerializeField]
+    private Image xpBar;
+    [SerializeField]
+    private TextMeshProUGUI expText;
+    [SerializeField]
+    private Player player;
 
     /// <summary>
     /// The level the label currently reads. -1 forces the first write.

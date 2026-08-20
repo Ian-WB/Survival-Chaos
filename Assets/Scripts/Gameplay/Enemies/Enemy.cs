@@ -6,7 +6,8 @@ using SurvivalChaos;
 public class Enemy : MonoBehaviour
 {
 
-    public GameObject explosion;
+    [SerializeField]
+    private GameObject explosion;
 
     /// <summary>
     /// Played where a shot lands without killing.
@@ -17,7 +18,8 @@ public class Enemy : MonoBehaviour
     /// in the game produce nothing at all, and a shot that lands like a shot that
     /// missed is the worst thing a shooter can do.
     /// </summary>
-    public GameObject enemyHit;
+    [SerializeField]
+    private GameObject enemyHit;
 
     [SerializeField]
     [Tooltip("Stats for this enemy. Falls back to the health value below when unset.")]
@@ -26,7 +28,8 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     private int healthPoints = 1;
 
-    public GameObject EnemyShip;
+    [SerializeField]
+    private GameObject EnemyShip;
 
     private HealthState health;
 

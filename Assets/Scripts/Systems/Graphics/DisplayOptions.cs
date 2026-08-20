@@ -406,7 +406,21 @@ namespace SurvivalChaos
         /// </summary>
         private static float Sample(float[] anchors, float amount)
         {
-            if (amount <= 0f)
+            // A ladder with nothing on it has no answer to give, and zero is the
+            // one value that is safe for all three callers - it reads as the
+            // effect being off rather than as some arbitrary middle setting.
+            if (anchors == null || anchors.Length == 0)
+            {
+                return 0f;
+            }
+
+            // One anchor is the whole ladder, so every amount lands on it. Handled
+            // here rather than trusted to the interpolation below, which reaches
+            // for anchors[index + 1] and would run off the end of a single-entry
+            // array for any amount strictly between 0 and 1. Every caller passes a
+            // four-entry array today; this is what keeps shortening one from being
+            // an out-of-range exception instead of a shorter ladder.
+            if (amount <= 0f || anchors.Length == 1)
             {
                 return anchors[0];
             }

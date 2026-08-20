@@ -4,7 +4,8 @@ using SurvivalChaos;
 public class DeathMenu : MonoBehaviour
 {
 
-    public GameObject deathMenuUI;
+    [SerializeField]
+    private GameObject deathMenuUI;
 
     public void ShowDeathMenu(){
         if (deathMenuUI != null){

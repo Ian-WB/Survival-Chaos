@@ -31,7 +31,8 @@ public class ShootScript : MonoBehaviour
     private static Transform sharedCenter;
     private static bool warnedAboutMissingCenter;
 
-    public float speed;
+    [SerializeField]
+    private float speed;
 
     /// <summary>
     /// Runs on every spawn, including reuse from the pool. This was Start(),

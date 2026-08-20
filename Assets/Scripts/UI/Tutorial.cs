@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Tutorial : MonoBehaviour
 {
-    public GameObject shiftTutorial;
+    [SerializeField]
+    private GameObject shiftTutorial;
 
     void Start()
     {
