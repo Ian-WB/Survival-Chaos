@@ -61,7 +61,7 @@ namespace SurvivalChaos
             timers = new VolleyTimer[attacks.Count];
             for (int i = 0; i < attacks.Count; i++)
             {
-                timers[i] = new VolleyTimer(Time.time, attacks[i].initialDelay);
+                timers[i] = new VolleyTimer(Time.time, attacks[i].InitialDelay);
             }
         }
 
@@ -97,13 +97,13 @@ namespace SurvivalChaos
         {
             foreach (BossAttack attack in attacks)
             {
-                if (attack == null || attack.pivots == null)
+                if (attack == null || attack.Pivots == null)
                 {
                     continue;
                 }
 
-                ObjectPool.Warm(attack.projectileWhenLeft, attack.pivots.Length);
-                ObjectPool.Warm(attack.projectileWhenRight, attack.pivots.Length);
+                int perVolley = attack.Pivots.Length;
+                attack.EachProjectile(projectile => ObjectPool.Warm(projectile, perVolley));
             }
         }
 
@@ -120,12 +120,12 @@ namespace SurvivalChaos
             {
                 BossAttack attack = attacks[i];
 
-                if (attack.trigger == AttackTrigger.WhileLaserActive && !LaserActive)
+                if (attack.Trigger == AttackTrigger.WhileLaserActive && !LaserActive)
                 {
                     continue;
                 }
 
-                if (timers[i].TryFire(now, attack.interval))
+                if (timers[i].TryFire(now, attack.Interval))
                 {
                     Fire(attack);
                 }
@@ -135,12 +135,12 @@ namespace SurvivalChaos
         private void Fire(BossAttack attack)
         {
             GameObject projectile = attack.ProjectileFor(TravellingLeft);
-            if (projectile == null || attack.pivots == null)
+            if (projectile == null || attack.Pivots == null)
             {
                 return;
             }
 
-            foreach (Transform pivot in attack.pivots)
+            foreach (Transform pivot in attack.Pivots)
             {
                 if (pivot != null)
                 {
@@ -157,7 +157,7 @@ namespace SurvivalChaos
             }
         }
 
-        private bool TravellingLeft => movement != null && movement.leftOrRight;
+        private bool TravellingLeft => movement != null && movement.TravellingLeft;
 
         private void OnTriggerEnter(Collider other)
         {

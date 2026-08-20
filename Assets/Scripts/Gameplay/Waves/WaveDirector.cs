@@ -49,12 +49,12 @@ namespace SurvivalChaos
 
             foreach (SpawnStream stream in wave.Streams)
             {
-                if (stream == null || stream.prefab == null)
+                if (stream == null || stream.Prefab == null)
                 {
                     continue;
                 }
 
-                ObjectPool.Warm(stream.prefab, warmupPerStream);
+                ObjectPool.Warm(stream.Prefab, warmupPerStream);
                 StartCoroutine(RunStream(stream));
             }
         }
@@ -74,17 +74,17 @@ namespace SurvivalChaos
 
         private IEnumerator RunStream(SpawnStream stream)
         {
-            yield return new WaitForSeconds(stream.startDelay);
+            yield return new WaitForSeconds(stream.StartDelay);
 
             while (!HasStopped())
             {
                 Spawn(stream);
 
                 float interval = SpawnMath.IntervalAt(
-                    stream.interval,
-                    stream.intervalScale,
-                    stream.rampEvery,
-                    stream.minInterval,
+                    stream.Interval,
+                    stream.IntervalScale,
+                    stream.RampEvery,
+                    stream.MinInterval,
                     Elapsed);
 
                 yield return new WaitForSeconds(Mathf.Max(interval, HardMinimumInterval));
@@ -98,15 +98,15 @@ namespace SurvivalChaos
 
         private void Spawn(SpawnStream stream)
         {
-            float offsetX = Random.Range(stream.xOffsetRange.x, stream.xOffsetRange.y);
-            float offsetY = Random.Range(stream.yOffsetRange.x, stream.yOffsetRange.y);
+            float offsetX = Random.Range(stream.XOffsetRange.x, stream.XOffsetRange.y);
+            float offsetY = Random.Range(stream.YOffsetRange.x, stream.YOffsetRange.y);
 
             Vector3 position = new Vector3(
-                stream.position.x + offsetX,
-                stream.position.y + offsetY,
-                stream.position.z);
+                stream.Position.x + offsetX,
+                stream.Position.y + offsetY,
+                stream.Position.z);
 
-            if (!stream.lockBearing)
+            if (!stream.LockBearing)
             {
                 position = AtRandomBearing(position, stream);
             }
@@ -121,7 +121,7 @@ namespace SurvivalChaos
             // within a frame either way: EnemyMovement calls LookAt towards the
             // axis every update, so a spawn brought in on a random bearing turns
             // to face the arena immediately.
-            ObjectPool.Spawn(stream.prefab, position, stream.rotation);
+            ObjectPool.Spawn(stream.Prefab, position, stream.Rotation);
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace SurvivalChaos
             flat.y = 0f;
 
             float radius = flat.magnitude
-                           + Random.Range(stream.radiusOffsetRange.x, stream.radiusOffsetRange.y);
+                           + Random.Range(stream.RadiusOffsetRange.x, stream.RadiusOffsetRange.y);
 
             // A stream authored on the axis has no direction to preserve and no
             // radius to randomise around, so it stays where it was put.
@@ -170,7 +170,7 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                Gizmos.DrawWireSphere(stream.position, 3f);
+                Gizmos.DrawWireSphere(stream.Position, 3f);
             }
         }
     }

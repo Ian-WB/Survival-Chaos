@@ -369,14 +369,14 @@ namespace SurvivalChaos.EditorTools
 
                 foreach (SpawnStream stream in wave.Streams)
                 {
-                    if (stream == null || stream.prefab == null)
+                    if (stream == null || stream.Prefab == null)
                     {
                         continue;
                     }
 
-                    if (stream.prefab.GetComponentInChildren<BossEmitter>(includeInactive: true) != null)
+                    if (stream.Prefab.GetComponentInChildren<BossEmitter>(includeInactive: true) != null)
                     {
-                        return stream.startDelay;
+                        return stream.StartDelay;
                     }
                 }
             }

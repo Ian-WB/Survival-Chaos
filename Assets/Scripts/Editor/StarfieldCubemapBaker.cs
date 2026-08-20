@@ -37,22 +37,27 @@ namespace SurvivalChaos.EditorTools
         private const string OutputFolder = "Assets/Art/Skybox";
 
         [Tooltip("CrossTexture is strongly preferred - see the class comment for why.")]
-        public OutputMode output = OutputMode.CrossTexture;
+        [SerializeField]
+        private OutputMode output= OutputMode.CrossTexture;
 
         [Tooltip("Resolution of each cube face. The sources import at 2048, so above that gains nothing.")]
-        public int faceSize = 2048;
+        [SerializeField]
+        private int faceSize= 2048;
 
         // Both on - a 180 degree rotation per face - is the combination verified
         // correct for this starfield set in LegacyCubemap mode. The cross path
         // is decoded by Unity's importer rather than written face by face, so
         // it may want a different pair; check the seams after the first bake.
         [Tooltip("Mirror each face left-to-right.")]
-        public bool flipHorizontally = true;
+        [SerializeField]
+        private bool flipHorizontally= true;
 
         [Tooltip("Mirror each face top-to-bottom.")]
-        public bool flipVertically = true;
+        [SerializeField]
+        private bool flipVertically= true;
 
-        public bool generateMipmaps = true;
+        [SerializeField]
+        private bool generateMipmaps= true;
 
         [MenuItem("Survival Chaos/Bake Starfield Cubemap")]
         private static void Open()

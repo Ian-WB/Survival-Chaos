@@ -18,13 +18,33 @@ namespace SurvivalChaos
     /// failed its allocation every frame, and ray-traced GI on the top tiers
     /// rendered every dynamic object as a black silhouette.
     /// </summary>
-    public struct GraphicsPreset
+    /// <remarks>
+    /// A readonly struct rather than four public fields. These three rows are
+    /// the whole of what a tier decides, they are authored once in the table
+    /// below and never anywhere else, and a preset that could be edited after
+    /// the fact would be a tier quietly disagreeing with the asset it names.
+    /// </remarks>
+    public readonly struct GraphicsPreset
     {
-        public string Name;
+        public GraphicsPreset(
+            string name,
+            EffectQuality reflections,
+            EffectQuality globalIllumination,
+            EffectQuality volumetricFog)
+        {
+            Name = name;
+            Reflections = reflections;
+            GlobalIllumination = globalIllumination;
+            VolumetricFog = volumetricFog;
+        }
 
-        public EffectQuality Reflections;
-        public EffectQuality GlobalIllumination;
-        public EffectQuality VolumetricFog;
+        public string Name { get; }
+
+        public EffectQuality Reflections { get; }
+
+        public EffectQuality GlobalIllumination { get; }
+
+        public EffectQuality VolumetricFog { get; }
     }
 
     /// <summary>
@@ -66,34 +86,30 @@ namespace SurvivalChaos
     {
         public static readonly GraphicsPreset[] All =
         {
-            new GraphicsPreset
-            {
-                // Unity's HDRP Performant. Also the only tier where volumetric
-                // fog is gated off in the asset (supportVolumetrics: false), so
-                // the fog row here is inert whatever it is set to.
-                Name = "Low",
-                Reflections = EffectQuality.Off,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Off
-            },
-            new GraphicsPreset
-            {
-                // Unity's HDRP Balanced.
-                Name = "Medium",
-                Reflections = EffectQuality.Medium,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Low
-            },
-            new GraphicsPreset
-            {
-                // Unity's HDRP High Fidelity. Compiles the same set of effects
-                // as Medium does now; what still separates the two is sky
-                // reflection resolution and the rungs below.
-                Name = "High",
-                Reflections = EffectQuality.High,
-                GlobalIllumination = EffectQuality.Off,
-                VolumetricFog = EffectQuality.Medium
-            }
+            // Unity's HDRP Performant. Also the only tier where volumetric fog is
+            // gated off in the asset (supportVolumetrics: false), so the fog row
+            // here is inert whatever it is set to.
+            new GraphicsPreset(
+                name: "Low",
+                reflections: EffectQuality.Off,
+                globalIllumination: EffectQuality.Off,
+                volumetricFog: EffectQuality.Off),
+
+            // Unity's HDRP Balanced.
+            new GraphicsPreset(
+                name: "Medium",
+                reflections: EffectQuality.Medium,
+                globalIllumination: EffectQuality.Off,
+                volumetricFog: EffectQuality.Low),
+
+            // Unity's HDRP High Fidelity. Compiles the same set of effects as
+            // Medium does now; what still separates the two is sky reflection
+            // resolution and the rungs below.
+            new GraphicsPreset(
+                name: "High",
+                reflections: EffectQuality.High,
+                globalIllumination: EffectQuality.Off,
+                volumetricFog: EffectQuality.Medium)
         };
 
         /// <summary>

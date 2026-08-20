@@ -37,7 +37,7 @@ public class ColliderScript : MonoBehaviour
 
         if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
         {
-            enemyMovement.leftOrRight = leftOrRight;
+            enemyMovement.TravellingLeft = leftOrRight;
         }
     }
 }

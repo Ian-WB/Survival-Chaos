@@ -113,7 +113,7 @@ public class Enemy_1 : MonoBehaviour
     {
         // Cached and guarded: this fires on a repeating invoke, so an unguarded
         // lookup would throw for the whole lifetime of a mis-wired prefab.
-        if (movement != null && movement.leftOrRight)
+        if (movement != null && movement.TravellingLeft)
         {
             ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
             ObjectPool.Spawn(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));

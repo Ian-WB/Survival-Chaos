@@ -27,25 +27,32 @@ namespace SurvivalChaos.EditorTools
         private const string LavaMaterialPath = "Assets/Art/Materials/Scenario/lava_.mat";
 
         [Tooltip("How many lights to spread along the lava, from the crater downward.")]
-        public int lightCount = 4;
+        [SerializeField]
+        private int lightCount= 4;
 
         [Tooltip("Lumens per light. HDRP's default area light is 200; lava wants considerably more.")]
-        public float intensity = 4000f;
+        [SerializeField]
+        private float intensity= 4000f;
 
         [Tooltip("Colour of the emitted light. Keep it redder than the lava surface - bounced light reads warmer.")]
-        public Color color = new Color(1f, 0.35f, 0.12f, 1f);
+        [SerializeField]
+        private Color color= new Color(1f, 0.35f, 0.12f, 1f);
 
         [Tooltip("How far each light reaches. Too large and they overlap expensively.")]
-        public float range = 90f;
+        [SerializeField]
+        private float range= 90f;
 
         [Tooltip("Lift each light slightly off the surface so it does not z-fight or self-shadow.")]
-        public float surfaceOffset = 1.5f;
+        [SerializeField]
+        private float surfaceOffset= 1.5f;
 
         [Tooltip("Shadows cost a shadow map per light per frame. Turn off if the frame budget suffers.")]
-        public bool castShadows = true;
+        [SerializeField]
+        private bool castShadows= true;
 
         [Tooltip("Scales the rectangle relative to the band it covers.")]
-        public float sizeMultiplier = 0.9f;
+        [SerializeField]
+        private float sizeMultiplier= 0.9f;
 
         [MenuItem("Survival Chaos/Place Lava Lights")]
         private static void Open()

@@ -16,7 +16,25 @@ public class EnemyMovement : MonoBehaviour
     private float centerZ;
     private float centerX;
 
-    public bool leftOrRight = true;
+    [SerializeField]
+    [Tooltip("Which way round the ring this enemy travels. Authored per prefab, and turned " +
+             "at runtime when the player crosses one of the trigger volumes.")]
+    private bool leftOrRight = true;
+
+    /// <summary>
+    /// Which way round the ring this enemy is currently travelling.
+    ///
+    /// Settable, unlike the rest of this component's authored state, because
+    /// turning enemies around is a thing the game does: ColliderScript writes it
+    /// when the player crosses a trigger. The field keeps its old name so the
+    /// value already on every enemy prefab carries over; the property is named
+    /// for what the bool actually means, which "leftOrRight" never said.
+    /// </summary>
+    public bool TravellingLeft
+    {
+        get => leftOrRight;
+        set => leftOrRight = value;
+    }
 
     [SerializeField]
     private float spawnSpeed;

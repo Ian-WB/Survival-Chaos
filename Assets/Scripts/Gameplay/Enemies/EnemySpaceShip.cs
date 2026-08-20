@@ -28,7 +28,7 @@ public class EnemySpaceShip : MonoBehaviour
             return;
         }
 
-        if(movement.leftOrRight)
+        if(movement.TravellingLeft)
         {
             transform.localRotation = Quaternion.Euler(0, -90, 0);
         }
