@@ -5,9 +5,9 @@ namespace SurvivalChaos
     /// changes nothing else.
     ///
     /// Every field here is a Volume override. Nothing in this file reaches the
-    /// pipeline asset, and nothing writes one - the tier's asset is Unity's own,
-    /// shipped as authored, and the only thing selecting a tier does is call
-    /// QualitySettings.SetQualityLevel.
+    /// pipeline asset, and nothing writes one - a tier's asset is edited in the
+    /// Inspector and read from disk, and the only thing selecting a tier does is
+    /// call QualitySettings.SetQualityLevel.
     ///
     /// That is the whole of the difference from what this file used to be. It
     /// once carried shadow atlas sizes, texture mip limits, anisotropic modes,
@@ -48,10 +48,15 @@ namespace SurvivalChaos
     }
 
     /// <summary>
-    /// The four tiers, in quality level order. Three of them are Unity's own
-    /// stock HDRP assets - Performant, Balanced and High Fidelity, renamed Low,
-    /// Medium and Ultra. High is the exception: a copy of High Fidelity, stepped
-    /// down where the cost sits rather than where the feature list does.
+    /// The four tiers, in quality level order. Three of them began as Unity's
+    /// own stock HDRP assets - Performant, Balanced and High Fidelity, renamed
+    /// Low, Medium and Ultra - and have been edited since, in the Inspector
+    /// rather than from here: probe volumes moved onto the adaptive system,
+    /// screen-space ambient occlusion and contact shadows came off Low, and the
+    /// dynamic resolution block was rewritten on every one of them. Stock is
+    /// where they started, not what they are. High is the fourth: a copy of High
+    /// Fidelity, stepped down where the cost sits rather than where the feature
+    /// list does.
     ///
     /// It used to be three, on the reasoning that those were the assets Unity
     /// ships and keeps self-consistent, and that anything else was an asset to
@@ -61,11 +66,23 @@ namespace SurvivalChaos
     ///
     /// **High and Ultra compile the same features.** Both carry SSR, SSR on
     /// transparents, SSGI, volumetrics, volumetric clouds and ray tracing. What
-    /// separates them is budget: shadow atlas 4096 against 8192, probe volumes
-    /// at L1 against L2 spherical harmonics, sky reflection and cookie atlas
-    /// 2048 against 4096. None of that is a volume override, which is why the
-    /// two rows below are nearly identical - the tier does the work, not the
-    /// table.
+    /// separates them is budget: punctual shadow atlas 4096 against 8192 and its
+    /// cached atlas likewise, probe volumes 1024 at L1 against 2048 at L2, sky
+    /// reflection and cookie atlas 2048 against 4096. None of that is a volume
+    /// override, which is why the two rows below are nearly identical - the tier
+    /// does the work, not the table.
+    ///
+    /// **Downward, High is nearer Medium than that list suggests.** The step up
+    /// from Medium buys volumetric clouds, cookie atlas and sky reflection at
+    /// 2048 against 512, and a cached punctual atlas at 4096 against 2048. But
+    /// the probe volumes are Medium's exactly - 1024 at L1 - and the main
+    /// punctual shadow atlas is 4096 on Low, Medium and High alike, doubling
+    /// only at Ultra. Two of the numbers that separate High from Ultra do not
+    /// separate High from Medium at all, so the ladder is not four even rungs of
+    /// the same measurements. Raising either is a bake question rather than a
+    /// slider - L2 spherical harmonics have to be baked into the probe data,
+    /// not switched on over a bake made at L1 - which is why both are recorded
+    /// here and left alone.
     ///
     /// **Reflections are off on Low and on above it.** Low's asset ships
     /// `supportSSR: false`, which is a hard gate - a volume override cannot
@@ -87,11 +104,12 @@ namespace SurvivalChaos
     /// actually watches - lose their indirect light entirely and render as black
     /// silhouettes against terrain that kept its lightmap. That shipped once.
     ///
-    /// The ray-traced rungs are reachable on Medium and High, which compile
-    /// `supportRayTracing`, wherever the GPU reports DXR. Low keeps four
-    /// entries and its rows say why. Nothing here defaults to a ray-traced
-    /// rung: they are opt-in, and ray-traced global illumination in particular
-    /// is the exact setting that produced the silhouettes described above.
+    /// The ray-traced rungs are reachable on Medium, High and Ultra, all three
+    /// of which compile `supportRayTracing`, wherever the GPU reports DXR. Low
+    /// keeps four entries and its rows say why. Nothing here defaults to a
+    /// ray-traced rung: they are opt-in, and ray-traced global illumination in
+    /// particular is the exact setting that produced the silhouettes described
+    /// above.
     ///
     /// **Motion blur is deliberately absent**, as it has been since it left the
     /// preset system. It is taste rather than fidelity, and a tier stamping over
@@ -105,6 +123,13 @@ namespace SurvivalChaos
             // Unity's HDRP Performant. Also the only tier where volumetric fog is
             // gated off in the asset (supportVolumetrics: false), so the fog row
             // here is inert whatever it is set to.
+            //
+            // Its supportedRayTracingMode reads 3 (Both) where the other three
+            // read 1 (Performance), which looks like one tier disagreeing with
+            // the rest until you ask what reads it: nothing does, because
+            // supportRayTracing is false here. 3 is HDRP's own default, from
+            // RenderPipelineSettings.NewDefault, so the odd one out is the tier
+            // that was never given an opinion rather than the three that were.
             new GraphicsPreset(
                 name: "Low",
                 reflections: EffectQuality.Off,
@@ -127,7 +152,7 @@ namespace SurvivalChaos
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.Medium),
 
-            // Unity's HDRP High Fidelity, unedited. Only the fog rung separates
+            // Unity's HDRP High Fidelity, retuned. Only the fog rung separates
             // this row from High's - reflections are already on their last
             // non-ray-traced step, and GI is off everywhere for the reason
             // above. The tier earns its name in the asset, not here.
@@ -141,7 +166,15 @@ namespace SurvivalChaos
         /// <summary>
         /// The tier anything ambiguous falls back to: Medium.
         ///
-        /// One constant rather than a 1 written in each place that needs it.
+        /// One constant rather than a 1 written in each place that needs it - and
+        /// for a while, a 1 written in no place at all. GraphicsDirector's
+        /// QualityLevel reads it, and that is the only thing deciding a tier for
+        /// a player who has never chosen one. The per-platform table in
+        /// ProjectSettings is kept in step with it by hand and is not consulted.
+        ///
+        /// A constant nothing reads records an intention rather than enforcing
+        /// one, which is how the shipping default came to be Ultra while this
+        /// line said Medium.
         /// </summary>
         public const int DefaultIndex = 1;
 

@@ -9818,7 +9818,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1e-45, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: NaN, z: 7.5e-43, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -23824,33 +23824,33 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.23667732
-    'sh[ 1]': -0.16776973
-    'sh[ 2]': -0.03534747
-    'sh[ 3]': 0.036735818
-    'sh[ 4]': -0.017564232
-    'sh[ 5]': 0.013681922
-    'sh[ 6]': -0.004519598
-    'sh[ 7]': -0.0015023156
-    'sh[ 8]': -0.021034604
-    'sh[ 9]': 0.09193807
-    'sh[10]': -0.0066325413
-    'sh[11]': 0.005335203
-    'sh[12]': 0.0077264467
-    'sh[13]': -0.0024578252
-    'sh[14]': 0.0024325356
-    'sh[15]': 0.0000695899
-    'sh[16]': 0.0012714094
-    'sh[17]': -0.005060976
-    'sh[18]': 0.08918284
-    'sh[19]': 0.025882257
-    'sh[20]': 0.010572165
-    'sh[21]': 0.006913601
-    'sh[22]': -0.0009330608
-    'sh[23]': 0.002758557
-    'sh[24]': 0.0012703363
-    'sh[25]': 0.0019661733
-    'sh[26]': -0.0026401028
+    'sh[ 0]': 0.27524954
+    'sh[ 1]': -0.20335183
+    'sh[ 2]': -0.05729301
+    'sh[ 3]': 0.0477802
+    'sh[ 4]': -0.022954216
+    'sh[ 5]': 0.02369039
+    'sh[ 6]': -0.0052674445
+    'sh[ 7]': -0.0047987206
+    'sh[ 8]': -0.025269352
+    'sh[ 9]': 0.090818785
+    'sh[10]': -0.0031656835
+    'sh[11]': 0.006159417
+    'sh[12]': 0.0076245633
+    'sh[13]': -0.0022468073
+    'sh[14]': 0.001961734
+    'sh[15]': 0.00007606245
+    'sh[16]': 0.0013811574
+    'sh[17]': -0.0049981796
+    'sh[18]': 0.08955071
+    'sh[19]': 0.028485242
+    'sh[20]': 0.010557538
+    'sh[21]': 0.006884745
+    'sh[22]': -0.0007176205
+    'sh[23]': 0.002670087
+    'sh[24]': 0.001251689
+    'sh[25]': 0.0019952403
+    'sh[26]': -0.0027740095
   m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -27113,7 +27113,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1.3388297e-38, z: 8.25e-43, w: 0.000032202428}
+  m_BoundingSphereOverride: {x: 3.241e-42, y: 3.8305745e-28, z: 7.5e-43, w: 1e-45}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -34040,7 +34040,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 1.8017357e+25, w: 0}
+  m_BoundingSphereOverride: {x: 1.1693418e-19, y: 3.0972774e+27, z: 1.8169361e+31, w: 1.7657412e+22}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0

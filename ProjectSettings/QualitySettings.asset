@@ -4,7 +4,7 @@
 QualitySettings:
   m_ObjectHideFlags: 0
   serializedVersion: 5
-  m_CurrentQuality: 3
+  m_CurrentQuality: 1
   m_QualitySettings:
   - serializedVersion: 5
     name: Low
@@ -220,21 +220,21 @@ QualitySettings:
     excludedTargetPlatforms: []
   m_TextureMipmapLimitGroupNames: []
   m_PerPlatformDefaultQuality:
-    Android: 3
-    EmbeddedLinux: 6
-    GameCoreScarlett: 6
-    GameCoreXboxOne: 6
-    LinuxHeadlessSimulation: 6
-    Lumin: 6
-    Nintendo Switch: 6
-    Nintendo Switch 2: 6
-    PS4: 6
-    PS5: 6
-    Server: 6
-    Stadia: 6
-    Standalone: 6
-    WebGL: 4
-    Windows Store Apps: 6
-    XboxOne: 6
-    iPhone: 3
-    tvOS: 3
+    Android: 1
+    EmbeddedLinux: 1
+    GameCoreScarlett: 1
+    GameCoreXboxOne: 1
+    LinuxHeadlessSimulation: 1
+    Lumin: 1
+    Nintendo Switch: 1
+    Nintendo Switch 2: 1
+    PS4: 1
+    PS5: 1
+    Server: 1
+    Stadia: 1
+    Standalone: 1
+    WebGL: 1
+    Windows Store Apps: 1
+    XboxOne: 1
+    iPhone: 1
+    tvOS: 1

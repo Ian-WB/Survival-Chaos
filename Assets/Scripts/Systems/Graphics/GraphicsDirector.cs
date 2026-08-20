@@ -62,8 +62,16 @@ namespace SurvivalChaos
         /// folded onto the nearest surviving tier rather than cleared, so a
         /// player who had chosen the top of the range still comes back to the top
         /// of the range.
+        ///
+        /// 5: a fourth tier was inserted at index 2. What had been High is Ultra
+        /// now, and the new High beneath it is a lighter asset entirely, so a
+        /// saved 2 has to become 3 or the player is quietly moved down a rung -
+        /// the same shift epoch 1 made, for the same reason. Low and Medium keep
+        /// their indices and are left alone, and the rows are kept too: the tier
+        /// a player had still exists and still means what it meant, so there is
+        /// nothing for a row to have drifted against.
         /// </summary>
-        private const int QualityEpoch = 4;
+        private const int QualityEpoch = 5;
 
         public static GraphicsDirector Instance { get; private set; }
 
@@ -267,11 +275,12 @@ namespace SurvivalChaos
         /// Whether ray tracing can be offered at all, which takes both a DXR GPU
         /// and a pipeline asset that compiled support for it.
         ///
-        /// The asset half is not academic: all three stock HDRP tiers ship
-        /// supportRayTracing false, so on this project the ray-traced rungs are
-        /// currently unreachable on any hardware. Asking only SystemInfo would
-        /// offer three rungs on an RTX card that the pipeline then ignores - the
-        /// dead control this screen exists to stop shipping.
+        /// The asset half is not academic, and it does not answer the same way
+        /// on every tier: Low ships supportRayTracing false, so the rungs cannot
+        /// render there whatever the GPU is, while Medium, High and Ultra all
+        /// compile it and the rungs are live on a DXR card. Asking only
+        /// SystemInfo would offer three rungs on Low that the pipeline then
+        /// ignores - the dead control this screen exists to stop shipping.
         /// </summary>
         public bool RayTracingAvailable =>
             SystemInfo.supportsRayTracing &&
@@ -279,10 +288,33 @@ namespace SurvivalChaos
 
         // ---------- stored settings ----------
 
+        /// <summary>
+        /// The tier in force: the player's saved choice, or the project default
+        /// if they have never made one.
+        ///
+        /// The fallback is <see cref="GraphicsPresets.DefaultIndex"/> rather than
+        /// QualitySettings.GetQualityLevel, which is what it used to be. That
+        /// asked ProjectSettings, where the per-platform default is a bare index
+        /// with nothing tying it to the tiers that exist: it still held 6 for
+        /// Standalone long after the eight generated levels became four, and an
+        /// index past the end resolves to the last entry rather than failing, so
+        /// a fresh install booted on the most expensive tier in the list. Nothing
+        /// reported it, because 6 is not an error - it is an index that used to
+        /// mean something else.
+        ///
+        /// One constant naming the default, in the file that owns the tiers, is
+        /// the whole of the fix. The table in ProjectSettings has been corrected
+        /// to agree with it, but nothing here depends on it staying that way.
+        /// </summary>
         public int QualityLevel
         {
-            get => Mathf.Clamp(GetInt("Quality", QualitySettings.GetQualityLevel()), 0,
-                Mathf.Max(0, QualityNames.Length - 1));
+            get
+            {
+                int top = Mathf.Max(0, QualityNames.Length - 1);
+
+                return Mathf.Clamp(
+                    GetInt("Quality", Mathf.Clamp(GraphicsPresets.DefaultIndex, 0, top)), 0, top);
+            }
 
             // Through SetQuality rather than a bare write, so selecting a preset
             // always clears the per-row keys. A direct write would leave the rows
@@ -1000,7 +1032,7 @@ namespace SurvivalChaos
         /// directly rather than through SetInt - that one calls Apply, and there
         /// is nothing to apply to yet this early in Awake - and does nothing at
         /// all for a player who has never touched the setting, whose absent key
-        /// should stay absent so the platform default still decides.
+        /// should stay absent so the project default still decides.
         /// </summary>
         private static void MigrateQualityIndex()
         {
@@ -1041,6 +1073,15 @@ namespace SurvivalChaos
                 {
                     PlayerPrefs.DeleteKey(Prefix + key);
                 }
+            }
+
+            if (epoch < 5 && PlayerPrefs.HasKey(Prefix + "Quality")
+                && PlayerPrefs.GetInt(Prefix + "Quality") >= 2)
+            {
+                // Inserted at index 2, so only a tier at or above it moves. After
+                // the epoch-4 fold rather than before it, because that fold reads
+                // and writes the old three-entry indices.
+                PlayerPrefs.SetInt(Prefix + "Quality", PlayerPrefs.GetInt(Prefix + "Quality") + 1);
             }
 
             PlayerPrefs.SetInt(Prefix + "QualityEpoch", QualityEpoch);
