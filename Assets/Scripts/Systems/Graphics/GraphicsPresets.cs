@@ -48,21 +48,37 @@ namespace SurvivalChaos
     }
 
     /// <summary>
-    /// The three tiers, in quality level order, matching Unity's own stock HDRP
-    /// assets: Performant, Balanced and High Fidelity, renamed Low, Medium and
-    /// High.
+    /// The four tiers, in quality level order. Three of them are Unity's own
+    /// stock HDRP assets - Performant, Balanced and High Fidelity, renamed Low,
+    /// Medium and Ultra. High is the exception: a copy of High Fidelity, stepped
+    /// down where the cost sits rather than where the feature list does.
     ///
-    /// Three rather than seven because these are the assets Unity ships and
-    /// keeps self-consistent. Anything above or below is a new asset to author
-    /// by hand, not a table of numbers for this file to invent.
+    /// It used to be three, on the reasoning that those were the assets Unity
+    /// ships and keeps self-consistent, and that anything else was an asset to
+    /// author by hand rather than a table of numbers to invent here. That still
+    /// holds - High *is* hand-authored now, and the numbers separating it from
+    /// Ultra live in the asset where they can be measured, not in this file.
+    ///
+    /// **High and Ultra compile the same features.** Both carry SSR, SSR on
+    /// transparents, SSGI, volumetrics, volumetric clouds and ray tracing. What
+    /// separates them is budget: shadow atlas 4096 against 8192, probe volumes
+    /// at L1 against L2 spherical harmonics, sky reflection and cookie atlas
+    /// 2048 against 4096. None of that is a volume override, which is why the
+    /// two rows below are nearly identical - the tier does the work, not the
+    /// table.
     ///
     /// **Reflections are off on Low and on above it.** Low's asset ships
     /// `supportSSR: false`, which is a hard gate - a volume override cannot
     /// switch on an effect the pipeline never compiled - so the row greys
-    /// itself out there instead of pretending. Medium and High do compile it,
-    /// and each gets the rung its tier can afford. High also compiles SSR on
-    /// transparent surfaces; that is a pipeline flag with no row of its own,
-    /// so it simply comes with the tier.
+    /// itself out there instead of pretending. Everything above Low compiles it,
+    /// and each gets the rung its tier can afford. Reflections top out at High
+    /// on both of the upper tiers because that is the last rung before the
+    /// ray-traced ones, which no tier selects by default.
+    ///
+    /// **Volumetric clouds arrive at High.** Medium's asset ships
+    /// `supportVolumetricClouds: false`, the same kind of hard gate as SSR on
+    /// Low. There is no row for clouds, so like SSR on transparents it simply
+    /// comes with the tier.
     ///
     /// **GI is off at every tier**, for the reason it has always been off: this
     /// scene's indirect light is baked, into lightmaps and Adaptive Probe
@@ -102,14 +118,24 @@ namespace SurvivalChaos
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.Low),
 
-            // Unity's HDRP High Fidelity. Compiles the same set of effects as
-            // Medium does now; what still separates the two is sky reflection
-            // resolution and the rungs below.
+            // A copy of High Fidelity with its budgets stepped down. First tier
+            // to compile volumetric clouds, which is the visible difference from
+            // Medium; the rest of the gap is resolution rather than features.
             new GraphicsPreset(
                 name: "High",
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
-                volumetricFog: EffectQuality.Medium)
+                volumetricFog: EffectQuality.Medium),
+
+            // Unity's HDRP High Fidelity, unedited. Only the fog rung separates
+            // this row from High's - reflections are already on their last
+            // non-ray-traced step, and GI is off everywhere for the reason
+            // above. The tier earns its name in the asset, not here.
+            new GraphicsPreset(
+                name: "Ultra",
+                reflections: EffectQuality.High,
+                globalIllumination: EffectQuality.Off,
+                volumetricFog: EffectQuality.High)
         };
 
         /// <summary>

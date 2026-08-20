@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP High
+  m_Name: HDRP Ultra
   m_EditorClassIdentifier: 
   m_Version: 26
   m_ObsoleteFrameSettings:
@@ -261,7 +261,7 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 000200000004000000080000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -279,10 +279,10 @@ MonoBehaviour:
     supportTerrainHole: 0
     lightProbeSystem: 1
     oldLightProbeSystem: 1
-    probeVolumeMemoryBudget: 1024
+    probeVolumeMemoryBudget: 2048
     supportProbeVolumeGPUStreaming: 0
     supportProbeVolumeDiskStreaming: 0
-    probeVolumeSHBands: 1
+    probeVolumeSHBands: 2
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
     probeVolumeBlendingMemoryBudget: 128
@@ -290,7 +290,7 @@ MonoBehaviour:
     supportVFXRayTracing: 0
     supportedRayTracingMode: 1
     lightLoopSettings:
-      cookieAtlasSize: 2048
+      cookieAtlasSize: 4096
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
@@ -304,7 +304,7 @@ MonoBehaviour:
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
-      skyReflectionSize: 2048
+      skyReflectionSize: 4096
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0
@@ -323,16 +323,16 @@ MonoBehaviour:
       directionalShadowsDepthBits: 16
       punctualShadowFilteringQuality: 2
       directionalShadowFilteringQuality: 2
-      areaShadowFilteringQuality: 0
+      areaShadowFilteringQuality: 1
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
         useDynamicViewportRescale: 0
-      cachedPunctualLightShadowAtlas: 4096
+      cachedPunctualLightShadowAtlas: 8192
       cachedAreaLightShadowAtlas: 4096
       allowDirectionalMixedCachedShadows: 0
       shadowResolutionDirectional:
@@ -372,9 +372,9 @@ MonoBehaviour:
       useMipBias: 1
       advancedUpscalersByPriority: 
       advancedUpscalerNames:
-      - FSR2
       - DLSS
-      DLSSPerfQualitySetting: 0
+      - FSR2
+      DLSSPerfQualitySetting: 2
       DLSSInjectionPoint: 0
       TAAUInjectionPoint: 0
       STPInjectionPoint: 0
@@ -527,7 +527,7 @@ MonoBehaviour:
     gpuResidentDrawerSettings:
       mode: 0
       smallMeshScreenPercentage: 0
-      enableOcclusionCullingInCameras: 0
+      enableOcclusionCullingInCameras: 1
       useDepthPrepassForOccluders: 1
     m_ObsoleteLightLayerName0: Light LayerDefault
     m_ObsoleteLightLayerName1: InteriorOnly
