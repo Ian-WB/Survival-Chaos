@@ -23,7 +23,7 @@ LightingSettings:
   m_Padding: 2
   m_LightmapCompression: 0
   m_LightmapPackingMode: 0
-  m_LightmapPackingMethod: 1
+  m_LightmapPackingMethod: 0
   m_XAtlasPackingAttempts: 16384
   m_XAtlasBruteForce: 0
   m_XAtlasBlockAlign: 0
@@ -49,7 +49,7 @@ LightingSettings:
   m_PVRSampleCount: 1024
   m_PVREnvironmentSampleCount: 512
   m_PVREnvironmentReferencePointCount: 2048
-  m_LightProbeSampleCountMultiplier: 6
+  m_LightProbeSampleCountMultiplier: 8
   m_PVRBounces: 2
   m_PVRMinBounces: 2
   m_PVREnvironmentImportanceSampling: 1
