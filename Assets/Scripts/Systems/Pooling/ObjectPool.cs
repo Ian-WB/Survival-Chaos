@@ -199,8 +199,19 @@ namespace SurvivalChaos
                 if (motionReset == null)
                 {
                     Transform host = Root;
-                    motionReset = host.GetComponent<PoolMotionReset>()
-                        ?? host.gameObject.AddComponent<PoolMotionReset>();
+
+                    // Explicit null comparison rather than ??, because Unity
+                    // overloads == on Object to report a destroyed object as null
+                    // and the null-coalescing operator does not go through that
+                    // overload. GetComponent hands back a real null when nothing is
+                    // there, so ?? happens to work today - but it is the one place
+                    // in the project reaching past a lifetime check that three other
+                    // files document avoiding, and it would start returning a corpse
+                    // the moment this stopped being a freshly built root.
+                    PoolMotionReset existing = host.GetComponent<PoolMotionReset>();
+                    motionReset = existing != null
+                        ? existing
+                        : host.gameObject.AddComponent<PoolMotionReset>();
                 }
 
                 return motionReset;

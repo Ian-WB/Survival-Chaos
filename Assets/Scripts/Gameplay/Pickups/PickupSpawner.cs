@@ -214,14 +214,6 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Puts one pickup on the ring at a bearing.
-        ///
-        /// A null skill with a heal amount is a health drop: no SkillOffer is
-        /// attached, so Pickup.Offer stays null and ClearOffer walks away from it
-        /// when an upgrade is taken - and it walks away from the upgrades when it
-        /// is taken. That absence is the whole of what makes health independent.
-        /// </summary>
-        /// <summary>
         /// What the label above an upgrade should say.
         ///
         /// Asked of SkillSelect rather than of the skill directly, because the
@@ -259,6 +251,14 @@ namespace SurvivalChaos
             return $"+{healthAmount} Health";
         }
 
+        /// <summary>
+        /// Puts one pickup on the ring at a bearing.
+        ///
+        /// A null skill with a heal amount is a health drop: no SkillOffer is
+        /// attached, so Pickup.Offer stays null and ClearOffer walks away from it
+        /// when an upgrade is taken - and it walks away from the upgrades when it
+        /// is taken. That absence is the whole of what makes health independent.
+        /// </summary>
         private Pickup Place(
             float bearing,
             float height,
@@ -331,6 +331,12 @@ namespace SurvivalChaos
                     {
                         pickup.Skill.Apply(playerTarget);
                     }
+
+                    // Played here because the sound normally rides along inside
+                    // ApplyCollected, which this branch is standing in for. Without
+                    // it the degraded path is silent as well as unannounced, and
+                    // flying into an upgrade would feel like missing it.
+                    PlayCollectSound();
                 }
             }
             else if (playerTarget != null)

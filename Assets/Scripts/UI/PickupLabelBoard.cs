@@ -126,6 +126,34 @@ namespace SurvivalChaos
             {
                 Instance = null;
             }
+
+            // Each slot's material is a clone, created the moment fontMaterial was
+            // read in Build. Nothing else frees them: TextMeshPro's own
+            // DestroyImmediate of m_fontMaterial sits inside a commented-out block
+            // in TextMeshProUGUI, so the clones outlive the scene and pile up one
+            // per caption slot per load. Pickup.Tint dodges the same trap with a
+            // property block; these cannot, because a CanvasRenderer ignores them.
+            for (int i = 0; i < materials.Count; i++)
+            {
+                if (materials[i] == null)
+                {
+                    continue;
+                }
+
+                // Play mode defers to the end of the frame; the editor has no frame
+                // to defer to, and leaving it to Destroy there does nothing at all.
+                if (Application.isPlaying)
+                {
+                    Destroy(materials[i]);
+                }
+                else
+                {
+                    DestroyImmediate(materials[i]);
+                }
+            }
+
+            materials.Clear();
+            slots.Clear();
         }
 
         /// <summary>Starts drawing a label. Safe to call when it is already attached.</summary>
