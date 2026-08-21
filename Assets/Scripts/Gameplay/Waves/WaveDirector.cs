@@ -113,9 +113,17 @@ namespace SurvivalChaos
 
             // Pooled. Enemies were the last thing in the game still going through
             // Instantiate and Destroy, on the argument that they arrive "once or
-            // twice a second" - true for the first half of a run, and measured at
-            // 7.5 a second by the five minute mark, because nineteen streams each
-            // ramp their own interval and the curve compounds.
+            // twice a second" - true of the opening minutes, which sit under one
+            // a second, and not of the end, because nineteen streams each ramp
+            // their own interval and the curve compounds. Spawning reaches about
+            // six a second over the last half minute, and a run is 1331 enemies.
+            //
+            // That peak was quoted here as 7.5 a second at five minutes, which
+            // was the end of the run back when the run was five minutes long.
+            // Doubling it to 602s re-stretched the curve rather than extending
+            // it - the same peak, reached at ten minutes instead - so the five
+            // minute mark is now 1.3 a second and the old figure read as a claim
+            // about the middle of a run rather than its end.
             //
             // The rotation is whatever the stream authored. It stops mattering
             // within a frame either way: EnemyMovement calls LookAt towards the
