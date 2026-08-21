@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace SurvivalChaos
@@ -66,6 +67,76 @@ namespace SurvivalChaos
 
                 return -1f;
             }
+        }
+
+        /// <summary>
+        /// Writes a line for every stream that spawns outside the given vertical
+        /// band, and returns how many there were.
+        ///
+        /// The band is a parameter rather than something looked up here, because
+        /// a wave asset has no scene to look in - it may be inspected with no
+        /// scene open at all. The caller knows which arena it is asking about.
+        ///
+        /// Reports rather than repairs. A stream outside the band is sometimes
+        /// deliberate, and the fix depends on which of the two numbers is wrong:
+        /// moving the streams suits a bounds change, moving the bounds suits a
+        /// deliberately taller arena. Guessing between them would be worse than
+        /// saying so.
+        /// </summary>
+        public int DescribeStreamsOutside(float floor, float ceiling, StringBuilder into)
+        {
+            if (streams == null)
+            {
+                return 0;
+            }
+
+            int found = 0;
+
+            foreach (SpawnStream stream in streams)
+            {
+                if (stream == null || stream.Prefab == null)
+                {
+                    continue;
+                }
+
+                SpawnBand.RangeOf(
+                    stream.Position.y, stream.YOffsetRange, out float lowest, out float highest);
+
+                if (SpawnBand.IsFullyInside(lowest, highest, floor, ceiling))
+                {
+                    continue;
+                }
+
+                found++;
+
+                if (into == null)
+                {
+                    continue;
+                }
+
+                bool wholly = SpawnBand.IsWhollyOutside(lowest, highest, floor, ceiling);
+                float below = SpawnBand.BelowFloorBy(lowest, floor);
+                float above = SpawnBand.AboveCeilingBy(highest, ceiling);
+
+                into.Append("  ").Append(stream.Label)
+                    .Append("  spawns ").Append(lowest.ToString("0.###"))
+                    .Append(" to ").Append(highest.ToString("0.###"))
+                    .Append(wholly ? "  - ENTIRELY outside, every one of them" : "  - partly outside");
+
+                if (below > 0f)
+                {
+                    into.Append(", ").Append(below.ToString("0.###")).Append(" under the floor");
+                }
+
+                if (above > 0f)
+                {
+                    into.Append(", ").Append(above.ToString("0.###")).Append(" over the ceiling");
+                }
+
+                into.AppendLine();
+            }
+
+            return found;
         }
 
         /// <summary>Replaces the stream list. Used by the migration tool.</summary>

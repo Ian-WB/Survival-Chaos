@@ -64,7 +64,56 @@ namespace SurvivalChaos
                 ObjectPool.Warm(stream.Prefab, warmupPerStream);
                 StartCoroutine(RunStream(stream));
             }
+
+#if UNITY_EDITOR
+            WarnAboutUnreachableStreams();
+#endif
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Reports streams that spawn where the player cannot follow.
+        ///
+        /// Two authored numbers have to agree for an enemy to be reachable and
+        /// neither knows about the other: the heights in the wave asset, and the
+        /// bounds box that clamps how high and low the player may fly. Moving the
+        /// box is the easy half to forget, because nothing in the scene looks
+        /// wrong afterwards - the enemies still arrive, still orbit, still show
+        /// on screen. They are simply beneath the floor.
+        ///
+        /// Editor-only, and at Start rather than OnValidate, because OnValidate
+        /// fires when this component is touched and not when either of the two
+        /// things it compares changes. Pressing play is the one action that
+        /// reliably follows editing a wave or a bounds box, so that is where the
+        /// check goes.
+        /// </summary>
+        private void WarnAboutUnreachableStreams()
+        {
+            ApplyBounds bounds = FindFirstObjectByType<ApplyBounds>();
+
+            if (bounds == null || !bounds.TryGetBand(out float floor, out float ceiling))
+            {
+                return;
+            }
+
+            var report = new System.Text.StringBuilder();
+
+            if (wave.DescribeStreamsOutside(floor, ceiling, report) == 0)
+            {
+                return;
+            }
+
+            Debug.LogWarning(
+                "Spawn streams reach outside the player's vertical band of "
+                + floor.ToString("0.###") + " to " + ceiling.ToString("0.###") + ":\n"
+                + report
+                + "Prefabs with EnemyMovement climb back into reach once the player is "
+                + "inside their chase radius. Enemy 3 carries ObstacleScript, which has "
+                + "no chase branch and never changes height, so those stay exactly where "
+                + "they spawned until they time out.",
+                this);
+        }
+#endif
 
         private Vector3 Center => arenaCenter != null ? arenaCenter.position : Vector3.zero;
 

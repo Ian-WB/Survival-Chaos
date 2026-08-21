@@ -22,6 +22,30 @@ namespace SurvivalChaos
 
         private bool warned;
 
+        /// <summary>
+        /// The band the player is held inside, in world space. False when no box
+        /// is assigned - the same condition <see cref="applyBounds"/> warns about.
+        ///
+        /// Exposed so a wave can be checked against what the player can actually
+        /// reach. The box is the authority on that limit, and anything that kept
+        /// its own copy of the two numbers would be one more pair to keep in step
+        /// with it.
+        /// </summary>
+        public bool TryGetBand(out float floor, out float ceiling)
+        {
+            if (playerBounds == null)
+            {
+                floor = 0f;
+                ceiling = 0f;
+                return false;
+            }
+
+            Bounds box = playerBounds.bounds;
+            floor = box.min.y;
+            ceiling = box.max.y;
+            return true;
+        }
+
         void Update()
         {
             applyBounds();

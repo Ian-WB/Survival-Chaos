@@ -9722,7 +9722,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 704
     m_UseOverride: 0
-    m_Level: 2
+    m_Level: 0
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -9812,15 +9812,15 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 1
   m_LightShadowCasterMode: 1
   m_AreaSize: {x: 5.16, y: 3.77}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 9.403954e-38, y: 1e-45, z: 1.5e-44, w: -0.00000047682988}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 3
   m_ShadowAngle: 0
@@ -13693,7 +13693,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -1.531559, y: 4.570272}
+  m_Offset: {x: 0, y: 13.458458}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -13703,7 +13703,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 53.94834, y: 32.35954}
+  m_Size: {x: 35, y: 28.716454}
   m_EdgeRadius: 0
 --- !u!1 &983100168
 GameObject:
@@ -14104,7 +14104,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 43.19525}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1.25
   m_ShadowAngle: 0
@@ -23824,33 +23824,33 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.2880192
-    'sh[ 1]': -0.21931335
-    'sh[ 2]': -0.06505523
-    'sh[ 3]': 0.049708612
-    'sh[ 4]': -0.024247715
-    'sh[ 5]': 0.026809404
-    'sh[ 6]': -0.0055132452
-    'sh[ 7]': -0.0056162486
-    'sh[ 8]': -0.026551442
-    'sh[ 9]': 0.08974298
-    'sh[10]': -0.0063636485
-    'sh[11]': 0.0050143204
-    'sh[12]': 0.0073259817
-    'sh[13]': -0.0024346986
-    'sh[14]': 0.0013414577
-    'sh[15]': 0.00022818816
-    'sh[16]': 0.0014581352
-    'sh[17]': -0.00470586
-    'sh[18]': 0.08808351
-    'sh[19]': 0.024346892
-    'sh[20]': 0.009166124
-    'sh[21]': 0.0065829135
-    'sh[22]': -0.0010067807
-    'sh[23]': 0.0017567665
-    'sh[24]': 0.0014382788
-    'sh[25]': 0.0020609975
-    'sh[26]': -0.002389837
+    'sh[ 0]': 0.24201116
+    'sh[ 1]': -0.17296213
+    'sh[ 2]': -0.035759732
+    'sh[ 3]': 0.038396634
+    'sh[ 4]': -0.018325476
+    'sh[ 5]': 0.01394296
+    'sh[ 6]': -0.0047466424
+    'sh[ 7]': -0.0012411604
+    'sh[ 8]': -0.021481875
+    'sh[ 9]': 0.09182209
+    'sh[10]': -0.0065097082
+    'sh[11]': 0.0053232736
+    'sh[12]': 0.0077049327
+    'sh[13]': -0.0024470335
+    'sh[14]': 0.00243928
+    'sh[15]': 0.000073956144
+    'sh[16]': 0.0012726312
+    'sh[17]': -0.0050462377
+    'sh[18]': 0.08914859
+    'sh[19]': 0.025918411
+    'sh[20]': 0.010569517
+    'sh[21]': 0.0069054593
+    'sh[22]': -0.00092917256
+    'sh[23]': 0.0027600457
+    'sh[24]': 0.0012716583
+    'sh[25]': 0.0019662331
+    'sh[26]': -0.0026358436
   m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -27107,15 +27107,15 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 1
   m_LightShadowCasterMode: 1
   m_AreaSize: {x: 5.16, y: 3.77}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1e-45, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 5.497558e+11, y: 6.7406024e+22, z: 4.7710492e-20, w: 1.102131e-39}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 3
   m_ShadowAngle: 0
@@ -34034,15 +34034,15 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 1
   m_LightShadowCasterMode: 1
   m_AreaSize: {x: 5.16, y: 3.77}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 4.04e-43, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 7.7e-44}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 3
   m_ShadowAngle: 0
