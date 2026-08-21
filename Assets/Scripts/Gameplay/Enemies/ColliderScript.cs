@@ -2,42 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ColliderScript : MonoBehaviour
+namespace SurvivalChaos
 {
-
-    [SerializeField]
-    private GameObject EnemyShip;
-
-    // Value applied to EnemyMovement.leftOrRight when the player crosses this trigger.
-    [SerializeField]
-    private bool leftOrRight;
-
-
-    private bool warned;
-
-    private void OnTriggerEnter(Collider other)
+    public class ColliderScript : MonoBehaviour
     {
-        if (!other.CompareTag("Player"))
-        {
-            return;
-        }
 
-        if (EnemyShip == null)
+        [SerializeField]
+        private GameObject EnemyShip;
+
+        // Value applied to EnemyMovement.leftOrRight when the player crosses this trigger.
+        [SerializeField]
+        private bool leftOrRight;
+
+
+        private bool warned;
+
+        private void OnTriggerEnter(Collider other)
         {
-            if (!warned)
+            if (!other.CompareTag("Player"))
             {
-                warned = true;
-                Debug.LogWarning(
-                    "ColliderScript has no Enemy Ship assigned, so crossing this trigger " +
-                    "will not turn the enemy around.", this);
+                return;
             }
 
-            return;
-        }
+            if (EnemyShip == null)
+            {
+                if (!warned)
+                {
+                    warned = true;
+                    Debug.LogWarning(
+                        "ColliderScript has no Enemy Ship assigned, so crossing this trigger " +
+                        "will not turn the enemy around.", this);
+                }
 
-        if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
-        {
-            enemyMovement.TravellingLeft = leftOrRight;
+                return;
+            }
+
+            if (EnemyShip.TryGetComponent(out EnemyMovement enemyMovement))
+            {
+                enemyMovement.TravellingLeft = leftOrRight;
+            }
         }
     }
 }

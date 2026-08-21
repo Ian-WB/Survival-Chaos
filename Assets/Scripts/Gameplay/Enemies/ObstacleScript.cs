@@ -1,66 +1,68 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using SurvivalChaos;
 
-public class ObstacleScript : MonoBehaviour
+namespace SurvivalChaos
 {
-    private Transform player;
-
-    private Vector3 center;
-    private float centerZ;
-    private float centerX;
-
-
-    [SerializeField]
-    private float spawnSpeed;
-
-
-
-    void Start()
+    public class ObstacleScript : MonoBehaviour
     {
-        GameObject playerObj = GameObject.Find("Player");
-        if (playerObj != null)
+        private Transform player;
+
+        private Vector3 center;
+        private float centerZ;
+        private float centerX;
+
+
+        [SerializeField]
+        private float spawnSpeed;
+
+
+
+        void Start()
         {
-            player = playerObj.transform;
+            GameObject playerObj = GameObject.Find("Player");
+            if (playerObj != null)
+            {
+                player = playerObj.transform;
+            }
+
+            GameObject scenario = GameObject.FindWithTag("Scenario");
+            if (scenario != null)
+            {
+                centerX = scenario.transform.position.x;
+                centerZ = scenario.transform.position.z;
+                center = new Vector3(centerX, 0f, centerZ);
+            }
         }
 
-        GameObject scenario = GameObject.FindWithTag("Scenario");
-        if (scenario != null)
+
+    void Update()
         {
-            centerX = scenario.transform.position.x;
-            centerZ = scenario.transform.position.z;
-            center = new Vector3(centerX, 0f, centerZ);
-        }
-    }
+            if (player == null)
+            {
+                return;
+            }
 
+            Vector3 pos = center;
+            pos.y = transform.position.y;
 
-void Update()
-    {
-        if (player == null)
-        {
-            return;
-        }
+            // Distance from the axis, ignoring height.
+            Vector3 flat = transform.position;
+            flat.y = 0f;
 
-        Vector3 pos = center;
-        pos.y = transform.position.y;
+            transform.LookAt(pos);
 
-        // Distance from the axis, ignoring height.
-        Vector3 flat = transform.position;
-        flat.y = 0f;
-
-        transform.LookAt(pos);
-
-        if(Vector3.Distance(center, flat) >= ArenaGeometry.OrbitRadius)
-        {
-            // Through ShipMotion.Approach for the same reason as EnemyMovement:
-            // the original `position += (center - position) * deltaTime * speed`
-            // holds its curve only while deltaTime is small, and diverges once
-            // deltaTime * spawnSpeed passes 2.
-            Vector3 next = transform.position;
-            next.x = ShipMotion.Approach(next.x, center.x, spawnSpeed, Time.deltaTime);
-            next.z = ShipMotion.Approach(next.z, center.z, spawnSpeed, Time.deltaTime);
-            transform.position = next;
+            if(Vector3.Distance(center, flat) >= ArenaGeometry.OrbitRadius)
+            {
+                // Through ShipMotion.Approach for the same reason as EnemyMovement:
+                // the original `position += (center - position) * deltaTime * speed`
+                // holds its curve only while deltaTime is small, and diverges once
+                // deltaTime * spawnSpeed passes 2.
+                Vector3 next = transform.position;
+                next.x = ShipMotion.Approach(next.x, center.x, spawnSpeed, Time.deltaTime);
+                next.z = ShipMotion.Approach(next.z, center.z, spawnSpeed, Time.deltaTime);
+                transform.position = next;
+            }
         }
     }
 }

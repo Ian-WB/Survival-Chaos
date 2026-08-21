@@ -19,9 +19,14 @@ namespace SurvivalChaos
     /// invoke timers and movement state was risk for no gain. The first half of
     /// that was measured against the wave asset and only holds early: nineteen
     /// streams each ramp their own interval and the curve compounds, giving 1.3
-    /// spawns a second at two minutes, 4.1 at four, and 7.6 by the five minute
+    /// spawns a second at four minutes, 4.1 at eight, and 7.5 by the ten minute
     /// mark - which is also when the most bullets, effects and lights are
     /// competing for the frame.
+    ///
+    /// Those three figures fell at two, four and five minutes when this was
+    /// written, because the run ended at five. Doubling it to 602s re-stretched
+    /// the curve rather than extending it, so the numbers are unchanged and only
+    /// their timestamps moved.
     ///
     /// The second half was accurate, and the three pieces of state it named are
     /// exactly the three that had to be handled: health rebuilds in OnEnable,

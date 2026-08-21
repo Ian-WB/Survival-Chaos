@@ -28,6 +28,13 @@ namespace SurvivalChaos
         /// <summary>Seconds since spawning began.</summary>
         public float Elapsed => Time.time - startTime;
 
+        /// <summary>
+        /// The wave being run, so the rest of the scene can ask about the shape
+        /// of the run rather than being told it twice. Null until one is
+        /// assigned, which is a mis-configured scene rather than a mode.
+        /// </summary>
+        public WaveDefinition Wave => wave;
+
         private void Start()
         {
             startTime = Time.time;
@@ -115,15 +122,15 @@ namespace SurvivalChaos
             // Instantiate and Destroy, on the argument that they arrive "once or
             // twice a second" - true of the opening minutes, which sit under one
             // a second, and not of the end, because nineteen streams each ramp
-            // their own interval and the curve compounds. Spawning reaches about
-            // six a second over the last half minute, and a run is 1331 enemies.
+            // their own interval and the curve compounds. It reaches 7.5 a
+            // second by the ten minute mark, and a run is 1331 enemies.
             //
-            // That peak was quoted here as 7.5 a second at five minutes, which
-            // was the end of the run back when the run was five minutes long.
-            // Doubling it to 602s re-stretched the curve rather than extending
-            // it - the same peak, reached at ten minutes instead - so the five
-            // minute mark is now 1.3 a second and the old figure read as a claim
-            // about the middle of a run rather than its end.
+            // That figure was quoted here as 7.5 a second at *five* minutes,
+            // which was the end of the run back when the run was five minutes
+            // long. Doubling it to 602s re-stretched the curve rather than
+            // extending it, so the peak never changed and only moved: the same
+            // 1.3, 4.1 and 7.5 a second that fell at two, four and five minutes
+            // now fall at four, eight and ten. Five minutes is 1.7 a second.
             //
             // The rotation is whatever the stream authored. It stops mattering
             // within a frame either way: EnemyMovement calls LookAt towards the
