@@ -89,7 +89,7 @@ namespace SurvivalChaos
         /// </summary>
         private void WarnAboutUnreachableStreams()
         {
-            ApplyBounds bounds = FindFirstObjectByType<ApplyBounds>();
+            ApplyBounds bounds = FindAnyObjectByType<ApplyBounds>();
 
             if (bounds == null || !bounds.TryGetBand(out float floor, out float ceiling))
             {

@@ -18,7 +18,7 @@ namespace SurvivalChaos.EditorTools
         [MenuItem("Survival Chaos/Waves/Check Spawn Heights", priority = 61)]
         public static void Check()
         {
-            WaveDirector director = Object.FindFirstObjectByType<WaveDirector>();
+            WaveDirector director = Object.FindAnyObjectByType<WaveDirector>();
 
             if (director == null || director.Wave == null)
             {
@@ -28,7 +28,7 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
-            ApplyBounds bounds = Object.FindFirstObjectByType<ApplyBounds>();
+            ApplyBounds bounds = Object.FindAnyObjectByType<ApplyBounds>();
 
             if (bounds == null || !bounds.TryGetBand(out float floor, out float ceiling))
             {

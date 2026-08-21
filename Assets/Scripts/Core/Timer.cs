@@ -70,7 +70,7 @@ namespace SurvivalChaos
         /// </summary>
         private float ResolveRunLength()
         {
-            WaveDirector director = FindFirstObjectByType<WaveDirector>();
+            WaveDirector director = FindAnyObjectByType<WaveDirector>();
 
             float authored = director != null && director.Wave != null
                 ? director.Wave.BossArrivesAt
