@@ -118,11 +118,25 @@ namespace SurvivalChaos
         /// <summary>
         /// How many volleys may cast this frame.
         ///
-        /// At the lowest quality tier the answer is always none. That tier sets
-        /// HDRP's shadow request budget to zero, so a shadow-casting light there
-        /// would be paying to be marked as one and getting nothing back.
-        /// QualitySettings.shadows carries the intent - HDRP does not read it
-        /// itself, but it means this does not have to know the pipeline exists.
+        /// On the bottom two tiers the answer is always none. Neither of them
+        /// says so through HDRP's shadow request budget: all four tiers ship
+        /// maxShadowRequests 128, and 0 is the one value that must never go
+        /// there. HDShadowManager.InitShadowManager does check for zero, and
+        /// returns before allocating its atlas; a later path dereferences that
+        /// atlas with no guard of its own, so the tier throws every frame and
+        /// draws nothing at all. Clear() one method below guards with the same
+        /// check, which is how you can tell HDRP knows the state exists and one
+        /// path simply forgets it.
+        ///
+        /// QualitySettings.shadows carries the intent instead. HDRP does not read
+        /// it for its own rendering, which is precisely what makes it usable
+        /// here: this does not have to know the pipeline exists, and it cannot
+        /// break the pipeline by saying so.
+        ///
+        /// Asked of QualitySettings rather than compared against a tier index,
+        /// for the reason GraphicsOption records beside the player-facing note -
+        /// two tiers disable shadows rather than one, and a tier inserted below
+        /// would move the answer again.
         ///
         /// Read every frame rather than watched for changes, which is what the
         /// old RefreshShadows did. There is nothing left to watch: the casting
