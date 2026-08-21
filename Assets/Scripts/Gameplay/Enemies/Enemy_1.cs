@@ -114,17 +114,25 @@ namespace SurvivalChaos
         {
             // Cached and guarded: this fires on a repeating invoke, so an unguarded
             // lookup would throw for the whole lifetime of a mis-wired prefab.
-            if (movement != null && movement.TravellingLeft)
+            //
+            // The pivots needed the same guard and did not have it. The movement
+            // check below only decides which prefab travels which way; the pivots
+            // were dereferenced as arguments on either side of it, so a prefab
+            // missing one threw every spawnDelay for as long as that enemy lived -
+            // and pooling means it comes back. Player.FireLine refuses the same way.
+            // The prefabs are left to ObjectPool.Spawn, which already warns and
+            // returns on a null one.
+            if (shootPivot == null || shootPivot_1 == null)
             {
-                ObjectPool.Spawn(shootPrefab, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
+                return;
             }
 
-            else
-            {
-                ObjectPool.Spawn(shootPrefab1, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-                ObjectPool.Spawn(shootPrefab1, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
-            }
+            GameObject bullet = movement != null && movement.TravellingLeft
+                ? shootPrefab
+                : shootPrefab1;
+
+            ObjectPool.Spawn(bullet, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
+            ObjectPool.Spawn(bullet, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
         }
 
         private void Death()

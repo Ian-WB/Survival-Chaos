@@ -24,6 +24,28 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Drops the static so it does not outlive the object it points at.
+        ///
+        /// Nothing is broken without this today. Unity overloads == on Object to
+        /// report a destroyed object as null, so the next scene's Awake takes the
+        /// else branch and reassigns correctly either way. What it removes is the
+        /// window in between, where Instance holds a corpse that reads as null
+        /// through that operator and not through every other route to it - and
+        /// statics outlive play mode entirely when domain reload is disabled.
+        ///
+        /// Guarded on this rather than cleared outright, because Awake destroys the
+        /// duplicate that arrives second. That duplicate's OnDestroy runs too, and
+        /// an unguarded clear there would null out the instance that won.
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
         public void AddEXP(int amount)
         {
             OnEXPChange?.Invoke(amount);

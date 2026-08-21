@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 namespace SurvivalChaos
@@ -54,9 +55,33 @@ namespace SurvivalChaos
         /// Statics outlive a scene, and outlive play mode entirely when domain reload
         /// is disabled, so a second run would otherwise start at the speed the first
         /// one ended at.
+        ///
+        /// That takes both halves and only one was here. SubsystemRegistration fires
+        /// when play mode is entered, which covers the editor and the first run of a
+        /// build; it does not fire when the player presses Retry, because that is
+        /// SceneManager.LoadScene and play mode never ended. Five Move Speed picks
+        /// left this at 1.5 and the next run began there rather than at 1 - measured
+        /// in play mode, not inferred - and it compounds run on run.
+        ///
+        /// The scene hook is what resets it between runs within one session:
+        /// unloading is the only way a run ends, by any route, so nothing has to
+        /// remember to clear it. ObjectPool and RunOutcome hook this same pair of
+        /// events for the same reason.
+        ///
+        /// On unload rather than on load, because nothing reads the multiplier while
+        /// a scene is being torn down. That puts the value back to 1 before the next
+        /// scene's first Awake rather than shortly after it.
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnEnterPlayMode()
+        {
+            speedMultiplier = 1f;
+
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+        }
+
+        private static void OnSceneUnloaded(Scene scene)
         {
             speedMultiplier = 1f;
         }

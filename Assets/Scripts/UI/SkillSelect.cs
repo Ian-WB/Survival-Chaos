@@ -136,7 +136,7 @@ namespace SurvivalChaos
             }
 
             int picksTaken = pool?.PicksTaken(skill) ?? 1;
-            StartCoroutine(showText(skill.GetDisplayName(picksTaken)));
+            ShowBanner(skill.GetDisplayName(picksTaken));
         }
 
         /// <summary>
@@ -192,7 +192,36 @@ namespace SurvivalChaos
                 GameSounds.Play(GameSounds.Instance.SkillPicked);
             }
 
-            StartCoroutine(showText(skill.GetDisplayName(pool.PicksTaken(skill))));
+            ShowBanner(skill.GetDisplayName(pool.PicksTaken(skill)));
+        }
+
+        /// <summary>The banner still counting down, so the next pick can stop it.</summary>
+        private Coroutine banner;
+
+        /// <summary>
+        /// Shows one level-up banner, replacing whichever is still on screen.
+        ///
+        /// Two picks inside three seconds used to leave two of these running, and
+        /// the first to finish hid the object the second was still using. The newer
+        /// skill's name flashed up and disappeared early, on the reading that three
+        /// seconds had passed - since a different pick. Nothing pauses on
+        /// collection: pickups are flown into, and an offer left on the ring can be
+        /// taken moments before the next level-up puts another one out, so the two
+        /// are not as far apart as the level curve suggests.
+        ///
+        /// Stopping the old one is what restarts the three seconds, rather than
+        /// merely keeping the object on screen. There is nothing to queue: the
+        /// banner is one line of text with no state of its own, and the skill it
+        /// named has already been applied.
+        /// </summary>
+        private void ShowBanner(string skillName)
+        {
+            if (banner != null)
+            {
+                StopCoroutine(banner);
+            }
+
+            banner = StartCoroutine(showText(skillName));
         }
 
         IEnumerator showText(string skillName)
@@ -202,6 +231,7 @@ namespace SurvivalChaos
 
             yield return new WaitForSeconds(3);
             skillTextObject.SetActive(false);
+            banner = null;
         }
     }
 }
