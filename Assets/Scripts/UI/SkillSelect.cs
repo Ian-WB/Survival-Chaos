@@ -128,6 +128,7 @@ namespace SurvivalChaos
             }
 
             pool?.RecordPick(skill);
+            RunStats.RecordSkill(skill.DisplayName);
             skill.Apply(player);
 
             if (GameSounds.Instance != null)

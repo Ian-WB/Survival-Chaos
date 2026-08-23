@@ -27,6 +27,7 @@ namespace SurvivalChaos
             if (victoryMenuUI != null)
             {
                 victoryMenuUI.SetActive(true);
+                RunSummary.Show(victoryMenuUI);
             }
             else
             {

@@ -35,6 +35,7 @@ namespace SurvivalChaos
         private EnemyMovement movement;
         private Slider hpBar;
         private VolleyTimer[] timers;
+        private HitFlash flash;
 
         private void Awake()
         {
@@ -42,6 +43,8 @@ namespace SurvivalChaos
             {
                 enemyShip.TryGetComponent(out movement);
             }
+
+            flash = HitFlash.On(gameObject);
         }
 
         /// <summary>
@@ -183,6 +186,14 @@ namespace SurvivalChaos
                 // so it comes from the pool and goes back to it.
                 ObjectPool.Despawn(gameObject);
             }
+            else if (flash != null)
+            {
+                // Worth more here than anywhere else. The boss has three hundred
+                // hit points and no spark prefab of its own, so without this the
+                // only reading of progress is a health bar at the top of the
+                // screen - which is not where the player is looking.
+                flash.Strike();
+            }
         }
 
         private void Death()
@@ -193,6 +204,9 @@ namespace SurvivalChaos
             {
                 EXP.Instance.AddEXP(reward);
             }
+
+            PickupLabelBoard.Experience(transform.position, reward);
+            RunStats.RecordKill(reward);
 
             // Not positional, and played before the object goes: this is the run
             // ending, not an event somewhere out on the ring.

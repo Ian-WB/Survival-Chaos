@@ -47,6 +47,7 @@ namespace SurvivalChaos
 
         private HealthState health;
         private EnemyMovement movement;
+        private HitFlash flash;
 
         private void OnTriggerEnter(Collider other)
         {
@@ -68,9 +69,17 @@ namespace SurvivalChaos
                     Death();
                     ObjectPool.Despawn(gameObject);
                 }
-                else if (enemyHit != null)
+                else
                 {
-                    ObjectPool.Spawn(enemyHit, impact, transform.rotation);
+                    if (flash != null)
+                    {
+                        flash.Strike();
+                    }
+
+                    if (enemyHit != null)
+                    {
+                        ObjectPool.Spawn(enemyHit, impact, transform.rotation);
+                    }
                 }
             }
         }
@@ -83,6 +92,10 @@ namespace SurvivalChaos
             {
                 EnemyShip.TryGetComponent(out movement);
             }
+
+            // On this object rather than on EnemyShip, so it gathers every
+            // renderer under the prefab rather than only the ship's own.
+            flash = HitFlash.On(gameObject);
         }
 
         /// <summary>
@@ -143,6 +156,9 @@ namespace SurvivalChaos
             {
                 EXP.Instance.AddEXP(reward);
             }
+
+            PickupLabelBoard.Experience(transform.position, reward);
+            RunStats.RecordKill(reward);
 
             PlayDeathSound();
         }

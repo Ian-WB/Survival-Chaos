@@ -307,6 +307,7 @@ namespace SurvivalChaos
             // off it, and off-by-one there is the difference between health on the
             // even levels and health on the odd ones.
             currentLevel += 1;
+            RunStats.RecordLevel(currentLevel);
 
             //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
             skillSelect.PickSkill();

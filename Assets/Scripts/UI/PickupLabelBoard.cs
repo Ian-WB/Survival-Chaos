@@ -72,6 +72,23 @@ namespace SurvivalChaos
                  "occlusion test off and draws every caption, hidden or not.")]
         private float occluderRadius = 5f;
 
+        [Header("Combat numbers")]
+        [SerializeField]
+        [ColorUsage(showAlpha: false, hdr: true)]
+        [Tooltip("Colour of the experience earned where a kill happened.")]
+        private Color experienceTint = new Color(1f, 0.78f, 0.25f);
+
+        [SerializeField]
+        [Range(0.2f, 3f)]
+        [Tooltip("How long one number stays up, in seconds.")]
+        private float numberSeconds = 0.9f;
+
+        [SerializeField]
+        [Range(0f, 8f)]
+        [Tooltip("World units a number climbs per second while it fades, so several at the " +
+                 "same spot separate instead of stacking into an unreadable pile.")]
+        private float numberRise = 2.2f;
+
         /// <summary>
         /// The board every label talks to.
         ///
@@ -89,6 +106,34 @@ namespace SurvivalChaos
         /// different slot.
         /// </summary>
         private readonly List<PickupLabel> attached = new List<PickupLabel>();
+
+        /// <summary>
+        /// One number owed to the screen: what it says, where it was earned, and
+        /// when.
+        ///
+        /// A position rather than a Transform, unlike the captions above. What
+        /// this names is an event and not an object - the enemy it belongs to is
+        /// already back in the pool by the time the number is drawn, and following
+        /// it would put the reward on whatever spawned next.
+        /// </summary>
+        private struct FloatingNumber
+        {
+            public Vector3 Origin;
+            public string Caption;
+            public Color Tint;
+            public float Born;
+        }
+
+        /// <summary>
+        /// The most that may be up at once. Kills peak near eight a second and a
+        /// number lives under one, so this is roughly three times what the game
+        /// can actually produce; it exists so a runaway caller cannot grow the
+        /// slot pool without bound, and the oldest goes first because it is the
+        /// one already fading out.
+        /// </summary>
+        private const int MaxNumbers = 24;
+
+        private readonly List<FloatingNumber> numbers = new List<FloatingNumber>();
 
         private readonly List<TextMeshProUGUI> slots = new List<TextMeshProUGUI>();
 
@@ -154,6 +199,52 @@ namespace SurvivalChaos
 
             materials.Clear();
             slots.Clear();
+        }
+
+        /// <summary>
+        /// Puts the experience a kill was worth where the kill happened.
+        ///
+        /// Experience rather than damage, which is what a floating number in a
+        /// shooter usually is, because damage in this game is always exactly 1 -
+        /// every weapon, every enemy, the boss included. A column of ones rising
+        /// off every hit would be thirteen hundred glyphs a run telling the player
+        /// something they already know. The reward is the number that varies: a
+        /// Scout is 5 and a Fighter beside it is 15, and knowing that mid-run is
+        /// what makes going after one rather than the other a decision.
+        ///
+        /// Silent when there is no board in the scene, matching GameSounds - the
+        /// callers are enemies dying, and none of them should have to know
+        /// whether the HUD exists.
+        /// </summary>
+        public static void Experience(Vector3 where, int amount)
+        {
+            if (Instance == null || amount <= 0)
+            {
+                return;
+            }
+
+            Instance.Add(where, "+" + amount, Instance.experienceTint);
+        }
+
+        private void Add(Vector3 where, string caption, Color tint)
+        {
+            if (numbers.Count >= MaxNumbers)
+            {
+                numbers.RemoveAt(0);
+            }
+
+            numbers.Add(new FloatingNumber
+            {
+                Origin = where,
+                Caption = caption,
+                Tint = tint,
+
+                // Unscaled, because both endings stop time outright. On scaled
+                // time the last kill of a winning run would leave its number
+                // frozen over the victory screen for as long as the screen was
+                // up. HitFlash holds off for the same reason.
+                Born = Time.unscaledTime,
+            });
         }
 
         /// <summary>Starts drawing a label. Safe to call when it is already attached.</summary>
@@ -227,7 +318,63 @@ namespace SurvivalChaos
                 Paint(drawn - 1, label.Tint);
             }
 
+            drawn = DrawNumbers(camera, drawn);
+
             HideFrom(drawn);
+        }
+
+        /// <summary>
+        /// Draws the combat numbers, retires the ones that have run out, and
+        /// reports how many slots are now in use.
+        ///
+        /// Backwards, so retiring one does not skip the next. They share the
+        /// caption slots rather than owning a pool of their own: both are one
+        /// line of glowing text projected through the same camera, and a second
+        /// pool would mean a second set of cloned materials to free and a second
+        /// copy of the occlusion and distance rules to keep in step with these.
+        /// </summary>
+        private int DrawNumbers(Camera camera, int drawn)
+        {
+            for (int i = numbers.Count - 1; i >= 0; i--)
+            {
+                FloatingNumber number = numbers[i];
+                float age = Time.unscaledTime - number.Born;
+
+                if (age >= numberSeconds)
+                {
+                    numbers.RemoveAt(i);
+                    continue;
+                }
+
+                Vector3 world = number.Origin + Vector3.up * (numberRise * age);
+                Vector3 screen = camera.WorldToScreenPoint(world);
+
+                // Same two rejections the captions make, and for the same
+                // reasons: behind the camera projects to a mirrored point in
+                // front of it, and the volcano stands between the camera and
+                // half the ring.
+                if (screen.z <= 0f || Occluded(camera.transform.position, world))
+                {
+                    continue;
+                }
+
+                TextMeshProUGUI slot = Slot(drawn++);
+
+                slot.gameObject.SetActive(true);
+                slot.text = number.Caption;
+                slot.rectTransform.position = screen;
+                slot.fontSize = fontSize * ScaleAt(screen.z);
+
+                // Faded through the face and glow alpha rather than by shrinking
+                // or moving, so a number stays exactly as legible as the captions
+                // beside it right up until it goes.
+                Color tint = number.Tint;
+                tint.a = 1f - (age / numberSeconds);
+
+                Paint(drawn - 1, tint);
+            }
+
+            return drawn;
         }
 
         /// <summary>

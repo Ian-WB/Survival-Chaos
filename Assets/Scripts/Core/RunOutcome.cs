@@ -31,6 +31,11 @@ namespace SurvivalChaos
         public static void ReportRunEnded()
         {
             RunEnded = true;
+
+            // Both endings pass through here before they stop time, which makes
+            // this the one place the run's length can be read as the run's
+            // length rather than as zero.
+            RunStats.Stop();
         }
 
         public static void ReportBossDefeated()

@@ -33,6 +33,16 @@ namespace SurvivalChaos
         private GameObject EnemyShip;
 
         private HealthState health;
+        private HitFlash flash;
+
+        /// <summary>
+        /// Found once. The component is added to this same object the first time
+        /// it is asked for, so a trip through the pool keeps it.
+        /// </summary>
+        private void Awake()
+        {
+            flash = HitFlash.On(gameObject);
+        }
 
         /// <summary>
         /// Health is rebuilt on every spawn, not just the first.
@@ -69,9 +79,20 @@ namespace SurvivalChaos
                     Death();
                     ObjectPool.Despawn(gameObject);
                 }
-                else if (enemyHit != null)
+                else
                 {
-                    ObjectPool.Spawn(enemyHit, impact, transform.rotation);
+                    // The hull reacts whether or not a spark prefab is wired, so
+                    // the two halves of the feedback fail independently rather
+                    // than an unassigned field costing both.
+                    if (flash != null)
+                    {
+                        flash.Strike();
+                    }
+
+                    if (enemyHit != null)
+                    {
+                        ObjectPool.Spawn(enemyHit, impact, transform.rotation);
+                    }
                 }
             }
         }
@@ -84,6 +105,11 @@ namespace SurvivalChaos
             {
                 EXP.Instance.AddEXP(reward);
             }
+
+            // Outside the guard above: what the kill was worth is worth showing
+            // whether or not anything is keeping score.
+            PickupLabelBoard.Experience(transform.position, reward);
+            RunStats.RecordKill(reward);
 
             PlayDeathSound();
         }

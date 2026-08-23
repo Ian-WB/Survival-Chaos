@@ -11,6 +11,7 @@ namespace SurvivalChaos
         public void ShowDeathMenu(){
             if (deathMenuUI != null){
                 deathMenuUI.SetActive(true);
+                RunSummary.Show(deathMenuUI);
             }
 
             // Before time stops, so nothing can pause into the gap. PauseMenu reads
