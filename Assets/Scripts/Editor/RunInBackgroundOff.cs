@@ -6,27 +6,38 @@ using UnityEngine;
 namespace SurvivalChaos.EditorTools
 {
     /// <summary>
-    /// Turns "run in background" off for every build, because the project setting
-    /// will not stay off on its own.
+    /// Turns "run in background" off for every build, and deliberately leaves it
+    /// on in the Editor.
     ///
     /// com.unity.pipeline runs an HTTP server inside the Editor so the unity CLI
     /// can drive it, and that server sets <c>Application.runInBackground = true</c>
-    /// every time it starts - BasePipelineServer.Start(), which runs on every Editor
-    /// launch and after every domain reload. In the Editor that assignment writes
-    /// through to PlayerSettings, so the value in ProjectSettings.asset is true no
-    /// matter what anyone sets it to. Setting it back by hand lasts until the next
-    /// launch, and then it is true again.
+    /// when it starts - BasePipelineServer.Start(). In the Editor that assignment
+    /// writes through to PlayerSettings, which is why ProjectSettings.asset carries
+    /// 1 and is committed that way.
     ///
-    /// That would be harmless if it stayed in the Editor, but PlayerSettings is
-    /// baked into the build. The player would inherit the setting from a server that
-    /// never runs in it: the runtime half of the pipeline is opt-in through a
-    /// RuntimePipelineConfig asset in a Resources folder, which this project does
-    /// not have and should not gain - its own tooltip says never to enable it in a
-    /// production build.
+    /// The Editor value is wanted, and that is the part worth writing down. An
+    /// unfocused Editor that has stopped updating cannot be driven, so recompiling,
+    /// running tests and entering play mode from the CLI all depend on this being
+    /// on while the person working is in another window. It is not damage from the
+    /// package to be tolerated; it is the setting that makes the tooling usable.
     ///
-    /// It matters because this game has no pause. Left on, alt-tabbing does not
-    /// stop the run - enemies keep closing, waves keep arriving, and the player
-    /// comes back to a death they were not present for.
+    /// It does not restore itself. That was assumed once and is not so: a build
+    /// clears it through this callback and it stays clear across a domain reload
+    /// afterwards, leaving ProjectSettings.asset modified against the committed 1.
+    /// Turn it back on in Project Settings, or through PlayerSettings, after any
+    /// build that needs the CLI working again.
+    ///
+    /// What must not inherit it is the player. PlayerSettings is baked into the
+    /// build, so without this the game would ship carrying a setting it got from a
+    /// server that never runs in it: the runtime half of the pipeline is opt-in
+    /// through a RuntimePipelineConfig asset in a Resources folder, which this
+    /// project does not have and should not gain - its own tooltip says never to
+    /// enable it in a production build.
+    ///
+    /// It matters because the game does not pause itself. PauseMenu waits for Esc,
+    /// so left on, alt-tabbing does not stop the run - enemies keep closing, waves
+    /// keep arriving, and the player comes back to a death they were not present
+    /// for.
     ///
     /// Forcing it here rather than in the game keeps the workaround where the
     /// problem is, in an Editor package, instead of shipping a line of runtime code
@@ -38,8 +49,8 @@ namespace SurvivalChaos.EditorTools
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            // Already off means the pipeline server has not started since someone
-            // last cleared it. Nothing to do, and nothing worth logging about.
+            // Already off means an earlier build cleared it and nothing has turned
+            // it back on since. Nothing to do, and nothing worth logging about.
             if (!PlayerSettings.runInBackground)
             {
                 return;
