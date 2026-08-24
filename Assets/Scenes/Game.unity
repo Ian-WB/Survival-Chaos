@@ -5218,6 +5218,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::HealthBar
   slider: {fileID: 347569122}
+  shakeDistance: 6
+  shakeSeconds: 0.22
 --- !u!114 &347569122
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9821,7 +9823,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 1.3e-44}
+  m_BoundingSphereOverride: {x: 3.1315e-41, y: 1e-45, z: 0, w: 3e-45}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -23827,33 +23829,33 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.2873884
-    'sh[ 1]': -0.21861635
-    'sh[ 2]': -0.0652147
-    'sh[ 3]': 0.04964111
-    'sh[ 4]': -0.024217637
-    'sh[ 5]': 0.026888998
-    'sh[ 6]': -0.005480278
-    'sh[ 7]': -0.005618675
-    'sh[ 8]': -0.026464777
-    'sh[ 9]': 0.08957771
-    'sh[10]': -0.0061818864
-    'sh[11]': 0.0049778707
-    'sh[12]': 0.007312108
-    'sh[13]': -0.0024284362
-    'sh[14]': 0.0013598055
-    'sh[15]': 0.00023650841
-    'sh[16]': 0.001456829
-    'sh[17]': -0.0046833153
-    'sh[18]': 0.088043086
-    'sh[19]': 0.02439118
-    'sh[20]': 0.009157403
-    'sh[21]': 0.006579418
-    'sh[22]': -0.0010052338
-    'sh[23]': 0.0017611762
-    'sh[24]': 0.0014403004
-    'sh[25]': 0.0020607233
-    'sh[26]': -0.0023843774
+    'sh[ 0]': 0.24269067
+    'sh[ 1]': -0.17365243
+    'sh[ 2]': -0.035726283
+    'sh[ 3]': 0.038538944
+    'sh[ 4]': -0.018393688
+    'sh[ 5]': 0.013920936
+    'sh[ 6]': -0.004770391
+    'sh[ 7]': -0.0012409042
+    'sh[ 8]': -0.02155722
+    'sh[ 9]': 0.09198593
+    'sh[10]': -0.0066781426
+    'sh[11]': 0.005334213
+    'sh[12]': 0.0077427
+    'sh[13]': -0.0024649662
+    'sh[14]': 0.0024330947
+    'sh[15]': 0.00006795888
+    'sh[16]': 0.0012721092
+    'sh[17]': -0.005064998
+    'sh[18]': 0.0891888
+    'sh[19]': 0.025877183
+    'sh[20]': 0.010571815
+    'sh[21]': 0.0069142715
+    'sh[22]': -0.0009333713
+    'sh[23]': 0.002758695
+    'sh[24]': 0.0012702135
+    'sh[25]': 0.00196607
+    'sh[26]': -0.0026404285
   m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -27116,7 +27118,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0.0009284822, y: 1.3563128e-19, z: 4.5449518e+30, w: 1.8523599e+28}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 1.3e-44}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -34043,7 +34045,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 6.2e-44}
+  m_BoundingSphereOverride: {x: 7.52e-43, y: 0, z: 0, w: 6.2e-44}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
