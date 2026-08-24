@@ -9620,7 +9620,7 @@ Transform:
   m_GameObject: {fileID: 699658513}
   serializedVersion: 2
   m_LocalRotation: {x: -0.27159557, y: 0.65286744, z: 0.65286744, w: 0.27159554}
-  m_LocalPosition: {x: 11.187, y: 0.69, z: 2.84}
+  m_LocalPosition: {x: 11.187, y: 0.789, z: 2.84}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9725,9 +9725,9 @@ MonoBehaviour:
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
   m_ShadowResolution:
-    m_Override: 704
+    m_Override: 512
     m_UseOverride: 0
-    m_Level: 0
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -9779,7 +9779,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 1024
-  m_Range: 6
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -9823,9 +9823,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 3.1315e-41, y: 1e-45, z: 0, w: 3e-45}
+  m_BoundingSphereOverride: {x: 7e-44, y: 2.5961484e+33, z: 0, w: 1.7443689e+28}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 3
   m_ShadowAngle: 0
@@ -13894,7 +13894,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &993896432
 Transform:
   m_ObjectHideFlags: 0
@@ -14011,7 +14011,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 704
     m_UseOverride: 0
-    m_Level: 3
+    m_Level: 2
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -14109,7 +14109,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 43.19525}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1.25
   m_ShadowAngle: 0
@@ -23829,33 +23829,33 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.24269067
-    'sh[ 1]': -0.17365243
-    'sh[ 2]': -0.035726283
-    'sh[ 3]': 0.038538944
-    'sh[ 4]': -0.018393688
-    'sh[ 5]': 0.013920936
-    'sh[ 6]': -0.004770391
-    'sh[ 7]': -0.0012409042
-    'sh[ 8]': -0.02155722
-    'sh[ 9]': 0.09198593
-    'sh[10]': -0.0066781426
-    'sh[11]': 0.005334213
-    'sh[12]': 0.0077427
-    'sh[13]': -0.0024649662
-    'sh[14]': 0.0024330947
-    'sh[15]': 0.00006795888
-    'sh[16]': 0.0012721092
-    'sh[17]': -0.005064998
-    'sh[18]': 0.0891888
-    'sh[19]': 0.025877183
-    'sh[20]': 0.010571815
-    'sh[21]': 0.0069142715
-    'sh[22]': -0.0009333713
-    'sh[23]': 0.002758695
-    'sh[24]': 0.0012702135
-    'sh[25]': 0.00196607
-    'sh[26]': -0.0026404285
+    'sh[ 0]': 0.22382356
+    'sh[ 1]': -0.15956222
+    'sh[ 2]': -0.029214386
+    'sh[ 3]': 0.03597847
+    'sh[ 4]': -0.017393207
+    'sh[ 5]': 0.011484698
+    'sh[ 6]': -0.0050086067
+    'sh[ 7]': -0.0010199619
+    'sh[ 8]': -0.021107841
+    'sh[ 9]': 0.09278252
+    'sh[10]': -0.008302579
+    'sh[11]': 0.004082524
+    'sh[12]': 0.007843745
+    'sh[13]': -0.0025827254
+    'sh[14]': 0.00312078
+    'sh[15]': -0.00007684529
+    'sh[16]': 0.0011287642
+    'sh[17]': -0.0054560076
+    'sh[18]': 0.08941027
+    'sh[19]': 0.025458932
+    'sh[20]': 0.010257385
+    'sh[21]': 0.0069381967
+    'sh[22]': -0.0009616733
+    'sh[23]': 0.0029299178
+    'sh[24]': 0.001235129
+    'sh[25]': 0.0019317649
+    'sh[26]': -0.0027372164
   m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -26915,7 +26915,7 @@ Transform:
   m_GameObject: {fileID: 1700830528}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.28, y: 9.84, z: -3.27}
+  m_LocalPosition: {x: 0.49, y: 9.84, z: -2.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -27004,7 +27004,7 @@ MonoBehaviour:
   m_EvsmBlurPasses: 0
   m_LightlayersMask: 1
   m_LinkShadowLayers: 1
-  m_ShadowNearPlane: 1.59
+  m_ShadowNearPlane: 0.1
   m_BlockerSampleCount: 24
   m_FilterSampleCount: 16
   m_MinFilterSize: 0.1
@@ -27022,7 +27022,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 512
     m_UseOverride: 0
-    m_Level: 0
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -27074,7 +27074,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 1024
-  m_Range: 6
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -27118,9 +27118,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 1.3e-44}
+  m_BoundingSphereOverride: {x: 1.3563128e-19, y: 4.5449518e+30, z: 1.8523599e+28, w: 8.5764494e-33}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 3
   m_ShadowAngle: 0
@@ -33842,7 +33842,7 @@ Transform:
   m_GameObject: {fileID: 2121084899}
   serializedVersion: 2
   m_LocalRotation: {x: -0.27159557, y: 0.65286744, z: 0.65286744, w: 0.27159554}
-  m_LocalPosition: {x: 4.95, y: 1.776, z: -7.53}
+  m_LocalPosition: {x: 4.43, y: 2.06, z: -7.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -33947,9 +33947,9 @@ MonoBehaviour:
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
   m_ShadowResolution:
-    m_Override: 640
+    m_Override: 512
     m_UseOverride: 0
-    m_Level: 0
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -34001,7 +34001,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 1024
-  m_Range: 6
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -34045,9 +34045,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 7.52e-43, y: 0, z: 0, w: 6.2e-44}
+  m_BoundingSphereOverride: {x: 1.7086692e+19, y: 6.7422043e+22, z: 1.5121084e+25, w: 1.7748358e+28}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 3
   m_ShadowAngle: 0
