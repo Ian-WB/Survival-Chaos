@@ -9778,7 +9778,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 512
-  m_Range: 15
+  m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -9822,9 +9822,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 14681.103, y: 1.8331856e+31, z: 5.427298e-31, w: 1.2686422e+31}
+  m_BoundingSphereOverride: {x: 7.185382e+22, y: 3.014225e+12, z: 256345680, w: 1.9689345e-19}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1
   m_ShadowAngle: 0
@@ -13280,7 +13280,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 70
+  field of view: 65
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -13354,7 +13354,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 7023528544965449322}
-  radiusOffset: 7.5
+  radiusOffset: 10
 --- !u!114 &963194234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23589,33 +23589,33 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.20487727
-    'sh[ 1]': -0.1367322
-    'sh[ 2]': -0.02031917
-    'sh[ 3]': 0.028540283
-    'sh[ 4]': -0.013818353
-    'sh[ 5]': 0.0058921305
-    'sh[ 6]': -0.0038144707
-    'sh[ 7]': 0.00035986782
-    'sh[ 8]': -0.017993681
-    'sh[ 9]': 0.09072618
-    'sh[10]': -0.0053323614
-    'sh[11]': 0.0050497735
-    'sh[12]': 0.007056284
-    'sh[13]': -0.0022442692
-    'sh[14]': 0.001910896
-    'sh[15]': 0.00013305091
-    'sh[16]': 0.0015062978
-    'sh[17]': -0.004894196
-    'sh[18]': 0.08934858
-    'sh[19]': 0.025932333
-    'sh[20]': 0.009438643
-    'sh[21]': 0.00675892
-    'sh[22]': -0.00096611865
-    'sh[23]': 0.0024298786
-    'sh[24]': 0.0013186943
-    'sh[25]': 0.0022043725
-    'sh[26]': -0.0025552802
+    'sh[ 0]': 0.20805877
+    'sh[ 1]': -0.14029452
+    'sh[ 2]': -0.020089528
+    'sh[ 3]': 0.031387195
+    'sh[ 4]': -0.0149127655
+    'sh[ 5]': 0.006661036
+    'sh[ 6]': -0.0039763935
+    'sh[ 7]': 0.000033240445
+    'sh[ 8]': -0.018193359
+    'sh[ 9]': 0.0916762
+    'sh[10]': -0.0063917884
+    'sh[11]': 0.005512545
+    'sh[12]': 0.007743239
+    'sh[13]': -0.0024624644
+    'sh[14]': 0.0023546957
+    'sh[15]': 0.000071411974
+    'sh[16]': 0.0012757038
+    'sh[17]': -0.005036433
+    'sh[18]': 0.08915607
+    'sh[19]': 0.025906073
+    'sh[20]': 0.010593326
+    'sh[21]': 0.0069186287
+    'sh[22]': -0.0009349723
+    'sh[23]': 0.0027496885
+    'sh[24]': 0.00127027
+    'sh[25]': 0.0019658122
+    'sh[26]': -0.0026376718
   m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
   m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
   m_ReflectionProbeVersion: 10
@@ -26675,7 +26675,7 @@ Transform:
   m_GameObject: {fileID: 1700830528}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.49, y: 9.78, z: -2.77}
+  m_LocalPosition: {x: 0.49, y: 9.78, z: -2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -26834,7 +26834,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 128
-  m_Range: 15
+  m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -26878,9 +26878,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 1e-45}
+  m_BoundingSphereOverride: {x: 0, y: 1.7286782e-25, z: 5.9096807e-15, w: -9.7131045e-21}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1
   m_ShadowAngle: 0
@@ -33761,7 +33761,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 512
-  m_Range: 15
+  m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -33805,9 +33805,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: -9.223372e+18, y: 115223.625, z: -5.5416268e-30, w: 3.4716654}
+  m_BoundingSphereOverride: {x: 1.7319502e-25, y: -89, z: -2.2173668e-35, w: -2.2173668e-35}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 1
   m_ShadowAngle: 0

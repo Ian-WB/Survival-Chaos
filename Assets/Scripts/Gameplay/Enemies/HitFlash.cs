@@ -31,12 +31,35 @@ namespace SurvivalChaos
     {
         private static readonly int EmissiveColor = Shader.PropertyToID("_EmissiveColor");
 
+        /// <summary>
+        /// The colour of a hit, and the intensity is as much of the decision as
+        /// the hue is.
+        ///
+        /// _EmissiveColor feeds HDRP's lighting result directly, so this wants to
+        /// be worth more than 1 - at 1 the hull is a pale surface rather than
+        /// something that reads as a strike. But the scene tone maps through ACES,
+        /// which desaturates its highlights, and a red bright enough to clip comes
+        /// out the far side white: at 3 the hulls lost their silhouettes entirely
+        /// and went to white starbursts, which is the bug this value fixes.
+        ///
+        /// Measured off the game view against an unlit control rather than judged
+        /// by eye. The red channel lands on 226/238/244/247 for values of
+        /// 1.35/1.5/1.6/1.8, so it is already flat by 1.5 - while green keeps
+        /// climbing, 55/64/83/116, and green is what turns the flash orange. Above
+        /// 1.5 buys no brightness and pays for it in hue. The lava this reads
+        /// against is itself orange, so hue is the property worth protecting.
+        ///
+        /// The green and blue are not doing much at 0.02 and are here to keep the
+        /// flash off a mathematically pure primary. A deliberate blue lift to bend
+        /// the hue back under ACES was tried and dropped: it moved the result by
+        /// 0.8 degrees and cost saturation.
+        /// </summary>
         [SerializeField]
         [ColorUsage(showAlpha: false, hdr: true)]
-        [Tooltip("Emissive colour held during the flash. HDR, and worth more than white: " +
-                 "_EmissiveColor feeds HDRP's lighting result directly, so a value of 1 is " +
-                 "merely a pale surface rather than something that reads as a strike.")]
-        private Color color = new Color(3f, 3f, 3f);
+        [Tooltip("Emissive colour held during the flash. HDR, but not unboundedly so: " +
+                 "ACES turns anything bright enough to clip white, which is what this " +
+                 "value is set just under.")]
+        private Color color = new Color(1.5f, 0.02f, 0.02f);
 
         [SerializeField]
         [Range(0.01f, 0.5f)]
