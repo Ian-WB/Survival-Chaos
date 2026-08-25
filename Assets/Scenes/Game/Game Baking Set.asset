@@ -27,7 +27,7 @@ MonoBehaviour:
     m_Version: 1
     dilationSettings:
       enableDilation: 0
-      dilationDistance: 15.66
+      dilationDistance: 100
       dilationValidityThreshold: 0.25
       dilationIterations: 1
       squaredDistWeighting: 1
