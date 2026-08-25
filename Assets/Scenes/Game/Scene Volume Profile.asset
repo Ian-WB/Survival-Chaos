@@ -305,10 +305,10 @@ MonoBehaviour:
     m_Value: {x: 0, y: 0}
   bottomAltitude:
     m_OverrideState: 1
-    m_Value: 30
+    m_Value: 1
   altitudeRange:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 4000
   fadeInMode:
     m_OverrideState: 0
     m_Value: 0
@@ -521,7 +521,7 @@ MonoBehaviour:
     m_Value: 0.5
   densityMultiplier:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.35
   shapeFactor:
     m_OverrideState: 1
     m_Value: 0.825
