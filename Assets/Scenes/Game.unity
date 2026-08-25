@@ -4953,6 +4953,90 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 284120319}
   m_CullTransparentMesh: 1
+--- !u!1 &314646914
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 314646917}
+  - component: {fileID: 314646916}
+  - component: {fileID: 314646915}
+  m_Layer: 0
+  m_Name: Arena Cloud Bank
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &314646915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314646914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 049bd4e83ec25614a8040cfbbcc28a88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.ArenaCloudBank
+  driftSpeed: 2.5
+  driftBearing: 90
+--- !u!114 &314646916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314646914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1fbb15bf92b84f40a1eb030765b5afe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.LocalVolumetricFog
+  m_Version: 3
+  parameters:
+    albedo: {r: 0.62, g: 0.68, b: 0.78, a: 1}
+    meanFreePath: 80
+    blendingMode: 1
+    priority: 0
+    anisotropy: 0
+    volumeMask: {fileID: 11700000, guid: 57004b0fcd20f1449913a22aa2cae121, type: 2}
+    textureScrollingSpeed: {x: -0.035714287, y: 0, z: 0.000000001561121}
+    textureTiling: {x: 2, y: 1, z: 2}
+    positiveFade: {x: 0.2, y: 0.3, z: 0.2}
+    negativeFade: {x: 0.2, y: 0.3, z: 0.2}
+    m_EditorUniformFade: 0.1
+    m_EditorPositiveFade: {x: 0.1, y: 0.1, z: 0.1}
+    m_EditorNegativeFade: {x: 0.1, y: 0.1, z: 0.1}
+    m_EditorAdvancedFade: 0
+    scaleMode: 0
+    size: {x: 140, y: 20, z: 140}
+    invertFade: 0
+    distanceFadeStart: 10000
+    distanceFadeEnd: 10000
+    textureOffset: {x: 0, y: 0, z: 0}
+    falloffMode: 0
+    maskMode: 0
+    materialMask: {fileID: 0}
+--- !u!4 &314646917
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 314646914}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &334434650
 GameObject:
   m_ObjectHideFlags: 0
@@ -9822,9 +9906,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 2.6287471e+32, y: 0, z: 0, w: 9.1897e-41}
+  m_BoundingSphereOverride: {x: 9.4020754e-20, y: 1.05e-43, z: 2.8085e-41, w: 5.642373e-35}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1
   m_ShadowAngle: 0
@@ -11475,18 +11559,18 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1ac09e29b416664dadfb1278d444021, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SpaceShipPitch
   player: {fileID: 0}
   climbPitchAngle: 22
   climbRollAngle: 10
   climbResponse: 7
   thrustLeanAngle: 18
-  thrustDragDistance: 0.6
-  thrustResponse: 6
+  thrustDragDistance: 0.06
+  thrustResponse: 4
   flipDegreesPerSecond: 540
   idleRollAmplitude: 3
   idlePitchAmplitude: 2
-  idleSpeed: 1
+  idleSpeed: 0.7
 --- !u!1 &838418999
 GameObject:
   m_ObjectHideFlags: 0
@@ -23589,35 +23673,35 @@ MonoBehaviour:
     m_Aspect: 1
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 0.3184001
-    'sh[ 1]': -0.258447
-    'sh[ 2]': -0.015371478
-    'sh[ 3]': 0.041915726
-    'sh[ 4]': -0.020049231
-    'sh[ 5]': 0.0042762123
-    'sh[ 6]': -0.008526834
-    'sh[ 7]': 0.0002827192
-    'sh[ 8]': -0.03262637
-    'sh[ 9]': 0.123866364
-    'sh[10]': -0.040271103
-    'sh[11]': 0.0049742474
-    'sh[12]': 0.012364968
-    'sh[13]': -0.0046336073
-    'sh[14]': 0.0025583426
-    'sh[15]': -0.0012002692
-    'sh[16]': 0.0011031543
-    'sh[17]': -0.00902105
-    'sh[18]': 0.096882954
-    'sh[19]': 0.017776126
-    'sh[20]': 0.010443704
-    'sh[21]': 0.008036009
-    'sh[22]': -0.0014591783
-    'sh[23]': 0.0028082605
-    'sh[24]': 0.0009650779
-    'sh[25]': 0.0019218866
-    'sh[26]': -0.0035930618
-  m_SHValidForCapturePosition: {x: 0, y: 15.98, z: -0.19}
-  m_SHValidForSourcePosition: {x: 0, y: 15.98, z: -0.19}
+    'sh[ 0]': 0.35931453
+    'sh[ 1]': -0.26311544
+    'sh[ 2]': -0.03136133
+    'sh[ 3]': 0.054644015
+    'sh[ 4]': -0.037655745
+    'sh[ 5]': 0.011746731
+    'sh[ 6]': -0.0103913685
+    'sh[ 7]': 0.001963662
+    'sh[ 8]': -0.051052593
+    'sh[ 9]': 0.18204679
+    'sh[10]': -0.013638555
+    'sh[11]': 0.011995393
+    'sh[12]': 0.019506333
+    'sh[13]': -0.009142251
+    'sh[14]': 0.008030676
+    'sh[15]': 0.00020015557
+    'sh[16]': 0.0037260328
+    'sh[17]': -0.01605522
+    'sh[18]': 0.17812683
+    'sh[19]': 0.060044456
+    'sh[20]': 0.024286244
+    'sh[21]': 0.01643039
+    'sh[22]': -0.0033256582
+    'sh[23]': 0.008921524
+    'sh[24]': 0.0040483437
+    'sh[25]': 0.006197346
+    'sh[26]': -0.008433788
+  m_SHValidForCapturePosition: {x: 0, y: 15.97998, z: -0.19}
+  m_SHValidForSourcePosition: {x: 0, y: 15.97998, z: -0.19}
   m_ReflectionProbeVersion: 10
   m_ObsoleteInfluenceShape: 0
   m_ObsoleteInfluenceSphereRadius: 3
@@ -26878,9 +26962,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 7.139001e+31, y: 1.7077756e+19, z: 3.0135274e+29, w: 7.5634503e+28}
+  m_BoundingSphereOverride: {x: 7.185382e+22, y: 3.014225e+12, z: 256345680, w: 1.9689345e-19}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1
   m_ShadowAngle: 0
@@ -33805,9 +33889,9 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: -1.8788871e+30, z: 5.4e-43, w: 2.84e-43}
+  m_BoundingSphereOverride: {x: 0, y: 1.61e-43, z: 0, w: 1.1476735e-38}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 1
   m_ShadowAngle: 0
@@ -42114,3 +42198,4 @@ SceneRoots:
   - {fileID: 7023528544965449322}
   - {fileID: 1336738277}
   - {fileID: 205507357}
+  - {fileID: 314646917}
