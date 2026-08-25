@@ -44,7 +44,7 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Tooltip("World units the ship drags back against acceleration, as inertia. Set 0 to disable.")]
-        private float thrustDragDistance = 0.06f;
+        private float thrustDragDistance = 0.6f;
 
         [SerializeField]
         [Tooltip("How quickly throttle motion follows. Lower feels heavier.")]

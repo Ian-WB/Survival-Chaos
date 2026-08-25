@@ -47,7 +47,7 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Distance at which a caption is drawn at full size. Closer than this it " +
                  "stops growing; further away it shrinks towards the floor below.")]
-        private float referenceDistance = 16f;
+        private float referenceDistance = 160f;
 
         [SerializeField]
         [Range(0.2f, 1f)]
@@ -70,7 +70,7 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Radius of the volcano at the height everything sits at. Zero switches the " +
                  "occlusion test off and draws every caption, hidden or not.")]
-        private float occluderRadius = 5f;
+        private float occluderRadius = 50f;
 
         [Header("Combat numbers")]
         [SerializeField]
@@ -84,10 +84,10 @@ namespace SurvivalChaos
         private float numberSeconds = 0.9f;
 
         [SerializeField]
-        [Range(0f, 8f)]
+        [Range(0f, 80f)]
         [Tooltip("World units a number climbs per second while it fades, so several at the " +
                  "same spot separate instead of stacking into an unreadable pile.")]
-        private float numberRise = 2.2f;
+        private float numberRise = 22f;
 
         /// <summary>
         /// The board every label talks to.

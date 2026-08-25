@@ -29,9 +29,9 @@ namespace SurvivalChaos
     public sealed class ArenaCloudBank : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("How fast the banks travel, in world units per second. At 2.5 a bank crosses " +
-                 "the 37 unit island in about fifteen seconds.")]
-        private float driftSpeed = 2.5f;
+        [Tooltip("How fast the banks travel, in world units per second. At 25 a bank crosses " +
+                 "the 370 unit island in about fifteen seconds.")]
+        private float driftSpeed = 25f;
 
         [SerializeField]
         [Range(0f, 360f)]

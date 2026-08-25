@@ -26,7 +26,7 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Tooltip("How far the item drifts up and down from where it was placed, in world units.")]
-        private float bobHeight = 0.25f;
+        private float bobHeight = 2.5f;
 
         [SerializeField]
         [Tooltip("Full up-and-down cycles per second.")]

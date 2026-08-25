@@ -1640,7 +1640,7 @@ MonoBehaviour:
     m_Value: {x: 0, y: -6378100, z: 0}
   type:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   atmosphericScattering:
     m_OverrideState: 1
     m_Value: 1

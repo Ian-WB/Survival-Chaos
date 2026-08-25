@@ -207,7 +207,7 @@ Material:
     - _MetallicRemapMax: 1
     - _MetallicRemapMin: 0
     - _Mode: 0
-    - _NoiseScale: 0.0015
+    - _NoiseScale: 0.015000001
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _ObjectSpaceUVMapping: 0
@@ -289,8 +289,8 @@ Material:
     - _HotColor: {r: 2.1185474, g: 0.52963686, b: 0.12711284, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _ScrollA: {r: 0, g: 3, b: -20, a: 0}
-    - _ScrollB: {r: -20, g: 0, b: 0, a: 0}
+    - _ScrollA: {r: 0, g: 0.3, b: -2, a: 0}
+    - _ScrollB: {r: -2, g: 0, b: 0, a: 0}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
     - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}

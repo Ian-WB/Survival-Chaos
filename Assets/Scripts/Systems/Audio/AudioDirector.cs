@@ -110,6 +110,12 @@ namespace SurvivalChaos
                 // Unity's own rolloff would silence sounds spawned far from the
                 // listener; anything positional sets this per sound instead.
                 source.spatialBlend = 0f;
+                // Rolloff is measured in world units, and the arena is ten times
+                // the size it was authored at. Left at Unity's default of 1 the
+                // attenuation starts ten times too early, and every positional
+                // sound in the arena comes back a tenth as loud as it was mixed.
+                source.minDistance = 10f;
+                source.maxDistance = 5000f;
                 voices[i] = source;
             }
         }
