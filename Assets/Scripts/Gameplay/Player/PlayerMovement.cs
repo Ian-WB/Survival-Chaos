@@ -102,7 +102,7 @@ namespace SurvivalChaos
             // Authored in units per second, converted here to the angle RotateAround
             // actually wants. The conversion divides by the lane's radius rather than
             // by this object's own distance from the axis, and that distinction is
-            // load-bearing: the Main Camera orbits 7.5 units further out, so measuring
+            // load-bearing: the Main Camera orbits 75 units further out, so measuring
             // against its own radius would hand it a smaller angle than the ship and
             // leave it trailing a little further behind every second.
             //

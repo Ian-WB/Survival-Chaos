@@ -798,9 +798,8 @@ namespace SurvivalChaos
             // project - five lights, all point - so what it still does is fade
             // shadows out, which wants one sane number rather than a ladder.
             //
-            // 60 against an arena 27.44 units across. The scene volume used to pin
-            // 300 and the HDRP default profile hands out 400, which spread the
-            // cascades over roughly fifteen times the entire playable space.
+            // 500 against an arena 274.4 units across with camera trailing at radius
+            // 212.2 (75 units behind the player lane at radius 137.2).
             shadowSettings.maxShadowDistance.overrideState = true;
             shadowSettings.maxShadowDistance.value = 500f;
         }
