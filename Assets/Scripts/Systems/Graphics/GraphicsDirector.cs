@@ -802,7 +802,7 @@ namespace SurvivalChaos
             // 300 and the HDRP default profile hands out 400, which spread the
             // cascades over roughly fifteen times the entire playable space.
             shadowSettings.maxShadowDistance.overrideState = true;
-            shadowSettings.maxShadowDistance.value = 60f;
+            shadowSettings.maxShadowDistance.value = 500f;
         }
 
         /// <summary>
