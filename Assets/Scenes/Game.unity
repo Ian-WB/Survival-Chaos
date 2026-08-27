@@ -2525,7 +2525,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 8.26581e-40, z: 5.116e-42, w: 0}
+  m_BoundingSphereOverride: {x: 1.5502501e-37, y: 1.5796376e-37, z: 1.572291e-37, w: 1.5796379e-37}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -5930,25 +5930,25 @@ MonoBehaviour:
   m_Version: 3
   parameters:
     albedo: {r: 0.62, g: 0.68, b: 0.78, a: 1}
-    meanFreePath: 9.4
+    meanFreePath: 0.05
     blendingMode: 1
     priority: 0
     anisotropy: 0
     volumeMask: {fileID: 11700000, guid: 57004b0fcd20f1449913a22aa2cae121, type: 2}
     textureScrollingSpeed: {x: -0.035714287, y: 0, z: 0.000000001561121}
     textureTiling: {x: 2, y: 1, z: 2}
-    positiveFade: {x: 0.00007142857, y: 0.0005, z: 0.00007142857}
-    negativeFade: {x: 0.00007142857, y: 0.0005, z: 0.00007142857}
+    positiveFade: {x: 0.000050000002, y: 0.00033333333, z: 0.000050000002}
+    negativeFade: {x: 0.000050000002, y: 0.00033333333, z: 0.000050000002}
     m_EditorUniformFade: 0.1
-    m_EditorPositiveFade: {x: 0.1, y: 0.1, z: 0.1}
-    m_EditorNegativeFade: {x: 0.1, y: 0.1, z: 0.1}
+    m_EditorPositiveFade: {x: 0.00049999997, y: 0.005, z: 0.00049999997}
+    m_EditorNegativeFade: {x: 0.00049999997, y: 0.005, z: 0.00049999997}
     m_EditorAdvancedFade: 0
     scaleMode: 0
-    size: {x: 1400, y: 200, z: 1400}
+    size: {x: 2000, y: 300, z: 2000}
     invertFade: 0
     distanceFadeStart: 100000
     distanceFadeEnd: 100000
-    textureOffset: {x: 0, y: 0, z: 0}
+    textureOffset: {x: 6.7362084, y: -0, z: -0.00000029444902}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
@@ -15484,7 +15484,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 8430
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0.000000052667204, y: 1.3311113e+22, z: 8.4117136e+20, w: 7.922331e+34}
+  m_BoundingSphereOverride: {x: 0, y: -0.00000000451811, z: 2.721093e-20, w: 1.377638e-39}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -24813,7 +24813,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 7.7e-44}
+  m_BoundingSphereOverride: {x: 4.5916e-41, y: -4.90089e-38, z: 2.7106098e-20, w: 1.377638e-39}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -31114,7 +31114,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 4.59179e-40, z: -1.309e-42, w: 1.08e-43}
+  m_BoundingSphereOverride: {x: 0, y: -0.00000000451811, z: 2.721093e-20, w: 1.836815e-39}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0

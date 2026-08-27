@@ -10,7 +10,7 @@ namespace SurvivalChaos.EditorTools
     /// HDRP's volumetric clouds cannot be used for cloud that touches the
     /// island. They refuse to render within roughly twenty units of the camera,
     /// their altitude range has a hard 100m floor, and their noise runs at
-    /// kilometre scale - measured across this 37 unit island the field is
+    /// kilometre scale - measured across this 370 unit island the field is
     /// uniform, so the sky is either wholly overcast or wholly clear and no
     /// cloud ever drifts past anything. Local Volumetric Fog is the local-scale
     /// equivalent and it takes a Texture3D density mask, which is what this
@@ -48,10 +48,29 @@ namespace SurvivalChaos.EditorTools
         [SerializeField]
         private float gain = 0.5f;
 
-        [Tooltip("Noise below this is empty sky. This is the knob that decides how often a " +
-                 "bank passes: higher means rarer, more separated clouds.")]
+        [Tooltip("Noise below this is empty sky. Lowering it thickens every bank, raising it " +
+                 "erodes them all from the edges in - it sets how big the banks are, not how " +
+                 "far apart. For room between them use Sparsity.")]
         [SerializeField]
         private float coverage = 0.55f;
+
+        [Tooltip("How much sky is cleared outright, so the banks that remain have room around " +
+                 "them. Unlike Coverage this leaves the banks it keeps exactly as they were: a " +
+                 "second, slower field decides which patches of the tile hold cloud at all, and " +
+                 "inside those the noise is thresholded as before. The soft edge of a patch " +
+                 "thins the banks straddling it as well, so the open sky comes out wider than " +
+                 "the number - on this seed 0 leaves 11% of the sky open, 0.35 gives 50%, 0.5 " +
+                 "gives 66% and 0.65 gives 77%. Read it off the bake log rather than guessing.")]
+        [SerializeField]
+        [Range(0f, 0.95f)]
+        private float sparsity = 0.35f;
+
+        [Tooltip("Lattice period of that second field - how big the cleared patches are, one " +
+                 "over this fraction of a tile. Matched to Base Period the gaps come out the " +
+                 "size of the banks themselves; halve it and the banks clump into weather that " +
+                 "arrives all at once.")]
+        [SerializeField]
+        private int gapPeriod = 4;
 
         [Tooltip("Raises the remaining density to this power. Above 1 thins the edges and " +
                  "keeps the cores, which reads as wisps rather than a slab.")]
@@ -122,11 +141,54 @@ namespace SurvivalChaos.EditorTools
                 }
             }
 
+            // Where the sky is open at all. The banks are already the shape they
+            // should be - the complaint is only that they pack together - so this
+            // does not touch the threshold of the ones it keeps. It empties whole
+            // patches of the tile and leaves the rest exactly as it was.
+            //
+            // Flat in Y, because a gap between banks is a column of clear air and
+            // not a horizontal slot: one value per X/Z column rather than per texel.
+            int gap = Mathf.Max(2, Mathf.ClosestPowerOfTwo(gapPeriod));
+            float clearing = Mathf.Clamp(sparsity, 0f, 0.95f);
+            float[] openness = null;
+            float cut = 0f;
+            float band = 0f;
+
+            if (clearing > 0f)
+            {
+                openness = new float[size * size];
+
+                for (int z = 0; z < size; z++)
+                {
+                    for (int x = 0; x < size; x++)
+                    {
+                        openness[x + z * size] = ValueNoise(
+                            new Vector3((x + 0.5f) / size * gap, 0.5f, (z + 0.5f) / size * gap),
+                            gap,
+                            seed + 104729);
+                    }
+                }
+
+                // The cut is a percentile of that field rather than a fixed value,
+                // so sparsity means the fraction of sky cleared whatever this seed
+                // and period happen to produce - the same reason the main field is
+                // normalised before coverage is applied to it.
+                var sorted = (float[])openness.Clone();
+                System.Array.Sort(sorted);
+                cut = sorted[Mathf.Clamp(Mathf.RoundToInt(clearing * (sorted.Length - 1)), 0, sorted.Length - 1)];
+                band = 0.15f * (sorted[sorted.Length - 1] - sorted[0]);
+            }
+
             var texels = new Color32[count];
             float threshold = Mathf.Clamp01(coverage);
             float feather = Mathf.Clamp(verticalFeather, 0f, 0.49f);
             float falloff = Mathf.Max(0.01f, edgeFalloff);
             int filled = 0;
+
+            // Which columns hold any cloud at all. The share that hold none is the
+            // room between the banks, which is the figure worth reading - the
+            // volume percentage moves when the banks merely get thinner.
+            var columnFilled = new bool[size * size];
 
             for (int z = 0; z < size; z++)
             {
@@ -136,8 +198,19 @@ namespace SurvivalChaos.EditorTools
                     {
                         int index = x + y * size + z * size * size;
 
+                        int column = x + z * size;
+                        float localThreshold = threshold;
+
+                        if (openness != null)
+                        {
+                            // Smoothed across the edge of a patch so a bank sitting on
+                            // the boundary thins out rather than being sliced in half.
+                            float keep = Band(cut - band, cut + band, openness[column]);
+                            localThreshold = Mathf.Lerp(1f, threshold, keep);
+                        }
+
                         float normalised = Mathf.InverseLerp(lowest, highest, field[index]);
-                        float density = Mathf.InverseLerp(threshold, 1f, normalised);
+                        float density = Mathf.InverseLerp(localThreshold, 1f, normalised);
                         density = Mathf.Pow(density, falloff);
                         density *= Feather((y + 0.5f) / size, feather);
                         density = Mathf.Clamp01(density);
@@ -145,6 +218,7 @@ namespace SurvivalChaos.EditorTools
                         if (density > 0.05f)
                         {
                             filled++;
+                            columnFilled[column] = true;
                         }
 
                         texels[index] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(density * 255f));
@@ -157,10 +231,20 @@ namespace SurvivalChaos.EditorTools
 
             Save(texture);
 
+            int openColumns = 0;
+            for (int i = 0; i < columnFilled.Length; i++)
+            {
+                if (!columnFilled[i])
+                {
+                    openColumns++;
+                }
+            }
+
             Debug.Log($"Baked {OutputPath} at {size}^3, {usableOctaves} octaves from period {period}. " +
                       $"Raw field spanned {lowest:0.00}-{highest:0.00}; {100f * filled / count:0.0}% of the " +
-                      "volume holds cloud. Somewhere near 20% gives banks with real gaps between them - " +
-                      "push coverage up for rarer cloud, down for a solid overcast.");
+                      $"volume holds cloud, and {100f * openColumns / (size * size):0.0}% of the sky is open " +
+                      "floor to ceiling. That second figure is the room between the banks: Sparsity moves it, " +
+                      "Coverage barely does.");
         }
 
         /// <summary>
