@@ -331,7 +331,7 @@ MonoBehaviour:
       areaLightShadowAtlas:
         shadowAtlasResolution: 8192
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 1
+        useDynamicViewportRescale: 0
       cachedPunctualLightShadowAtlas: 8192
       cachedAreaLightShadowAtlas: 8192
       allowDirectionalMixedCachedShadows: 0

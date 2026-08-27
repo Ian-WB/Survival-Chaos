@@ -2525,7 +2525,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 1.1e-44, w: 1.8183148e-38}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -4440,6 +4440,10 @@ PrefabInstance:
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 6663775022177658896, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
+      propertyPath: m_LightmapParameters
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6663775022177658896, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
       propertyPath: m_Materials.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -5944,7 +5948,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 100000
     distanceFadeEnd: 100000
-    textureOffset: {x: 7.744831, y: -0, z: -0.0000003385373}
+    textureOffset: {x: 0, y: -0, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
@@ -15592,7 +15596,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 9120
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: NaN, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 4.59239e-40}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -24921,7 +24925,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.8491974e+20, y: 0, z: 0, w: NaN}
+  m_BoundingSphereOverride: {x: 0, y: 3.6e-43, z: NaN, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -31222,7 +31226,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.33575e-40, y: 0, z: 0, w: 1e-45}
+  m_BoundingSphereOverride: {x: 8.9558e-41, y: 0, z: 2.7105054e-20, w: 1.469473e-39}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -31604,7 +31608,7 @@ MonoBehaviour:
   m_IESSpot: {fileID: 0}
   m_IncludeForRayTracing: 1
   m_IncludeForPathTracing: 1
-  m_AreaLightShadowCone: 179
+  m_AreaLightShadowCone: 71.3
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
@@ -31747,7 +31751,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 1
+  m_Lightmapping: 2
   m_LightShadowCasterMode: 1
   m_AreaSize: {x: 25, y: 10}
   m_BounceIntensity: 1
@@ -31755,7 +31759,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 313.46292}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 0.025
   m_ShadowAngle: 0
