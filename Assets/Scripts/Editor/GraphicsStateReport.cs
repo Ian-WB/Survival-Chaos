@@ -71,9 +71,268 @@ namespace SurvivalChaos.EditorTools
 
             ReportRows(sb);
             ReportPipeline(sb, asset as HDRenderPipelineAsset);
+            ReportShadowAtlases(sb, asset as HDRenderPipelineAsset);
             ReportVolumeStack(sb);
 
             Debug.Log(sb.ToString());
+        }
+
+        /// <summary>
+        /// What every shadow-casting light costs, and how full each atlas is.
+        ///
+        /// Exists because the Rendering Debugger's atlas overlays answer a
+        /// different question than the one usually being asked. They draw raw
+        /// depth, which reads as near-black whatever the range sliders are set to,
+        /// and even when legible they leave you estimating tile sizes by eye. The
+        /// number wanted is nearly always "how much of the atlas is spoken for,
+        /// and by whom", and that is arithmetic rather than a picture.
+        ///
+        /// The cost model is HDRP's own: a point light writes a cube, so six
+        /// faces; spot, pyramid, box and area lights write one; a directional
+        /// writes one per cascade. Resolution comes from each light's scalable
+        /// setting resolved against the active tier's table and then clamped by
+        /// that tier's maximum, which is what GetResolutionFromSettings does
+        /// internally - mirrored here rather than called, because it is internal.
+        ///
+        /// Cached and dynamic are reported separately because they are separate
+        /// atlases with separate budgets, and a light lands in one or the other
+        /// purely on its shadowUpdateMode. Mixing them is how a light looks
+        /// affordable while overflowing the atlas it actually occupies.
+        /// </summary>
+        private static void ReportShadowAtlases(StringBuilder sb, HDRenderPipelineAsset hdrp)
+        {
+            if (hdrp == null)
+            {
+                sb.AppendLine("--- SHADOW ATLASES --- (no HDRP asset)");
+                sb.AppendLine();
+                return;
+            }
+
+            HDShadowInitParameters init = hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            int cascades = ResolveCascadeCount();
+
+            sb.AppendLine("--- SHADOW ATLASES ---");
+            sb.AppendLine($"  maxShadowRequests={init.maxShadowRequests}   directional cascades={cascades}");
+
+            var entries = new System.Collections.Generic.List<ShadowEntry>();
+
+            foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include))
+            {
+                HDAdditionalLightData data = light.GetComponent<HDAdditionalLightData>();
+
+                if (data == null)
+                {
+                    continue;
+                }
+
+                // Baked lights never reach an atlas however their shadow fields
+                // are set, and a disabled one is not costing anything right now.
+                bool casts = light.shadows != LightShadows.None
+                             && light.lightmapBakeType != LightmapBakeType.Baked
+                             && light.enabled
+                             && light.gameObject.activeInHierarchy;
+
+                if (!casts)
+                {
+                    continue;
+                }
+
+                entries.Add(Describe(light, data, init, cascades));
+            }
+
+            entries.Sort((a, b) => b.Texels.CompareTo(a.Texels));
+
+            long punctual = Area(init.punctualLightShadowAtlas.shadowAtlasResolution);
+            long punctualCached = Area(init.cachedPunctualLightShadowAtlas);
+            long area = Area(init.areaLightShadowAtlas.shadowAtlasResolution);
+            long areaCached = Area(init.cachedAreaLightShadowAtlas);
+
+            ReportAtlas(sb, entries, "punctual", false, "punctual (dynamic)", punctual);
+            ReportAtlas(sb, entries, "punctual", true, "punctual (cached) ", punctualCached);
+            ReportAtlas(sb, entries, "area", false, "area     (dynamic)", area);
+            ReportAtlas(sb, entries, "area", true, "area     (cached) ", areaCached);
+
+            // The directional atlas is sized to its own cascades rather than
+            // shared with anything, so a percentage would be inventing a
+            // denominator. Its footprint is still worth printing.
+            ReportAtlas(sb, entries, "directional", null, "directional       ", 0L);
+
+            sb.AppendLine();
+        }
+
+        private static long Area(int resolution) => (long)resolution * resolution;
+
+        /// <summary>One shadow-casting light's claim on an atlas.</summary>
+        private struct ShadowEntry
+        {
+            public string Name;
+            public string Kind;
+            public bool Cached;
+            public int Resolution;
+            public int Faces;
+            public long Texels;
+            public string Placement;
+        }
+
+        /// <summary>
+        /// Works out which atlas a light lands in and what it costs there.
+        ///
+        /// Faces is the part people mis-count: a point light is a cube and so
+        /// pays six times its resolution squared, which is why one point light at
+        /// 2048 costs more than four spot lights at the same setting.
+        /// </summary>
+        private static ShadowEntry Describe(Light light, HDAdditionalLightData data,
+                                            HDShadowInitParameters init, int cascades)
+        {
+            ShadowEntry entry = default;
+            entry.Name = light.gameObject.name;
+            entry.Cached = data.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
+
+            switch (light.type)
+            {
+                case LightType.Directional:
+                    entry.Kind = "directional";
+                    entry.Resolution = Mathf.Min(data.shadowResolution.Value(init.shadowResolutionDirectional),
+                                                 init.maxDirectionalShadowMapResolution);
+                    entry.Faces = Mathf.Max(1, cascades);
+                    break;
+
+                case LightType.Rectangle:
+                case LightType.Disc:
+                    entry.Kind = "area";
+                    entry.Resolution = Mathf.Min(data.shadowResolution.Value(init.shadowResolutionArea),
+                                                 init.maxAreaShadowMapResolution);
+                    entry.Faces = 1;
+                    break;
+
+                case LightType.Point:
+                    entry.Kind = "punctual";
+                    entry.Resolution = Mathf.Min(data.shadowResolution.Value(init.shadowResolutionPunctual),
+                                                 init.maxPunctualShadowMapResolution);
+                    entry.Faces = 6;
+                    break;
+
+                default: // spot, pyramid, box - one map each
+                    entry.Kind = "punctual";
+                    entry.Resolution = Mathf.Min(data.shadowResolution.Value(init.shadowResolutionPunctual),
+                                                 init.maxPunctualShadowMapResolution);
+                    entry.Faces = 1;
+                    break;
+            }
+
+            entry.Texels = (long)entry.Faces * entry.Resolution * entry.Resolution;
+
+            // Only cached lights have a placement to report - the dynamic atlas
+            // is rebuilt every frame and keeps no such record. Asking whether it
+            // rendered matters: a light can hold a slot and still have never
+            // drawn into it, which looks identical to a working light until you
+            // go looking for its shadow.
+            if (entry.Cached)
+            {
+                HDCachedShadowManager manager = HDCachedShadowManager.instance;
+                bool placed = manager.LightHasBeenPlacedInAtlas(data);
+                bool rendered = manager.LightHasBeenPlaceAndRenderedAtLeastOnce(
+                    data, entry.Kind == "directional" ? cascades : 0);
+
+                entry.Placement = !placed ? "NOT PLACED - would not fit"
+                    : rendered ? "placed, rendered"
+                    : "placed, NOT YET RENDERED";
+            }
+            else
+            {
+                entry.Placement = string.Empty;
+            }
+
+            return entry;
+        }
+
+        /// <summary>Prints one atlas: its total, then its lights biggest first.</summary>
+        private static void ReportAtlas(StringBuilder sb, System.Collections.Generic.List<ShadowEntry> entries,
+                                        string kind, bool? cached, string label, long capacity)
+        {
+            var rows = new System.Collections.Generic.List<ShadowEntry>();
+            long used = 0;
+
+            foreach (ShadowEntry entry in entries)
+            {
+                if (entry.Kind != kind || (cached.HasValue && entry.Cached != cached.Value))
+                {
+                    continue;
+                }
+
+                rows.Add(entry);
+                used += entry.Texels;
+            }
+
+            if (rows.Count == 0)
+            {
+                sb.AppendLine($"  {label} : empty");
+                return;
+            }
+
+            sb.AppendLine($"  {label} : " + (capacity > 0
+                ? $"{used / 1048576f,6:F1}M of {capacity / 1048576f:F1}M texels  ({100f * used / capacity:F1}% full)"
+                : $"{used / 1048576f,6:F1}M texels"));
+
+            foreach (ShadowEntry entry in rows)
+            {
+                string share = capacity > 0 ? $"{100f * entry.Texels / capacity,5:F1}%" : "    -";
+                sb.AppendLine($"        {share}  {entry.Resolution,5}^2 x{entry.Faces}  {entry.Name}"
+                              + (entry.Placement.Length > 0 ? $"   [{entry.Placement}]" : string.Empty));
+            }
+        }
+
+        /// <summary>
+        /// Cascade count from the camera's resolved stack, since it decides how
+        /// many maps a directional light actually pays for.
+        /// </summary>
+        private static int ResolveCascadeCount()
+        {
+            const int fallback = 4;
+
+            if (VolumeManager.instance == null
+                || !ResolveVolumeContext(out Transform trigger, out LayerMask mask, out _))
+            {
+                return fallback;
+            }
+
+            VolumeStack stack = VolumeManager.instance.CreateStack();
+
+            try
+            {
+                VolumeManager.instance.Update(stack, trigger, mask);
+                HDShadowSettings settings = stack.GetComponent<HDShadowSettings>();
+                return settings != null ? settings.cascadeShadowSplitCount.value : fallback;
+            }
+            finally
+            {
+                stack.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// The camera, and the trigger and layer mask HDRP would evaluate volumes
+        /// with for it. Shared so the two sections that resolve a stack cannot
+        /// drift apart and start reporting different worlds.
+        /// </summary>
+        private static bool ResolveVolumeContext(out Transform trigger, out LayerMask mask, out Camera camera)
+        {
+            trigger = null;
+            mask = ~0;
+            camera = ResolveReportCamera();
+
+            if (camera == null)
+            {
+                return false;
+            }
+
+            HDAdditionalCameraData data = camera.GetComponent<HDAdditionalCameraData>();
+            mask = data != null ? data.volumeLayerMask : ~0;
+            trigger = data != null && data.volumeAnchorOverride != null
+                ? data.volumeAnchorOverride
+                : camera.transform;
+
+            return true;
         }
 
         /// <summary>What the menu believes, which only exists while playing.</summary>
@@ -184,21 +443,13 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
-            Camera camera = ResolveReportCamera();
-
-            if (camera == null)
+            // The trigger is what HDRP measures local volumes against, and it is
+            // the anchor override when one is set rather than the camera itself.
+            if (!ResolveVolumeContext(out Transform trigger, out LayerMask mask, out Camera camera))
             {
                 sb.AppendLine("--- RESOLVED VOLUME STACK --- (no camera to resolve against)");
                 return;
             }
-
-            // The trigger is what HDRP measures local volumes against, and it is
-            // the anchor override when one is set rather than the camera itself.
-            HDAdditionalCameraData cameraData = camera.GetComponent<HDAdditionalCameraData>();
-            LayerMask mask = cameraData != null ? cameraData.volumeLayerMask : ~0;
-            Transform trigger = cameraData != null && cameraData.volumeAnchorOverride != null
-                ? cameraData.volumeAnchorOverride
-                : camera.transform;
 
             VolumeStack stack = VolumeManager.instance.CreateStack();
 
