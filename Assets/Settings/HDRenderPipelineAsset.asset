@@ -371,7 +371,7 @@ MonoBehaviour:
       advancedUpscalersByPriority: 
       advancedUpscalerNames:
       - DLSS
-      - STP
+      - FSR2
       DLSSPerfQualitySetting: 4
       DLSSInjectionPoint: 0
       TAAUInjectionPoint: 0
@@ -392,7 +392,7 @@ MonoBehaviour:
       fsrOverrideSharpness: 0
       fsrSharpness: 0.92
       maxPercentage: 100
-      minPercentage: 50
+      minPercentage: 33
       dynResType: 1
       upsampleFilter: 5
       forceResolution: 0

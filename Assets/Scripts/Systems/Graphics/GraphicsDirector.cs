@@ -200,8 +200,8 @@ namespace SurvivalChaos
             float frameMs = Time.unscaledDeltaTime * 1000f;
             float targetMs = DisplayOptions.TargetFrameMs(DynamicTarget);
 
-            requestedPercentage =
-                dynamic.Update(frameMs, targetMs, Time.unscaledDeltaTime) * 100f;
+            SetRequestedPercentage(
+                dynamic.Update(frameMs, targetMs, Time.unscaledDeltaTime) * 100f);
         }
 
         private void OnDestroy()
@@ -400,13 +400,21 @@ namespace SurvivalChaos
         public bool DynamicResolutionOn => DynamicTarget > 0;
 
         /// <summary>
-        /// True when an upscaler has taken the resolution away from us.
+        /// True when dynamic resolution is moving the scale that an upscaler then
+        /// reconstructs from, which is the arrangement both vendors build for.
         ///
-        /// DLSS and FSR2 with optimal settings install their own scaler in the
-        /// System slot and HDRP prefers it, so dynamic resolution silently stops
-        /// applying. The row says so rather than appearing to work.
+        /// This was DynamicOverriddenByUpscaler, and it was the reason the dynamic
+        /// resolution row greyed out whenever an upscaler was on. That was
+        /// accurate at the time: with the vendors' optimal-settings toggle set,
+        /// DLSS and FSR2 install their own scaler into HDRP's System slot and
+        /// HDRP prefers it over the User slot this class registers into, so the
+        /// controller ran every frame and its answer was thrown away.
+        ///
+        /// <see cref="ApplyCamera"/> turns that toggle off now. The System slot
+        /// stays empty, HDRP selects User at the top of every camera, and the two
+        /// features compose instead of one silently winning.
         /// </summary>
-        public bool DynamicOverriddenByUpscaler => Method != UpscaleMethod.Off;
+        public bool DynamicFeedsUpscaler => DynamicResolutionOn && Method != UpscaleMethod.Off;
 
         /// <summary>
         /// Whether DLSS can actually run. The NVIDIA module being installed is
@@ -465,9 +473,29 @@ namespace SurvivalChaos
 
         public UpscaleQuality Quality
         {
-            get => (UpscaleQuality)GetInt("UpscaleQuality", (int)UpscaleQuality.Quality);
+            get
+            {
+                int stored = GetInt("UpscaleQuality", (int)UpscaleQuality.Quality);
+
+                // Clamped for the same reason Method is: a settings file can
+                // outlive the build that wrote it, and every consumer of this
+                // value indexes a table with it.
+                return (UpscaleQuality)Mathf.Clamp(
+                    stored, 0, DisplayOptions.UpscaleQualityNames.Length - 1);
+            }
             set => SetInt("UpscaleQuality", (int)value);
         }
+
+        /// <summary>
+        /// The vendor preset actually running, which is the chosen one unless the
+        /// choice was Custom - the drivers have no such mode, so it resolves to
+        /// whichever preset sits nearest the scale being asked for.
+        /// </summary>
+        public int ResolvedPreset =>
+            DisplayOptions.ResolvePreset((int)Quality, RenderScale);
+
+        /// <summary>True while the render scale row, not the vendor, owns the number.</summary>
+        public bool CustomScale => Quality == UpscaleQuality.Custom;
 
         public AntiAliasingMode AntiAliasing
         {
@@ -539,27 +567,21 @@ namespace SurvivalChaos
         /// <summary>
         /// The scale currently being asked for, whoever is deciding it.
         ///
-        /// Three things can own this number and only one of them is the Render
-        /// Scale control. An upscaler owns it outright; dynamic resolution moves
-        /// it every frame; otherwise it is the stored value.
+        /// Everything now goes through the one number the scaler returns, so this
+        /// reads that rather than predicting it. It used to have a third branch
+        /// that returned the upscaler's published ratio from a table, because the
+        /// upscaler genuinely did own the scale and nothing here could see what it
+        /// had chosen. The scale is ours in every mode now, including under an
+        /// upscaler, so the table would only be a guess at a number sitting right
+        /// there - and a wrong one wherever the driver clamped us.
         ///
-        /// The dynamic case used to be missing, so with a target set and the
-        /// controller holding 60% the menu row and the F3 report both still read
-        /// the stored 100%. The row said "Set by dynamic resolution" underneath
-        /// while showing a number that was not it.
+        /// Still distinct from <see cref="ActualRenderScale"/>, which is what the
+        /// pipeline resolved rather than what was asked.
         /// </summary>
-        public float EffectiveRenderScale
-        {
-            get
-            {
-                if (Method != UpscaleMethod.Off)
-                {
-                    return DisplayOptions.ApproximateScale((int)Quality);
-                }
-
-                return DynamicResolutionOn ? RequestedRenderScale : RenderScale;
-            }
-        }
+        public float EffectiveRenderScale =>
+            DynamicResolutionOn || Method != UpscaleMethod.Off
+                ? RequestedRenderScale
+                : RenderScale;
 
         /// <summary>
         /// What the scaler is handing HDRP right now, as a fraction.
@@ -759,7 +781,7 @@ namespace SurvivalChaos
             // controller would have to climb down again.
             if (!DynamicResolutionOn)
             {
-                requestedPercentage = RenderScale * 100f;
+                SetRequestedPercentage(SettledScale * 100f);
             }
 
             // globalTextureMipmapLimit and anisotropicFiltering were written here.
@@ -805,17 +827,209 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Drives the render scale when no upscaler is running.
+        /// The scale the settings ask for when nothing is moving it every frame.
         ///
-        /// Registered once, into the User slot. DLSS and FSR2 claim the System
-        /// slot for themselves when they are active, and HDRP selects User again
-        /// at the top of every camera, so this ends up applying exactly when
-        /// nothing else is deciding the resolution — which is what the Render
-        /// Scale row promises.
+        /// Three cases, and only the middle one is new. With no upscaler the
+        /// Render Scale row decides, as it always did. With an upscaler on a
+        /// vendor preset the preset's own ratio decides, which is the number the
+        /// driver used to apply for us and now has to be handed over. With an
+        /// upscaler on Custom the Render Scale row decides again - that is the
+        /// whole of what Custom means.
+        /// </summary>
+        /// <summary>
+        /// True when the Render Scale row is the thing deciding the scale, which
+        /// is exactly when that row should be steppable.
         ///
-        /// The returned percentage is clamped by HDRP to the pipeline asset's
-        /// minimum and maximum, so the asset's floor is the real lower bound
-        /// whatever this asks for.
+        /// The mirror of <see cref="SettledScale"/> below: everything this returns
+        /// false for is a case where that property ignores RenderScale and gets
+        /// the number from somewhere else. Kept as one predicate so the row cannot
+        /// drift into offering a control that no longer reaches anything, which is
+        /// the failure this screen was rebuilt to stop shipping.
+        /// </summary>
+        public bool RenderScaleDecides =>
+            !DynamicResolutionOn &&
+            !(Method == UpscaleMethod.Off && AntiAliasing == AntiAliasingMode.Dlaa) &&
+            (Method == UpscaleMethod.Off || CustomScale);
+
+        private float SettledScale
+        {
+            get
+            {
+                // DLAA is DLSS spending its whole budget on anti-aliasing instead
+                // of reconstruction, which only means anything at native. The
+                // driver used to pin that for us through the optimal settings this
+                // no longer asks it for, so without this a DLAA player who had
+                // once set the render scale to 70% would quietly get DLSS.
+                if (Method == UpscaleMethod.Off && AntiAliasing == AntiAliasingMode.Dlaa)
+                {
+                    return 1f;
+                }
+
+                return Method == UpscaleMethod.Off || CustomScale
+                    ? RenderScale
+                    : DisplayOptions.PresetScale((int)Quality);
+            }
+        }
+
+        /// <summary>
+        /// Hands a new percentage to the scaler, clamped into what the active
+        /// upscaler will accept.
+        ///
+        /// The clamp is the price of owning the scale. While the vendors' optimal
+        /// settings were on, HDRP narrowed the pipeline asset's own minimum and
+        /// maximum to the driver's range on every camera; that code sits inside
+        /// the branch <see cref="ApplyCamera"/> now switches off, so respecting
+        /// the range became ours to do.
+        /// </summary>
+        private void SetRequestedPercentage(float wanted)
+        {
+            if (TryUpscalerRange(out float minimum, out float maximum))
+            {
+                wanted = Mathf.Clamp(wanted, minimum, maximum);
+            }
+
+            requestedPercentage = Mathf.Clamp(wanted, 1f, 100f);
+        }
+
+        /// <summary>
+        /// The band of render scales the active upscaler will accept, as
+        /// percentages, or false where there is no band to respect.
+        ///
+        /// Only DLSS has one worth asking about. It is created against a fixed
+        /// input resolution and tolerates that moving only inside a band the
+        /// driver reports per preset and per output size; leave the band and HDRP
+        /// destroys the DLSS feature and builds another, which is a hitch rather
+        /// than a slow frame. That is the cost this whole path exists to avoid.
+        ///
+        /// FSR2 has no equivalent limit. HDRP creates it with a maximum render
+        /// size of the full output, so every scale below native is already inside
+        /// its range and a clamp would only invent a restriction.
+        /// </summary>
+        private bool TryUpscalerRange(out float minimum, out float maximum)
+        {
+            minimum = 0f;
+            maximum = 100f;
+
+            if (Method == UpscaleMethod.Dlss)
+            {
+                return TryDlssRange(
+                    DisplayOptions.DlssQualityValue(ResolvedPreset), out minimum, out maximum);
+            }
+
+            // DLAA runs through the same DLSS pass, so it has a band like every
+            // other mode - a tight one, being meant to sit at native. Worth
+            // clamping into rather than leaving dynamic resolution free to walk
+            // out of it and rebuild the feature every few frames.
+            if (Method == UpscaleMethod.Off && AntiAliasing == AntiAliasingMode.Dlaa)
+            {
+                return TryDlssRange(DisplayOptions.DlssDlaa, out minimum, out maximum);
+            }
+
+            return false;
+        }
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+        /// <summary>
+        /// The last range the driver gave, so clamping every frame is not a driver
+        /// call every frame. It only moves when the preset or the output size does.
+        /// </summary>
+        private uint rangeQuality;
+        private bool rangeAsked;
+        private int rangeWidth;
+        private int rangeHeight;
+        private float rangeMinimum;
+        private float rangeMaximum;
+
+        private bool TryDlssRange(uint quality, out float minimum, out float maximum)
+        {
+            minimum = 0f;
+            maximum = 100f;
+
+            UnityEngine.NVIDIA.GraphicsDevice device = UnityEngine.NVIDIA.GraphicsDevice.device;
+            if (device == null)
+            {
+                return false;
+            }
+
+            // The viewport DLSS reconstructs to, which is the camera's rather than
+            // the screen's wherever the two differ.
+            Camera camera = Camera.main;
+            int width = camera != null ? camera.pixelWidth : Screen.width;
+            int height = camera != null ? camera.pixelHeight : Screen.height;
+
+            if (width <= 0 || height <= 0)
+            {
+                return false;
+            }
+
+            if (!rangeAsked || quality != rangeQuality ||
+                width != rangeWidth || height != rangeHeight)
+            {
+                device.GetOptimalSettings(
+                    (uint)width,
+                    (uint)height,
+                    (UnityEngine.NVIDIA.DLSSQuality)quality,
+                    out UnityEngine.NVIDIA.OptimalDLSSSettingsData optimal);
+
+                // A device that cannot serve the preset answers with zeroes, and a
+                // zero range would clamp every request down to nothing. HDRP checks
+                // the same shape before trusting these numbers.
+                if (optimal.maxWidth == 0 || optimal.maxHeight == 0 ||
+                    optimal.minWidth == 0 || optimal.minHeight == 0 ||
+                    optimal.maxWidth < optimal.minWidth ||
+                    optimal.maxHeight < optimal.minHeight)
+                {
+                    rangeAsked = false;
+                    return false;
+                }
+
+                // Both axes have to fit, so on each end the binding one wins: the
+                // larger minimum and the smaller maximum. Same way round HDRP
+                // computes it when it is doing this itself.
+                rangeMinimum = Mathf.Max(
+                    (float)optimal.minWidth / width, (float)optimal.minHeight / height) * 100f;
+                rangeMaximum = Mathf.Min(
+                    (float)optimal.maxWidth / width, (float)optimal.maxHeight / height) * 100f;
+
+                rangeQuality = quality;
+                rangeAsked = true;
+                rangeWidth = width;
+                rangeHeight = height;
+            }
+
+            minimum = rangeMinimum;
+            maximum = rangeMaximum;
+            return true;
+        }
+#else
+        /// <summary>
+        /// Without the NVIDIA module there is no DLSS to have a range, and
+        /// <see cref="DlssAvailable"/> is false for the same reason, so nothing
+        /// reaches this. It exists so the call site does not need the guard.
+        /// </summary>
+        private bool TryDlssRange(uint quality, out float minimum, out float maximum)
+        {
+            minimum = 0f;
+            maximum = 100f;
+            return false;
+        }
+#endif
+
+        /// <summary>
+        /// Drives the render scale, whoever decided it.
+        ///
+        /// Registered once, into the User slot. That slot used to be the one that
+        /// lost: DLSS and FSR2 claimed the System slot whenever they ran and HDRP
+        /// prefers it, so this applied exactly when no upscaler was on. With the
+        /// vendors' optimal settings switched off in <see cref="ApplyCamera"/> the
+        /// System slot is never claimed, HDRP selects User at the top of every
+        /// camera, and this is the only scaler in play - which is what lets a
+        /// custom scale and dynamic resolution reach an upscaler at all.
+        ///
+        /// The returned percentage is still clamped by HDRP to the pipeline
+        /// asset's minimum and maximum, so the asset's floor is the real lower
+        /// bound whatever this asks for. That floor has to sit at or below the
+        /// cheapest preset's ratio, or the preset silently stops being reachable.
         /// </summary>
         private void RegisterScaler()
         {
@@ -874,17 +1088,32 @@ namespace SurvivalChaos
             // the optimal-settings toggle through different gates - DLSS checks
             // its attributes flag, FSR2 checks its quality flag - and leaving
             // either unset silently falls back to the pipeline asset's value.
+            //
+            // The optimal-settings toggle is the one that decides who owns the
+            // resolution, and it is off. On, each vendor writes its own scaler
+            // into HDRP's System slot, narrows the pipeline asset's range to the
+            // driver's, and HDRP prefers that over the User slot this class
+            // registers into - so the render scale row and the whole dynamic
+            // resolution controller ran every frame and were thrown away. Off,
+            // the System slot is never claimed and the scale stays ours, which is
+            // the entire reason a custom scale and dynamic resolution can reach an
+            // upscaler at all.
+            //
+            // What the vendors keep is the quality, because it is what they
+            // reconstruct with and, for DLSS, which band of input resolutions they
+            // will accept. Custom is not a vendor mode, so it resolves to whichever
+            // preset sits nearest the scale being asked for.
             data.deepLearningSuperSamplingUseCustomQualitySettings = true;
             data.deepLearningSuperSamplingUseCustomAttributes = true;
-            data.deepLearningSuperSamplingUseOptimalSettings = true;
+            data.deepLearningSuperSamplingUseOptimalSettings = false;
             data.deepLearningSuperSamplingQuality = dlaa
                 ? DisplayOptions.DlssDlaa
-                : DisplayOptions.DlssQualityValue((int)Quality);
+                : DisplayOptions.DlssQualityValue(ResolvedPreset);
 
             data.fidelityFX2SuperResolutionUseCustomQualitySettings = true;
             data.fidelityFX2SuperResolutionUseCustomAttributes = true;
-            data.fidelityFX2SuperResolutionUseOptimalSettings = true;
-            data.fidelityFX2SuperResolutionQuality = DisplayOptions.Fsr2QualityValue((int)Quality);
+            data.fidelityFX2SuperResolutionUseOptimalSettings = false;
+            data.fidelityFX2SuperResolutionQuality = DisplayOptions.Fsr2QualityValue(ResolvedPreset);
 
             ApplySharpening(data);
         }

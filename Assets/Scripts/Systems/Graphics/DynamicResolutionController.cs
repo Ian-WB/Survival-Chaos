@@ -15,9 +15,17 @@ namespace SurvivalChaos
     public sealed class DynamicResolutionController
     {
         /// <summary>
-        /// The range HDRP clamps to anyway, from the pipeline asset's minimum and
-        /// maximum screen percentage. Mirrored here so the controller does not
-        /// spend its travel in a region that will be clipped off.
+        /// How far this controller will take the resolution.
+        ///
+        /// This used to mirror the pipeline asset's own minimum, which was 50 in
+        /// every tier, and the point of mirroring was to keep the controller from
+        /// spending its travel in a band that would be clipped off anyway. The
+        /// asset floor sits at 33 now, because the upscalers are handed their
+        /// scale from here and Ultra Performance renders at a third - so this is
+        /// no longer a mirror of anything. It is a judgement: half resolution is
+        /// as far as this is willing to go on its own to hold a frame rate, and a
+        /// player who wants less than that can ask for it by name through the
+        /// upscale quality row.
         /// </summary>
         public const float MinScale = 0.5f;
         public const float MaxScale = 1f;

@@ -23,7 +23,18 @@ namespace SurvivalChaos
         Quality = 0,
         Balanced = 1,
         Performance = 2,
-        UltraPerformance = 3
+        UltraPerformance = 3,
+
+        /// <summary>
+        /// The render scale row decides instead of the vendor.
+        ///
+        /// Last rather than first because it is not a rung of the same ladder.
+        /// The four above are ratios both vendors publish and neither will
+        /// deviate from; this one is whatever was asked for, and it exists
+        /// because the four are a coarse set of choices for a control that has
+        /// no reason to be coarse.
+        /// </summary>
+        Custom = 4
     }
 
     /// <summary>
@@ -285,12 +296,24 @@ namespace SurvivalChaos
 
         /// <summary>
         /// How hard the upscaler pushes, in the order every other game lists it:
-        /// best image first, cheapest last.
+        /// best image first, cheapest last, with the one that is not a vendor
+        /// mode at all on the end.
         /// </summary>
         public static readonly string[] UpscaleQualityNames =
         {
-            "Quality", "Balanced", "Performance", "Ultra Performance"
+            "Quality", "Balanced", "Performance", "Ultra Performance", "Custom"
         };
+
+        /// <summary>
+        /// How many of those are vendor presets rather than a scale of our own.
+        ///
+        /// Split out from the name count deliberately. Both drivers' quality
+        /// enums stop at four, so clamping a stored value against the number of
+        /// *names* would hand them a fifth they do not accept - which is exactly
+        /// what adding Custom to the end would otherwise have done to
+        /// <see cref="Fsr2QualityValue"/>.
+        /// </summary>
+        public const int PresetCount = 4;
 
         /// <summary>
         /// DLAA sits at the end because it is the most expensive, not because it
@@ -349,7 +372,7 @@ namespace SurvivalChaos
                 return 0;
             }
 
-            int last = UpscaleQualityNames.Length - 1;
+            int last = PresetCount - 1;
             return (uint)(quality > last ? last : quality);
         }
 
@@ -458,21 +481,75 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Roughly what fraction of native each quality mode renders at, for the
-        /// Render Scale row to display while an upscaler owns the number.
+        /// What fraction of native each vendor preset renders at.
         ///
-        /// Approximate on purpose: the upscalers negotiate their own exact scale
-        /// with the driver, so this is what to *show*, never what to apply.
+        /// Both vendors publish the same four ratios - 1/1.5, 1/1.7, 1/2 and 1/3
+        /// - so one table serves both.
+        ///
+        /// These were rounded display values when the drivers owned the scale and
+        /// this number was only ever shown. It is applied now, so it is exact:
+        /// handing DLSS 0.58 where its own Balanced mode is 0.5882 asks it for a
+        /// resolution a few pixels off the one it wants, which is the kind of
+        /// difference that costs a feature rebuild for nothing.
+        ///
+        /// <see cref="UpscaleQuality.Custom"/> is not a preset and is not a valid
+        /// input here; resolve it through <see cref="ResolvePreset"/> first.
         /// </summary>
-        public static float ApproximateScale(int quality)
+        public static float PresetScale(int quality)
         {
             switch (quality)
             {
-                case 0: return 0.67f;
-                case 1: return 0.58f;
-                case 2: return 0.5f;
-                default: return 0.33f;
+                case 0: return 1f / 1.5f;
+                case 1: return 1f / 1.7f;
+                case 2: return 1f / 2f;
+                default: return 1f / 3f;
             }
+        }
+
+        /// <summary>
+        /// The vendor preset a quality selection actually runs in.
+        ///
+        /// Four of the five modes are the preset itself. Custom is not a preset
+        /// at all - neither driver has such a mode - so it resolves to whichever
+        /// real one sits nearest the scale being asked for.
+        ///
+        /// That choice is not cosmetic. DLSS accepts a band of render
+        /// resolutions either side of the preset's own ratio and rebuilds itself
+        /// when asked for one outside, so picking the nearest preset is what
+        /// keeps a custom scale inside a band rather than straddling its edge.
+        /// </summary>
+        public static int ResolvePreset(int quality, float scale)
+        {
+            if (quality != (int)UpscaleQuality.Custom)
+            {
+                return quality < 0 ? 0 : (quality > PresetCount - 1 ? PresetCount - 1 : quality);
+            }
+
+            return PresetForScale(scale);
+        }
+
+        /// <summary>The preset whose own ratio sits nearest a requested scale.</summary>
+        public static int PresetForScale(float scale)
+        {
+            int best = 0;
+            float bestDistance = float.MaxValue;
+
+            for (int i = 0; i < PresetCount; i++)
+            {
+                float distance = scale - PresetScale(i);
+                if (distance < 0f)
+                {
+                    distance = -distance;
+                }
+
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = i;
+                }
+            }
+
+            return best;
         }
     }
 }

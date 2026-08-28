@@ -292,12 +292,16 @@ namespace SurvivalChaos
         {
             switch (kind)
             {
-                // Inert while anything else is driving the resolution - an
-                // upscaler, or dynamic resolution moving it every frame - and
-                // also when the tier never compiled the handler that applies it.
+                // Inert while something else is driving the resolution, and also
+                // when the tier never compiled the handler that applies any of it.
+                //
+                // The director owns that first test rather than this row, because
+                // it is the same rule as the one deciding where the scale comes
+                // from - and an upscaler no longer always wins it. On a vendor
+                // preset the ratio is fixed and this row is inert as before; on
+                // Custom the row is what decides, which is the whole point of it.
                 case GraphicsOptionKind.RenderScale:
-                    return director.DynamicResolutionSupported &&
-                        director.Method == UpscaleMethod.Off && !director.DynamicResolutionOn;
+                    return director.DynamicResolutionSupported && director.RenderScaleDecides;
 
                 case GraphicsOptionKind.DynamicResolution:
                     return director.DynamicResolutionSupported;
@@ -562,19 +566,36 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync when director.VSync:
                     return "If frames hitch, try Just Under Display instead";
 
-                // An upscaler owns the render scale, so this control is inert
-                // while one is selected. Saying so beats letting someone change a
-                // number that has no effect.
-                case GraphicsOptionKind.RenderScale when director.Method != UpscaleMethod.Off:
-                    return "Set by the upscaler";
-
+                // Ordered most specific first, because more than one of these can
+                // be true at once. Dynamic resolution moves the scale every frame
+                // whatever else is running, so it answers before the upscaler.
                 case GraphicsOptionKind.RenderScale when director.DynamicResolutionOn:
                     return "Set by dynamic resolution";
 
-                // The upscalers install their own scaler and HDRP prefers it, so
-                // this would run and be discarded. Say so rather than appear to work.
-                case GraphicsOptionKind.DynamicResolution when director.DynamicOverriddenByUpscaler:
-                    return "Overridden while an upscaler is on";
+                case GraphicsOptionKind.RenderScale
+                    when director.Method == UpscaleMethod.Off &&
+                        director.AntiAliasing == AntiAliasingMode.Dlaa:
+                    return "DLAA renders at native, so there is nothing to scale";
+
+                // Custom is the mode where an upscaler is running and this row
+                // still decides, so it gets a note about what the number means
+                // rather than one about why it is dark.
+                case GraphicsOptionKind.RenderScale
+                    when director.Method != UpscaleMethod.Off && director.CustomScale:
+                    return "What " + DisplayOptions.UpscaleMethodNames[(int)director.Method] +
+                        " renders at before reconstructing to native";
+
+                case GraphicsOptionKind.RenderScale when director.Method != UpscaleMethod.Off:
+                    return "Set by the upscaler - pick Custom quality to set it here";
+
+                // The two used to be mutually exclusive: each upscaler installed
+                // its own scaler into a slot HDRP prefers, so the controller ran
+                // and was discarded. They compose now, and this is the pairing
+                // both vendors actually build for.
+                case GraphicsOptionKind.DynamicResolution when director.DynamicFeedsUpscaler:
+                    return "Moves the scale " +
+                        DisplayOptions.UpscaleMethodNames[(int)director.Method] +
+                        " reconstructs from";
 
                 case GraphicsOptionKind.DynamicResolution when director.DynamicResolutionOn:
                     return "Drops resolution to hold the target, never below 50%";
@@ -585,12 +606,21 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleQuality when director.Method == UpscaleMethod.Off:
                     return "Choose an upscaler first";
 
-                // Every quality mode of every upscaler renders below native and
-                // reconstructs back up, so the render scale row goes quiet and
-                // this one has to say what the trade actually is.
+                // Custom is not a mode either driver has, so it runs in whichever
+                // preset sits nearest the scale asked for. Worth naming: it is what
+                // decides how far the scale can travel before DLSS has to rebuild.
+                case GraphicsOptionKind.UpscaleQuality when director.CustomScale:
+                    return "Set by render scale, running as " +
+                        DisplayOptions.UpscaleQualityNames[director.ResolvedPreset];
+
+                // Every vendor preset renders below native and reconstructs back
+                // up, so the render scale row goes quiet and this one has to say
+                // what the trade actually is. The number is what is being asked
+                // for rather than the published ratio, so a scale the driver
+                // clamped reads as the value it was clamped to.
                 case GraphicsOptionKind.UpscaleQuality:
-                    return "Renders at about " +
-                        Mathf.RoundToInt(DisplayOptions.ApproximateScale((int)director.Quality) * 100f) + "%";
+                    return "Renders at " +
+                        Mathf.RoundToInt(director.EffectiveRenderScale * 100f) + "%";
 
                 case GraphicsOptionKind.AntiAliasing when director.Method != UpscaleMethod.Off:
                     return "Replaced by " + DisplayOptions.UpscaleMethodNames[(int)director.Method];
