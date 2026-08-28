@@ -18,24 +18,31 @@ namespace SurvivalChaos
         private float centerX;
 
         [SerializeField]
-        [Tooltip("Which way round the ring this enemy travels. Authored per prefab, and turned " +
-                 "at runtime when the player crosses one of the trigger volumes.")]
+        [Tooltip("Which way round the ring this enemy sets off. Held only until the player is " +
+                 "found, after which the direction is worked out every frame from the two bearings.")]
         private bool leftOrRight = true;
+
+        [SerializeField]
+        [Tooltip("How far past the decision point the player has to be before this enemy commits " +
+                 "to turning round. Zero turns on the instant, which chatters when the enemy is " +
+                 "sitting on the player; the default is about what the old trigger volumes imposed.")]
+        private float turnDeadbandDegrees = RingChase.DefaultDeadbandDegrees;
 
         /// <summary>
         /// Which way round the ring this enemy is currently travelling.
         ///
-        /// Settable, unlike the rest of this component's authored state, because
-        /// turning enemies around is a thing the game does: ColliderScript writes it
-        /// when the player crosses a trigger. The field keeps its old name so the
-        /// value already on every enemy prefab carries over; the property is named
+        /// Read-only now. It used to be settable because turning enemies around
+        /// was something done to them from outside - ColliderScript wrote it when
+        /// the player crossed one of six trigger volumes carried by every enemy
+        /// prefab. Those are gone and <see cref="RingChase"/> answers the same
+        /// question from the two bearings, so a setter would only be a way to
+        /// write a value that the next frame overwrites.
+        ///
+        /// The field keeps its old name so the value already authored on every
+        /// prefab carries over as the starting direction; the property is named
         /// for what the bool actually means, which "leftOrRight" never said.
         /// </summary>
-        public bool TravellingLeft
-        {
-            get => leftOrRight;
-            set => leftOrRight = value;
-        }
+        public bool TravellingLeft => leftOrRight;
 
         [SerializeField]
         private float spawnSpeed;
@@ -73,12 +80,13 @@ namespace SurvivalChaos
         /// The direction the prefab was authored to travel, captured before anything
         /// can turn it.
         ///
-        /// leftOrRight is not read-only state: ColliderScript writes to it when the
-        /// player crosses a trigger, which is how enemies turn around. Enemies are
-        /// pooled, so without restoring this a reused one would set off in whatever
-        /// direction it was last turned to rather than the one its prefab says - and
-        /// that reads as enemies spawning already going the wrong way, with nothing
-        /// about the bug pointing at a trigger volume.
+        /// leftOrRight is not read-only state: Update rewrites it every frame to
+        /// whichever way closes on the player. Enemies are pooled, so without
+        /// restoring this a reused one would set off in whatever direction it was
+        /// last turned to rather than the one its prefab says - and that reads as
+        /// enemies spawning already going the wrong way. It matters for the frame
+        /// before the first Update, and for the whole life of an enemy that never
+        /// finds a player to chase.
         /// </summary>
         private bool authoredDirection;
 
@@ -119,6 +127,14 @@ namespace SurvivalChaos
             {
                 return;
             }
+
+            // Before anything moves, because Enemy_1 and EnemySpaceShip read
+            // TravellingLeft to pick which side their shot leaves from.
+            leftOrRight = RingChase.ShouldTravelLeft(
+                PickupPlacement.BearingOf(transform.position, center),
+                PickupPlacement.BearingOf(player.position, center),
+                leftOrRight,
+                turnDeadbandDegrees);
 
             Vector3 pos = center;
             pos.y = transform.position.y;

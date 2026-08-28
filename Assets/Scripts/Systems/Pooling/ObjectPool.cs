@@ -32,8 +32,8 @@ namespace SurvivalChaos
     /// exactly the three that had to be handled: health rebuilds in OnEnable,
     /// Enemy_1 cancels its firing invoke before re-arming it, and EnemyMovement
     /// restores the travel direction its prefab was authored with - that one is
-    /// written at runtime by ColliderScript, so a reused enemy would otherwise
-    /// set off whichever way it was last turned.
+    /// rewritten every frame by the chase, so a reused enemy would otherwise set
+    /// off whichever way it was last turned.
     /// </summary>
     public static class ObjectPool
     {
