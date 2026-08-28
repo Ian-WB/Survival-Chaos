@@ -26,7 +26,7 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>
         /// Radius of the trigger, in world units, against an orbit radius of
-        /// 13.72. Deliberately larger than the visible object - the player flies
+        /// 137.2. Deliberately larger than the visible object - the player flies
         /// past at speed, and a collect volume that matches the art exactly reads
         /// as the pickup failing to work rather than as a near miss.
         /// </summary>
@@ -44,7 +44,7 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>
         /// How far above the core the label sits, in world units. The core is a
-        /// 0.45 cube stood on a corner, so its silhouette reaches about 0.39 out
+        /// 4.5 cube stood on a corner, so its silhouette reaches about 3.9 out
         /// from centre - this clears it without floating free of it.
         /// </summary>
         private const float LabelRise = 7.5f;

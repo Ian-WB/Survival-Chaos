@@ -66,23 +66,23 @@ namespace SurvivalChaos
     ///
     /// **High and Ultra compile the same features.** Both carry SSR, SSR on
     /// transparents, SSGI, volumetrics, volumetric clouds and ray tracing. What
-    /// separates them is budget: punctual shadow atlas 4096 against 8192 and its
-    /// cached atlas likewise, probe volumes 1024 at L1 against 2048 at L2, sky
-    /// reflection and cookie atlas 2048 against 4096. None of that is a volume
-    /// override, which is why the two rows below are nearly identical - the tier
-    /// does the work, not the table.
+    /// separates them is budget: area shadow atlas 4096 against 8192 and its
+    /// cached atlas likewise, probe volumes 1024 at L1 against 2048 at L2,
+    /// cookie atlas 2048 against 4096, and area shadow filtering up a step. The
+    /// punctual shadow atlas is *not* one of them - both sit at 8192, cached and
+    /// uncached - and neither is sky reflection, which is 2048 on both. None of
+    /// that is a volume override, which is why the two rows below are nearly
+    /// identical - the tier does the work, not the table.
     ///
     /// **Downward, High is nearer Medium than that list suggests.** The step up
     /// from Medium buys volumetric clouds, cookie atlas and sky reflection at
-    /// 2048 against 512, and a cached punctual atlas at 4096 against 2048. But
-    /// the probe volumes are Medium's exactly - 1024 at L1 - and the main
-    /// punctual shadow atlas is 4096 on Low, Medium and High alike, doubling
-    /// only at Ultra. Two of the numbers that separate High from Ultra do not
-    /// separate High from Medium at all, so the ladder is not four even rungs of
-    /// the same measurements. Raising either is a bake question rather than a
-    /// slider - L2 spherical harmonics have to be baked into the probe data,
-    /// not switched on over a bake made at L1 - which is why both are recorded
-    /// here and left alone.
+    /// 2048 against 512, and both punctual atlases doubling to 8192. But the
+    /// probe volumes are Medium's exactly - 1024 at L1 - so that one measurement
+    /// separates High from Ultra while not separating High from Medium at all,
+    /// and the ladder is not four even rungs of the same numbers. Raising it is
+    /// a bake question rather than a slider - L2 spherical harmonics have to be
+    /// baked into the probe data, not switched on over a bake made at L1 - which
+    /// is why it is recorded here and left alone.
     ///
     /// **Reflections are off on Low and on above it.** Low's asset ships
     /// `supportSSR: false`, which is a hard gate - a volume override cannot

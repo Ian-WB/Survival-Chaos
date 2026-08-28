@@ -10,7 +10,7 @@ namespace SurvivalChaos
     /// the arena axis: X is not a limit there, it is where you are around the ring,
     /// and clamping it would pin the ship at two points on the circle and fight
     /// PlayerMovement.RotateAround. It never fired only because the authored box is
-    /// 53.9 wide against an orbit radius of 13.72 - so it was a trap waiting for
+    /// 607.8 wide against an orbit radius of 137.2 - so it was a trap waiting for
     /// someone to narrow the box, rather than a feature.
     /// </summary>
     public class ApplyBounds : MonoBehaviour

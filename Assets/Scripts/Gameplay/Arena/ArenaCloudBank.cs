@@ -9,10 +9,10 @@ namespace SurvivalChaos
     ///
     /// The sky's volumetric clouds cannot do this. HDRP will not render them
     /// within about twenty units of the camera, their altitude range has a hard
-    /// 100m floor - five times the height of the island - and their noise runs
-    /// at kilometre scale, so across 37 units of arena the field is uniform and
-    /// the sky simply turns overcast as a whole. Local Volumetric Fog is the
-    /// local equivalent, and this drives it.
+    /// 100m floor - above the y = 70 lane the ships fly at, so cloud can never
+    /// reach them - and their noise runs at kilometre scale, so across 370 units
+    /// of arena the field is uniform and the sky simply turns overcast as a
+    /// whole. Local Volumetric Fog is the local equivalent, and this drives it.
     ///
     /// The mask is scrolled rather than the volume moved. HDRP samples the mask
     /// in the volume's own space, so scrolling a tiling texture gives endless

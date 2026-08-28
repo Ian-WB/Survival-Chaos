@@ -23,7 +23,7 @@ namespace SurvivalChaos
     /// stacks its bullets up the pivot and every one of them orbits the same
     /// centre at the same angular speed at its own fixed height, so a six-shot
     /// volley is a rigid column about twenty units tall for the whole of its
-    /// flight. Six lights of range 100 strung up twenty units cover very nearly the
+    /// flight. Six lights of range 50 strung up twenty units cover very nearly the
     /// same ground, and shadowing all six was six cubemap renders of one place.
     ///
     /// Picking by distance chose exactly those six, because the bullets nearest
