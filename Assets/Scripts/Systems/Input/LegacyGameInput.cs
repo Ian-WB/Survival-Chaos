@@ -24,6 +24,24 @@ namespace SurvivalChaos
         public bool DebugOverlayTogglePressed => Input.GetKeyDown(KeyCode.F3);
 
         public bool DebugCopyReportPressed => Input.GetKeyDown(KeyCode.F4);
+
+        public bool DebugMenuTogglePressed => Input.GetKeyDown(KeyCode.F8);
+
+        public int DebugShortcutPressed
+        {
+            get
+            {
+                for (int i = 1; i <= 8; i++)
+                {
+                    if (Input.GetKeyDown(KeyCode.Alpha0 + i))
+                    {
+                        return i;
+                    }
+                }
+
+                return 0;
+            }
+        }
     }
 }
 #endif

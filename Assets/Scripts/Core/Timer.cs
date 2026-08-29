@@ -97,6 +97,35 @@ namespace SurvivalChaos
             return authored;
         }
 
+        /// <summary>How far through the survival phase the run is, in seconds.</summary>
+        public float Elapsed => timeValue;
+
+        /// <summary>The length of the survival phase, resolved from the wave asset.</summary>
+        public float RunLength => runLength;
+
+        /// <summary>True once the boss phase has started.</summary>
+        public bool HandedOver => handedOver;
+
+        /// <summary>
+        /// Pushes the countdown forward, for the debug menu.
+        ///
+        /// Adding to the elapsed value rather than shortening the run keeps the
+        /// slider honest - it is driven from this number against a fixed maximum,
+        /// so moving the maximum instead would make the bar jump backwards. The
+        /// handover is deliberately left to Update rather than fired here: it is
+        /// latched behind <c>handedOver</c>, and calling it from two places is how
+        /// a boss ends up revealed twice.
+        /// </summary>
+        public void AdvanceBy(float seconds)
+        {
+            if (handedOver || seconds <= 0f)
+            {
+                return;
+            }
+
+            timeValue = Mathf.Min(timeValue + seconds, runLength);
+        }
+
         void Update()
         {
             if (handedOver)

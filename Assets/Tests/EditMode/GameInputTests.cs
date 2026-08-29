@@ -19,6 +19,8 @@ namespace SurvivalChaos.Tests
             public bool DebugLevelUpPressed { get; set; }
             public bool DebugOverlayTogglePressed { get; set; }
             public bool DebugCopyReportPressed { get; set; }
+            public bool DebugMenuTogglePressed { get; set; }
+            public int DebugShortcutPressed { get; set; }
         }
 
         [TearDown]

@@ -27,5 +27,18 @@ namespace SurvivalChaos
 
         /// <summary>True on the frame the overlay is asked to export its report.</summary>
         bool DebugCopyReportPressed { get; }
+
+        /// <summary>True on the frame the debug menu is toggled.</summary>
+        bool DebugMenuTogglePressed { get; }
+
+        /// <summary>
+        /// The number key pressed this frame, 1 to 8, or 0 for none. Drives the
+        /// debug menu's shortcuts.
+        ///
+        /// One member rather than eight booleans because the caller wants to
+        /// switch on which key it was, and eight properties would be eight more
+        /// things for a new IGameInput implementation to forget.
+        /// </summary>
+        int DebugShortcutPressed { get; }
     }
 }

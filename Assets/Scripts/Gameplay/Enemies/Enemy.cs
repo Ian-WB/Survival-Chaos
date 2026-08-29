@@ -97,6 +97,27 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Kills this enemy outright, for the debug menu.
+        ///
+        /// Takes the same exit as a fatal shot - explosion, reward, despawn -
+        /// rather than destroying the object. These are pooled, and a debug tool
+        /// that removed one from circulation would quietly starve the pool it was
+        /// meant to be testing.
+        /// </summary>
+        public void Kill()
+        {
+            if (health == null || health.IsDead)
+            {
+                return;
+            }
+
+            health.TakeDamage(health.Current);
+            ObjectPool.Spawn(explosion, transform.position, transform.rotation);
+            Death();
+            ObjectPool.Despawn(gameObject);
+        }
+
         private void Death()
         {
             int reward = definition != null ? definition.ExperienceReward : 5;

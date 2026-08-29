@@ -125,6 +125,43 @@ namespace SurvivalChaos
             }
         }
 
+        public bool DebugMenuTogglePressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+                return keyboard != null && keyboard.f8Key.wasPressedThisFrame;
+            }
+        }
+
+        /// <summary>
+        /// The digit keys are indexed off digit1Key rather than named one by
+        /// one. The Key enum orders them consecutively, which is what makes the
+        /// arithmetic safe, and it keeps this from being eight near-identical
+        /// lines that a typo could hide in.
+        /// </summary>
+        public int DebugShortcutPressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+                if (keyboard == null)
+                {
+                    return 0;
+                }
+
+                for (int i = 1; i <= 8; i++)
+                {
+                    if (keyboard[Key.Digit1 + (i - 1)].wasPressedThisFrame)
+                    {
+                        return i;
+                    }
+                }
+
+                return 0;
+            }
+        }
+
         /// <summary>
         /// Advances smoothing at most once per frame, so it does not matter how
         /// many scripts read the axes or in what order.

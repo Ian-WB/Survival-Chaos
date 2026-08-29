@@ -35,6 +35,73 @@ namespace SurvivalChaos
         /// </summary>
         public WaveDefinition Wave => wave;
 
+        /// <summary>
+        /// Moves the run's clock forward, for the debug menu.
+        ///
+        /// There are no discrete waves to skip. Difficulty here is a closed form
+        /// of elapsed time - SpawnMath.IntervalAt reads nothing else - so winding
+        /// the clock on *is* the wave skip, and it is the same operation the
+        /// countdown wants. Moving the start time rather than holding a separate
+        /// offset keeps that one number in charge; a second one would have to be
+        /// added at every site that reads Elapsed, and the one that got missed
+        /// would be the bug.
+        ///
+        /// What this does not do is shorten a WaitForSeconds already in flight.
+        /// A stream mid-gap still finishes that gap, then picks up the new rate.
+        /// So the ramp jumps immediately and the spawns catch up within one
+        /// interval, which is the honest behaviour for a testing tool - it does
+        /// not fabricate the enemies that would have arrived.
+        /// </summary>
+        public void AdvanceBy(float seconds)
+        {
+            if (seconds <= 0f)
+            {
+                return;
+            }
+
+            startTime -= seconds;
+        }
+
+        /// <summary>
+        /// Spawns the boss immediately, for the debug menu. Returns false when
+        /// there is no boss to spawn or one is already out.
+        ///
+        /// Winding the clock on is not enough by itself. A stream's opening wait
+        /// is a WaitForSeconds already in flight, and moving the time the rest of
+        /// the run is measured against does not shorten it - so skipping to the
+        /// boss revealed the health bar, which reads the wave asset directly, and
+        /// then left you in an empty arena waiting out the original ten minutes.
+        /// The bar arriving without the boss is a worse state than either half.
+        ///
+        /// The stream is found by what it spawns rather than by name or index,
+        /// which is the same rule WaveDefinition.BossArrivesAt uses. Two places
+        /// asking "which stream is the boss" need to agree, and the way to make
+        /// them agree is to ask the same question of the same data.
+        /// </summary>
+        public bool SpawnBossNow()
+        {
+            if (wave == null || FindAnyObjectByType<BossEmitter>() != null)
+            {
+                return false;
+            }
+
+            foreach (SpawnStream stream in wave.Streams)
+            {
+                if (stream == null || stream.Prefab == null)
+                {
+                    continue;
+                }
+
+                if (stream.Prefab.GetComponent<BossEmitter>() != null)
+                {
+                    Spawn(stream);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void Start()
         {
             startTime = Time.time;

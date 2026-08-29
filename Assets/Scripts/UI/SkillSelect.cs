@@ -81,13 +81,6 @@ namespace SurvivalChaos
             return upgrades;
         }
 
-        void Update()
-        {
-            if(GameInput.DebugLevelUpPressed){
-                PickSkill();
-            }
-        }
-
         /// <summary>
         /// Answers a level-up. Draws what the offer needs and puts it on the ring;
         /// nothing is granted and nothing is charged against the pool until the

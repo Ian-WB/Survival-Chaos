@@ -46,5 +46,9 @@ namespace SurvivalChaos
         public static bool DebugOverlayTogglePressed => source.DebugOverlayTogglePressed;
 
         public static bool DebugCopyReportPressed => source.DebugCopyReportPressed;
+
+        public static bool DebugMenuTogglePressed => source.DebugMenuTogglePressed;
+
+        public static int DebugShortcutPressed => source.DebugShortcutPressed;
     }
 }

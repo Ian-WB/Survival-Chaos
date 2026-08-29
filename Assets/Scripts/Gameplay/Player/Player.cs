@@ -168,12 +168,35 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Ignores incoming damage. Set by the debug menu and nothing else.
+        ///
+        /// Deliberately not serialized: a field left ticked in a prefab is exactly
+        /// the sort of thing that ships. It resets with the scene because it lives
+        /// on this component, so there is no way to leave it on for a real run.
+        /// </summary>
+        public bool Invulnerable { get; set; }
+
+        /// <summary>Current hit points, for the debug menu's readout.</summary>
+        public int CurrentHealth => health != null ? health.Current : 0;
+
+        /// <summary>Maximum hit points, for the debug menu's readout.</summary>
+        public int MaxHealth => health != null ? health.Max : 0;
+
         private void TakeHit(bool spawnHitEffect)
         {
             // Already dead: the death screen is up and time has stopped, but queued
             // trigger events from the same physics step still arrive. Ignoring them
             // is what stops the death sound stacking on itself.
             if (health.IsDead)
+            {
+                return;
+            }
+
+            // Checked after the dead test rather than before it, so switching
+            // invulnerability on does not resurrect a player who is already on the
+            // death screen.
+            if (Invulnerable)
             {
                 return;
             }
