@@ -3,16 +3,6 @@ using UnityEngine;
 
 namespace SurvivalChaos
 {
-    /// <summary>When an attack is allowed to fire.</summary>
-    public enum AttackTrigger
-    {
-        /// <summary>Fires on its own timer for the whole fight.</summary>
-        Repeating = 0,
-
-        /// <summary>Fires only while the player is inside the laser trigger.</summary>
-        WhileLaserActive = 1
-    }
-
     /// <summary>
     /// One volley: a set of muzzles, the projectile to use in each travel
     /// direction, and how often it goes off.
@@ -41,9 +31,6 @@ namespace SurvivalChaos
         private GameObject projectileWhenRight;
 
         [SerializeField]
-        private AttackTrigger trigger = AttackTrigger.Repeating;
-
-        [SerializeField]
         [Tooltip("Seconds before this attack first fires.")]
         private float initialDelay = 1f;
 
@@ -64,9 +51,6 @@ namespace SurvivalChaos
         /// them.
         /// </summary>
         public Transform[] Pivots => pivots;
-
-        /// <summary>When this attack is allowed to fire.</summary>
-        public AttackTrigger Trigger => trigger;
 
         /// <summary>Seconds before the first volley of the fight.</summary>
         public float InitialDelay => initialDelay;

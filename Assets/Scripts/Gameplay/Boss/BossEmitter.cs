@@ -28,9 +28,6 @@ namespace SurvivalChaos
         [SerializeField]
         private List<BossAttack> attacks = new List<BossAttack>();
 
-        /// <summary>Set by the laser trigger volume as the player enters and leaves.</summary>
-        public bool LaserActive { get; set; }
-
         private HealthState health;
         private EnemyMovement movement;
         private Slider hpBar;
@@ -122,11 +119,6 @@ namespace SurvivalChaos
             for (int i = 0; i < attacks.Count; i++)
             {
                 BossAttack attack = attacks[i];
-
-                if (attack.Trigger == AttackTrigger.WhileLaserActive && !LaserActive)
-                {
-                    continue;
-                }
 
                 if (timers[i].TryFire(now, attack.Interval))
                 {
