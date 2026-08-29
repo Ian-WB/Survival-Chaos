@@ -2525,7 +2525,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 6.771832e-35, y: 6.734217e-35, z: 6.8470646e-35, w: 6.9222974e-35}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 7.7e-44}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -15442,8 +15442,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
-  m_Color: {r: 0.1254902, g: 0.16078432, b: 0.20784315, a: 1}
-  m_Intensity: 0.5
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 0.1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -15486,9 +15486,9 @@ Light:
   m_LightShadowCasterMode: 1
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 7471
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 2.3326276e-34, y: 2.3175817e-34, z: 2.3627207e-34, w: 2.3928138e-34}
+  m_ColorTemperature: 9004
+  m_UseColorTemperature: 1
+  m_BoundingSphereOverride: {x: 0, y: 326125.72, z: 2.7210927e-20, w: 7.34789e-40}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -15952,7 +15952,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.5213118, g: 1, b: 0, a: 1}
-  m_Intensity: 2387.324
+  m_Intensity: 1193.662
   m_Range: 50
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -24817,7 +24817,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.0077347e+12, y: 8.351696e-25, z: 69857.06, w: NaN}
+  m_BoundingSphereOverride: {x: 0, y: 326125.72, z: 2.7210927e-20, w: 8.26625e-40}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -31118,7 +31118,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 326125.72, z: 2.7210927e-20, w: 9.1846e-40}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -31553,7 +31553,7 @@ MonoBehaviour:
   m_ShadowResolution:
     m_Override: 2688
     m_UseOverride: 0
-    m_Level: 3
+    m_Level: 2
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
@@ -31651,7 +31651,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 415.55634}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 0.025
   m_ShadowAngle: 0
