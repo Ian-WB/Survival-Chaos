@@ -16,6 +16,7 @@ namespace SurvivalChaos.Tests
             public float Vertical { get; set; }
             public bool ToggleDirectionReleased { get; set; }
             public bool PausePressed { get; set; }
+            public bool DashPressed { get; set; }
             public bool DebugLevelUpPressed { get; set; }
             public bool DebugOverlayTogglePressed { get; set; }
             public bool DebugCopyReportPressed { get; set; }

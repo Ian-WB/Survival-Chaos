@@ -19,6 +19,15 @@ namespace SurvivalChaos
         /// <summary>True on the frame the pause key is pressed.</summary>
         bool PausePressed { get; }
 
+        /// <summary>
+        /// True on the frame the dash key is pressed.
+        ///
+        /// The press edge, not the release edge the direction flip uses. A dash
+        /// is an escape from something arriving, so it has to leave on the
+        /// keystroke rather than wait to find out how long the key is held.
+        /// </summary>
+        bool DashPressed { get; }
+
         /// <summary>True on the frame the debug "force level up" key is pressed.</summary>
         bool DebugLevelUpPressed { get; }
 

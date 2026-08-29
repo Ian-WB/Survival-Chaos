@@ -19,6 +19,8 @@ namespace SurvivalChaos
 
         public bool PausePressed => Input.GetKeyDown(KeyCode.Escape);
 
+        public bool DashPressed => Input.GetKeyDown(KeyCode.Space);
+
         public bool DebugLevelUpPressed => Input.GetKeyDown(KeyCode.F7);
 
         public bool DebugOverlayTogglePressed => Input.GetKeyDown(KeyCode.F3);

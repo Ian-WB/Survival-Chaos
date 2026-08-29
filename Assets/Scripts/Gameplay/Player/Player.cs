@@ -149,6 +149,17 @@ namespace SurvivalChaos
         /// </summary>
         private void OnTriggerEnter(Collider other)
         {
+            // Nothing in this method should happen at all while phased - not the
+            // damage, and not the enemy being consumed by the collision either.
+            // Invincibility frames that still ate the enemy would hand the player
+            // a silent, rewardless kill for every ship they dashed through, which
+            // is a way of removing enemies from the game rather than of surviving
+            // them.
+            if (Phased)
+            {
+                return;
+            }
+
             if (other.CompareTag("enemy_Shoot"))
             {
                 TakeHit(spawnHitEffect: true);
@@ -176,6 +187,21 @@ namespace SurvivalChaos
         /// on this component, so there is no way to leave it on for a real run.
         /// </summary>
         public bool Invulnerable { get; set; }
+
+        [SerializeField]
+        [Tooltip("The dash, whose burst carries invincibility. Found on this object when left empty.")]
+        private PlayerDash dash;
+
+        /// <summary>
+        /// True while nothing can touch the player - the dash's own frames, or
+        /// the debug toggle.
+        ///
+        /// Two sources rather than one settable flag, because a dash that wrote
+        /// <see cref="Invulnerable"/> would switch the debug toggle off every
+        /// time it ended, and the tester would be left wondering which of the two
+        /// things they were watching had lied to them.
+        /// </summary>
+        private bool Phased => Invulnerable || (dash != null && dash.Invincible);
 
         /// <summary>Current hit points, for the debug menu's readout.</summary>
         public int CurrentHealth => health != null ? health.Current : 0;
@@ -233,6 +259,11 @@ namespace SurvivalChaos
         private void Awake()
         {
             health = new HealthState(healthPoints);
+
+            if (dash == null)
+            {
+                TryGetComponent(out dash);
+            }
 
             // Captured before any pick can move it, so each Attack Speed pick is
             // measured against the gun's starting rate rather than against whatever

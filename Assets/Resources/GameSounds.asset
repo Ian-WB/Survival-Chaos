@@ -15,6 +15,7 @@ MonoBehaviour:
   playerShot: {fileID: 11400000, guid: 371fd1e793dd3f345b88530211ae8882, type: 2}
   playerHit: {fileID: 11400000, guid: 3a62f3a528a111743bcfdff00355df22, type: 2}
   playerDeath: {fileID: 11400000, guid: 8160371381ccf1543833bdc632e0dfaf, type: 2}
+  playerDash: {fileID: 11400000, guid: c68fad35586636047b0eac7d67467565, type: 2}
   levelUp: {fileID: 11400000, guid: 76c1e75513274ac4fa172d84066f85b3, type: 2}
   skillPicked: {fileID: 11400000, guid: 858c7732477384d46a7c284e159030d0, type: 2}
   enemyDeath: {fileID: 11400000, guid: 44cca5e94b65cd64ab2fe4a8d389daa6, type: 2}

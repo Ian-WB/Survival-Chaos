@@ -71,6 +71,18 @@ namespace SurvivalChaos.EditorTools
             new Spec("playerDeath", "PlayerDeath", AudioChannel.Sfx, 1f,
                 Vector2.one, 0f, 1, 0f, "the run ending badly"),
 
+            // -5dB, on the same ladder BalanceSoundLevels puts the rest on, and
+            // level with the boss's gun: a dash is rarer than a shot and the
+            // player needs to hear that it went.
+            //
+            // The pitch range sits well above 1 rather than straddling it, which
+            // is doing real work here. The clip is an explosion, and played at
+            // its own pitch it reads as damage taken; lifted half an octave the
+            // same sample reads as a thruster. The spread across it is the usual
+            // anti-repetition jitter.
+            new Spec("playerDash", "PlayerDash", AudioChannel.Sfx, 0.5623413f,
+                new Vector2(1.35f, 1.5f), 0.1f, 2, 0f, "the dash burst"),
+
             new Spec("levelUp", "LevelUp", AudioChannel.Sfx, 0.9f,
                 Vector2.one, 0f, 1, 0f, "reaching a new level"),
 

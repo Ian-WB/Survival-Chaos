@@ -40,6 +40,11 @@ namespace SurvivalChaos
         [SerializeField]
         private SoundDefinition playerDeath;
 
+        [SerializeField]
+        [Tooltip("The dash burst. Short: it fires on a 1.2s cycle at the busiest moments in the " +
+                 "run, so anything with a tail will overlap itself.")]
+        private SoundDefinition playerDash;
+
         [Header("Progression")]
         [SerializeField]
         private SoundDefinition levelUp;
@@ -74,6 +79,7 @@ namespace SurvivalChaos
         public SoundDefinition PlayerShot => playerShot;
         public SoundDefinition PlayerHit => playerHit;
         public SoundDefinition PlayerDeath => playerDeath;
+        public SoundDefinition PlayerDash => playerDash;
         public SoundDefinition LevelUp => levelUp;
         public SoundDefinition SkillPicked => skillPicked;
         public SoundDefinition EnemyDeath => enemyDeath;

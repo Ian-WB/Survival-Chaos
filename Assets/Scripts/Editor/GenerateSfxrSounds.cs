@@ -48,6 +48,13 @@ namespace SurvivalChaos.EditorTools
         /// audible, so they follow how often a sound actually fires. The player's
         /// shot goes five times a second and needs four; a victory sting plays
         /// once a run and needs one.
+        ///
+        /// The order of this list is load-bearing, which is not obvious. One
+        /// System.Random walks the whole thing, so every entry's sound depends on
+        /// how many draws the entries above it took. Inserting a spec in the
+        /// middle silently rerolls every sound below it - the game comes back
+        /// sounding different for a change that looks local. Add new sounds at the
+        /// end, or accept that everything after the insertion point is new.
         /// </summary>
         private static readonly Spec[] Specs =
         {
@@ -63,7 +70,13 @@ namespace SurvivalChaos.EditorTools
             new Spec("BossDeath", SfxrKind.Explosion, 1, 0.55f),
             new Spec("Victory", SfxrKind.Powerup, 1, 0.9f),
             new Spec("UiClick", SfxrKind.Blip, 2),
-            new Spec("UiHover", SfxrKind.Blip, 2, 1.35f)
+            new Spec("UiHover", SfxrKind.Blip, 2, 1.35f),
+
+            // Added last, and it has to stay last. A thruster rather than a
+            // weapon: the same synth as the player's shot dropped well over an
+            // octave, so a dash is never mistaken for having fired. Two variants
+            // because it goes often enough in a fight for one to become a tic.
+            new Spec("PlayerDash", SfxrKind.Laser, 2, 0.4f)
         };
 
         [MenuItem("Survival Chaos/Generate Placeholder SFX", priority = 43)]

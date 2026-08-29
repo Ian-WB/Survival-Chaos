@@ -98,6 +98,34 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Space on the keyboard; the right shoulder or the south face button on
+        /// a pad.
+        ///
+        /// Two pad bindings rather than one because the two conventions disagree
+        /// and neither is wrong: a shoulder mirrors the flip already sitting on
+        /// the left one, and the south button is where a player who has never
+        /// held this pad before will reach first. Nothing is lost by answering to
+        /// both - unlike the debug bindings above, a dash pressed by accident
+        /// costs a cooldown rather than a level.
+        /// </summary>
+        public bool DashPressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+
+                if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
+                {
+                    return true;
+                }
+
+                Gamepad pad = Gamepad.current;
+                return pad != null
+                    && (pad.rightShoulder.wasPressedThisFrame || pad.buttonSouth.wasPressedThisFrame);
+            }
+        }
+
         public bool DebugLevelUpPressed
         {
             get

@@ -91,8 +91,13 @@ namespace SurvivalChaos
 
         void Update()
         {
-            float climb = GameInput.Vertical;
-            float throttle = GameInput.Horizontal;
+            // The effective axes rather than the raw ones, so the model banks
+            // into a dash it never asked for. A burst begun with nothing held
+            // takes its heading from the flip, and reading input directly here
+            // would fly the ship dead level through the one manoeuvre in the
+            // game that most needs to look like a manoeuvre.
+            float climb = PlayerMovement.EffectiveVertical;
+            float throttle = PlayerMovement.EffectiveHorizontal;
 
             // Flipping mirrors the model, so "forward" reverses with it.
             float mirror = IsFlipped ? -1f : 1f;
