@@ -60,6 +60,7 @@ namespace SurvivalChaos.EditorTools
             GameObject root = HoloUiFactory.ReplaceRoot(canvas.transform, RootName);
 
             BuildHealth(root.transform, bar);
+            BuildDash(root.transform, bar);
             BuildExperience(root.transform, bar);
             BuildTimer(root.transform, bar);
             BuildBossBar(root.transform, bar);
@@ -138,12 +139,57 @@ namespace SurvivalChaos.EditorTools
                 HoloUiFactory.Health, 10f, 0.3f);
         }
 
+        /// <summary>
+        /// The dash cooldown, directly above the hull bar.
+        ///
+        /// Placed with the hull rather than with the experience group because of
+        /// what it is, not where it fits: hull and dash are both "can I survive
+        /// the next second", and level and experience are both "how is the run
+        /// going". The two questions are asked at different moments, so the
+        /// things that answer them should not be interleaved. That is what pushes
+        /// the experience group up the screen.
+        ///
+        /// Half the width of the hull bar. It is a smaller thing than the hull
+        /// and should not compete with it - and unlike every other bar here, this
+        /// one is full almost all of the time, so what has to read at a glance is
+        /// the exception rather than the value.
+        /// </summary>
+        private static void BuildDash(Transform parent, Material bar)
+        {
+            HoloUiFactory.CreateText(parent, "Dash Label", Vector2.zero, Vector2.zero,
+                new Vector2(52f, 138f), new Vector2(300f, 24f), 14f, TextAlignmentOptions.Left)
+                .text = "Dash";
+
+            Image image = HoloUiFactory.CreateBarImage(parent, "Dash Bar", Vector2.zero,
+                Vector2.zero, new Vector2(48f, 120f), new Vector2(220f, 12f), bar,
+                HoloUiFactory.Accent, 0f);
+
+            image.type = Image.Type.Simple;
+            image.fillAmount = 1f;
+
+            // No loss trail. The ghost is drawn in the same red every other bar
+            // uses to mean "you just took damage", and this value drops to zero
+            // every single time the player dashes - which is the one moment they
+            // most need not to be told they have been hit. Painting it the track's
+            // own colour retires it without giving HoloBar a special case.
+            image.material.SetColor("_GhostColor", HoloUiFactory.TrackDark);
+            EditorUtility.SetDirty(image.material);
+
+            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
+
+            // No low pulse either: low here means "just used", which is the
+            // expected state after every dash rather than an emergency.
+            HoloUiFactory.ConfigureBar(holo, null, 0f);
+
+            Undo.AddComponent<DashBar>(image.gameObject);
+        }
+
         private static void BuildExperience(Transform parent, Material bar)
         {
             // ExpBar reads an Image's fillAmount rather than a Slider, so this one
             // has no Slider and HoloBar falls back to reading fillAmount.
             Image image = HoloUiFactory.CreateBarImage(parent, "XP Bar", Vector2.zero, Vector2.zero,
-                new Vector2(48f, 128f), new Vector2(440f, 14f), bar, HoloUiFactory.Accent, 0f);
+                new Vector2(48f, 172f), new Vector2(440f, 14f), bar, HoloUiFactory.Accent, 0f);
 
             // Left as Simple deliberately. Filled would shorten the quad itself,
             // and the shader would then draw a whole bar inside that short piece.
@@ -157,7 +203,7 @@ namespace SurvivalChaos.EditorTools
             HoloUiFactory.ConfigureBar(holo, null, 0f);
 
             HoloUiFactory.CreateText(parent, "Level Text", Vector2.zero, Vector2.zero,
-                new Vector2(52f, 146f), new Vector2(300f, 24f), 16f, TextAlignmentOptions.Left)
+                new Vector2(52f, 190f), new Vector2(300f, 24f), 16f, TextAlignmentOptions.Left)
                 .text = "Level 1";
         }
 
@@ -241,6 +287,15 @@ namespace SurvivalChaos.EditorTools
                 // drives the value - the second reference here was written and
                 // never read.
                 HoloUiFactory.Assign(target, "HpBar", boss != null ? boss.gameObject : null);
+                wired++;
+            }
+
+            DashBar dashBar = HoloUiFactory.Find<DashBar>(root, "Dash Bar");
+            PlayerDash dash = Object.FindAnyObjectByType<PlayerDash>(FindObjectsInactive.Include);
+
+            if (dashBar != null)
+            {
+                HoloUiFactory.Assign(dashBar, "dash", dash);
                 wired++;
             }
 
