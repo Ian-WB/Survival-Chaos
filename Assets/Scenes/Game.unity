@@ -2662,7 +2662,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 2.865e-41, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 2.1454245e-37, y: 2.1307306e-37, z: 2.145425e-37, w: 2.1748123e-37}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -4579,6 +4579,10 @@ PrefabInstance:
     - target: {fileID: 6535993950890939480, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6663775022177658896, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
+      propertyPath: m_ScaleInLightmap
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6663775022177658896, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
       propertyPath: m_LightmapParameters
@@ -15661,7 +15665,7 @@ MonoBehaviour:
   m_PenumbraTint: 0
   m_NormalBias: 0.75
   m_SlopeBias: 0.5
-  m_ShadowUpdateMode: 0
+  m_ShadowUpdateMode: 1
   m_AlwaysDrawDynamicShadows: 0
   m_UpdateShadowOnLightMovement: 1
   m_CachedShadowTranslationThreshold: 0.01
@@ -15744,7 +15748,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 9004
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: 326125.72, z: 2.7210927e-20, w: 7.34789e-40}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -25075,7 +25079,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 2.112278e-39, z: 1.0243e-40, w: 1.3e-44}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -29620,7 +29624,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1816690654}
   m_Enabled: 1
-  m_CastShadows: 0
+  m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -29645,7 +29649,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
+  m_ReceiveGI: 2
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -31650,7 +31654,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 4007
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 9.3675065e-38, y: 9.367506e-38, z: 9.477997e-38, w: 9.624936e-38}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 7.7e-44}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -32183,7 +32187,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 415.55634}
   m_UseBoundingSphereOverride: 1
-  m_UseViewFrustumForShadowCasterCull: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
   m_ShapeRadius: 0.025
   m_ShadowAngle: 0
