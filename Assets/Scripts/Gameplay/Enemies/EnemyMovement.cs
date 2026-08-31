@@ -96,11 +96,29 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// A multiplier on how fast this enemy travels round the ring, 1 being
+        /// the authored speed.
+        ///
+        /// Exists for the boss's ram, which has to outrun the player. Nothing
+        /// else uses it, and it is a multiplier rather than an override so the
+        /// authored speed stays the thing being read - "three times as fast"
+        /// survives a retune of the boss's cruise, and "45 degrees a second"
+        /// would quietly stop meaning three times anything.
+        /// </summary>
+        public float OrbitSpeedScale { get; set; } = 1f;
+
+        /// <summary>
         /// Runs on every spawn, including reuse from the pool. Awake does not.
         /// </summary>
         private void OnEnable()
         {
             leftOrRight = authoredDirection;
+
+            // Belongs to an attack rather than to the enemy, and an attack
+            // interrupted by death leaves it set. A pooled boss brought back
+            // mid-ram would otherwise arrive at triple speed and stay there for
+            // the rest of the fight.
+            OrbitSpeedScale = 1f;
         }
 
         void Start()
@@ -164,7 +182,8 @@ namespace SurvivalChaos
             else
             {
                 float direction = leftOrRight ? 1f : -1f;
-                transform.RotateAround(pos, Vector3.up, direction * rotationSpeed * Time.deltaTime);
+                transform.RotateAround(
+                    pos, Vector3.up, direction * rotationSpeed * OrbitSpeedScale * Time.deltaTime);
 
                 if(Vector3.Distance(transform.position, player.position) <= ChaseRadius)
                 {

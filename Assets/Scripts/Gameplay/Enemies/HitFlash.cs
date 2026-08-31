@@ -101,6 +101,17 @@ namespace SurvivalChaos
 
             foreach (Renderer candidate in GetComponentsInChildren<Renderer>(includeInactive: true))
             {
+                // Renderers under a nested flash belong to it, not to this one.
+                // The boss is the case: its emplacements carry their own, and a
+                // hull flash that also lit them would make hitting the armour
+                // look exactly like hitting the one part of the boss that can
+                // actually be hurt - which is the single distinction the whole
+                // first act of that fight rests on.
+                if (candidate.GetComponentInParent<HitFlash>(includeInactive: true) != this)
+                {
+                    continue;
+                }
+
                 Material material = candidate.sharedMaterial;
 
                 if (material == null || !material.HasProperty(EmissiveColor))

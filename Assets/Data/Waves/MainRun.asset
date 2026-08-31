@@ -253,7 +253,7 @@ MonoBehaviour:
     position: {x: -18.099998, y: 77.90633, z: -213.70001}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
-    yOffsetRange: {x: -11, y: 11}
+    yOffsetRange: {x: 0, y: 0}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 600
