@@ -119,6 +119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 80
+  laneResponse: 5
 --- !u!1001 &4017856013362493765
 PrefabInstance:
   m_ObjectHideFlags: 0

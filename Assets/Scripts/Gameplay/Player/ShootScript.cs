@@ -66,6 +66,14 @@ namespace SurvivalChaos
         [SerializeField]
         private float speed;
 
+        [SerializeField]
+        [Tooltip("How fast this projectile settles onto the lane the player flies in. 0 leaves " +
+                 "it at whatever distance from the arena's axis it was fired at, which is what " +
+                 "the player's own shots want. The boss needs it: its 32 muzzles are spread " +
+                 "across the width of a ship 30 units deep, so most of them sit outside the " +
+                 "band the player can ever be in, and an orbit preserves that error forever.")]
+        private float laneResponse;
+
         /// <summary>
         /// Runs on every spawn, including reuse from the pool. This was Start(),
         /// which only ever runs on an object's first life - a reused bullet would
@@ -112,6 +120,18 @@ namespace SurvivalChaos
             if (center == null)
             {
                 return;
+            }
+
+            // Before the orbit, so the LookAt at the end faces from where this
+            // ends up rather than from where it started the frame.
+            if (laneResponse > 0f)
+            {
+                transform.position = ArenaGeometry.EaseOntoOrbit(
+                    transform.position,
+                    center.position,
+                    ArenaGeometry.OrbitRadius,
+                    laneResponse,
+                    Time.deltaTime);
             }
 
             Vector3 pos =  center.position;

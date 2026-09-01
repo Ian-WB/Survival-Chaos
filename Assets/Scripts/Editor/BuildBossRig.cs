@@ -107,6 +107,33 @@ namespace SurvivalChaos.EditorTools
         private const float PlateRadius = 8f;
 
         /// <summary>
+        /// How fast the boss's shots settle onto the lane the player flies in.
+        ///
+        /// They have to settle onto it at all because a projectile orbits with
+        /// RotateAround, which preserves the distance from the axis it was born
+        /// at exactly and forever. The muzzles are spread across the width of a
+        /// ship 30 units deep and sit anywhere from 131.6 to 150.2 from the axis,
+        /// while the player is pinned to 137.2 and, with their own hitbox and the
+        /// shot's, can only be touched between 133.9 and 140.5. Measured on the
+        /// rig, 8 of the 32 muzzles were inside that band and 24 were not: three
+        /// quarters of every volley was incapable of hitting anyone, which is why
+        /// a curtain of twelve arrived as a wall of three.
+        ///
+        /// The alternative was moving the muzzles onto the lane, and that is the
+        /// one thing the rig must not do - the whole point of it is that the shot
+        /// leaves the barrel the artist modelled. So the shot leaves the barrel
+        /// and then eases in, which is also what every ship in the arena does on
+        /// its way to the ring.
+        ///
+        /// 5 puts the worst-placed muzzle's shot inside the band in 0.275
+        /// seconds, by which time it has travelled about 22 degrees of arc and is
+        /// clear of a hull 71 units wide. Fast enough to be dangerous while it
+        /// still matters, slow enough to read as a shot curving in rather than as
+        /// a muzzle in the wrong place.
+        /// </summary>
+        private const float RoundLaneResponse = 5f;
+
+        /// <summary>
         /// One emplacement and the bank of muzzles it feeds.
         ///
         /// The muzzles are named rather than picked by position, because the
@@ -927,6 +954,8 @@ namespace SurvivalChaos.EditorTools
                 Load<GameObject>("Assets/Prefabs/Boss/boss_shoot 6.prefab"),
             };
 
+            TuneRounds(rounds);
+
             var so = new SerializedObject(emitter);
 
             so.FindProperty("hullSpark").objectReferenceValue = Load<GameObject>(SparkPath);
@@ -990,6 +1019,41 @@ namespace SurvivalChaos.EditorTools
             }
 
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// Sets the lane approach on the boss's own projectile prefabs.
+        ///
+        /// Here rather than by hand because it belongs with the muzzle placement
+        /// it exists to compensate for - the number is only defensible next to
+        /// the spread of the rig, and the two would drift apart the moment they
+        /// lived in different files. The player's rounds are deliberately not
+        /// touched: their gun is on the lane already, and easing their shots onto
+        /// it would move every bullet they fire.
+        /// </summary>
+        private static void TuneRounds(GameObject[] rounds)
+        {
+            foreach (GameObject round in rounds)
+            {
+                if (round == null)
+                {
+                    continue;
+                }
+
+                if (!round.TryGetComponent(out ShootScript shot))
+                {
+                    Debug.LogWarning("BuildBossRig found no ShootScript on " + round.name);
+                    continue;
+                }
+
+                var properties = new SerializedObject(shot);
+                properties.FindProperty("laneResponse").floatValue = RoundLaneResponse;
+                properties.ApplyModifiedPropertiesWithoutUndo();
+
+                EditorUtility.SetDirty(round);
+            }
+
+            AssetDatabase.SaveAssets();
         }
 
         private static int[] AllMuzzles(int count)
