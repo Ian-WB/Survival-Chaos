@@ -1,0 +1,878 @@
+<title>Leviathan Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  /* Dark-first: this is a night-sky arcade shooter and the palette is the game's own.
+     :root carries the primary (dark) set; light is redefined for both the OS default
+     and the explicit toggle. */
+  :root {
+    --ground: #0A0C11;
+    --surface: #12151D;
+    --surface-2: #1A1F2A;
+    --line: #262D3B;
+    --ink: #E6EAF2;
+    --ink-dim: #98A2B6;
+    --ember: #F2801E;
+    --ember-soft: #F2801E22;
+    --holo: #56DFCF;
+    --weak: #86FF3D;
+    --danger: #FF4D4D;
+    --shadow: 0 1px 0 #FFFFFF08 inset, 0 18px 48px -28px #000000CC;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ground: #F4F2EE;
+      --surface: #FFFFFF;
+      --surface-2: #EDEAE4;
+      --line: #D8D3CA;
+      --ink: #15181F;
+      --ink-dim: #5C6474;
+      --ember: #B85200;
+      --ember-soft: #B8520018;
+      --holo: #0B7A6C;
+      --weak: #2F7A00;
+      --danger: #B3231F;
+      --shadow: 0 1px 0 #FFFFFF inset, 0 14px 36px -28px #00000055;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --ground: #F4F2EE;
+    --surface: #FFFFFF;
+    --surface-2: #EDEAE4;
+    --line: #D8D3CA;
+    --ink: #15181F;
+    --ink-dim: #5C6474;
+    --ember: #B85200;
+    --ember-soft: #B8520018;
+    --holo: #0B7A6C;
+    --weak: #2F7A00;
+    --danger: #B3231F;
+    --shadow: 0 1px 0 #FFFFFF inset, 0 14px 36px -28px #00000055;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Archivo, "Segoe UI", system-ui, sans-serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.1rem, 4vw, 2.5rem) 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  h1, h2, h3, .eyebrow, .tag, th {
+    font-family: "Chakra Petch", "Segoe UI Semibold", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 7vw, 4.4rem);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  h3 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  p { margin: 0; }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  section { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  .lede { font-size: 1.16rem; color: var(--ink-dim); max-width: 40rem; }
+
+  .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  /* ---- hero ---- */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    padding-bottom: 0.5rem;
+  }
+  .hero .sub {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--ember);
+  }
+  .thesis {
+    font-size: clamp(1.1rem, 2.4vw, 1.32rem);
+    line-height: 1.5;
+    max-width: 44rem;
+    border-left: 2px solid var(--ember);
+    padding-left: 1.1rem;
+  }
+
+  /* ---- cards ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.35rem 1.4rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: 1rem;
+  }
+
+  /* ---- data ---- */
+  .scroll { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 30rem;
+    font-size: 0.9rem;
+  }
+  th {
+    text-align: left;
+    font-size: 0.7rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 600;
+    padding: 0 0.9rem 0.55rem 0;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.5rem 0.9rem 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: 0; }
+  .num {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.86rem;
+    white-space: nowrap;
+  }
+  code, .mono {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.85em;
+  }
+  code {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0.06em 0.34em;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    padding: 0.22em 0.55em;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .t-keel  { color: var(--holo); }
+  .t-prow  { color: var(--ember); }
+  .t-crown { color: var(--weak); }
+  .t-cut   { color: var(--danger); }
+
+  ul { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: 0.45rem; }
+  li::marker { color: var(--ink-dim); }
+
+  .dim { color: var(--ink-dim); }
+  .em { color: var(--ember); font-weight: 500; }
+
+  /* ---- phase blocks (a real sequence, so these are numbered) ---- */
+  .phase {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: 1.1rem;
+    align-items: start;
+  }
+  .phase-n {
+    font-family: "Chakra Petch", system-ui, sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 0.85;
+    color: var(--ember);
+    font-variant-numeric: tabular-nums;
+  }
+  .phase-body { display: flex; flex-direction: column; gap: 0.85rem; min-width: 0; }
+
+  .attack {
+    border-left: 2px solid var(--line);
+    padding-left: 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .attack-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .timing {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.76rem;
+    color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- band diagram ---- */
+  .band-fig {
+    display: grid;
+    grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr);
+    gap: 1.6rem;
+    align-items: center;
+  }
+  @media (max-width: 46rem) {
+    .band-fig { grid-template-columns: 1fr; }
+    .phase { grid-template-columns: 1fr; gap: 0.5rem; }
+  }
+  .band-svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: 0.86rem; color: var(--ink-dim); }
+
+  a { color: var(--holo); }
+  a:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--holo);
+    outline-offset: 2px;
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="sub">SURVIVAL CHAOS &nbsp;/&nbsp; BOSS ENCOUNTER &nbsp;/&nbsp; T+600s &nbsp;/&nbsp; AS BUILT</div>
+    <h1>LEVIATHAN</h1>
+    <p class="thesis">
+      The model already had three separate weapon banks, and they happened to sit at the floor,
+      the middle and the ceiling of the playable band. That was the entire fight, waiting to be
+      wired as one. It is wired now &mdash; and this is what it does.
+    </p>
+  </header>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">The arena, measured</div>
+    <h2>Three facts decide everything else</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>You cannot outrun a bullet</h3>
+        <p class="dim">
+          Boss projectiles orbit at <span class="mono">80&deg;/s</span>; the player at
+          <span class="mono">29.2&deg;/s</span>. A shot laps the world in 4.5&thinsp;s, the player
+          in 12.3&thinsp;s. <span class="em">Everything the boss fires comes back around and hits
+          you in the back.</span> Resogun calls this the Cylinder Wrap and treats it as a design
+          rule. Here it was already true by accident, and the cadences below are set against it.
+        </p>
+      </div>
+      <div class="card">
+        <h3>A shot never changes lane</h3>
+        <p class="dim">
+          Projectiles orbit with <code>RotateAround</code>, which preserves the distance from the
+          axis they were born at &mdash; exactly, and for their whole life. The player is pinned to
+          <span class="mono">137.200</span>, and with both hitboxes a shot can only touch them if it
+          was born between <span class="mono">133.9</span> and <span class="mono">140.5</span>.
+          <span class="em">A shot fired off that lane misses forever.</span> This is the fact that
+          had been quietly costing the boss three quarters of its fire.
+        </p>
+      </div>
+      <div class="card">
+        <h3>You cannot fly over it</h3>
+        <p class="dim">
+          The hull trigger is <span class="mono">153</span> units tall against a playable band of
+          <span class="mono">89</span>. It spans <span class="mono">y&nbsp;12&ndash;165</span>;
+          you live in <span class="mono">y&nbsp;44&ndash;133</span>.
+          <span class="em">The boss is a moving wall</span> &mdash; the Stormruler shape, already
+          built. The only way past it is around, which makes the direction flip the most
+          important key on the board.
+        </p>
+      </div>
+    </div>
+
+    <div class="card scroll">
+      <table>
+        <thead>
+          <tr><th>Quantity</th><th>Value</th><th>Reads as</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Orbit radius</td><td class="num">137.2</td><td class="dim">the ring everything shares</td></tr>
+          <tr><td>Playable band</td><td class="num">y 44.2 &rarr; 133.2</td><td class="dim">89.0 units tall</td></tr>
+          <tr><td>Player orbit</td><td class="num">29.2&deg;/s</td><td class="dim">12.3 s per lap</td></tr>
+          <tr><td>Player climb</td><td class="num">70 u/s</td><td class="dim">1.27 s floor to ceiling</td></tr>
+          <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
+          <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">4.5 s per lap</td></tr>
+          <tr><td>Boss orbit</td><td class="num">15&deg;/s</td><td class="dim">24 s per lap &mdash; you lap it every 25 s</td></tr>
+          <tr><td>Boss health</td><td class="num">300</td><td class="dim">1 damage per bullet</td></tr>
+          <tr><td>Hittable lane</td><td class="num">133.9 &rarr; 140.5</td><td class="dim">where a shot has to be born to reach the player at all</td></tr>
+          <tr><td>Muzzle spread</td><td class="num">131.6 &rarr; 150.2</td><td class="dim">across a hull 30 units deep &mdash; wider than the lane</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">The rig</div>
+    <h2>Three banks, one third of the band each</h2>
+    <p class="lede">
+      The 32 <code>enemyShootPivot</code> transforms are not scattered. They cluster into three
+      groups at three heights, and each group lands almost exactly on a third of the band the
+      player can occupy. Nothing about the current fight knows this.
+    </p>
+
+    <figure class="band-fig">
+      <svg class="band-svg" viewBox="0 0 300 430" role="img"
+           aria-label="Vertical section of the arena showing the playable band from y 44 to y 133, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
+        <!-- band -->
+        <rect x="86" y="30" width="128" height="360" fill="var(--ember-soft)" stroke="var(--line)"/>
+
+        <!-- ceiling / floor labels -->
+        <line x1="70" y1="30" x2="230" y2="30" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <line x1="70" y1="390" x2="230" y2="390" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">133.2</text>
+        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">44.2</text>
+        <text x="238" y="27" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">CEILING</text>
+        <text x="238" y="399" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">FLOOR</text>
+
+        <!-- CROWN rows: world y 134.1,133.7,128.8,124.2,120.0  -> map y=44.2..133.2 to 390..30 -->
+        <g stroke="var(--weak)" stroke-width="2">
+          <line x1="96" y1="26.4" x2="204" y2="26.4"/>
+          <line x1="96" y1="28.0" x2="204" y2="28.0"/>
+          <line x1="96" y1="47.8" x2="204" y2="47.8"/>
+          <line x1="96" y1="66.4" x2="204" y2="66.4"/>
+          <line x1="96" y1="83.4" x2="204" y2="83.4"/>
+        </g>
+        <text x="238" y="60" fill="var(--weak)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">CROWN</text>
+        <text x="238" y="73" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">16 muzzles</text>
+
+        <!-- PROW: world y 91.7 -->
+        <line x1="96" y1="198.1" x2="204" y2="198.1" stroke="var(--ember)" stroke-width="3"/>
+        <text x="238" y="196" fill="var(--ember)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">PROW</text>
+        <text x="238" y="209" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">4 muzzles</text>
+
+        <!-- KEEL rows: world y 66.5, 66.3, 53.5, 52.8, 41.5, 41.2 -->
+        <g stroke="var(--holo)" stroke-width="2">
+          <line x1="96" y1="299.9" x2="204" y2="299.9"/>
+          <line x1="96" y1="300.7" x2="204" y2="300.7"/>
+          <line x1="96" y1="352.4" x2="204" y2="352.4"/>
+          <line x1="96" y1="355.3" x2="204" y2="355.3"/>
+          <line x1="96" y1="401.1" x2="204" y2="401.1"/>
+          <line x1="96" y1="402.3" x2="204" y2="402.3"/>
+        </g>
+        <text x="238" y="330" fill="var(--holo)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">KEEL</text>
+        <text x="238" y="343" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">12 muzzles</text>
+
+        <text x="10" y="215" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9"
+              letter-spacing="1.5" transform="rotate(-90 10 215)" text-anchor="middle">PLAYABLE BAND</text>
+      </svg>
+      <figcaption>
+        Muzzle heights with the boss at its spawn height of 77.9. The outermost rows of each
+        bank sit fractionally outside the band &mdash; the top crown row 0.9 above the ceiling,
+        the bottom keel row 2.9 below the floor &mdash; which is close enough to read as
+        &ldquo;the guns reach the edges of the world&rdquo; and worth leaving alone.
+      </figcaption>
+    </figure>
+
+    <div class="card scroll">
+      <table>
+        <thead>
+          <tr><th>Bank</th><th>Muzzles</th><th>World y</th><th>Position on the model</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag t-crown">Crown</span></td>
+            <td class="num">16</td><td class="num">120.0 &ndash; 134.1</td>
+            <td class="dim">the upper wing, four rows of four</td>
+          </tr>
+          <tr>
+            <td><span class="tag t-prow">Prow</span></td>
+            <td class="num">4</td><td class="num">91.7</td>
+            <td class="dim">a single line at the furthest-forward point of the hull</td>
+          </tr>
+          <tr>
+            <td><span class="tag t-keel">Keel</span></td>
+            <td class="num">12</td><td class="num">41.2 &ndash; 66.5</td>
+            <td class="dim">three rows down the lower hull, both flanks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Before</div>
+    <h2>It was a wall that sprays</h2>
+    <p class="lede">
+      All three banks fired every muzzle simultaneously, forever, on fixed 0.5&thinsp;s and
+      3&thinsp;s timers. No phases, no telegraph, no weak points, no reason to be at any
+      particular height. The hull took damage anywhere, so the correct play was to hold the
+      trigger and hope, and 300 HP was the only thing making it last. Everything below is the
+      same 32 muzzles, fired differently.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">As built</div>
+    <h2>Armoured &rarr; Exposed &rarr; Scuttle</h2>
+    <p class="lede">
+      Three acts out of one 300-point pool, so the bar moves throughout and retuning an
+      emplacement cannot quietly change what the boss is worth. The Resogun rule underneath is the
+      one all five of its bosses share: <span class="em">the hull is not the target &mdash;
+      specific, colour-coded things on it are</span>, and destroying one takes an attack out of
+      the fight. <code>BossPhaseState</code> holds the order with no Unity object attached, because
+      &ldquo;once, and never backwards&rdquo; is the kind of rule that is impossible to check by
+      playing.
+    </p>
+
+    <div class="phase">
+      <div class="phase-n">1</div>
+      <div class="phase-body">
+        <h3>ARMOURED &mdash; 150 HP across three weak points</h3>
+        <p class="dim">
+          The hull is invulnerable; bullets spark off it and die. Three neon-green weak points
+          sit at the centroid of each bank, 50 HP each, and they are the only things that take
+          damage. Killing one <span class="em">silences that bank permanently</span> and the
+          arena gets measurably quieter.
+        </p>
+        <p class="dim">
+          The tension is geometric and comes free from the rig: player bullets travel at the
+          player&rsquo;s own height, so <span class="em">to kill a bank you have to fly at that
+          bank&rsquo;s height</span> &mdash; which is precisely where its own fire is thickest.
+          Each attack below is densest in its own third of the band.
+        </p>
+        <p class="dim">
+          Each pod sits at the centroid of its own bank&rsquo;s muzzle heights, averaged from the
+          model at build time rather than typed in, so it cannot drift away from the guns it stands
+          for &mdash; world y <span class="mono">53.8</span>, <span class="mono">91.7</span> and
+          <span class="mono">127.1</span>. They are mounted proud of the hull, which is not
+          decoration: the hull is a trigger that eats bullets, so a target inside it could never be
+          hit at all.
+        </p>
+
+        <div class="attack">
+          <div class="attack-head">
+            <span class="tag t-keel">Keel</span><strong>Curtain</strong>
+            <span class="timing">12 muzzles &middot; one row open &middot; cycle 6.0 s</span>
+          </div>
+          <p class="dim">
+            All twelve keel muzzles except one row, so the wall has exactly one gap in it. The
+            open row steps up one each volley and wraps, which makes it learnable rather than
+            random. The rows are read off the muzzle heights rather than authored, because the
+            second copy of a fact is the one that goes stale. Because a shot wraps in 4.5&thinsp;s
+            and the cycle is 6&thinsp;s, the previous curtain comes back round just before the next
+            one leaves &mdash; the player is threaded between two walls for most of the phase. This
+            is the Cylinder Wrap turned into a mechanic.
+          </p>
+        </div>
+
+        <div class="attack">
+          <div class="attack-head">
+            <span class="tag t-crown">Crown</span><strong>Rake</strong>
+            <span class="timing">16 muzzles &middot; 0.12 s per row &middot; cycle 4.0 s</span>
+          </div>
+          <p class="dim">
+            The same 16 muzzles, fired row by row instead of all at once, with the direction
+            alternating each volley. A slab becomes a climbing staircase you dive under, or a
+            descending one you climb over. This is the real fix for a volley reading as one solid
+            mass &mdash; not a size change, a timing change.
+          </p>
+        </div>
+
+        <div class="attack">
+          <div class="attack-head">
+            <span class="tag t-prow">Prow</span><strong>Lance</strong>
+            <span class="timing">4 muzzles &middot; charge 1.2 s &middot; stream 0.4 s &middot; cycle 5.0 s</span>
+          </div>
+          <p class="dim">
+            The laser, timed rather than triggered. The prow pod swells for the whole 1.2&thinsp;s
+            wind-up &mdash; that swell <em>is</em> the telegraph, and it is the only one, because a
+            muzzle is an empty transform with nothing to light up. Then a dense stream fires.
+            <span class="em">The design said the lance captured your height during the charge; it
+            does not.</span> The boss holds altitude now, so what the lance actually does is own the
+            middle of the band, which nothing else in the fight reaches. The 1.2&thinsp;s telegraph
+            is one full band crossing at 70&nbsp;u/s: always escapable, never for free. Shoot the pod
+            off mid-charge and the warning stops with it, rather than leaving the player dodging a
+            shot that is never coming.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-n">2</div>
+      <div class="phase-body">
+        <h3>EXPOSED &mdash; 120 HP on the core</h3>
+        <p class="dim">
+          All three weak points down. Every gun goes quiet, the boss holds a 2&thinsp;s silence
+          &mdash; every attack restarts its cadence from there, which is the beat the player is
+          given to notice the fight changed shape &mdash; and the hull starts taking damage. This is
+          Rotatron&rsquo;s &ldquo;it opens up&rdquo; beat and Stormruler&rsquo;s shed-armour beat in
+          one moment. Anything mid-volley is stopped rather than allowed to finish: a lance still
+          streaming out of an emplacement that was destroyed to end the phase is the exact thing the
+          phase change is supposed to have stopped.
+        </p>
+
+        <div class="attack">
+          <div class="attack-head">
+            <span class="tag t-cut">Hull</span><strong>Ram</strong>
+            <span class="timing">telegraph 1.0 s &middot; charge 3.0 s &middot; cycle 7.0 s</span>
+          </div>
+          <p class="dim">
+            The hull flashes &mdash; by this act there are no emplacements left to light up
+            &mdash; then it triples its orbit speed to
+            <span class="mono">45&deg;/s</span> and sweeps around the ring at you. That is faster
+            than the player&rsquo;s 29.2&deg;/s, so running the same way loses. The hull spans the
+            whole band so climbing loses too. <span class="em">The counter is to dash straight
+            through it</span> &mdash; Doomsphere&rsquo;s bull-fight, played as Resogun plays it.
+            The dash is built: 0.22&thinsp;s of invincibility covering 74.5 world units against a
+            70.5-unit hull, which is the measurement it was sized to.
+          </p>
+        </div>
+
+        <div class="attack">
+          <div class="attack-head">
+            <span class="tag t-cut">Arena</span><strong>Wreckage</strong>
+            <span class="timing">a plate every 1.8 s &middot; each lasts 16 s</span>
+          </div>
+          <p class="dim">
+            Armoured is a fight about height; Exposed threw that away, because the hull spans the
+            whole band and any altitude is as good as another. Wreckage puts the three heights back
+            <span class="em">with their meaning reversed</span>: the boss sheds plates of its own
+            hull from the emplacements the player themselves destroyed, at those emplacements&rsquo;
+            own heights. The places worth flying to become the places worth avoiding, and the player
+            already knows where they are.
+          </p>
+          <p class="dim">
+            They do not drift. Everything else here rides the ring; these are the one thing that does
+            not, which is what makes them read as debris rather than as another attacker &mdash; and
+            it means the boss, cruising at 15&deg;/s while it sheds, leaves a wake of its own hull and
+            eventually comes back round into it. Life over cadence is the tuning: 16&thinsp;s against
+            1.8 holds about nine plates, three at any one height, which against a 12.3&thinsp;s lap is
+            a forced move every four seconds or so. Three shots break one, and breaking it earns
+            nothing &mdash; clearing a lane is the whole of its reward. Which pod sheds next counts
+            over the wrecked ones rather than indexing all three and skipping, so the order the player
+            killed them in cannot change how much wreckage they face.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-n">3</div>
+      <div class="phase-body">
+        <h3>SCUTTLE &mdash; last 30 HP</h3>
+        <p class="dim">
+          Every magazine on the ship cooks off at once: all 32 muzzles fire simultaneous volleys on
+          a 1.2&thinsp;s cycle regardless of which emplacements are wrecked, until it dies. Loud,
+          short, and survivable if you keep moving. It exists so the kill has a crescendo instead
+          of a health bar quietly reaching zero. Plates already in the air ride into it on their own
+          clocks, so the last act starts inside the mess the second one made.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Built &amp; verified</div>
+    <h2>The dash</h2>
+    <p class="lede">
+      Space, or the right shoulder / south button on a pad. A committed burst along the heading
+      captured at the moment it starts, invincible for its whole length.
+    </p>
+
+    <div class="card scroll">
+      <table>
+        <thead>
+          <tr><th>Property</th><th>Value</th><th>Why that number</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Burst length</td><td class="num">0.22 s</td><td class="dim">measured at 0.225 in play &mdash; one frame of quantisation</td></tr>
+          <tr><td>Speed</td><td class="num">&times;5</td><td class="dim">on top of Move Speed picks, so it stays worth taking late</td></tr>
+          <tr><td>Cooldown</td><td class="num">1.0 s</td><td class="dim">from the end of the burst, not the start</td></tr>
+          <tr><td>Distance</td><td class="num">74.5 units</td><td class="dim"><span class="em">the boss hull is 70.5 along the ring</span> &mdash; one dash clears it</td></tr>
+          <tr><td>Arc</td><td class="num">31.1&deg;</td><td class="dim">measured, with nothing held, from the ship&rsquo;s facing</td></tr>
+          <tr><td>Climb rate</td><td class="num">350 u/s</td><td class="dim">exactly 5 &times; the authored 70; a dash owns a height as well as a bearing</td></tr>
+          <tr><td>Camera drift</td><td class="num">0.000&deg;</td><td class="dim">the burst is shared state, so the camera makes the identical move</td></tr>
+          <tr><td>Invincible</td><td class="num">18 / 18 frames</td><td class="dim">the whole burst, no more and no less</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Why it lives on the movement, not the ship</h3>
+        <p class="dim">
+          The ship and the Main Camera run the same <code>PlayerMovement</code> component at the
+          same authored speed, and that identity is the whole of how the camera keeps station. A
+          dash applied to the ship alone flings it out of frame five times faster than the camera
+          can follow &mdash; the same bug as an unshared speed pick, arriving in a fifth of a
+          second instead of over a run. So the burst is shared static state, and the measured
+          drift is zero rather than small.
+        </p>
+      </div>
+      <div class="card">
+        <h3>The heading is captured, not read</h3>
+        <p class="dim">
+          Taken once, when the burst begins, and normalised. Letting go halfway through does not
+          strand the ship and grabbing a new direction halfway through does not steer it. It also
+          gives the burst a direction on the frames where nothing is held, where it falls back to
+          the way the nose is pointing &mdash; so a dash always goes somewhere.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Player side</div>
+    <h2>Ways to defeat it</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Choose your remaining fight</h3>
+        <p class="dim">
+          Three weak points means three opening moves, and the order is the difficulty dial the
+          player sets themselves. Kill the <span class="tag t-prow">Prow</span> first and you remove
+          the only attack that punishes standing still &mdash; the safe opening. Kill the
+          <span class="tag t-crown">Crown</span> first and you own the top of the band for the rest
+          of the phase. Kill the <span class="tag t-keel">Keel</span> first and the curtains stop,
+          but you spend the whole fight under the rake.
+        </p>
+      </div>
+      <div class="card">
+        <h3>A verb that arrives late</h3>
+        <p class="dim">
+          Everything the ship could do before the dash was continuous &mdash; orbit, climb, flip
+          &mdash; so every threat was answered by having started moving earlier, and none could be
+          answered <em>now</em>. That is why nothing in the fight was worth telegraphing. The dash
+          is the answer that arrives late, and it is what makes a 1.2&thinsp;s Lance charge a
+          decision rather than a countdown.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Upgrades read on the boss</h3>
+        <p class="dim">
+          A pod is 7 units across, so the sextuple spread lands maybe four of six on a centred
+          volley and none on one aimed a body-length off. At stage 0 and 0.5&thinsp;s between volleys
+          that is a long minute per emplacement; fully upgraded it is a handful of seconds. The boss
+          is where twenty picks of Attack Speed and Shot Upgrade finally show up as something other
+          than a bigger number.
+        </p>
+      </div>
+      <div class="card">
+        <h3>The bar stays honest</h3>
+        <p class="dim">
+          300 total: 50 apiece on the three emplacements, then 120 on the open hull, then the
+          last 30 to the Scuttle. One pool, so the bar moves throughout Armoured rather than sitting
+          full while the player does real work &mdash; and so retuning a pod cannot quietly change
+          what the boss is worth.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Found while measuring</div>
+    <h2>Five things the build turned up</h2>
+    <p class="lede">
+      All five were invisible from the outside. Four are fixed; the fifth is a correction to this
+      page.
+    </p>
+
+    <div class="card">
+      <h3>The guns did not turn with the ship &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        <code>EnemySpaceShip</code> rotates the <code>NAVEBOSS</code> model &plusmn;90&deg; to face
+        its direction of travel, but all 32 pivots hung off the <em>Boss root</em>, which only ever
+        faces the middle of the arena. So when <code>RingChase</code> reversed the boss, the ship
+        turned and the guns stayed put &mdash; the prow muzzle swinging <span class="mono">87</span>
+        world units. A telegraphed lance is meaningless if the muzzle is not where the barrel is, so
+        this blocked everything else. The muzzles hang off a rig carrying the <em>same</em>
+        <code>EnemySpaceShip</code> component now &mdash; not a second copy of the rule kept in step
+        with the first, the same rule read once in the same frame. Every muzzle&rsquo;s position in
+        the boss&rsquo;s own frame is identical to three decimals; mirroring is all it adds.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Three quarters of the boss&rsquo;s fire could not reach the player &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        A shot keeps the radius it was born at, forever. The muzzles are spread across a hull 30
+        units deep and sit from <span class="mono">131.6</span> to <span class="mono">150.2</span>,
+        against a hittable lane of <span class="mono">133.9&ndash;140.5</span>. Only
+        <span class="em">8 of the 32</span> were inside it &mdash; keel 3 of 12, prow 1 of 4, crown 4
+        of 16 &mdash; so a curtain of twelve arrived as a wall of three, the rake had four of its
+        sixteen steps, and the lance fired one muzzle in four. The fight&rsquo;s own vocabulary was
+        describing something the player never faced.
+      </p>
+      <p class="dim">
+        The muzzles do not move, because that is the one thing the rig must not do. The shot leaves
+        the barrel and then eases onto the lane, radius only, through the same easing every ship
+        already uses on its way to the ring. It is off unless asked for, so the player&rsquo;s own
+        rounds are untouched by construction. Measured after: <span class="em">87&ndash;100%</span>
+        of boss fire in the lane, against about a quarter before.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>The emplacements swapped lanes with the heading &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        A pod is mounted proud of the hull along the <em>tangent</em>, and the arena is a circle, so
+        39.5 units out from a point on a 137-unit ring leaves you 5.6 units outside it. The builder
+        takes that back off &mdash; but the correction was authored on the mirroring rig, so it
+        mirrored too, and in one heading it was added outward instead of subtracted inward. That does
+        not cancel the error, it doubles it: <span class="mono">137.3</span> travelling one way,
+        <span class="mono">148.0</span> the other. It is re-applied every frame against the direction
+        the middle of the arena is actually in now. The mirroring that was wanted survives &mdash;
+        the keel pod sits at +3.95 and &minus;3.95 along the ring, and at +0.56 inward in both.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Wreckage billed a collision many times over &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        The first guess was the plate&rsquo;s shape, on the theory that a tumbling box sweeps the
+        player in and out of itself. The collider became a sphere and it changed nothing. What turns
+        is <em>the player</em>: the ship is aimed at the arena&rsquo;s axis every frame and rolled by
+        <code>SpaceShipPitch</code>, so a ship sitting inside a stationary trigger keeps carrying its
+        own collider back out through the surface and in again, and every one of those is a fresh
+        <code>OnTriggerEnter</code>. With the arena verifiably empty, one plate took a stationary
+        player from <span class="mono">19</span> hit points to <span class="mono">0</span> in
+        <span class="mono">0.64&thinsp;s</span>. A plate goes intangible while the player is inside
+        it now; the same test costs exactly one hit.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Two silent races in the emitter &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        <code>BossEmitter</code> resolved the health bar once, in <code>Start</code>, and
+        <code>Timer</code> switches that bar on at the same second the spawn stream releases the
+        boss. A tag search does not see inactive objects, so whichever ran first decided whether the
+        boss had a working bar for the whole fight &mdash; and the failure is silent, because the
+        fight plays correctly and the bar just sits full. And <code>HitFlash</code> claimed every
+        renderer beneath it, which would have meant a shot breaking on the armour lighting the three
+        pods as brightly as a shot that hit one. That distinction is the whole of the first act.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>The orphaned trigger volume &mdash; <span class="em">deleted</span></h3>
+      <p class="dim">
+        <code>27b8a93</code> added a &ldquo;Laser Trigger&rdquo; sphere to the prefab;
+        <code>2d44065</code> deleted <code>ColliderScript_3</code>, the only thing that read it. The
+        GameObject sat on the prefab carrying a broken MonoBehaviour reference. It is gone.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Scope</div>
+    <h2>What is deliberately not taken from Resogun</h2>
+    <ul>
+      <li><strong>Voxel shatter.</strong> The hull is a single four-material mesh, not voxels. Destroyed emplacements go dark and drop wreckage rather than exploding into cubes.</li>
+      <li><strong>Rotatron&rsquo;s interior phase.</strong> The model is solid and the arena is a ring the boss sits on, not a cylinder it forms. There is nothing to fly inside.</li>
+      <li><strong>Instant-kill hitboxes.</strong> This game has a health bar and twenty levels of upgrades built around surviving hits. Contact costs one hit point, as it does now.</li>
+      <li><strong>Serpentinus.</strong> A segmented body that slithers round the ring is a second boss, not a phase of this one.</li>
+    </ul>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <div class="eyebrow">Still open</div>
+    <h2>What has not been settled</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>The plates read only as a silhouette</h3>
+        <p class="dim">
+          They carry the boss&rsquo;s own hull material, which is nearly black. Against the sky or
+          the lava they are unmistakable; against the dark island one can be lost. An emissive tint
+          would fix it, and would also make them the first thing in the arena that glows because it
+          is <em>dangerous</em> rather than because it is hot &mdash; a call about the art direction
+          rather than about the mechanic, so it has deliberately not been made.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Measured, not played</h3>
+        <p class="dim">
+          Every figure here comes from a probe with the player parked and the arena controlled
+          &mdash; nine plates, a forced move every four seconds, 36.5&thinsp;s of standing still at
+          the keel&rsquo;s own height under the new lane. Standing still is the worst case and nobody
+          plays that way. The shed cadence, the lane response and a plate&rsquo;s life are one
+          serialized field each for exactly that reason.
+        </p>
+      </div>
+      <div class="card">
+        <h3>No charge sound</h3>
+        <p class="dim">
+          The lance and the ram both telegraph visually and neither makes a noise. Adding one means a
+          new <code>SoundDefinition</code> and a curated clip, and picking that by ear is not a
+          decision to take on somebody&rsquo;s behalf.
+        </p>
+      </div>
+      <div class="card">
+        <h3>What the guns cost, still unmeasured</h3>
+        <p class="dim">
+          Roughly four times as much boss fire now reaches the player as did before. The damage rate
+          against a stationary target is known; what a competent player actually loses across the
+          three acts is not, and that is the number that decides whether any of this is tuned right.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+</div>

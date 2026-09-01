@@ -1,0 +1,1803 @@
+<title>Survival Chaos — Rebuild Reference</title>
+<style>
+  :root {
+    --ground:      #F7F3F0;
+    --ground-2:    #EDE6E1;
+    --ink:         #1E1614;
+    --ink-2:       #5A4E49;
+    --ink-3:       #8A7C76;
+    --rule:        #DCD1CA;
+    --molten:      #C4441A;
+    --molten-soft: #FBEDE6;
+    --crust:       #5A2417;
+    --nebula:      #6B4A78;
+    --nebula-soft: #F1EBF3;
+    --code-bg:     #F1EAE5;
+
+    --measure: 68ch;
+    --s1: .35rem; --s2: .7rem; --s3: 1.1rem; --s4: 1.7rem;
+    --s5: 2.6rem; --s6: 4rem; --s7: 6rem;
+
+    --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    --mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:      #14100F;
+      --ground-2:    #1D1717;
+      --ink:         #F0E8E4;
+      --ink-2:       #B3A49E;
+      --ink-3:       #7D6E68;
+      --rule:        #322828;
+      --molten:      #F0763C;
+      --molten-soft: #2A1710;
+      --crust:       #C4674E;
+      --nebula:      #B08FBC;
+      --nebula-soft: #221A26;
+      --code-bg:     #1B1514;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground:#F7F3F0; --ground-2:#EDE6E1; --ink:#1E1614; --ink-2:#5A4E49;
+    --ink-3:#8A7C76; --rule:#DCD1CA; --molten:#C4441A; --molten-soft:#FBEDE6;
+    --crust:#5A2417; --nebula:#6B4A78; --nebula-soft:#F1EBF3; --code-bg:#F1EAE5;
+  }
+  :root[data-theme="dark"] {
+    --ground:#14100F; --ground-2:#1D1717; --ink:#F0E8E4; --ink-2:#B3A49E;
+    --ink-3:#7D6E68; --rule:#322828; --molten:#F0763C; --molten-soft:#2A1710;
+    --crust:#C4674E; --nebula:#B08FBC; --nebula-soft:#221A26; --code-bg:#1B1514;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.03rem;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: var(--s6) var(--s4) var(--s7);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s6);
+  }
+
+  .col { max-width: var(--measure); }
+
+  /* ---------- masthead ---------- */
+  .mast { display: flex; flex-direction: column; gap: var(--s3); }
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: .69rem;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--molten);
+  }
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(2.1rem, 5.2vw, 3.3rem);
+    font-weight: 650;
+    letter-spacing: -.022em;
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 1.16rem;
+    color: var(--ink-2);
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s4);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--rule);
+    font-family: var(--sans);
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat b {
+    font-size: 1.5rem;
+    font-weight: 650;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* ---------- table of contents ---------- */
+  nav.toc {
+    border-left: 2px solid var(--molten);
+    padding-left: var(--s3);
+    font-family: var(--sans);
+    font-size: .93rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+  }
+  nav.toc a { color: var(--ink-2); text-decoration: none; }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--molten); text-decoration: underline; }
+  nav.toc .toc-part {
+    font-size: .69rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); margin-top: var(--s2);
+  }
+
+  /* ---------- structure ---------- */
+  section { display: flex; flex-direction: column; gap: var(--s3); }
+  .part-head { display: flex; flex-direction: column; gap: var(--s1); }
+  h2 {
+    font-family: var(--sans);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 650;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-size: 1.16rem;
+    font-weight: 640;
+    letter-spacing: -.01em;
+    margin: var(--s4) 0 0;
+    text-wrap: balance;
+  }
+  h4 {
+    font-family: var(--sans);
+    font-size: .96rem;
+    font-weight: 640;
+    margin: var(--s3) 0 0;
+  }
+  p { margin: 0; max-width: var(--measure); }
+  ul, ol { margin: 0; padding-left: 1.2rem; max-width: var(--measure); display: flex; flex-direction: column; gap: var(--s1); }
+  li::marker { color: var(--molten); }
+  strong { font-weight: 600; }
+  code {
+    font-family: var(--mono);
+    font-size: .85em;
+    background: var(--code-bg);
+    padding: .1em .35em;
+    border-radius: 2px;
+  }
+  a { color: var(--molten); }
+
+  hr.div { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+  /* ---------- phase blocks ---------- */
+  .phase {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: var(--s3);
+    align-items: start;
+  }
+  .phase-num {
+    font-family: var(--sans);
+    font-size: .72rem;
+    font-weight: 650;
+    letter-spacing: .1em;
+    color: var(--molten);
+    padding-top: .45rem;
+    border-top: 2px solid var(--molten);
+  }
+  .phase-body { display: flex; flex-direction: column; gap: var(--s2); min-width: 0; }
+  .phase h3 { margin: 0; }
+
+  /* ---------- callouts ---------- */
+  .note {
+    border-left: 3px solid var(--nebula);
+    background: var(--nebula-soft);
+    padding: var(--s2) var(--s3);
+    display: flex; flex-direction: column; gap: var(--s2);
+    max-width: var(--measure);
+  }
+  .note .label {
+    font-family: var(--sans); font-size: .67rem; font-weight: 650;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--nebula);
+  }
+  .warn {
+    border-left: 3px solid var(--molten);
+    background: var(--molten-soft);
+    padding: var(--s2) var(--s3);
+    display: flex; flex-direction: column; gap: var(--s2);
+    max-width: var(--measure);
+  }
+  .warn .label {
+    font-family: var(--sans); font-size: .67rem; font-weight: 650;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--molten);
+  }
+
+  /* ---------- tables ---------- */
+  .scroll { overflow-x: auto; max-width: 100%; }
+  table {
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: .88rem;
+    min-width: 30rem;
+  }
+  th, td {
+    text-align: left;
+    padding: .5rem .9rem .5rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 650; border-bottom-color: var(--ink-3);
+  }
+  td.num { font-variant-numeric: tabular-nums; }
+  td code { background: none; padding: 0; }
+
+  /* ---------- code ---------- */
+  pre {
+    font-family: var(--mono);
+    font-size: .82rem;
+    line-height: 1.6;
+    background: var(--code-bg);
+    border-left: 2px solid var(--rule);
+    padding: var(--s2) var(--s3);
+    overflow-x: auto;
+    margin: 0;
+    max-width: 100%;
+  }
+  pre code { background: none; padding: 0; font-size: 1em; }
+
+  /* ---------- flow diagram ---------- */
+  .flow {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2);
+    font-family: var(--sans); font-size: .82rem;
+  }
+  .flow .node {
+    border: 1px solid var(--rule); border-bottom: 2px solid var(--molten);
+    padding: .4rem .7rem; background: var(--ground-2); white-space: nowrap;
+  }
+  .flow .arrow { color: var(--ink-3); }
+
+  footer {
+    font-family: var(--sans); font-size: .82rem; color: var(--ink-3);
+    border-top: 1px solid var(--rule); padding-top: var(--s3);
+    max-width: var(--measure);
+  }
+
+  :focus-visible { outline: 2px solid var(--molten); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (max-width: 34rem) {
+    .phase { grid-template-columns: 1fr; gap: var(--s2); }
+    .phase-num { border-top: none; padding-top: 0; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
+    <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 256 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <div class="stats">
+      <div class="stat"><b>256</b><span>commits</span></div>
+      <div class="stat"><b>264</b><span>tests</span></div>
+      <div class="stat"><b>97</b><span>runtime scripts</span></div>
+      <div class="stat"><b>11</b><span>content assets</span></div>
+      <div class="stat"><b>76</b><span>bugs fixed</span></div>
+    </div>
+  </header>
+
+  <nav class="toc col">
+    <div class="toc-part">Part I</div>
+    <a href="#origin">Where the project started</a>
+    <div class="toc-part">Part II — the rebuild</div>
+    <a href="#read">The initial read</a>
+    <a href="#p1">Phase 1 · Structure</a>
+    <a href="#p2">Phase 2 · Input</a>
+    <a href="#p3">Phase 3 · Content model</a>
+    <a href="#p4">Phase 4 · The boss</a>
+    <a href="#after">After the phases</a>
+    <a href="#review">The script review pass</a>
+    <div class="toc-part">Part III — how it works</div>
+    <a href="#arena">The arena and the orbit model</a>
+    <a href="#input">Input</a>
+    <a href="#player">The player</a>
+    <a href="#waves">Enemies and waves</a>
+    <a href="#boss">The boss</a>
+    <a href="#run">Progression and ending a run</a>
+    <a href="#render">Rendering</a>
+    <a href="#interface">The interface</a>
+    <a href="#audio">Audio</a>
+    <a href="#perf">Performance and diagnostics</a>
+    <a href="#settings">Quality presets and settings</a>
+    <a href="#layout">How the project is laid out</a>
+    <a href="#tests">The test suite</a>
+    <div class="toc-part">Part IV</div>
+    <a href="#lessons">Ideas worth carrying forward</a>
+    <a href="#open">What's still open</a>
+  </nav>
+
+  <hr class="div">
+
+  <!-- ============ PART I ============ -->
+  <section id="origin">
+    <div class="part-head">
+      <div class="eyebrow">Part I</div>
+      <h2>Where the project started</h2>
+    </div>
+    <p>Survival Chaos was built in 2023 by a five-person team at PUC — the commit history is in Portuguese, and the last activity before the revival was a build handoff in June of that year. It ran on Unity 2021.3 with URP 12.</p>
+    <p>The game is an <strong>orbital survival shooter</strong>. You fly a ship in a circle around a volcanic island floating in space, always facing the centre. Enemies converge from outside and settle into the same circular lane. You survive ten minutes, a boss arrives, and you fight it.</p>
+    <p>That circular structure is the single most important thing to understand about the project — nearly every system is expressed in terms of it, and several of the stranger pieces of code only make sense once you see it.</p>
+    <p>Before the rebuild began, the project had already been moved to Unity 6 and URP 17. That migration worked, but it was the only thing that had been done: the code underneath was untouched jam code.</p>
+  </section>
+
+  <hr class="div">
+
+  <!-- ============ PART II ============ -->
+  <section id="read">
+    <div class="part-head">
+      <div class="eyebrow">Part II — the rebuild</div>
+      <h2>The initial read</h2>
+    </div>
+    <p>The first pass was diagnostic: read everything, run nothing, report honestly. What it turned up set the agenda for everything after.</p>
+
+    <h3>Live defects</h3>
+    <ul>
+      <li><code>ColliderScript</code> threw a <code>NullReferenceException</code> every time an enemy passed the player — it called <code>GetComponent&lt;BossMovement&gt;()</code> unconditionally, and regular enemies don't have that component.</li>
+      <li>Enemies and the boss awarded experience from <code>Update()</code> after already destroying themselves in <code>OnTriggerEnter</code>. It worked only because Unity defers <code>Destroy</code> past the end of the frame.</li>
+      <li>The player's health bar never updated when hit by enemy <em>bullets</em> — only by collisions. Bullet damage was invisible until you died.</li>
+      <li>One skill was unreachable: <code>MoreAttackSpeed</code> was written but never added to the pool. The pool also emptied permanently after two picks, so every later level-up silently became a heal.</li>
+    </ul>
+
+    <h3>Structural findings</h3>
+    <ul>
+      <li><code>BossMovement</code> was a 76-line duplicate of <code>EnemyMovement</code> — <em>and it was disabled on the only prefab that had it.</em> Its <code>Update()</code> had never run.</li>
+      <li><code>BossScript</code> held 32 individually named muzzle fields and roughly 90 hand-written <code>Instantiate</code> calls.</li>
+      <li>21 spawner objects were placed by hand in the scene, each with its own copy of the same timing fields.</li>
+      <li>Every material was untextured flat colour. There is not one texture in the original art.</li>
+    </ul>
+
+    <div class="note">
+      <div class="label">Why this mattered</div>
+      <p>Several of these weren't visible as bugs. The disabled <code>BossMovement</code>, the deferred-<code>Destroy</code> reward, the unreachable skill — all of them <em>looked</em> like working features. Reading the code carefully found things that playing the game never would.</p>
+    </div>
+  </section>
+
+  <section id="p1">
+    <div class="phase">
+      <div class="phase-num">01</div>
+      <div class="phase-body">
+        <h3>Structure</h3>
+        <p>Assembly definitions and a test harness, so that everything afterwards could be verified rather than hoped at.</p>
+        <p><code>SurvivalChaos.asmdef</code> pulls the runtime scripts out of Unity's catch-all assembly. <code>SurvivalChaos.Tests.EditMode.asmdef</code> adds an edit-mode test assembly, gated behind <code>UNITY_INCLUDE_TESTS</code> so it never reaches a build.</p>
+        <p>Namespaces were deliberately <em>not</em> added to the existing files at this point. Unity 6 uses C# 9, which has no file-scoped namespaces, so wrapping them would have meant reindenting every file — hundreds of lines of pure whitespace noise on code that was about to be rewritten anyway. New code got the namespace; old code was to pick it up as it was replaced.</p>
+        <p>Most of it never was replaced, because it did not need to be — it was hardened in place instead. The last twenty-three files were wrapped in one pass much later, when the argument had inverted: the count was down, the churn was one wrapper and an indent per file, and the cost of the split had become concrete rather than theoretical. Referring to these types from outside meant knowing which of them were global, which is a thing to know for no reason.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="p2">
+    <div class="phase">
+      <div class="phase-num">02</div>
+      <div class="phase-body">
+        <h3>Input</h3>
+        <p>The Input System package wasn't cached locally and pinning an unverified version risked a project that wouldn't compile. So the order was inverted: build the abstraction first, backed by the old API, then swap the backend.</p>
+        <div class="flow">
+          <span class="node">gameplay scripts</span>
+          <span class="arrow">→</span>
+          <span class="node">GameInput</span>
+          <span class="arrow">→</span>
+          <span class="node">IGameInput</span>
+          <span class="arrow">→</span>
+          <span class="node">Legacy / InputSystem</span>
+        </div>
+        <p>All 12 call sites moved onto <code>GameInput</code>. When the package did land, the swap was one new class — <code>InputSystemGameInput</code> — and <strong>zero gameplay scripts changed</strong>.</p>
+        <div class="note">
+          <div class="label">A detail worth keeping</div>
+          <p>The old Input Manager <em>smoothed</em> its axes; the Input System reports keys digitally. A direct port would have made the ship noticeably twitchier — a silent change in feel you'd struggle to attribute. The new backend reproduces the old ramp using the Input Manager's own defaults, so the swap changed nothing you can feel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="p3">
+    <div class="phase">
+      <div class="phase-num">03</div>
+      <div class="phase-body">
+        <h3>Content model</h3>
+        <p>Three systems moved out of code and into ScriptableObject assets you can edit without recompiling.</p>
+
+        <h4>Skills</h4>
+        <p><code>SkillSelect</code> went from a ~100-line hardcoded state machine to a thin driver over <code>SkillPool</code>. Both original bugs died structurally rather than being patched: every skill is now an asset in the pool, and <code>Heal</code> is authored with <code>maxPicks: 0</code> — unlimited — so the pool can never run dry.</p>
+
+        <h4>Enemies</h4>
+        <p>The prefabs revealed something that justified the whole approach: the same script carried <em>different tuning per prefab</em>. <code>Enemy_1</code> was 7 HP on one prefab and 2 on another, while the experience reward was a hardcoded field on the <em>script</em> — so two prefabs sharing a script physically could not differ in reward. Health was per-prefab data; reward was per-script code. <code>EnemyDefinition</code> puts both in one asset.</p>
+
+        <h4>Waves</h4>
+        <p>21 hand-placed spawners became one <code>WaveDirector</code> plus a single <code>MainRun</code> asset holding 19 streams. The extraction read the live scene rather than retyping values, so the tuning transferred exactly.</p>
+
+        <div class="warn">
+          <div class="label">What the scene was hiding</div>
+          <p>Two of those 21 spawners sat on the <code>ExitButton</code> objects inside the death and pause menus. One would have spawned a <strong>boss five seconds after you paused</strong>. They were inert only because <code>timeScale</code> is 0 while those menus are open — a load-bearing accident. They were excluded from the migration and deleted.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="p4">
+    <div class="phase">
+      <div class="phase-num">04</div>
+      <div class="phase-body">
+        <h3>The boss</h3>
+        <p>Behind 32 named muzzle fields and ~90 <code>Instantiate</code> calls there were only ever three attacks. <code>BossEmitter</code> expresses them as a list you edit in the Inspector.</p>
+        <p>The six unused delay fields left in the old script — <code>initialDelay1/2/3</code>, <code>spawnDelay1/2/3</code> — were reaching for per-attack timing. That's exactly what <code>BossAttack</code> now provides, so they're gone and the capability they sketched is real.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="after">
+    <div class="part-head">
+      <h2>After the phases</h2>
+    </div>
+    <p>The work since has been feature and presentation rather than architecture.</p>
+    <ul>
+      <li><strong>A victory condition</strong> — the game genuinely had none. Killing the boss awarded experience and nothing else.</li>
+      <li><strong>Ship animation</strong> — smoothed, frame-rate-independent motion replacing instant rotation snaps.</li>
+      <li><strong>An HDRP branch</strong> — pipeline migration, a rebuilt sky, and a procedural lava shader.</li>
+      <li><strong>A world-scale pass</strong> — the entire game reduced to one tenth its former size.</li>
+      <li><strong>Bullet lights</strong> — a pooled lighting system for player projectiles.</li>
+      <li><strong>Upgrades as pickups</strong> — level-ups became a choice on the ring rather than a free grant.</li>
+      <li><strong>A real quality tier system</strong> — four tiers, three of them Unity's own assets, and a graphics screen where every row does what it says or says why it cannot.</li>
+      <li><strong>Git LFS</strong> — the history purged of roughly 1.1 GB of deleted build artifacts and the binaries migrated, taking git down to 2.7 MB against 533 MB in LFS.</li>
+      <li><strong>Effect timing and an emissive ladder</strong> — retire timers cut from 36.4 s of held effects to 18.9 s, and every glowing surface put on one brightness scale.</li>
+      <li><strong>Named upgrades</strong> — each pickup now says what it is, drawn on the overlay canvas where temporal antialiasing cannot reach it, and hidden when the volcano is in the way.</li>
+      <li><strong>A run twice as long, and a build to fill it</strong> — ten minutes instead of five, with the spawn ramp stretched to match rather than extended, and twenty upgrade picks where there were eight.</li>
+      <li><strong>Encapsulated scene wiring</strong> — sixty-nine public runtime fields taken private, so a scene reference is no longer something any script can repoint.</li>
+      <li><strong>One namespace</strong> — the last twenty-three jam-era files wrapped in <code>SurvivalChaos</code>, closing a split that had been deliberate and had stopped being useful.</li>
+      <li><strong>A taller arena, and the spawns lifted to match</strong> — the player's vertical band raised by 3.3 units, and all nineteen spawn heights rescaled into it after four streams were left stranded beneath the new floor.</li>
+      <li><strong>A gamepad</strong> — analogue sticks straight through and digital sources ramped, added
+      behind the input abstraction without a single gameplay script changing.</li>
+      <li><strong>Feedback for landing a shot</strong> — enemy hulls flash on a non-fatal hit, the experience a
+      kill was worth rises where it happened, and the health bar flinches when it drops.</li>
+      <li><strong>An end-of-run summary</strong> — time survived, level, kills, experience and the build taken,
+      written into the empty third of the card both endings already put up.</li>
+      <li><strong>A dash</strong> &mdash; 0.22&nbsp;s of invincible travel on a 1.22&nbsp;s cycle, added
+      because the boss's second act needed a verb the game did not have.</li>
+      <li><strong>The boss rebuilt as three acts</strong> &mdash; weak points, telegraphed attacks and guns
+      that turn with the ship, out of the muzzles that were already on the model.</li>
+      <li><strong>An editor the terminal can drive</strong> — Unity's CLI and the Pipeline package in place of the AI Assistant relay, which closed the write-compile-verify loop without touching the editor window.</li>
+    </ul>
+  </section>
+
+  <section id="review">
+    <div class="part-head">
+      <h2>The script review pass</h2>
+    </div>
+    <p>With the architecture settled, every script was read end to end — all 88 of them, in one pass, looking for defects rather than for things to redesign. It turned up <strong>22</strong>, all since fixed.</p>
+    <p>The distribution was the interesting part. The systems written during the rebuild came through almost clean: nulls guarded, statics reset, frame-rate-dependent maths deliberate and covered by tests. Nearly every defect sat in the 2023 code that hadn't yet been rewritten — <code>Player</code>, <code>EnemyMovement</code>, <code>Timer</code>, <code>PauseMenu</code>, <code>ExpBar</code>, the <code>ColliderScript</code> family.</p>
+
+    <h3>The ones that changed what you see</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Where</th><th>What was happening</th></tr></thead>
+        <tbody>
+          <tr><td><code>PauseMenu</code></td><td>Esc on the death screen opened the pause menu over it; resuming set <code>timeScale</code> back to 1 and the run carried on at zero health</td></tr>
+          <tr><td><code>BarMotion</code></td><td>The health bar's red trail never drained once the bar hit empty — a full hull shown behind an empty one, on the death screen</td></tr>
+          <tr><td><code>Enemy_1</code></td><td>No death sound at all, which also meant <code>EnemyDefinition.DeathSound</code> was only ever read on the other enemy path</td></tr>
+          <tr><td><code>Player</code></td><td>The final shot upgrade fired 9 projectiles one way and 10 the other, so Shift changed your damage</td></tr>
+          <tr><td><code>ColliderScript_3</code></td><td>The boss laser latched on whatever last entered its trigger and never cleared on exit</td></tr>
+          <tr><td><code>BulletLightPool</code></td><td><code>FindGameObjectsWithTag</code> every frame — a ~200-entry array allocated per frame, forever</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>One new system came out of it. <code>SettingsStore</code> debounces <code>PlayerPrefs.Save</code> and flushes on focus loss, pause and quit, because prefs otherwise only reach disk on a graceful exit — and a crash was therefore discarding every setting changed since launch, including the VSync change someone had just made to stop the crash.</p>
+
+    <div class="warn">
+      <div class="label">Two corrections worth recording</div>
+      <p>The review claimed the rebuilt code was clean and the problems were all in the jam code. The <strong>test suite disproved that</strong>: <code>BarMotion</code> — new code, and the most delicate timing in the project — held the single worst defect, and <code>EmptyingCompletely_ReachesZero</code> had been failing all along. It was read past because it reads well.</p>
+      <p>And one fix was itself wrong. The vertical-chase threshold of <code>15</code> was called unreachable because it exceeds the orbit radius of 13.72 — but both the enemy and the player sit <em>on</em> the ring, so the distance between them runs to the <strong>diameter</strong>, 27.44. 15 covers about a 66° arc. Replacing it with a tenth of that collapsed the band to ~6° and the chase all but stopped, which only showed up in play.</p>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- ============ PART III ============ -->
+  <section id="arena">
+    <div class="part-head">
+      <div class="eyebrow">Part III — how it works</div>
+      <h2>The arena and the orbit model</h2>
+    </div>
+    <p>Start here. Almost everything else follows from it.</p>
+    <div class="note">
+      <div class="label">Every distance on this page is at the current scale</div>
+      <p>The world was rescaled by ten after most of this was written. Figures describing how things stand now are given at the current scale &mdash; an orbit radius of 137.2, a 370-unit island, bullet lights of range 100. Passages recounting a past change keep the numbers that were true when it happened, so a diameter of 27.44 in the review notes above and one of 274.4 today are the same fact ten times apart.</p>
+    </div>
+    <p>The island sits at the world origin. Everything that moves does so on a <strong>circle around the vertical axis</strong> through that origin. <code>ArenaGeometry.OrbitRadius</code> — currently <code>137.2</code> — is the radius of the lane enemies converge to and hold.</p>
+
+    <h3>How things get onto the lane</h3>
+    <p><code>SnapToOrbit</code> runs at <code>Awake</code> and projects its object onto that circle, keeping its bearing and height and changing only its distance from the axis. The Player uses it with an offset of 0; the camera uses an offset so it trails at a fixed distance behind.</p>
+    <p>Enemies get there differently — <code>EnemyMovement</code> flies inward until it's within <code>OrbitRadius</code>, then switches to orbiting.</p>
+
+    <h3>The part that surprises people</h3>
+    <p>Movement around the circle is <strong>angular, not linear</strong>. <code>PlayerMovement</code> and <code>ShootScript</code> both call <code>RotateAround</code>, whose third argument is <em>degrees per second</em>:</p>
+<pre><code>float degreesPerSecond = orbitSpeed * Mathf.Rad2Deg / ArenaGeometry.OrbitRadius;
+transform.RotateAround(pos, Vector3.up, -h * Time.deltaTime * degreesPerSecond);
+transform.LookAt(pos);</code></pre>
+    <p>Projectiles orbit too — they don't travel in straight lines, they sweep around the arena at their own angular rate.</p>
+    <div class="warn">
+      <div class="label">The number the inspector was lying about</div>
+      <p>The player's two speeds used to be authored in different units and shown side by side as though they were the same thing. <code>Speed</code> was <strong>32 degrees per second</strong> and <code>Up_Down_Speed</code> was <strong>5 world units per second</strong>, so 32 sat next to 5 looking six times larger while the ship was actually only about half again as quick sideways as it was vertically. There was no way to see that from the Inspector.</p>
+      <p>Both are units per second now, named Orbit Speed and Climb Speed, and the conversion to the angle <code>RotateAround</code> wants happens in code. Set equal at 70, the ship covers the same ground in both directions.</p>
+      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 100 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 29.23&nbsp;deg/s from the same authored number, which is what stops them drifting apart.</p>
+    </div>
+    <div class="note">
+      <div class="label">Why this matters practically</div>
+      <p>When the world was scaled to one tenth, these values needed <em>no change at all</em> — an angle is an angle regardless of radius. The same is true of enemy approach code, which moves by an unnormalised direction vector and is therefore proportional to distance. Only genuinely linear rates like the climb speed had to scale. That's why a change that touched 34 values didn't wreck the game's feel.</p>
+    </div>
+    <p><code>ApplyBounds</code> clamps the player vertically against a <code>BoxCollider2D</code> named <code>PlayerBounds</code>. It used to clamp world X from the same box as well, which is meaningless for a craft that orbits an axis — X is not a limit there, it is where you are around the ring, and clamping it would have pinned the ship at two points on the circle and fought <code>RotateAround</code>. It never fired only because the authored box was 53.9 wide against an orbit radius of 13.72, so it was a trap waiting for someone to narrow the box rather than a feature. The vertical envelope is the whole job now, and the box is the authority on it: <code>TryGetBand</code> hands the two numbers out so that nothing else keeps a copy.</p>
+  </section>
+
+  <section id="input">
+    <div class="part-head"><h2>Input</h2></div>
+    <p>Nothing in gameplay touches a Unity input API directly. Everything reads <code>GameInput</code>:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Property</th><th>Meaning</th><th>Keyboard</th><th>Gamepad</th></tr></thead>
+        <tbody>
+          <tr><td><code>Horizontal</code></td><td>throttle along the orbit</td><td>A / D</td><td>left stick X, d-pad</td></tr>
+          <tr><td><code>Vertical</code></td><td>climb and dive</td><td>W / S</td><td>left stick Y, d-pad</td></tr>
+          <tr><td><code>ToggleDirectionReleased</code></td><td>flip which way the ship faces</td><td>Shift (on release)</td><td>left shoulder (on release)</td></tr>
+          <tr><td><code>PausePressed</code></td><td>open/close pause</td><td>Escape</td><td>Start</td></tr>
+          <tr><td><code>DebugLevelUpPressed</code></td><td>force a level-up</td><td>F7</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><code>GameInput.CreateDefault()</code> picks the backend from the <code>ENABLE_INPUT_SYSTEM</code> compiler define, so the project works under either input setting. Assigning <code>null</code> to <code>GameInput.Source</code> restores the default — a test that forgets to clean up can't leave the game without input.</p>
+    <h3>The gamepad arrived without touching a gameplay script</h3>
+    <p>The abstraction was built in Phase 2 on the argument that a backend could be swapped behind it. Adding
+    the pad is the second time that has paid: one file changed, <code>InputSystemGameInput</code>, and nothing
+    else in the project knows a controller exists.</p>
+    <p><strong>A stick must not be ramped like a key.</strong> The smoothing in that backend exists to
+    reproduce the legacy Input Manager's sensitivity and gravity, because the Input System reports keys
+    digitally and raw keys made the ship twitchier than it was. A stick already reports how far it is pushed,
+    so putting it through a rate limit would add lag to the one input that never needed any — the ship would
+    lean into a turn a fifth of a second after the stick did. Analogue sources pass straight through;
+    digital ones ramp. The d-pad counts as digital and is routed in beside the keys, because it is the same
+    kind of signal wearing different hardware.</p>
+    <div class="note">
+      <div class="label">Handing back matters as much as taking over</div>
+      <p>The stick wins outright while it is deflected and releases <em>to</em> the ramp, still holding the
+      value it left there. So centring decays from where the stick was rather than snapping to zero, and a
+      key pressed afterwards carries on from there rather than from a standstill. Both devices stay live at
+      once, with no mode to switch and nothing to detect.</p>
+      <p>No deadzone is applied in the project's own code. <code>Gamepad.leftStick</code> already carries the
+      layout's <code>stickDeadzone</code> processor, reading 0.125 to 0.925 from this project's
+      <code>InputSettings</code>: a stick pushed to 0.50 arrives as 0.538. A second deadzone stacked on top
+      would rescale an already rescaled range and quietly cost the player the top of their travel.</p>
+      <p>The debug bindings stay on the keyboard. F3, F4 and F7 exist to be deliberate, and there is no face
+      button a player will not eventually press by accident.</p>
+    </div>
+
+    <p><strong>A / D is throttle, not steering.</strong> The ship's nose already points along its direction of travel, so those keys accelerate it forward and backward along the lane. This tripped up the ship animation work and is worth remembering.</p>
+  </section>
+
+  <section id="player">
+    <div class="part-head"><h2>The player</h2></div>
+
+    <h3>Movement</h3>
+    <p><code>PlayerMovement</code> orbits and looks at the centre; <code>ApplyBounds</code> clamps height. The Main Camera runs the <em>same</em> <code>PlayerMovement</code> component with the same speed — that's how it stays in sync, rather than following the player.</p>
+
+    <h3>Shooting</h3>
+    <p><code>Player.Shoot()</code> is driven by <code>InvokeRepeating</code> at <code>spawnDelay</code> (0.5s). The pattern comes from a table of vertical offsets indexed by how many shot upgrades have been taken, measured in multiples of <code>shotSpacing</code> (4), and <code>rotate</code> — the flip state — decides which of the two projectile prefabs counts as forward. The stages run <strong>1 → 2 → 3 → 6</strong> bullets. There used to be a fifth, Back Shot, which fired five forward and four the other way round the ring; it was the one pick that changed what the gun does rather than how much of it there is, and it retired along with the backward table when the progression was stretched.</p>
+
+    <h3>The ship model</h3>
+    <p><code>SpaceShipPitch</code> animates the visual only. It reads <code>Player.DirectionFlipped</code> rather than tracking its own copy — the two used to be toggled independently by the same key, which meant any frame where one saw the input and the other didn't left the model facing the wrong way permanently.</p>
+    <p>Easing uses an exponential form that settles the same amount per unit of <em>time</em>, not per frame:</p>
+<pre><code>Mathf.Lerp(current, target, 1f - Mathf.Exp(-response * deltaTime))</code></pre>
+    <p>The common shortcut — <code>Lerp(current, target, response * deltaTime)</code> — feels different at 30fps and 144fps. <code>ShipMotion</code> is separated out precisely so this can be tested.</p>
+
+    <h3>Skills</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Skill</th><th>Effect</th><th class="num">Max picks</th></tr></thead>
+        <tbody>
+          <tr><td>Shot Upgrade</td><td>advances double → triple → sextuple</td><td class="num">3</td></tr>
+          <tr><td>Attack Speed</td><td>+10% fire rate, flat per pick</td><td class="num">8</td></tr>
+          <tr><td>Move Speed</td><td>+10% orbit and climb, flat per pick</td><td class="num">5</td></tr>
+          <tr><td>Max Health</td><td>+5 to the ceiling</td><td class="num">4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Skills depend on <code>ISkillTarget</code>, not on <code>Player</code> — which is what lets selection be tested without a scene. <code>SkillPool</code> takes an injectable random function for the same reason.</p>
+
+    <div class="warn">
+      <div class="label">Healing is no longer one of them</div>
+      <p><code>Heal</code> used to sit in the pool as the unlimited entry, which meant the commonest way to meet healing was as one of three pickups on a level-up — so <strong>taking the heal forfeited two upgrades, and taking an upgrade forfeited the heal</strong>. That is a trade between a reward for killing well and the thing you need when you are not, and it is not a decision worth putting in front of anyone.</p>
+      <p>It arrives on its own cadence now, every second level, outside any offer. <code>SkillSelect</code> filters the type out of its pool in code rather than trusting the scene list, because putting it back is a single click with a confusing symptom.</p>
+      <p>Two consequences. Healing is weaker — the skill restored 5 and a health drop restores 2. The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are twenty picks now, across four upgrades, and the stretched run pays out enough to earn all of them — so the empty draw is a guard rather than the usual ending. It still sends health out when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
+    </div>
+
+    <div class="note">
+      <div class="label">The sextuple shot fired five</div>
+      <p>Stage three spawned four extra bullets plus the base one. The name said six, the banner said <em>"SexTUPLO Shot!"</em>, and the count said five. The one-line fix would have been lopsided: every other stage puts a shot dead centre and pairs the rest around it, which only works for odd counts, so a fifth extra would have spanned −2 to +3 spacings.</p>
+      <p>The pattern is a table of offsets now, one row per stage, with the sextuple row shifted half a step so its six sit symmetrically about the pivot. That also collapsed about seventy lines of near-identical spawn calls — the same five patterns written out twice, once per direction of travel, which is exactly how a sextuple that fired five went unnoticed.</p>
+    </div>
+  </section>
+
+  <section id="waves">
+    <div class="part-head"><h2>Enemies and waves</h2></div>
+    <p>One <code>WaveDirector</code> reads <code>MainRun.asset</code> and runs a coroutine per stream. Each <code>SpawnStream</code> carries what to spawn, where, and how its cadence tightens.</p>
+
+    <div class="warn">
+      <div class="label">Nineteen doors, and the player learns where they are</div>
+      <p>Each stream authored a single world position plus a random offset to add to it — and <code>xOffsetRange</code> was <code>{0, 0}</code> on <strong>all nineteen</strong>. No horizontal spread was ever filled in, so enemies arrived from nineteen fixed compass points and varied only in height.</p>
+      <p>A stream now sends its enemies in from a <em>random bearing</em>, keeping the distance from the axis and the height it was authored with. That preserves what actually distinguishes one stream from another — this one comes from 22 units out at head height, that one from 40 — and varies only the direction. The authored rotation stops mattering within a frame either way, because <code>EnemyMovement</code> looks at the axis every update.</p>
+      <p>The opt-out is called <code>lockBearing</code> rather than <code>randomiseBearing</code> on purpose. Unity keeps what it has already serialized and zero-fills fields it has not seen, so a bool meaning "randomise" would have arrived <code>false</code> on all nineteen existing streams however its initializer was written, and the spread would have quietly not happened. False has to mean the useful thing.</p>
+    </div>
+    <p><code>SpawnMath.IntervalAt()</code> derives the current gap from elapsed time in closed form. The original ran a second coroutine that repeatedly multiplied its own delay field, which meant the only way to know the spawn rate at a given moment was to run the game.</p>
+
+    <h3>The difficulty curve, made legible</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">From</th><th>What arrives</th><th>Cadence</th></tr></thead>
+        <tbody>
+          <tr><td class="num">t = 0</td><td>Scouts</td><td>every 8–10s</td></tr>
+          <tr><td class="num">t ≈ 22–30</td><td>Obstacles (12 streams)</td><td>60s, tightening to ~17s</td></tr>
+          <tr><td class="num">t ≈ 180–240</td><td>Fighters</td><td>every 20s</td></tr>
+          <tr><td class="num">t ≈ 280–340</td><td>Heavies</td><td>every 60s</td></tr>
+          <tr><td class="num">t = 600</td><td>The boss</td><td>once</td></tr>
+          <tr><td class="num">t = 602</td><td>all spawning stops</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Those arrival times were half of what they are here until the run was doubled, and the table said so for a while afterwards: the streams were restretched and the prose describing them was not. That cutoff was a magic <code>301</code> buried in a method that also contained dead code. It isn't debris — it's the design decision <em>"stop spawning trash once the boss arrives,"</em> and it's a named field on the asset now, which is the only reason doubling the run was a matter of changing a number rather than finding one.</p>
+
+    <h3>Enemy stats</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Definition</th><th class="num">Health</th><th class="num">EXP</th><th>Prefab</th></tr></thead>
+        <tbody>
+          <tr><td>Scout</td><td class="num">1</td><td class="num">5</td><td>Enemy 2</td></tr>
+          <tr><td>Drone</td><td class="num">3</td><td class="num">5</td><td>Enemy 3</td></tr>
+          <tr><td>Fighter</td><td class="num">2</td><td class="num">15</td><td>Enemy</td></tr>
+          <tr><td>Heavy</td><td class="num">5</td><td class="num">15</td><td>Enemy 1</td></tr>
+          <tr><td>Boss</td><td class="num">300</td><td class="num">50</td><td>Boss</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The boss used to award <strong>2</strong> experience, less than a 1 HP Scout. That was preserved from the original through the migration on purpose, on the grounds that migration and rebalancing are different jobs, and it sat here as a recorded decision rather than a bug for a long while. It is <strong>50</strong> now. Being one field on an asset is what made that a decision rather than a task.</p>
+
+    <h3>The floor moved, and four streams stayed where they were</h3>
+    <p>The player's vertical band is a box in the scene. The heights enemies arrive at are numbers in a wave asset. Nothing connected the two, so when the band was raised — floor from 1.103 to 4.421, ceiling from 11.129 to 13.318 — the spawn heights did not move with it, and four of the twelve obstacle streams, authored at 2.9 and spawning over 1.8 to 3.7, ended up entirely beneath the floor.</p>
+    <p><strong>It only showed on one enemy, and that is what made it hard to see.</strong> Three of the four enemy prefabs carry <code>EnemyMovement</code>, which climbs towards the player once inside its 164.6 chase radius — so those spawn low, notice, and fix themselves within seconds. <code>Enemy 3</code> is the only one carrying <code>ObstacleScript</code>, and that script has no orbit branch and no chase branch at all: it flies inward in X and Z, reaches the orbit radius, and then holds its spawn height for the rest of its life. The ones that could recover did, and hid the ones that could not.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>What it cost</th><th class="num">Per run</th></tr></thead>
+        <tbody>
+          <tr><td>Drones stranded below the floor</td><td class="num">75 of 1331</td></tr>
+          <tr><td>Experience made unreachable</td><td class="num">375 of 7815</td></tr>
+          <tr><td>Stranded at once, peak</td><td class="num">24, around 9:03</td></tr>
+          <tr><td>Level-ups a full run yields</td><td class="num">20 – 19</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The count was not the damage. There are exactly twenty permanent upgrades in the game and a clean run yields exactly twenty level-ups, the last landing at <strong>9:53</strong> against a boss that arrives at <strong>10:00</strong> — that margin is what doubling the run bought. Losing 375 experience takes the run to nineteen and puts the last upgrade out of reach, so a 5.6% loss of enemies costs 100% of the top of the build.</p>
+    <p>All nineteen heights were rescaled into the new band at the same fraction of it they held in the old one, which keeps the three obstacle tiers three tiers rather than merging the bottom two: 2.9, 4.9, 5.741, 6.78, 6.841 and 8.2 become 6.016, 7.791, 8.537, 9.459, 9.513 and 10.719. Six distinct heights before, six after.</p>
+    <div class="note">
+      <div class="label">The rescale fixes the instance, not the mechanism</div>
+      <p>Moving the box again would break it again, silently, and again only on <code>Enemy 3</code>. So the gap is checked now. <code>SpawnBand</code> holds the arithmetic free of scene types so it is directly testable; <code>ApplyBounds.TryGetBand</code> exposes the band; and <code>WaveDefinition.DescribeStreamsOutside</code> takes the band as a parameter, because an asset can be opened with no scene loaded.</p>
+      <p>It reports and never repairs. Whether the streams or the bounds are the wrong half depends on intent, and guessing between them would be worse than saying so. It does separate a stream that straddles the floor from one wholly beneath it, because losing some of a stream and losing all of it are different problems.</p>
+      <p><code>WaveDirector</code> runs the sweep at Start, editor-only — not from <code>OnValidate</code>, which fires when the component is touched and not when either of the two things it compares changes. Pressing play is the one action that reliably follows editing a wave or a bounds box. <code>Survival Chaos › Waves › Check Spawn Heights</code> runs the same sweep on demand.</p>
+    </div>
+
+    <h3>A first balance pass</h3>
+    <p>The complaint that prompted it: the player feels too powerful, from the first minute. The numbers agree. A full build was three attack-speed picks and four shot upgrades, which is a fire interval of 0.216&nbsp;s and eight projectiles — <strong>37 bullets a second against a starting 1</strong>. Enemy health did not scale at all, so Drones and Scouts died to one bullet at minute one and at minute five alike, and the only thing pushing back was spawn rate.</p>
+    <p>Time-scaled health was considered and rejected in favour of fixed values that climb with the enemy's own tier, plus the existing spawn ramp. The Drone went from 1 to 3 — it is the enemy twelve of the wave's streams spawn, so it is what the player actually fights — and the Heavy came down from 7 to 5. Scout and Fighter were already where they should be.</p>
+    <p>Both of the things that pass did not fix have since been dealt with, and they turned out to be one problem wearing two coats. Attack speed compounded because it subtracted a fraction of the <em>current</em> interval, so each pick was worth less than the last and the third was nearly worthless; and the build ran out at level 9 because 3 + 4 + 1 was every meaningful pick. Making each pick a flat share of the starting rate fixed the first and made more picks worth having, which fixed the second. See the run and the ladder below.</p>
+
+    <h3>Showing that a shot connected</h3>
+    <div class="warn">
+      <div class="label">Multi-hit enemies made a missing effect into a real bug</div>
+      <p><code>Enemy.cs</code> never spawned a hit effect. It did not need to: until the Drone went to three health, every enemy on that script died to one bullet, so the explosion <em>was</em> the hit feedback. <code>Enemy_1.cs</code> had a spark; <code>Enemy.cs</code> did not — and <code>Enemy.cs</code> is what the Drone runs. Two of every three shots at the most common target in the game produced nothing at all, which is the worst thing a shooter can do: a shot that lands looking exactly like a shot that missed.</p>
+      <p>Worse, the field existed in code before it existed on disk. Unity only serialises a newly added field when the prefab is next re-saved, so <code>Enemy 2</code> and <code>Enemy 3</code> had no <code>enemyHit</code> entry at all — which is why an early test of the health change appeared to do nothing.</p>
+    </div>
+    <p>Both scripts now follow one rule: <strong>a spark for a hit, an explosion for a kill</strong>. <code>Enemy_1</code> used to play the spark on every hit including the fatal one, so a kill fired both and the two outcomes read as the same event — exactly the distinction multi-hit enemies need legible. Effects spawn at the <em>bullet's</em> position rather than the enemy's centre; on a ship several units wide those are visibly different places.</p>
+    <p>The effects themselves come from a bought pack, which ships the way packs do: one container prefab with every effect parented under a single root, laid out side by side so they can all be seen at once. Convenient to browse, useless to spawn — <code>ObjectPool.Spawn</code> takes a prefab, and a child of a prefab is not one. <code>EffectPrefabExtractor</code> splits the container and fixes three things on the way out that are each easy to miss by hand across a pack:</p>
+    <ul>
+      <li><strong>Local transforms are zeroed.</strong> In the container every effect sits at its own offset so they do not overlap on screen. <code>Spawn</code> positions the root, so an inherited offset would put every explosion a fixed distance from whatever it was meant to be on — consistently wrong, and it would look like a bug in the spawn code.</li>
+      <li><strong>Looping is turned off</strong>, with prewarm alongside it. Packs loop their showcase prefab so effects play continuously while you scroll past them; spawned from the pool that restarts forever, and the only thing ending it is the retire timer cutting it off mid-cycle.</li>
+      <li><strong><code>DestroyAfterTime</code> is added</strong>, with the delay measured from the longest duration-plus-lifetime under the effect rather than left at the ten-second default. These fire on every hit — a quarter-second spark held for ten seconds keeps forty finished objects alive per second of combat, all of them drawing nothing and all of them still in the pool's active set.</li>
+    </ul>
+
+    <h3>Health and death</h3>
+    <p><code>HealthState</code> holds the rule that matters: <code>TakeDamage</code> returns <code>true</code> only for the hit that kills, and only once. That's what makes death effects and experience impossible to fire twice, and it removed the dependency on <code>Destroy</code> timing entirely.</p>
+  </section>
+
+  <section id="boss">
+    <div class="part-head"><h2>The boss</h2></div>
+    <p>It was a wall that sprays. All three attacks fired every muzzle they owned, simultaneously, forever, on fixed timers &mdash; no phases, no telegraph, no weak points, and no reason to be at any particular height. The hull took damage anywhere, so the correct play was to hold the trigger and hope, and 300 hit points were the only thing making it last.</p>
+    <p>Almost none of what replaced it is new content. The 32 muzzles are not scattered: they cluster into <strong>three banks at three heights</strong>, and those heights land on the floor, the middle and the ceiling of the band the player can fly in. Nothing in the fight knew that.</p>
+
+    <h3>The guns did not turn with the ship</h3>
+    <div class="warn">
+      <div class="label">This blocked everything else</div>
+      <p><code>EnemySpaceShip</code> rotates the model 90&deg; either way to face the direction of travel, and <code>RingChase</code> makes the boss reverse every time the player crosses its bearing. All 32 muzzles were parented to the Boss root, which only ever faces the middle of the arena &mdash; so the ship turned and the guns stayed where they were, and half the time the boss fired out of its own tail. The prow muzzle swings <strong>87 world units</strong> between the two headings.</p>
+      <p>A telegraphed attack is meaningless if the muzzle is not where the barrel is, so nothing else could be built until this was fixed. They hang off a <code>Muzzles</code> object carrying the <em>same</em> <code>EnemySpaceShip</code> component now, pointed at the same <code>EnemyMovement</code> &mdash; not a second copy of the rule kept in step with the first, but the same rule, read once, in the same frame. The rig is saved at the yaw the pivots were authored against, so the fix moved nothing: every muzzle's position in the boss's own frame is identical to three decimals, and mirroring is all it adds.</p>
+    </div>
+
+    <h3>Three acts, out of one pool of health</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Act</th><th class="num">Spends</th><th>What is true</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Armoured</strong></td><td class="num">150</td><td>the hull takes nothing; the three emplacements are the only targets, 50 each</td></tr>
+          <tr><td><strong>Exposed</strong></td><td class="num">120</td><td>every gun is dead, the hull opens, and the boss starts ramming and shedding wreckage</td></tr>
+          <tr><td><strong>Scuttle</strong></td><td class="num">30</td><td>every muzzle at once, wrecked banks included</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>One pool for all three, so the bar moves throughout &mdash; including through a phase where the hull itself is taking nothing &mdash; and retuning an emplacement cannot quietly change what the boss is worth. <code>BossPhaseState</code> holds the order with no Unity object attached, because &ldquo;once, and never backwards&rdquo; is exactly the kind of rule that is impossible to check by playing: a phase that can be re-entered looks identical to one that cannot until the frame where two bullets arrive together.</p>
+
+    <h3>Three emplacements, and why they are where they are</h3>
+    <p>Each sits at the centroid of its own bank's muzzle heights, averaged from the model at build time rather than typed in, so a pod cannot drift away from the guns it stands for. They land at world y <strong>53.8, 91.7 and 127.1</strong> against a playable band of 44.2 to 133.2 &mdash; floor, middle, ceiling.</p>
+    <p>Player bullets fly at the player's own height and never change it, so killing a bank means flying at that bank's height, which is where its own fire is thickest. The risk and the reward both fall out of the rig rather than out of a difficulty number.</p>
+    <p>They are mounted proud of the hull, which is not decoration: the hull is a trigger that eats bullets, so a target inside it could never be hit at all. Wrecking one silences its bank for the rest of the fight, so the order the player kills them in is a difficulty dial they set themselves.</p>
+
+    <h3>Five shapes instead of one</h3>
+    <p>The difference between them is entirely in <em>when</em> each muzzle goes off, which is the cheapest place to buy a boss fight: a slab of sixteen bullets and a staircase of sixteen bullets are the same volley and completely different problems.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Pattern</th><th>Bank</th><th class="num">Every</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>Curtain</td><td>Keel &middot; 12</td><td class="num">6s</td><td>walls off the keel with a gap that steps up one row per volley and wraps &mdash; learnable rather than random</td></tr>
+          <tr><td>Rake</td><td>Crown &middot; 16</td><td class="num">4s</td><td>fires row by row, alternating direction, so a slab becomes a staircase</td></tr>
+          <tr><td>Lance</td><td>Prow &middot; 4</td><td class="num">5s</td><td>charges for one full crossing of the band, then streams; owns the middle, which nothing else reaches</td></tr>
+          <tr><td>Ram</td><td>&mdash;</td><td class="num">7s</td><td>the ship itself at three times cruise; countered by the dash and only by the dash</td></tr>
+          <tr><td>Wreckage</td><td>&mdash;</td><td class="num">1.8s</td><td>a plate of the boss's own hull, torn off a wrecked emplacement and left in the lane</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The rows a curtain and a rake work in are read off the muzzle heights rather than authored, because the second copy of a fact is the one that goes stale. Cadences are set against a lap rather than against each other: a boss bullet goes round the ring in 4.5 seconds, so the curtain's 6 brings the previous wall back just before the next one leaves.</p>
+    <div class="note">
+      <div class="label">The boss stopped climbing to meet the player</div>
+      <p>That is the one real behaviour change, and it had to go. The pods sit at fixed offsets from the hull, so a boss that matches the player's altitude parks the crown pod 49 units above them &mdash; above whatever height they climb to, forever &mdash; and the fight loses a third of itself to a weak point that cannot be reached.</p>
+      <p>Nothing is lost by holding station. The hull is <strong>156 units tall against a band of 89</strong>, so it already spans every height the player can occupy; matching their altitude never changed whether the boss could be flown over, only where its guns pointed. This is the one enemy in the game that is a wall rather than a chaser.</p>
+    </div>
+
+    <h3>The second act had lost what the first one was about</h3>
+    <p>Armoured is a fight about height. Exposed threw that away: with the hull spanning the whole band, any height is as good as another, and what was left was holding the trigger through 120 hit points and dashing once every seven seconds.</p>
+    <p><strong>Wreckage puts the three heights back with their meaning reversed.</strong> The boss sheds plates of its own hull from the emplacements the player themselves destroyed, at those emplacements' own heights. The places that were worth flying to become the places worth avoiding, and the player already knows where they are.</p>
+    <p>The plates do not move. Everything else in this arena rides the ring; these are the one thing that does not, which is what makes them read as debris rather than as another attacker &mdash; and it means the boss, cruising at 15&deg; a second while it sheds, leaves a wake of its own hull and eventually comes back round into it. Life over cadence is the tuning: 16 seconds against 1.8 holds about nine plates, three at any one height, which against a player lapping the ring every 12.3 seconds is a forced move every four seconds or so. Three shots break one, and breaking it earns nothing &mdash; clearing a lane is the whole of its reward.</p>
+    <div class="warn">
+      <div class="label">One collision has to cost one hit, and the obvious fix was the wrong one</div>
+      <p>Contact was billing far more than a hit. The first guess was the plate's shape, on the theory that a tumbling box sweeps the player in and out of itself; the collider became a sphere and it changed nothing. What turns is <em>the player</em> &mdash; <code>PlayerMovement</code> aims the ship at the arena's axis every frame and <code>SpaceShipPitch</code> rolls it, so a ship inside a stationary trigger keeps carrying its own collider back out through the surface and in again, and every one of those is a fresh <code>OnTriggerEnter</code>.</p>
+      <p>Measured with the spawner stopped and the arena verifiably empty, one plate took a stationary player from <strong>19 hit points to 0 in 0.64 seconds</strong> &mdash; close to one hit per physics step, and invisible, because this branch of <code>Player</code> spawns no hit effect to count. The plate goes intangible the moment the player is inside it and solid again once they are clear; the same test then costs exactly one hit and nothing more over six seconds.</p>
+    </div>
+
+    <h3>Three quarters of the boss's fire could not reach the player</h3>
+    <div class="warn">
+      <div class="label">The lane a shot is born on is the lane it dies on</div>
+      <p>A projectile here orbits with <code>RotateAround</code> about the vertical axis, which preserves its distance from that axis <em>exactly, and for its whole life</em>. So a shot fired from a barrel that is not on the player's lane never reaches it and never can, however long it flies.</p>
+      <p>The player is pinned to radius <strong>137.200</strong>. With their own hitbox and the shot's &mdash; radial half-extents of 2.31 and 0.98 &mdash; a shot can only ever touch them if it was born between <strong>133.9 and 140.5</strong>. The boss's muzzles are spread across the width of a ship 30 units deep and sit anywhere from 131.6 to 150.2.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Bank</th><th class="num">Muzzles</th><th class="num">Able to hit</th></tr></thead>
+          <tbody>
+            <tr><td>Keel</td><td class="num">12</td><td class="num">3</td></tr>
+            <tr><td>Prow</td><td class="num">4</td><td class="num">1</td></tr>
+            <tr><td>Crown</td><td class="num">16</td><td class="num">4</td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>32</strong></td><td class="num"><strong>8</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>So a curtain of twelve arrived as a wall of three, the rake's staircase had four of its sixteen steps, and the lance &mdash; a charge, a telegraph, then a dense stream &mdash; was firing one muzzle in four. The fight's own vocabulary was describing something the player never actually faced, and had been since the boss existed.</p>
+    </div>
+    <p><strong>The muzzles do not move, because that is the one thing the rig must not do.</strong> Moving the barrels onto the lane would buy this back by giving up the thing the rig was built to protect. So the shot leaves the barrel and then eases onto the lane, through the same frame-rate-independent easing every ship in the arena already uses on its way to the ring. Radius only &mdash; bearing and height stay the shot's own business, because a shot that closed on the player's altitude too would be a homing missile rather than a bullet in a lane.</p>
+    <p>It is off unless something asks for it: <code>laneResponse</code> defaults to zero, meaning &ldquo;keep the distance you were fired at&rdquo;, so the player's own rounds are unchanged by construction rather than by anybody remembering to leave them alone. A response of 5 puts the worst-placed muzzle's shot inside the band in <strong>0.275&nbsp;s</strong>, by which time it has travelled about 22&deg; of arc and is clear of a hull 71 units wide &mdash; fast enough to be dangerous while it still matters, slow enough to read as a shot curving in rather than as a muzzle in the wrong place.</p>
+    <p>Measured with the boss isolated as the only thing firing, shots in the player's lane went from about a quarter to <strong>87&ndash;100%</strong>. What it costs: a player standing still at the keel bank's own height &mdash; the height the design sends them to &mdash; now loses the whole bar in <strong>36.5 seconds</strong>, against roughly four times that before. A pod is 50 hit points, so it can still be taken, but not while parked.</p>
+
+    <div class="warn">
+      <div class="label">The emplacements were swapping lanes with the heading</div>
+      <p>Found while measuring the wreckage, because the plates inherited it. A pod is mounted proud of the hull along the <em>tangent</em>, and the arena is a circle, so 39.5 units out from a point on a 137-unit ring leaves you 5.6 units outside it. The rig builder takes that back off &mdash; but the correction was authored as a local offset on the mirroring muzzle rig, so it mirrored with everything else, and in one of the two headings it was being added outward instead of subtracted inward. That does not cancel the error, it doubles it.</p>
+<pre><code>before   yaw  90 -&gt; keel 137.3     yaw 270 -&gt; keel 148.0
+after    yaw  90 -&gt; keel 137.3     yaw 270 -&gt; keel 137.3</code></pre>
+      <p>The ship really does turn round, so everything bolted to it should swap sides &mdash; that is right for the guns and right for the pod. The exception is this one correction, which is a correction for the shape of the <em>arena</em>, and the arena does not care which way the ship is pointing. It is re-applied every frame against the direction the middle of the arena is actually in, read off the geometry rather than off a heading flag so it cannot disagree with the rig it corrects. The mirroring that was wanted survives: the keel pod sits at +3.95 and &minus;3.95 along the ring in the two headings, and at +0.56 inward in both.</p>
+    </div>
+
+    <div class="note">
+      <div class="label">Two defects found while measuring</div>
+      <p><code>BossEmitter</code> resolved the health bar once, in <code>Start</code>, and <code>Timer</code> switches that bar on at the same second in the run that the spawn stream releases the boss. A tag search does not see inactive objects, so whichever of the two Unity happened to run first decided whether the boss had a working health bar for the whole fight &mdash; and the failure is silent, because the fight plays correctly and the bar just sits full. Resolved on demand now.</p>
+      <p><code>HitFlash</code> claimed every renderer beneath it, which would have meant a shot breaking on the armour lighting up the three pods exactly as brightly as a shot that hit one. It leaves renderers that sit under a nested flash to that flash now, so the hull lights one renderer and each pod lights its own. That distinction is the whole of the first act.</p>
+    </div>
+
+    <p><code>VolleyTimer</code> schedules the next shot relative to <em>now</em> rather than to when it was due, so a frame spike delays the cadence instead of firing a catch-up burst.</p>
+
+    <h3>It used to arrive on two clocks</h3>
+    <p><code>Timer</code> does not spawn the boss. It counts the run out and reveals the health bar; the boss itself comes from a spawn stream in the wave asset like everything else. That is two numbers for one event, in two files, with two owners &mdash; and they agreed only because someone had typed 600 into both.</p>
+    <div class="note">
+      <div class="label">Why that is worse than it sounds</div>
+      <p>Neither half of the drift is visible while authoring. Move the boss in the wave asset and the health bar is left behind; move the timer and the bar goes up in front of an empty arena. Both look perfectly correct in the Inspector and both surface ten minutes into a run, which is the most expensive place in this project to learn anything.</p>
+      <p><code>WaveDefinition.BossArrivesAt</code> now derives the time from the boss's own stream, finding it by what it spawns &mdash; the only prefab in a wave carrying a <code>BossEmitter</code>. No new field, because a second field holding the same number is a second field that can disagree with it. The serialized value stays as a fallback for a scene with no director, and a disagreement is reported rather than quietly corrected: a number left in the Inspector that has stopped meaning anything is the same trap in a new place.</p>
+    </div>
+  </section>
+
+  <section id="run">
+    <div class="part-head"><h2>Progression and ending a run</h2></div>
+    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code>; <code>Player</code> subscribes and accumulates. At the threshold it counts the level, calls <code>SkillSelect.PickSkill()</code>, raises the requirement by 35, and continues.</p>
+
+    <h3>A level-up is a choice on the ring</h3>
+    <p>Levelling used to apply a random skill the instant the bar filled. That is the single biggest reason the player felt strong from the first minute: every upgrade was free, arrived without being asked for, and cost no attention at a moment when attention is the only currency the game charges.</p>
+    <p>Three glowing pickups now go out around the orbit instead, spaced far enough apart that they cannot all be reached — committing to one is giving up the others, which is the whole point of handing upgrades out this way. A skill is drawn from the pool when the offer goes out but <strong>charged against its pick limit only when one is actually collected</strong>, so the two the player flew past are still available next level. An offer is not a pick.</p>
+    <p>Health rides along on its own cadence, every second level, and is <em>not</em> part of the offer. <code>Pickup.Offer</code> stays null on a health drop, so the code that clears the rest of an offer walks past it in both directions: taking the health forfeits no upgrade, and taking an upgrade does not clear the health.</p>
+    <div class="warn">
+      <div class="label">Sharing the ring is not the same as sharing the forfeit</div>
+      <p>Health and the upgrade offer were first placed by two separate calls, each asking the placement helper for its own bearings from the same player position with its own coin flip for direction. The nearest bearing of a set is the same number whatever the set's size — the clearance is clamped by the step but not scaled by it — so whenever the two flips agreed, <strong>the health drop landed exactly on top of the first upgrade</strong>. Measured before and after: nearest pair 0°, then 90°.</p>
+      <p>A level-up is one placement now. Health takes a slot at random rather than always the nearest or always the furthest, because either fixed choice teaches the player which pickup to fly at before they have looked at what is on offer.</p>
+    </div>
+
+    <h3>Naming what is on offer</h3>
+    <p>Three coloured shapes are not a choice. The pickups were told apart by tint alone, on the reasoning recorded in <code>SkillDefinition</code>: there is no room for a label on an object the size of a bullet, and no time to read one while dodging. That holds for the health drop, which is only ever something to go and get. It does not hold for an offer, where deliberating <em>is</em> the point.</p>
+    <p><code>Pickup</code> still does not know what it grants. <code>Configure</code> takes a finished caption the same way it already took a finished colour, so one prefab serves every skill and the health drop alike.</p>
+    <p>The banner text and the pickup text are separate fields, because they are read at different moments. <em>&ldquo;Attack Speed Increased!&rdquo;</em> is written to fire after the fact, and reads oddly floating above something nobody has touched yet:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Skill</th><th>Banner, after the pick</th><th>Caption, before it</th></tr></thead>
+        <tbody>
+          <tr><td>Attack Speed</td><td>Attack Speed Increased!</td><td>Attack Speed</td></tr>
+          <tr><td>Max Health</td><td>Max HP Increased!</td><td>Max HP</td></tr>
+          <tr><td>Shot Upgrade</td><td>Double Shot! &hellip;</td><td>Double Shot / Triple Shot / SexTUPLO Shot / Back Shot</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The count handed to <code>GetPickupName</code> is one <em>past</em> the current tally. An offer is drawn but not charged until collection, so at the moment a pickup goes on the ring the pool still reports the picks taken before this one — and the second Shot Upgrade would be labelled with the stage the player already has.</p>
+
+    <div class="note">
+      <div class="label">Why the captions are not in the world</div>
+      <p>They began as world-space text on the pickup itself. They read correctly and looked soft, and the cause was structural rather than a setting anyone had got wrong. Dumping the passes on the two renderers of one prefab shows it plainly:</p>
+<pre><code>Core   HDRP/Unlit                  8 passes, one of them MOTIONVECTORS
+Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre>
+      <p>Text that writes no motion vectors gets reprojected by temporal antialiasing against whatever motion sits behind it — and these bob, billboard and orbit, so every frame was blended against a history taken from the wrong place. Raising the camera's TAA sharpening helps the whole image and does not fix that.</p>
+      <p><code>PickupLabelBoard</code> draws them on the Screen Space Overlay canvas instead, which the UI composites after HDRP has finished its frame. It is the same property that keeps the HUD beside them sharp. The cost is bloom, which is composited before it, so an HDR face colour no longer glows by itself — the glow is TextMeshPro's own Glow feature now, in the glyph shader, needing no post-processing at all.</p>
+      <p>Screen-space text does not shrink with distance, which is the trade. A caption across the arena would otherwise announce itself as loudly as one an arm's length away, so there is a falloff: full size at 160 units, floored at 55%.</p>
+      <p><strong>That board has a second client now.</strong> Floating combat numbers go through it rather
+      than through a board of their own: both are one line of glowing text projected through the same camera,
+      and a second pool would mean a second set of cloned materials to free and a second copy of the
+      occlusion and distance rules to keep in step. The obvious alternative — world-space popups — is
+      the exact defect described above, so it was never available.</p>
+    </div>
+    <div class="warn">
+      <div class="label">They show experience, not damage</div>
+      <p>A floating number in a shooter is usually damage. Damage here is always exactly <strong>1</strong>:
+      every weapon, every enemy, the boss included — all four <code>TakeDamage</code> call sites pass 1. A
+      column of ones would be thirteen hundred glyphs a run telling the player something they already know.</p>
+      <p>The reward is the number that varies. A Scout is 5 and a Fighter beside it is 15, and knowing that
+      mid-run is what turns going after one rather than the other into a decision. The hull flash carries the
+      other half of the message — that a shot landed, and on what — so the number is free to carry what
+      the kill was worth rather than repeating that it happened.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">Two ways to render nothing, convincingly</div>
+      <p>Enabling <code>GLOW_ON</code> without calling <code>UpdateMeshPadding</code> leaves every glyph in a quad cut for a material with no glow. The distance field saturates across the whole of it and the caption draws as a row of solid blocks — correct layout, correct colour, no letters.</p>
+      <p>And pooled pickups arrive with their mesh nulled, because <code>TextMeshPro.OnDisable</code> clears it. Assigning <code>.text</code> only queues a rebuild those objects never received, so the first working build had three correctly configured labels with zero vertices between them.</p>
+    </div>
+
+    <h4>In front of the camera is not the same as visible</h4>
+    <p>The volcano stands in the middle of the ring, so a pickup on the far side projects to a perfectly good screen position — straight across the cone that is hiding it. A three-way offer would routinely put one of its three names on a rock.</p>
+    <p>The test is arithmetic rather than <code>Physics.Linecast</code>, because the scene has no scenery colliders at all: not the island, not the ruins, not the volcano. Giving the island a MeshCollider would push 40,050 vertices of static geometry into the physics world for the first time, and bullets and enemies would then need keeping off it. That is a gameplay change to fix a caption.</p>
+    <p>It is flat because the arena is. <code>PickupSpawner</code> places pickups at the player's own height, and the camera holds that height and looks along the horizontal, so every sight line that matters runs level at y&nbsp;=&nbsp;70. A cone sliced at one height is a circle, and the whole question drops to two dimensions — closest approach of the camera-to-label segment to the arena axis, clamped to the segment so a pickup in front, with the volcano behind it, is not mistaken for one hiding behind the volcano.</p>
+    <p>The radius was measured, not guessed. The volcano is not its own object — it is part of the island mesh — so sampling that mesh's 40,050 vertices in one-unit height bands gives the profile of a body of revolution:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Height</th><th class="num">Max radius</th><th>What is being measured</th></tr></thead>
+        <tbody>
+          <tr><td class="num">50 – 60</td><td class="num">174.34</td><td>the island's rim, well below the sight line</td></tr>
+          <tr><td class="num">60 – 70</td><td class="num">54.49</td><td>the cone, at the height everything sits at</td></tr>
+          <tr><td class="num">70 – 80</td><td class="num">45.39</td><td>the cone</td></tr>
+          <tr><td class="num">130 – 140</td><td class="num">25.78</td><td>near the summit</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Hence a radius of 50, serialized so it can be retuned if the volcano is ever reshaped, and zero to switch the test off. The arena centre falls back to the world origin, which is where the island already is, so the existing board needed no edit in the scene.</p>
+
+    <h3>Ten minutes, and enough to earn across them</h3>
+    <p>The pool held eight picks and the run was five minutes, so a player reached the end of their build
+    around level nine and every level-up after that handed out a health pack. That is the shape of a game
+    that stops rewarding you two thirds of the way through.</p>
+    <p>Doubling the timer would not have fixed it, and would have broken something else. Spawning stopped at
+    301 seconds, so the second half would have been empty; and raising that cutoff runs straight into the
+    ramp, which compounds. Every stream tightens its own interval by 0.8 to 0.9 every 25 seconds, so
+    intensity is exponential rather than linear:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Minute</th><th class="num">Extended</th><th class="num">Stretched</th></tr></thead>
+        <tbody>
+          <tr><td>4 — 5</td><td class="num">5.1/s</td><td class="num">1.3/s</td></tr>
+          <tr><td>6 — 7</td><td class="num">17.1/s</td><td class="num">2.5/s</td></tr>
+          <tr><td>9 — 10</td><td class="num">23.3/s</td><td class="num">5.8/s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Twenty-three spawns a second is not a longer run, it is a different game. So the curve is
+    <em>stretched</em> rather than extended: <code>startDelay</code> and <code>rampEvery</code> double on all
+    nineteen streams, which replays the existing shape at half speed and lands the last minute at 5.8/s
+    — where the old last minute already was. Total experience goes from 3,820 to 7,685: twice
+    as much, over twice as long, at the same peak pressure.</p>
+
+    <h4>Twenty picks, because that is what the run pays for</h4>
+    <p>Thresholds start at 50 and rise 35 a level, so 7,685 experience buys level twenty-one and no more.
+    Twenty is not a round number chosen for looks; it is the ceiling the stretched run can actually fund,
+    which is what makes the pool last to the finish instead of emptying in the middle.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Skill</th><th class="num">Picks</th><th>Each pick</th></tr></thead>
+        <tbody>
+          <tr><td>Attack Speed</td><td class="num">8</td><td>+10% fire rate</td></tr>
+          <tr><td>Move Speed</td><td class="num">5</td><td>+10% orbit and climb</td></tr>
+          <tr><td>Max Health</td><td class="num">4</td><td>+5 to the ceiling</td></tr>
+          <tr><td>Shot Upgrade</td><td class="num">3</td><td>double, triple, sextuple</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <div class="label">Additive in rate, not subtractive from the interval</div>
+      <p>Attack speed used to take 40% off the <em>current</em> gap between volleys, which sounds like a
+      bigger number and is worth less every time it is taken. From 0.5&nbsp;s it reached the
+      0.15&nbsp;s floor on the second pick, so the third bought 0.03&nbsp;s and a fourth
+      would have bought nothing at all. Eight of those would have been five picks of nothing.</p>
+      <p>Each pick now adds a fixed tenth of the <em>starting</em> rate, so the eighth is worth exactly what
+      the first was — +0.20 volleys a second, every time, from 2.00 up to 3.60. The interval
+      ends at 0.278&nbsp;s and never reaches the floor, so nothing is wasted. That is the whole
+      reason more picks became worth having.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">Move Speed cannot be given to the ship alone</div>
+      <p>The one upgrade about not being hit rather than hitting harder. It raises orbiting and climbing by
+      the same tenth, so two speeds authored equal stay equal for the whole run rather than drifting apart a
+      pick at a time.</p>
+      <p>It also cannot be applied to the player on its own. The Main Camera runs its own
+      <code>PlayerMovement</code> and holds station only because both speeds match, so the bonus is a
+      multiplier the two of them share. Raise one without the other and the camera falls behind and the
+      player flies out of frame — and nothing about that bug would point at an upgrade. Both
+      axes scale safely because the camera carries <code>ApplyBounds</code> too and is clamped to the same
+      vertical envelope as the ship.</p>
+    </div>
+
+    <p><strong>Back Shot is gone.</strong> It was the one pick that changed what the gun does rather than how
+    much of it there is, and with nineteen other picks doing the stretching it was not needed to carry the
+    late run. Without it the backward pattern was five empty rows and the second <code>FireLine</code> was
+    dead code, so both went with it.</p>
+
+    <p>Ending the run uses the same idea for a different reason. The boss is <strong>instantiated from a prefab mid-run</strong>, so it cannot hold a reference to anything in the scene. Rather than have it hunt for a menu by tag, it reports:</p>
+<pre><code>RunOutcome.ReportBossDefeated();</code></pre>
+    <p><code>VictoryMenu</code> subscribes in <code>OnEnable</code> and shows the panel. <code>RunOutcome</code> clears its subscribers on subsystem registration, because static events outlive a scene — and outlive play mode entirely when domain reload is disabled.</p>
+    <div class="note">
+      <div class="label">A Unity rule worth internalising</div>
+      <p>Nothing runs on an inactive GameObject — not <code>Awake</code>, not <code>OnEnable</code>. <code>DeathMenu</code> can live on the panel it shows, because <code>Player</code> calls it through a direct reference. <code>VictoryMenu</code> <em>cannot</em>, because it listens for an event: a component on an inactive object never subscribes. It must sit on something active, like the Canvas.</p>
+    </div>
+    <p>One related fix: <code>Time.timeScale</code> survives a scene load, and all three menus set it to 0. Restarting used to load a frozen game. <code>MainMenu</code> now resets it before loading.</p>
+
+    <h3>What the run was, once it is over</h3>
+    <p>Both endings used to stop time and put up a card carrying a title and two buttons, leaving a third of
+    it empty underneath and saying nothing about how the run had gone. <code>RunStats</code> counts as it
+    happens — kills, experience, level, and the picks taken — and <code>RunSummary</code> writes them into
+    that gap.</p>
+    <p>Counted rather than derived, because most of it cannot be recovered afterwards: experience earned is
+    not readable from the player's level and bar, since levels cost a different amount each time and the bar
+    is reset on every one of them, and enemies destroyed is not readable from anything at all once they are
+    back in the pool. The clock stops in <code>RunOutcome.ReportRunEnded</code>, the one place both endings
+    already pass through — and which they reach <em>before</em> stopping time, so the reading is the run
+    rather than zero. It is scaled time, so a player who spends four minutes on the pause screen has not
+    survived four minutes.</p>
+
+    <div class="warn">
+      <div class="label">A retry used to inherit the last run's speed</div>
+      <p><code>PlayerMovement.speedMultiplier</code> is static, and deliberately so — the ship and the Main
+      Camera both run that component, and they hold formation only because the number is shared. It carried a
+      <code>SubsystemRegistration</code> reset and a comment claiming that stopped a second run starting at
+      the speed the first one ended at. It only half did.</p>
+      <p><code>SubsystemRegistration</code> fires when play mode is entered. It does <strong>not</strong> fire
+      when the player presses Retry, because that is <code>SceneManager.LoadScene</code> and play mode never
+      ended. Measured in play mode rather than argued: five Move Speed picks, then a scene load, and the
+      multiplier read <strong>1.5</strong> on the other side. It compounds — retry twice and a run starts at
+      2.0, with the camera speeding up alongside the ship, so nothing about it looks like an upgrade bug.</p>
+      <p>The fix was to follow the pattern already in the project rather than invent one:
+      <code>ObjectPool</code> and <code>RunOutcome</code> both pair <code>SubsystemRegistration</code> with a
+      <code>SceneManager</code> hook, and this had only the first half.</p>
+    </div>
+  </section>
+
+  <section id="render">
+    <div class="part-head"><h2>Rendering</h2></div>
+    <p>The presentation work was done on a branch while URP remained the shipping game. That question is now settled: the HDRP work <em>is</em> the project. Because the branch never diverged — it was only ever ahead — promoting it was a fast-forward rather than a merge, and nothing had to be reconciled.</p>
+
+    <h3>The sky</h3>
+    <p>HDRP ignores the legacy skybox material — sky comes from a Volume. The original starfield was six separate 4096&times; textures totalling 302 MB. They were baked into a single cubemap cross and imported as a cubemap texture, which drops into the normal texture pipeline: block compression, streaming, platform overrides.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Approach</th><th class="num">Size</th></tr></thead>
+        <tbody>
+          <tr><td>Six source PNGs</td><td class="num">302 MB</td></tr>
+          <tr><td>Legacy Cubemap asset</td><td class="num">257 MB</td></tr>
+          <tr><td>Cross texture, BC7</td><td class="num">12 MB</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <div class="label">There are two skies, and only one of them is the one you can see</div>
+      <p>The Volume's HDRI is what the <em>camera</em> sees. <strong>Lighting → Environment → Static Lighting Sky</strong> is what the <em>baker</em> sees, and it is the only thing feeding sky light into lightmaps, light probes and the probe volumes. They are set independently, and nothing warns when they disagree.</p>
+      <p>That component lives on a hidden GameObject. Delete the object and Unity recreates the component on the next scene open — <strong>empty</strong>, pointing at nothing. Which is what happened: bakes kept succeeding, took no sky light at all, and said so nowhere. The evidence was in the scene file rather than on screen, where the baked ambient probe's <code>sh[0]</code> had fallen from 0.0906 to 0.0715.</p>
+      <p>The fix pointed it at the <em>scene's</em> volume profile rather than the default one it had originally referenced. Both carry the same HDRI cubemap, but the default holds it at EV 0 while the scene shows it at EV 1 — so the bake had always been a stop darker than the runtime view, even while it was working. On the same profile now: <code>sh[0]</code> is 0.1343, 48% above where it started.</p>
+    </div>
+
+    <h3>Cloud that drifts through the arena</h3>
+    <p>HDRP's volumetric clouds cannot do this one. They refuse to render within roughly twenty units of the camera, their altitude range has a hard
+    100&nbsp;m floor, and their noise runs at kilometre scale &mdash; measured across a 370-unit island the field is uniform, so the sky turns overcast
+    as a whole and no cloud ever drifts <em>past</em> anything. <code>ArenaCloudBank</code> drives a Local Volumetric Fog volume instead, which is the
+    local-scale equivalent and takes a Texture3D density mask.</p>
+    <p><strong>The mask scrolls; the volume does not move.</strong> HDRP samples the mask in the volume's own space, so scrolling a tiling texture
+    gives endless cloud while the box stays put &mdash; move the box instead and its edges sweep through frame once a lap. The noise has to tile for
+    the same reason, so every octave hashes its lattice modulo its own period and the periods are powers of two that divide the resolution, which
+    makes opposite faces line up exactly.</p>
+    <p>HDRP measures scrolling in mask-UV per second, a figure nobody can picture and one that silently changes meaning whenever the volume is
+    resized. <code>driftSpeed</code> is world units per second, converted through the volume's own size and tiling, so it keeps meaning what it says.</p>
+
+    <div class="note">
+      <div class="label">Size and spacing were the same knob, which is why the banks packed together</div>
+      <p>The clouds themselves were right and there was no sky between them &mdash; and neither existing control could fix that, because both moved
+      size and spacing at once. <code>coverage</code> raises the density threshold, which erodes every bank inward from its edges; <code>basePeriod</code>
+      scales the lattice, which makes banks bigger <em>and</em> further apart. Each buys open sky by changing the clouds you wanted to keep.</p>
+      <p>A second, much slower field now decides which patches of the tile hold cloud at all. Inside a kept patch the threshold is untouched, so those
+      banks are exactly the ones that were already there; the cleared patches simply go empty. The cut is taken as a <em>percentile</em> of that field
+      rather than as a fixed value, so <code>sparsity</code> keeps its meaning across seeds and periods &mdash; the same reason the main field is
+      normalised before <code>coverage</code> is applied to it.</p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Sparsity</th><th class="num">Volume holding cloud</th><th class="num">Sky open floor to ceiling</th></tr></thead>
+        <tbody>
+          <tr><td>0 &mdash; the packed field</td><td class="num">22.4%</td><td class="num">11.1%</td></tr>
+          <tr><td><strong>0.35 &mdash; what ships</strong></td><td class="num">9.9%</td><td class="num">49.5%</td></tr>
+          <tr><td>0.5</td><td class="num">6.0%</td><td class="num">65.9%</td></tr>
+          <tr><td>0.65</td><td class="num">4.0%</td><td class="num">76.5%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The response is not linear and is not meant to be: 0.35 opens half the sky rather than a third, because a patch's soft edge thins the banks
+    straddling it as well, and a column only counts as open when it is clear floor to ceiling. Those measured figures went into the tooltip rather
+    than being left to guesswork, and the bake log reports the open-sky share now &mdash; the volume percentage is the misleading one, since it moves
+    whenever banks merely get thinner.</p>
+    <p>In arena terms: the volume is 2000 units across at a tiling of 2, so one mask tile is <strong>1000 world units</strong> and the largest cloud
+    features are a quarter of that &mdash; 250 units, against a 370-unit island. At <code>driftSpeed</code> 25 a whole tile passes in forty seconds.
+    Backing the change out is one bake, because the seed is fixed and sparsity 0 reproduces the packed mask exactly.</p>
+
+    <h3>The lava shader</h3>
+    <p><code>LavaFlow</code> samples a seamless noise texture with <strong>triplanar projection</strong> — three world-space planar projections blended by the surface normal. That ignores the mesh's UVs entirely, which matters because the island's UVs are badly stretched and because a single projection collapses into stripes on flat surfaces.</p>
+    <p>Two layers scroll at different speeds. Where they slide across each other, brightness shifts — that reads as molten flow, whereas one scrolling layer just looks like a texture sliding past.</p>
+    <p>The structural insight came late and was the one that made it work:</p>
+<pre><code>veins    = saturate(n1 * n2 * contrast);
+baseColor = crust;                      // never lerped
+emission  = hot * glow * veins;</code></pre>
+    <p><strong>Base Colour stays solid.</strong> Only emission is modulated. Lerping both — the earlier approach — flattened the low-poly faceting into a glowing silhouette.</p>
+
+    <h3>Lighting is physical</h3>
+    <div class="note">
+      <div class="label">The single most useful HDRP fact here</div>
+      <p>HDRP works in real units. Emission is in <strong>nits</strong>, exposure in <strong>EV100</strong>. At EV 10 mid-grey sits near 128 nits, so lava glowing at <code>1.5</code> is invisible while <code>1000</code> is correct — real lava is roughly 1500–3000 cd/m². Values that look absurd next to URP's unitless multipliers are often simply right.</p>
+    </div>
+    <p>Emissive surfaces <em>cannot cast shadows</em> — shadows are rendered from a light's point of view, and an emissive material isn't a light. The lava's glow on surrounding rock comes from real area lights placed on the emitting surface.</p>
+
+    <h3>Bullet lights, and one shadow per volley</h3>
+    <p>With maximum skills the player has ~36 bullets alive; the boss adds ~174. A light each is impossible — every shadow-casting point light renders the scene six times into a cubemap. <code>BulletLightPool</code> keeps ten lights that follow the bullets nearest the camera, and only a few of those cast shadows. It clones a template light you configure in the Inspector, so it carries no HDRP dependency and would work unchanged on URP.</p>
+    <p><strong>Which few was the expensive question, and distance was the wrong answer.</strong> A volley is not a loose group that drifts apart. <code>FireLine</code> stacks its bullets up the pivot, and every one of them orbits the same centre at the same angular speed at its own fixed height — so at full Shot Upgrade the six bullets are a <em>rigid column about twenty units tall</em> for the whole of their flight, offsets of 0.5, 1.5 and 2.5 either way against a <code>shotSpacing</code> of 4. Each carries a light of range 100. Six lights of range a hundred strung up twenty units cover very nearly the same ground.</p>
+    <p>Picking casters by distance chose exactly those six, because the bullets nearest the camera are overwhelmingly the newest volley. So the shadow cost <em>scaled with Shot Upgrade</em>: the pick that makes the gun feel good was the pick that made the frame expensive. Casters are now chosen one per volley, nearest first.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Shadow casters</th><th class="num">Draws</th><th class="num">setPass</th><th class="num">Triangles</th></tr></thead>
+        <tbody>
+          <tr><td>0 — no bullet shadows</td><td class="num">222</td><td class="num">44</td><td class="num">219,246</td></tr>
+          <tr><td><strong>2 — one per volley</strong></td><td class="num">307</td><td class="num">80</td><td class="num">537,558</td></tr>
+          <tr><td>5 — nearest five</td><td class="num">392</td><td class="num">134</td><td class="num">1,011,399</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>One frozen frame, 18 bullets alive, six-shot volleys, nothing changed between reads but the shadow flags. Shadow work above baseline falls from 792k triangles and 170 draw calls to <strong>318k and 85</strong> — sixty per cent less shadow geometry, exactly half the draw calls, and forty-seven per cent off the triangles in the whole frame. Per caster the cost came out at 158,431 triangles the old way and 159,156 the new way, which is the check that this is fewer lights rather than a measurement artefact.</p>
+    <div class="note">
+      <div class="label">The saving grows with the upgrade</div>
+      <p>More shots per volley means fewer <em>distinct volleys</em> among the lit bullets, so the shadows get cheaper as the gun gets better. Ten lit bullets spanned two volleys and drew two shadows, stable across six consecutive frames.</p>
+      <p>That inverts where the risk lives. <code>shadowCastingCount</code> now means <em>at most how many volleys</em>, and the expensive case is the <strong>opening minute</strong>: with single-shot volleys, ten lit bullets are ten separate volleys. The budget is what protects the start of a run, where it used to be what protected the end.</p>
+    </div>
+    <div class="warn">
+      <div class="label">The shadows were fine. The camera was too far away to be shown them.</div>
+      <p>Bullet shadows stopped appearing in play mode &mdash; visible in the scene view, visible if you paused and flew the camera in close, absent
+      from the game view. Nothing in <code>BulletLightPool</code> was wrong, and nothing in the light template was wrong. The cause was one number in
+      <code>GraphicsDirector</code>: a runtime Volume override pinning <code>maxShadowDistance</code> to <strong>60</strong>, with a comment sizing it
+      against an arena <em>27.4 units</em> across.</p>
+      <p>That comment had been right. The arena is ten times that now, and the camera trails at radius 212 &mdash; so every shadow in the scene was
+      being culled by distance long before it reached the frame. It is 500 today. <strong>A stale world-unit constant does not announce itself after a
+      rescale</strong>, because the code still compiles, the setting still applies, and the effect it kills is one you have to be looking for.</p>
+      <p>An audit of the rest of <code>GraphicsDirector</code> found this was the <em>only</em> world-unit number in its 1,225 lines, and the only
+      runtime volume override in the project. That last part is why no search of the <code>.asset</code> files could ever have found it: the override
+      does not exist on disk. It is built in C# at runtime.</p>
+    </div>
+
+    <div class="note">
+      <div class="label">Reading the shadow atlas as numbers rather than as a picture</div>
+      <p>HDRP ships an atlas debug overlay, and on this scene it could not be made to render legibly for the punctual or area atlases &mdash; every
+      mode, range sweep and single-light view came back black. <code>GraphicsStateReport</code> now prints the occupancy instead: per light, its
+      resolution, its face count, and what share of its atlas it holds. Cost is the same model HDRP uses &mdash; a point light is six faces of
+      resolution squared, spot and area are one, directional is one per cascade.</p>
+      <p>Two facts surfaced immediately that no overlay would have offered. The scene's single <strong>area light fills its entire atlas</strong> at
+      4096&sup2; &mdash; 100.0% of the area map, on its own. And play mode runs the <strong>High</strong> tier rather than Ultra, because the director
+      applies the saved quality level at startup, so the atlas being filled is the 4096 one and not Ultra's 8192.</p>
+      <p>The same tool had been quietly lying about something else. It read <code>VolumeManager.instance.stack</code> &mdash; the default global stack
+      &mdash; and reported <code>maxShadowDistance</code> as 500 while the camera was rendering with 60. HDRP evaluates volumes <em>per camera</em>,
+      against that camera's layer mask, position and anchor override, so a runtime-created volume can be absent from the global stack entirely. It
+      resolves a stack for the actual camera now. It was proven by stamping a sentinel: the old path read 500 where the new one read the 123 that had
+      just been written.</p>
+    </div>
+
+    <h3>Exposure, and one lever for fog</h3>
+    <p>Exposure is fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
+    <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. Those are back on their defaults, leaving <code>meanFreePath</code>, brought from 300 to 50, as the single control over how thick the air is.</p>
+    <p>On the top tier — the one called Ultra since the split — probe volumes moved from L1 to L2 spherical harmonics, the cookie atlas to 4096, the area shadow atlas from 4096 to 8192, and area shadow filtering up a step. The lighter High inserted beneath it kept Medium's probe volumes and took 2048 instead. Sky reflection was left at 2048 on both. Two lights stopped culling shadow casters against the view frustum, so geometry outside the frame keeps throwing shadows into it.</p>
+
+  </section>
+
+  <section id="interface">
+    <div class="part-head"><h2>The interface</h2></div>
+    <p>The UI was rebuilt from nothing. Three separate problems were wearing one coat, and only one of them was about taste.</p>
+
+    <h3>Why it looked low resolution</h3>
+    <p>Both canvases were set to <strong>Constant Pixel Size</strong> — a mode in which the reference resolution is <em>ignored entirely</em>. The <code>800 &times; 600</code> sitting in the scene had never done anything. The interface simply never scaled, so it shrank on every display better than the one it was authored on. Underneath that, the source art was genuinely small (<code>skillSlot.png</code> was 48&times;49) and eleven elements used Unity's built-in default sprites — the grey rounded rectangles every prototype ships with.</p>
+
+    <h3>No bitmap art at all</h3>
+    <p>Rather than redraw those sprites, the interface is drawn by two shaders using <strong>signed distance fields</strong>: chamfered frames, corner brackets, drifting scanlines, edge glow. Nothing samples a texture, so nothing can go soft — every edge is evaluated per pixel at whatever resolution the display happens to be.</p>
+    <p>The piece that makes it hold together is small and easy to miss. <code>HoloRectData</code> writes each element's pixel size into the mesh's second UV channel, and the shaders work in pixels rather than UV:</p>
+<pre><code>float2 p     = (i.uv - 0.5) * size;   // pixels from centre
+float  d     = HoloChamferBox(p, inner, _Chamfer);
+float  edge  = HoloBand(d, _Border);</code></pre>
+    <p>Without it the shaders could only work in UV space, and every measurement — corner cut, border width, bracket length — would stretch with the element. A wide health bar and a square skill slot would not look like parts of the same machine. The canvas has to list <code>TexCoord1</code> in its additional shader channels or the data never reaches the GPU, so the component says so rather than failing silently.</p>
+
+    <h3>Bars that show what was lost</h3>
+    <p>The old bars snapped, so losing health produced a bar that was merely shorter next time you looked. <code>BarMotion</code> drives a second value that lags behind the first: a hit leaves a red stretch that holds for ~0.45&nbsp;s and then drains. It is a pure class, so the cases that fail invisibly are covered by tests — a trail appearing while <em>healing</em>, or one that never drains and leaves the bar looking permanently damaged.</p>
+    <p>The bar also <strong>flinches</strong> now, six pixels on a shrinking circle over 0.22&nbsp;s. The
+    roadmap asked for a screen shake; the bar is the better trade in a game whose camera is already orbiting,
+    because a screen shake says something happened somewhere and this says what happened and where to look.
+    It also needs no accessibility switch of its own, which a full-screen shake would.</p>
+    <div class="note">
+      <div class="label">Two details that decide whether it works</div>
+      <p>Damage is worked out from the value rather than asked of the caller. <code>Player.Heal</code> and the
+      Max Health skill both arrive through the same <code>SetHealth</code>, and a bar that flinches when the
+      player is healed says the opposite of what happened.</p>
+      <p>The resting position is captured at <code>Awake</code>, not when a shake begins — hits land close
+      together late in a run, and a second one starting inside the first would record the <em>thrown</em>
+      position as home and walk the bar out of its corner a few pixels per hit. The flinch runs on unscaled
+      time for a reason specific to it: the hit that kills runs <code>SetHealth</code> and then stops time in
+      the same frame, so on scaled time the bar would freeze mid-throw behind the death screen.</p>
+    </div>
+
+    <h3>One screen at a time</h3>
+    <p>The first version let the options screen open on top of the pause screen — two dimming scrims and two panels stacked. The rule is now enforced in <code>MenuScreen.OnEnable</code> rather than by the buttons, because the buttons are not the only thing that opens a screen: <code>DeathMenu</code>, <code>PauseMenu</code> and <code>VictoryMenu</code> all call <code>SetActive</code> directly. Anything that shows a screen, by any route, now closes the rest.</p>
+
+    <h3>Escape walks back the way you came</h3>
+    <p><code>PauseMenu.Resume</code> hid exactly two GameObjects: the pause panel and the options hub. Those were the only screens that existed when it was written, so once Audio, Display and Graphics arrived, pressing Escape three screens deep <strong>restarted the game with a settings panel still on screen</strong>.</p>
+    <p>Escape now steps back one screen per press and only resumes once there is nothing left to back out of. Each screen carries a <code>previous</code> link to the one it was opened from; <code>MenuScreen.Back()</code> follows it and reports <code>false</code> at the root, which is the pause menu's cue to resume. The screens close before <code>timeScale</code> returns to 1, so play can never restart underneath a panel.</p>
+    <div class="note">
+      <div class="label">Why a link rather than a list</div>
+      <p>The obvious repair was to add the three new screens to the list <code>Resume</code> already hid. That fixes today and rebuilds the same trap for whoever adds the fourth. The <code>previous</code> link is set by the menu builder in the same call that wires each Back button, so the key and the button read one source and cannot drift apart — and closing everything is a sweep over every <code>MenuScreen</code> in the scene, which cannot fall behind the screens that exist.</p>
+    </div>
+
+    <h3>A title screen is not a dialog</h3>
+    <p>The main menu was first built the same way as the pause menu — a centred, framed panel — and it covered the logo the title video renders, while printing a second copy of the game's name underneath it. It is now a column of entries in the lower left with no panel and no title text, which is the usual arrangement precisely because it leaves the key art as the thing being looked at.</p>
+    <p>The two button styles react in their own language. Title entries slide, because they have no frame; framed buttons lift their edge glow, extend their corner brackets and run a light up the panel. Unity's colour tint is not used for either — it fades the whole image at once, including the fill, which flattens a frame instead of sharpening it, and it cannot reach a shader property at all.</p>
+
+    <h3>Generated, not placed</h3>
+    <p>Four editor tools build the HUD, the in-game menus, the title screen and the video output, over a shared factory. The interface is defined by numbers, and numbers belong in a file that can be re-run — nudging thirty rect transforms by hand and hoping they still line up at another aspect ratio is how the original ended up as it did.</p>
+    <p>The tools are additive and fully undoable, and they solve the same problem three times: several gameplay scripts lived <em>on</em> the objects being replaced. <code>HealthBar</code> sat on the object called "HealthBar", <code>ExpBar</code> on "XpBar", <code>MainMenu</code> on "MenuPrincipal". Each tool recreates the component on the new element and repoints everything holding a reference to it <em>before</em> destroying the original.</p>
+    <div class="note">
+      <div class="label">Identify by reference, not by name</div>
+      <p>The menu builder finds the old screens by asking <code>PauseMenu.pauseMenuUI</code>, <code>DeathMenu.deathMenuUI</code> and the rest what they point at, rather than matching names. Names drift and get duplicated; <code>pauseMenuUI</code> <em>is</em> the pause screen by definition. Only the leftover sweep — for objects a previous run already orphaned — has to fall back to names.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">A slider that cannot be dragged</div>
+      <p>The bars are drawn entirely by the shader, so the volume sliders were built without a fill rect or a handle — both looked redundant. They were inert. Unity's <code>Slider.UpdateDrag</code> maps the pointer through <code>handleRect.parent</code>, falling back to <code>fillRect.parent</code>, and with neither assigned it returns before touching the value:</p>
+<pre><code>RectTransform clickRect = m_HandleContainerRect ?? m_FillContainerRect;
+if (clickRect != null &amp;&amp; clickRect.rect.size[(int)axis] &gt; 0) { /* only here */ }</code></pre>
+      <p>The control still looked and reported as if it worked. Each volume slider now carries an invisible handle purely for hit-testing; the bar shader's leading edge remains the only thing drawn. The HUD bars never needed one, because nothing drags them.</p>
+    </div>
+
+    <h3>It never depended on the pipeline</h3>
+    <p>Screen Space Overlay canvases render outside the SRP entirely, so the UI shaders behave identically under HDRP and URP. The tools sit in their own editor assembly for the same reason — the other editor tools reference HDRP, and keeping the two apart meant the interface was never tied to that choice. With HDRP now the project this buys nothing today, but the separation cost nothing to maintain and the alternative would have been unpickable.</p>
+    <p>That property also fixed the title video. Drawn on the camera's far plane it became scene content, so HDRP exposed and tonemapped it with an exposure tuned for a lava-lit volcano, and it came out dark. Routed through the overlay canvas instead, nothing touches it.</p>
+    <div class="note">
+      <div class="label">Two settings that only work together</div>
+      <p>The video also looked crunched in-game but correct in a media player. Its render texture was <code>ARGB2101010</code> with sRGB <em>off</em>, in a Linear-colour-space project: the video's sRGB-encoded pixels were stored and read as though already linear, then encoded again on output. That extra gamma lifts and stretches the dark end — exactly where a compressed video keeps its quantisation steps — dragging block artifacts into view.</p>
+      <p>Ticking sRGB alone does nothing, because <code>ARGB2101010</code> has no sRGB variant in the graphics APIs. The format has to drop to <code>ARGB32</code> for the flag to apply. Counter-intuitively 8&nbsp;bits read correctly beats 10&nbsp;bits read wrongly: the source is 8-bit anyway, and sRGB spends its precision where the eye is sensitive.</p>
+    </div>
+  </section>
+
+  <section id="audio">
+    <div class="part-head"><h2>Audio</h2></div>
+    <p>Before this there was one AudioSource per scene and no code at all — no way to play a sound, and a volume slider on the options screen with <em>no listeners attached to it</em>, so moving it did nothing.</p>
+
+    <h3>Four channels</h3>
+    <p>Master, Music, Effects and Interface. Interface is separate from Effects deliberately: turning combat sound down should not make the menus feel broken, and menu sounds have to be audible while <code>timeScale</code> is zero. The labels are written for players rather than for the mixer — "Effects" says what is being turned down, "SFX" says how the code is organised.</p>
+    <p><code>AudioDirector</code> creates itself before the first scene loads and survives scene changes, so a level set on the title screen is still in force in the game. The old per-scene slider could not have carried a setting anywhere even if it had been wired.</p>
+
+    <h3>Why there is a voice pool</h3>
+    <p>Everything about playback follows from one fact: the player fires up to ten projectiles per volley and the boss twenty-nine. A clip per shot would mean hundreds of AudioSources, and every copy starting in the same frame adds amplitude until the mix clips.</p>
+    <p>So there are 24 pooled voices, and every <code>SoundDefinition</code> carries a <strong>minimum retrigger interval</strong> and a <strong>maximum concurrent voice count</strong>. Thirty bullets leaving together produce one shot. When every voice is busy, new requests are dropped rather than queued — a late sound is worse than a missing one.</p>
+    <p>Sounds also hold several clips and a pitch range, and the clip picker chooses from <em>the others</em> rather than at random, because plain randomness produces audible repeats far more often than people expect.</p>
+
+    <h3>What actually makes a sound</h3>
+    <p>Eleven call sites, and they answer to one asset rather than to a field on each script. Wiring them individually would have meant editing the player prefab, the boss prefab, every button and every menu — and an unassigned field on any one of them is a silence nobody notices.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Event</th><th>Where</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Player shot</td><td><code>Player.Shoot</code></td><td>once per volley, not per bullet — the widest spread fires ten at once</td></tr>
+          <tr><td>Hit and death</td><td><code>Player.PlayDamageSound</code></td><td>one method called from all three damage branches</td></tr>
+          <tr><td>Level up, skill granted</td><td><code>Player</code>, <code>SkillSelect</code></td><td>the skill sound fires after <code>Apply</code>, so it marks one actually granted</td></tr>
+          <tr><td>Enemy death</td><td><code>Enemy.Death</code></td><td>positional; per-<code>EnemyDefinition</code> with a shared fallback</td></tr>
+          <tr><td>Boss attack, boss death</td><td><code>BossEmitter</code></td><td>one per attack, not per muzzle — the volley alone has sixteen</td></tr>
+          <tr><td>Button click, hover</td><td><code>HoloButtonHighlight</code>, <code>HoloMenuEntry</code></td><td>every button already carries these, so nothing needed wiring</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>That last row is what finally gave the <strong>Interface</strong> channel something to attenuate. It had a working slider and nothing to turn down.</p>
+    <p>Per-enemy death sounds are the deliberate exception to the one-asset rule: they live on <code>EnemyDefinition</code> beside that enemy's health and reward, because they vary per enemy and that asset already existed.</p>
+
+    <div class="warn">
+      <div class="label">The two vendors order their quality enums backwards</div>
+      <p>Not an audio problem, but the same shape and worth stating once: <code>NVIDIA.DLSSQuality</code> runs cheapest-first, <code>AMD.FSR2Quality</code> runs best-first. A straight cast hands the player who picked <em>Quality</em> the fastest, ugliest mode — and it still renders, still upscales, and still reports the setting they chose. Anything that maps a player's choice onto a vendor enum is worth writing out explicitly and testing.</p>
+    </div>
+
+    <h3>Filling the clips</h3>
+    <p>Two editor tools, because a correctly wired silent call site and a broken one look identical. <strong>Generate Placeholder SFX</strong> implements DrPetter's sfxr as synthesis — the classic generators, deterministic from a seed, writing mono 16-bit WAVs and assigning them. That proved every call site fired before a single audio file had been sourced. <strong>Report Silent Sounds</strong> lists anything still without a clip, because a <code>SoundDefinition</code> with an empty clip list is dropped silently, which is correct behaviour and completely invisible.</p>
+    <p>The placeholders were later replaced with Kenney and Sonniss material. Both tools remain: one is the fallback, the other is the check.</p>
+    <div class="note">
+      <div class="label">Measuring loudness rather than guessing it</div>
+      <p>The per-sound levels were chosen while every clip was generated and peak-normalised, so they were pure attenuations of a known starting point. Clips from a pack share no such starting point — the same <code>0.7</code> that was a deliberate step down for one became most of the reason another was inaudible. <strong>A number tuned against an assumption that has since changed is worse than no number.</strong></p>
+      <p><strong>Balance Sound Levels</strong> now measures gated RMS on every clip and writes level-corrected copies at a common target, peak-limited so nothing clips. Gated, because a plain average makes anything with a long tail read as quiet — which is most explosions, the exact sounds that were reported as too soft. The files carry the matching; the volume field carries only intent, which is now a short table of how much quieter a sound should be <em>because of how often it fires</em>.</p>
+      <p>One trap on the way: <code>GetData</code> returns silence rather than failing for a clip that is still compressed, so the tool forces <code>DecompressOnLoad</code> around each read. Measuring zeros and calling it quiet would have been the worst possible outcome.</p>
+    </div>
+
+    <h3>The volume curve</h3>
+    <p>Hearing is logarithmic, so a slider driving amplitude directly does almost nothing over its bottom half. <code>AudioLevels</code> is pure and tested; the value it exists to prevent is negative infinity, which <code>log10(0)</code> produces and which permanently poisons any mixer parameter it reaches.</p>
+<pre><code>ToDecibels(1.0)  =   0 dB
+ToDecibels(0.5)  =  -6.02 dB
+ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
+
+    <h3>Music takes the other path</h3>
+    <p>Music does <em>not</em> go through the voice pool — those voices are short and recycled, so a looping track would either hold one forever or be cut off mid-bar when the pool ran dry during a firefight. It gets its own AudioSource, marked with <code>MusicSource</code>, which treats the level authored on the source as the balance and lets the slider scale it. With Music at full the game sounds exactly as the team mixed it.</p>
+    <p>No AudioMixer is required. Mixer assets cannot be created through Unity's public API, so depending on one would have meant a manual setup step before any sound worked at all; instead each sound has an optional mixer group, and adding a mixer later for effects or ducking is a per-asset field rather than a rewrite.</p>
+    <div class="warn">
+      <div class="label">Where three rounds of silence actually went</div>
+      <p>Unity 6 renamed the AudioSource's <strong>Audio Clip</strong> field to <strong>Audio Generator</strong>, and serialises it as <code>m_Resource</code> alongside the legacy <code>m_audioClip</code>. Asked whether the music went "in the audio generator", the answer given was no — read as a question about the Sound asset system rather than about the field on the component. The clip slot stayed empty and nothing played.</p>
+      <p>A second failure compounded it: the scene files were read from disk while the editor held unsaved changes, so the analysis described the last-saved state rather than the live one. <code>MusicSource</code> now logs a warning naming the object when it has no track, instead of presenting as silence with nothing to look at.</p>
+    </div>
+  </section>
+
+  <section id="perf">
+    <div class="part-head"><h2>Performance and diagnostics</h2></div>
+    <p>The profiler said there was no throughput problem: 183&nbsp;FPS, 5.5&nbsp;ms of frame time against a 16.7&nbsp;ms budget, 4.1&nbsp;ms on the GPU, 564 draw calls of which 530 were instanced. GPU instancing was already active through the SRP Batcher and would have added nothing.</p>
+    <p>The one real signal was a regular spike toward 33&nbsp;ms, spaced to track the spawn and fire intervals. A hitch is more perceptible than a lower steady frame rate, which is the whole reason the pooling work happened — not to raise the average, but to flatten those.</p>
+
+    <h3>Pooling</h3>
+    <p>Projectiles, hit effects, pickups and — since a later pass — enemies are all reused instead of allocated. <code>Despawn</code> destroys anything the pool did not create, so it is safe to call on anything.</p>
+
+    <div class="warn">
+      <div class="label">Enemies were excluded on a number that expired</div>
+      <p>The original rule was that enemies spawn "once or twice a second", so there was nothing to win against the risk of resetting their state. Measured against the wave asset with the real interval maths, the first half of that only holds early — nineteen streams each ramp their own interval and the curve compounds:</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th class="num">Elapsed</th><th class="num">Spawns / sec</th></tr></thead>
+          <tbody>
+            <tr><td class="num">30 s</td><td class="num">0.50</td></tr>
+            <tr><td class="num">60 s</td><td class="num">0.69</td></tr>
+            <tr><td class="num">120 s</td><td class="num">1.32</td></tr>
+            <tr><td class="num">180 s</td><td class="num">2.37</td></tr>
+            <tr><td class="num">240 s</td><td class="num">4.13</td></tr>
+            <tr><td class="num">300 s</td><td class="num"><strong>7.55</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Which is also the stretch with the most bullets, effects and lights competing for the frame. They were the last thing in the game still going through <code>Instantiate</code> and <code>Destroy</code>.</p>
+      <p>The <em>second</em> half of the rule was accurate, and named the exact three things that needed handling. Health rebuilds in <code>OnEnable</code> — left in <code>Awake</code> a reused enemy comes back holding the health it died on, which is zero. <code>Enemy_1</code> cancels its firing invoke before re-arming it, or repeats stack and an enemy fires faster the more times it has been recycled. And <code>EnemyMovement</code> restores the direction its prefab was authored with: <code>leftOrRight</code> is written at runtime by <code>ColliderScript</code> when the player crosses a trigger, so a reused enemy would otherwise set off whichever way it was last turned — with nothing about the symptom pointing at a trigger volume.</p>
+    </div>
+
+    <p>Reuse means <code>Awake</code> and <code>Start</code> no longer run per spawn, and two scripts depended on that:</p>
+    <ul>
+      <li><code>ShootScript</code> reset its rotation in <code>Start</code> — a reused bullet would have kept whatever rotation it died with. The <code>Scenario</code> lookup is now cached statically too; it was a tag search per projectile, and reuse would have repeated it forever.</li>
+      <li><code>DestroyAfterTime</code> armed in <code>Awake</code> — a reused projectile would have flown on forever. Moving it to <code>OnEnable</code> is only half the fix: <code>OnDisable</code> has to cancel, or a projectile that dies early carries a pending timer into its next life and vanishes partway through it.</li>
+    </ul>
+    <div class="note">
+      <div class="label">One deliberate behaviour change</div>
+      <p><code>Destroy</code> is deferred to the end of the frame, so a bullet's collider stayed live after impact and could damage two overlapping enemies in the same frame. <code>Despawn</code> deactivates immediately, so a bullet now hits exactly one target. That piercing was almost certainly unintended, but it is a real change in dense waves.</p>
+    </div>
+    <div class="warn">
+      <div class="label">Reuse is a teleport, and the renderer reports it as movement</div>
+      <p>A pooled object is moved to its new spawn point and switched back on. On its first frame the renderer therefore reports motion <strong>from wherever it last died</strong> — often right across the screen. Anything that reprojects the previous frame using motion vectors drags the old image along that path: FSR2 left visible ghost trails on the explosion particles, and TAA smeared more subtly. It happens constantly, at five volleys a second.</p>
+      <p>Motion is now suppressed for exactly one frame after reuse and then restored, because after that the object is moving normally and its motion vectors are worth having. The restore is done by a single component on the pool's root rather than a callback on each instance — at peak there are around 200 projectiles alive, and 200 per-frame callbacks to undo a flag is the cost the pool exists to avoid.</p>
+    </div>
+    <p>The player and the boss build their pools up front. The boss sizes its own from its pivot count — an attack fires one projectile per pivot, so the pivots already say how many — and warms one volley per travel direction rather than the six its projectile lifetime implies, so its entrance does not stall to build a pool it will fill anyway.</p>
+
+    <h3>The performance overlay</h3>
+    <p>A build sent to a tester needs to report its own numbers, because a tester cannot run a profiler. <code>PerformanceOverlay</code> creates itself, works in a normal non-development build, hides behind F3, and exports its report to the clipboard and a file on F4 so results can be pasted back rather than transcribed from a screenshot.</p>
+    <p>It leads with the <strong>1% and 0.1% lows</strong> rather than average frame rate. An average cannot show a stutter, which is the thing worth measuring after pooling; the lows can.</p>
+    <p>Not everything asked of it is obtainable, and the gaps are reported as gaps. GPU utilisation as a percentage is not exposed by any API, so it reports GPU frame time instead — which also distinguishes a GPU-bound machine from a CPU-bound one. Live VRAM comes from <code>ProfilerRecorder</code>, trying both counter names Unity has used, and process CPU from <code>System.Diagnostics.Process</code>, which some scripting backends refuse. All of it degrades to <code>n/a</code> rather than zero: a confident zero in a performance report sends someone chasing a problem that is not there.</p>
+    <p>The graphics summary omits shadow and anti-aliasing settings on purpose. Under a scriptable pipeline those come from the pipeline asset and the <code>QualitySettings</code> values sit unused, so printing them would look authoritative and be wrong.</p>
+
+    <h3>What a tester's report has to answer</h3>
+    <p>A real report came back from a weak machine and could not answer the first question anyone would ask of it. It said the window was 1280&times;720 — but not what the game had actually <em>rendered</em> at, and not which upscaler was running. "Slow at native" and "slow even with FSR Performance" are different problems with different answers, and the report could not tell them apart. Both lines exist now.</p>
+    <div class="note">
+      <div class="label">The overlay reads its own numbers</div>
+      <p>That same report showed 20 FPS with frame times of 49.8 ms and 100.0 ms on a 60 Hz screen — <strong>exactly 3 and 6 refresh intervals</strong>. That is not a slow machine, it is VSync rounding the frame rate down to 60/3, and the GPU was finishing in 39.9 ms with time to spare. The overlay now spots that pattern itself and prints what turning VSync off would give, because a tester cannot be expected to notice that their frame time is an integer multiple of anything.</p>
+      <p>It only fires when the GPU is measurably finishing sooner. A machine genuinely at its limit is not being held back by anything, and saying so would be noise.</p>
+    </div>
+    <p>The render-resolution line reports what was <em>asked for</em> and appends what the pipeline <em>resolved</em> only when the two disagree. HDRP recomputes its scale only when the active camera changes, which in a single-camera build can leave the resolved figure stale — so a mismatch between the two numbers is itself the diagnosis, where a single figure would just be quietly wrong.</p>
+
+    <h3>What a 4000-frame capture actually said</h3>
+    <p>Captures taken from a real build, rather than from the editor, put the game somewhere the earlier numbers had only implied:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Series</th><th class="num">Median</th><th class="num">p95</th><th class="num">p99</th></tr></thead>
+        <tbody>
+          <tr><td>CPU main thread</td><td class="num">2.30 ms</td><td class="num">3.38 ms</td><td class="num">14.96 ms</td></tr>
+          <tr><td>Total frame time</td><td class="num">5.02 ms</td><td class="num">5.75 ms</td><td class="num">15.27 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Mean cost across the capture broke down as <strong>VSync 3.2&nbsp;ms, Scripts 1.5&nbsp;ms, Rendering 0.5&nbsp;ms</strong> — so roughly 62% of every frame is the main thread sitting in <code>DXGI.WaitOnSwapChain</code>, idle, waiting to present. On a normal frame it reports <strong>99–100% waiting</strong>. And across all 4000 frames, <code>GC.Collect</code> produced <em>no markers at all</em>: not one garbage collection, with the largest single frame allocating 40&nbsp;KB and that being TextMesh Pro rebuilding a label.</p>
+    <p>That last figure retired a whole line of enquiry at the time. Enemies were then the one unpooled spawn path, and the obvious suspicion was that their churn caused the hitches. The capture says the collector never ran, so pooling them would not have fixed a single spike.</p>
+    <div class="note">
+      <div class="label">They were pooled later anyway, and the profiler did not ask for it</div>
+      <p>Worth being straight about, because the two pieces of evidence answer different questions. What changed was not the frame data but the <em>stated reason</em> for the exclusion — "once or twice a second" — which measurement showed holds only for the first half of a run and is wrong by roughly four times at the five-minute mark.</p>
+      <p>Whether that costs anything at 7.55 spawns a second is <strong>unmeasured</strong>. The capture above is the only evidence either way and it does not record how far into a run it was taken, so it cannot settle the late-game case it would need to. The change bought consistency and a corrected comment. It has not been shown to buy frames, and the honest next step is a capture at t≈280 rather than an assumption in either direction.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">The instrument was the hitch</div>
+      <p>The captures showed a rhythmic 15–18&nbsp;ms spike every ~105 frames — about 0.55&nbsp;s, like clockwork, in an otherwise 2&nbsp;ms frame. Autocorrelation of the CPU series peaked hard at lag 105 with a clean harmonic at 209, which is the signature of something on a fixed timer rather than of garbage or load.</p>
+      <p>It was <code>PerformanceOverlay</code>. It sampled <code>WorkingSet64</code> and <code>TotalProcessorTime</code> every 0.25&nbsp;s, and both go through <code>Process.Refresh()</code>, which on Windows re-reads the OS process table system-wide rather than looking at our own block. It costs milliseconds. At ~4.5&nbsp;ms a frame the refresh landed every ~56 frames and stalled on every <em>other</em> one — the OS caching the result in between — which is where 105 comes from.</p>
+      <p>Three captures settled it. Autocorrelation at lags 104–111 read <strong>0.176 with the overlay shown and −0.012 to −0.003 with it hidden</strong>: not a reduction, an erasure. The process counters now sample on their own two-second cadence while the frame timings stay at a quarter second, because those come from a Unity-side ring buffer and are genuinely cheap. Resident memory does not move meaningfully in 250&nbsp;ms, so nothing readable was lost.</p>
+    </div>
+
+    <p>The spikes that survive are all in the render pipeline, never in gameplay. On a spike frame <code>RenderShadowMaps</code> goes from ~0.6&nbsp;ms to <strong>8.4&nbsp;ms</strong> and <code>CreateResourceWithTag</code> from 0.66&nbsp;ms to 4.4&nbsp;ms — allocation plus a full re-render, which is the signature of a shadow map being created from scratch rather than merely redrawn. The suspect was <code>BulletLightPool</code>, and measuring it found something larger than a toggle. The scene ran <strong>five</strong> shadow casters where the code defaults to one, all of them chasing the same newest volley, and each cost about 159k triangles and 85 draw calls a frame. At three casters they were already 70% of all geometry submitted. That is now one per volley, which is documented with its numbers under <a href="#render">Rendering</a>.</p>
+    <p>What that does <em>not</em> yet prove is the millisecond. The measurement is submitted work — draw calls and triangles — taken in the editor on a paused frame, with GPU timing unavailable. It shows the mechanism is real and large. Attributing the 8.4&nbsp;ms to it still wants a capture from a real run.</p>
+    <div class="note">
+      <div class="label">Worth keeping in proportion</div>
+      <p>These spikes are ~15&nbsp;ms against a 16.67&nbsp;ms budget at 60&nbsp;FPS. They are visible <em>because</em> the game runs at 200&nbsp;+&nbsp;FPS, where a 15&nbsp;ms frame is a three-frame drop. Shipped at 60 they would fit inside the budget and vanish. That does not make them not worth fixing, but it does make this a polish problem on an already-fast game rather than a performance problem.</p>
+    </div>
+  </section>
+
+  <section id="settings">
+    <div class="part-head"><h2>Quality presets and settings</h2></div>
+    <div class="warn">
+      <div class="label">Six levels sharing one asset, then eight generated ones, now four — three of Unity's own and one hand-authored</div>
+      <p>The jam project had six named quality levels and a single <code>HDRenderPipelineAsset</code> shared between them — <code>renderPipeline:</code> did not appear in <code>QualitySettings.asset</code> at all. Under HDRP the shadows, the atlases and every support flag live <em>in the pipeline asset</em>, so switching from Very Low to Ultra changed almost nothing. A quality dropdown built on that would have been another control that looks functional and does nothing.</p>
+      <p>The answer was a builder tool that generated eight assets from tables written in C#. It worked, and it was wrong in a way worth recording: <strong>the numbers were invented here rather than measured anywhere.</strong> A flat 512 reflection cache failed its allocation every frame and logged so forever; ray-traced global illumination on the top two tiers rendered every dynamic object as a black silhouette. Both took a build to find, and neither was a coding error — they were confident numbers nobody had grounds for.</p>
+      <p>So the tool is gone. <code>HdrpQualityPresetBuilder</code>, <code>PipelineTuning</code>, the eight generated assets and the Custom quality level are all deleted, and <strong>nothing in the project writes a pipeline asset any more.</strong> Three of the four quality levels are copies of the assets Unity ships with a new HDRP project — Performant, Balanced and High Fidelity, renamed Low, Medium and Ultra — tuned by hand in the Inspector afterwards. Unity keeps its own tiers self-consistent; this file no longer has an opinion about atlas sizes.</p>
+    <p><strong>High is the exception, and the newest tier.</strong> It is a copy of High Fidelity stepped down where the cost sits rather than where the feature list does: both it and Ultra compile SSR, SSR on transparents, SSGI, volumetrics, volumetric clouds and ray tracing, and what separates them is budget — a 4096 area shadow atlas against 8192, probe volumes at L1 against L2, and the cookie atlas at 2048 against 4096. Sky reflection is <em>not</em> one of them &mdash; both sit at 2048. None of that is a volume override, which is why the two rows in <code>GraphicsPresets</code> are nearly identical. The tier does the work, not the table.</p>
+    <div class="warn">
+      <div class="label">The default was Ultra, and three things said so</div>
+      <p>The settings screen had said Medium was the default since the tiers were rebuilt. Nothing read it. <code>GraphicsPresets.DefaultIndex&nbsp;=&nbsp;1</code>, the constant whose summary names Medium, was referenced <em>nowhere in the project</em>; the tier actually came from ProjectSettings, which still held <code>Standalone:&nbsp;6</code> — an index minted when there were eight generated levels, against a list that has four.</p>
+      <p>An index past the end of that list resolves to the last entry rather than failing, so 6 quietly meant "the most expensive tier there is" and a fresh install booted on Ultra. Nothing reported it, because 6 is not an error — it is an index that used to mean something else. A constant nothing reads records an intention; it does not enforce one. The fallback now comes from the constant, and the eighteen platform entries are corrected to agree.</p>
+    </div>
+    <p>One thing the compile gates decide on their own: <strong>volumetric clouds first appear at High.</strong> Medium's asset ships <code>supportVolumetricClouds: false</code>, the same kind of hard gate as <code>supportSSR</code> on Low, so clouds have no row and simply arrive with the tier.</p>
+    </div>
+
+    <p>The copies sit at the top of <code>Settings/Quality/</code> rather than being referenced where they were found, because a folder named <code>Editor</code> is excluded from player builds — a quality level pointing at an asset that never reaches the build has no render pipeline at runtime.</p>
+    <p>The originals were kept in <code>Quality/Editor/</code> as untouched masters to duplicate from when a fourth tier was wanted. The fourth tier was duplicated, and the masters stayed for a while afterwards doing nothing. They are <strong>deleted</strong> now: eight assets with no inbound reference from anywhere, verified as a closed island whose only internal links were its own dead <code>HDRenderPipelineGlobalSettings</code> pointing at its own two profiles.</p>
+    <div class="warn">
+      <div class="label">233 KB was the least of it</div>
+      <p>What they actually cost was legibility. They were named Performant, Balanced and High Fidelity — the exact pre-rename names of the live Low, Medium and Ultra — so <code>Settings/Quality/</code> listed seven tier assets where four were real, and three of the seven wore the old names of the other four. On a project that had just spent a session working out which tier was actually live, that is a trap laid for the next person to ask.</p>
+    </div>
+
+    <h3>What each tier compiles</h3>
+    <p>These are hard gates, and that makes this the table that decides what the settings menu can offer at all. A Volume override cannot switch on an effect the pipeline never compiled, however high its priority sits.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Support flag</th><th>Low</th><th>Medium</th><th>High</th><th>Ultra</th></tr></thead>
+        <tbody>
+          <tr><td>Screen-space reflections</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>SSR on transparents</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>Screen-space global illumination</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>Volumetric fog</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td><strong>Volumetric clouds</strong></td><td>—</td><td>—</td><td><strong>yes</strong></td><td><strong>yes</strong></td></tr>
+          <tr><td>Ray tracing</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>Shadowmask</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>Ambient occlusion</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>Contact shadows</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>Screen-space shadows</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>Adaptive Probe Volumes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td>Dynamic resolution</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+          <tr><td><strong>Dynamic shadows</strong> <code>QualitySettings.shadows</code></td><td><strong>off</strong></td><td><strong>off</strong></td><td>on</td><td>on</td></tr>
+          <tr><td class="num">Sky reflection</td><td class="num">256</td><td class="num">512</td><td class="num">2048</td><td class="num">2048</td></tr>
+          <tr><td class="num">Cookie atlas</td><td class="num">512</td><td class="num">512</td><td class="num">2048</td><td class="num">4096</td></tr>
+          <tr><td class="num">Punctual shadow atlas</td><td class="num">4096</td><td class="num">4096</td><td class="num">8192</td><td class="num">8192</td></tr>
+          <tr><td class="num">Area shadow atlas</td><td class="num">2048</td><td class="num">2048</td><td class="num">4096</td><td class="num">8192</td></tr>
+          <tr><td class="num">Probe volume SH</td><td class="num">L1</td><td class="num">L1</td><td class="num">L1</td><td class="num">L2</td></tr>
+          <tr><td class="num"><code>maxShadowRequests</code></td><td class="num">128</td><td class="num">128</td><td class="num">128</td><td class="num">128</td></tr>
+          <tr><td class="num">Dynamic res min / max</td><td class="num">50 / 100</td><td class="num">50 / 100</td><td class="num">50 / 100</td><td class="num">50 / 100</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This table had three columns for four tiers for a while after the top one was split, which is the failure mode of a table that agrees with the prose beside it on the day it is written: the paragraphs were updated and the grid was not.</p>
+    <p><strong>Medium and High differ by exactly one compile flag</strong> — volumetric clouds. Everything else between them is budget rather than capability: sky reflection and cookie atlas at 512 against 2048. The sharper boundary is lower down and is not a compile flag at all — Low and Medium switch dynamic shadows off outright, which is the next block.</p>
+
+    <div class="note">
+      <div class="label">Three settings that were doing nothing until they were found</div>
+      <p><strong>Adaptive Probe Volumes were on for High alone.</strong> Only High Fidelity ships with them, and this scene's indirect light <em>is</em> an APV bake — so on the other two tiers the bake was simply unread and dynamic objects fell back to legacy probes. The same failure shape as the ray-traced GI silhouettes, arrived at by leaving a default alone rather than by setting one.</p>
+      <p><strong>Minimum screen percentage ships at 100.</strong> HDRP clamps every scale request to the asset's band, so with the floor at the ceiling the Render Scale row and the dynamic resolution controller both computed a percentage every frame and had it thrown away. It is 50 now, which is the floor the director already clamps to.</p>
+      <p><strong>The advanced upscaler list ships empty.</strong> HDRP only walks the upscalers named there, so DLSS and FSR2 were detected and never offered. Both are listed now.</p>
+    </div>
+
+    <h3>The bottom two tiers have no dynamic shadows</h3>
+    <p>This started as a request: <em>rather than have the lowest tier do nothing, let it turn dynamic shadows
+    off</em> — the bullet lights being the obvious candidate. It is live, and it is two tiers rather than
+    one. <code>QualitySettings.shadows</code> is <code>Disable</code> on Low and Medium and <code>All</code> on
+    High and Ultra.</p>
+    <p><strong>Medium is the default tier</strong>, which makes this more than a bottom-end concession. The
+    Rendering section spends a good many words measuring what bullet-light shadows cost and what one-per-volley
+    saved; on the tier a fresh install boots into, that whole mechanism is switched off before it starts.
+    <code>BulletLightPool.ShadowBudget</code> returns 0 and no light is ever marked a caster.</p>
+    <div class="note">
+      <div class="label">Why the switch is in QualitySettings and not in the pipeline asset</div>
+      <p>The obvious place to express "no shadows" is HDRP's own shadow budget, and the obvious value is zero.
+      <strong>Never set <code>maxShadowRequests</code> to 0.</strong> It has half a path.
+      <code>HDShadowManager.InitShadowManager</code> does check for zero — and returns
+      <em>before allocating its atlas</em>. <code>GetUnmanageDataForShadowRequestJobs</code> then dereferences
+      that atlas with no guard of its own, so the tier threw a <code>NullReferenceException</code> every frame
+      and the game drew nothing at all. The give-away sits one method below: <code>Clear()</code> guards with
+      <code>if (m_MaxShadowRequests == 0) return;</code>. HDRP knows the state exists; one path forgets to check.
+      All four tiers ship <code>maxShadowRequests: 128</code> today.</p>
+      <p><code>QualitySettings.shadows</code> carries the intent instead, and the reason it works is that
+      <strong>HDRP does not read it</strong> for its own rendering. A field the pipeline ignores cannot break the
+      pipeline, and it lets <code>BulletLightPool</code> ask the question without knowing that HDRP exists —
+      the same pool would work unchanged on URP. The cost of a setting nothing reads is usually that it does
+      nothing; here it is exactly what makes it safe.</p>
+    </div>
+    <p>The player is told. The Quality row carries <em>"Dynamic shadows are off at this level"</em>, asked of
+    <code>QualitySettings</code> rather than compared against index 0 — because it is two tiers now
+    rather than one, and a tier inserted below would have moved the answer again. That has already happened once
+    to this project, which is the whole argument for reading state instead of counting it.</p>
+
+    <h3>What the tiers are not asked to do</h3>
+    <p>Two things deliberately stayed out of the assets. <strong>The GPU Resident Drawer is disabled on all four</strong>, though Unity's tiers enable it: it moves draw submission onto the GPU for scenes pushing thousands of renderers, and this arena has 89 static mesh renderers and 125k vertices, with the enemies and bullets pooled and dynamic so they would stay on the normal path regardless. It also requires every BatchRendererGroup shader variant to be kept, which is a cost paid by every build for a path nothing here uses — and which surfaced as a compile warning from inside Unity's own <code>DebugOccluder</code> shader.</p>
+    <p>And <strong>screen-space shadows stay off everywhere.</strong> That flag allocates the buffer ray-traced shadows write into; HDRP delivers those per light, from <code>HDAdditionalLightData.useRayTracedShadows</code>, which is false on all four lights in the scene. Setting the pipeline flag alone allocated a buffer nothing wrote to — no effect in the editor, haze in a build.</p>
+    <h3>The settings menu</h3>
+    <p><code>GraphicsDirector</code> is the same shape as <code>AudioDirector</code>: it creates itself, survives scene loads, and persists every choice. Effect rows go through a Volume it owns at priority 10000, because overriding is the only way to force an effect <em>off</em> — disabling a component on a lower-priority volume simply loses to whatever the scene authored.</p>
+
+    <div class="warn">
+      <div class="label">Two rows that could not do anything, in either position</div>
+      <p>The director used to <em>only ever subtract</em>: it overrode a setting when the player turned it off and stood aside when they turned it on, so the on-state came from whatever the scene authored. That is a reasonable rule and it needs something underneath to author the effect on. Nothing did.</p>
+      <p>The scene authored <code>ScreenSpaceReflection.enabled = 0</code>, and the default profile authored <code>AmbientOcclusion.intensity = 0</code>. So <strong>Reflections and Ambient Occlusion each resolved to the same nothing in both positions</strong> — two controls that looked live, accepted the click, and could not change a pixel. The director is authoritative now. It still leaves <em>intensity</em> alone where an effect is on: quality is how much work the effect does, and how strong it looks is an authored value a settings menu has no business replacing.</p>
+    </div>
+
+    <h4>Every effect is a ladder, not a switch</h4>
+    <p>Each row runs <strong>Off · Low · Medium · High</strong>, and the effects with a ray-traced form continue <strong>RT Low · RT Medium · RT High</strong> on the same ladder rather than in a second row. It is one continuous cost curve and ray tracing is simply the expensive end — which also removes the state where a player holds both a screen-space and a ray-traced setting and has to work out which one the renderer used. The ray-traced half disappears entirely on hardware or a tier that cannot run it.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Row</th><th>Rungs</th><th>Low</th><th>Medium</th><th>High</th></tr></thead>
+        <tbody>
+          <tr><td>Reflections</td><td>Off · Low · Medium · High · RT ×3</td><td>gated off</td><td>Medium</td><td>High</td></tr>
+          <tr><td>Global Illumination</td><td>Off · Low · Medium · High · RT ×3</td><td>gated off</td><td><strong>Off</strong></td><td><strong>Off</strong></td></tr>
+          <tr><td>Volumetric Fog</td><td>Off · Low · Medium · High</td><td>gated off</td><td>Low</td><td>Medium</td></tr>
+          <tr><td>Motion Blur</td><td>Off · Low · Medium · High</td><td colspan="3">Medium — outside the tier system entirely</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <div class="label">A row dies with its flag</div>
+      <p>There were eight rows here. <strong>Texture Quality and Anisotropic Filtering</strong> went first: both are per-quality-level <code>QualitySettings</code> values that the chosen tier already carries, so the rows were overriding the player's tier with numbers the menu had invented. <strong>Shadow Quality</strong> narrowed to the one thing in its six-field rung that a Volume can still reach — contact shadows — and then went too, alongside <strong>Ambient Occlusion</strong>, when both tiers' <code>supportSSAO</code> and <code>supportContactShadows</code> were switched off.</p>
+      <p>That last pair is the interesting one, because the rows worked. They stopped being reachable, and a row that can never take effect is worse than no row — the same judgement that produced the greyed-out state, applied one step further. Their enum numbers are retired rather than reused, as six others already are: a row serialised as 8 by an older build would otherwise silently repoint at whatever took the number.</p>
+      <p>So the count moves with the tiers rather than being authored in the menu. Re-tick either flag and its row has to come back with it.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">Why no tier turns global illumination on</div>
+      <p>GI is not an addition here, it is a replacement. This scene's indirect light is baked into lightmaps and probe volumes, carefully enough that a single bake costs tens of megabytes of LFS quota. Switching GI on hands that job to a solver that has never seen the bake, and <strong>dynamic objects lose their indirect light entirely</strong> — the ships render as black silhouettes against terrain that kept its lightmap.</p>
+      <p>That shipped in a build. It read as the shadow rows being broken, because the change that exposed it was a shadow setting; the actual cause was ray-traced GI arriving on by default at the top two presets. The row is still there and still reachable — deliberately, because absent is not the same as declined — and no tier selects it.</p>
+    </div>
+
+    <p><strong>Motion blur sits outside all of this.</strong> It is taste rather than fidelity: players turn it off on hardware that could run it at maximum, and a tier stamping over that every time quality changes would be the settings screen arguing with them. Picking a tier clears every other row so they fall back to it; motion blur's key is the one deliberately left out of that list.</p>
+
+    <div class="note">
+      <div class="label">What went with the Custom preset</div>
+      <p>Changing a row used to move the selection onto a real eighth quality level called Custom, backed by an <code>Instantiate()</code> clone of whichever preset asset it rested on. Three defects lived in that design and all three are now unreachable, which is the clearest argument for the simpler arrangement.</p>
+      <p>The clone was written into <code>QualitySettings.renderPipeline</code>, a <em>persistent project setting</em>, so a later rebuild destroyed it and left the level pointing at a dead object for the next <code>SetQualityLevel</code> to adopt. Rebuilding by instantiating a fresh asset meant destroying the outgoing one while HDRP's teardown of it was still in flight — fourteen to sixteen <em>"referenced script is missing"</em> warnings per row change, measured by bisection rather than guessed at: swapping without the destroy produced none, the destroy alone produced them every time. And the rebuild hitched hard enough to need debouncing.</p>
+      <p>Rows are a Volume overlay on the chosen tier now. Nothing is cloned, so none of it can recur. The cost is that the Quality row no longer signals that you have deviated from the tier — it names which asset is loaded, which stays true, and says nothing about the rows underneath.</p>
+    </div>
+
+    <p>Options is a hub of three screens rather than one screen of settings. Four sliders, two columns of cyclers and one column of switches want incompatible layouts, and sharing a panel meant at least one of them was always the wrong shape. The split between the two graphical screens is a real distinction rather than an arbitrary halving:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Screen</th><th>Answers</th><th>Holds</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Display</strong></td><td>how the image is produced and presented</td><td>resolution, window mode, VSync, frame cap, upscaling, upscale quality, render scale, anti-aliasing</td></tr>
+          <tr><td><strong>Graphics</strong></td><td>what is in the image</td><td>quality tier, global illumination, reflections, volumetric fog, motion blur</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>A player picking a resolution is fitting the game to their hardware; one turning off motion blur is expressing a preference. Mixed together they made a twelve-row panel with no order anyone could predict.</p>
+
+    <h4>Upscaling is three rows, not one list</h4>
+    <p>The first attempt was a single nine-item cycler — <em>Off, SMAA, TAA, FSR Quality, FSR Balanced, FSR Performance, DLSS Quality…</em> — which conflated <em>which</em> reconstruction runs with <em>how hard it pushes</em>. Comparing FSR Balanced against DLSS Balanced meant scrolling between two unrelated entries. It is now Upscale Method, Upscale Quality and Anti-Aliasing as separate rows, each of which goes quiet with a note when another owns it.</p>
+    <p><strong>DLAA belongs to anti-aliasing</strong>, not to upscaling: it is DLSS rendering at full resolution, spending its budget on edges instead of reconstruction. It makes the image cost more, not less. There is deliberately no FSR counterpart beside it — Unity's <code>AMD.FSR2Quality</code> has only Quality, Balanced, Performance and UltraPerformance, with no native-resolution mode to expose.</p>
+
+    <div class="warn">
+      <div class="label">The two vendors order their quality enums backwards from each other</div>
+      <p><code>NVIDIA.DLSSQuality</code> runs cheapest-first — <code>MaximumPerformance</code> is 0 and <code>MaximumQuality</code> is 2. <code>AMD.FSR2Quality</code> runs best-first — <code>Quality</code> is 0. Casting the player's choice straight across hands anyone picking Quality on an NVIDIA card the fastest, ugliest mode instead.</p>
+      <p>Nothing about that failure announces itself: it still renders, still upscales, still reports the setting the player chose. The mapping is written out explicitly in <code>DisplayOptions</code> — including the FSR side, which happens to be the identity and is spelled out anyway so the next person cannot assume the same of the other.</p>
+    </div>
+
+    <h4>Nothing writes to the pipeline asset</h4>
+    <p>The display controls apply through per-camera fields on <code>HDAdditionalCameraData</code> — <code>allowDynamicResolution</code>, the two <code>allow…</code> upscaler flags, the <code>…UseCustomQualitySettings</code> and <code>…Quality</code> pairs, and <code>antialiasing</code>. The effect rows apply through the Volume. The same settings exist on the pipeline asset and would have been the shorter route for both.</p>
+    <p>They are not used because <strong>asset changes made in play mode are not rolled back when play mode ends</strong>. Unity reverts scene changes; ScriptableObject edits persist and get written on the next save. A settings menu that wrote there would let one slider drag in the editor permanently rewrite the project's shipped defaults — and it would only misbehave on the developer's machine, since a built player never serialises the asset back. Correct in the build, quietly corrupting in the editor, is the worst shape a bug can have.</p>
+    <p>That rule used to have one exception: the rows needing pipeline fields wrote to a runtime clone. Removing the generated presets removed the exception with it, so the heading is now literal rather than nearly true — no code path in the project writes a <code>RenderPipelineSettings</code> field at all.</p>
+    <p>Availability comes from <code>HDDynamicResolutionPlatformCapabilities.DLSSDetected</code> and <code>.FSR2Detected</code> <em>intersected with</em> the asset's own upscaler list, so an upscaler the machine cannot run — or that the tier does not permit — is left out of the cycle rather than offered and refused.</p>
+
+    <h4>Sharpness is the one slider</h4>
+    <p>Every other graphics row is a cycler. Sharpness is not, and the reason the rule exists is the reason it does not apply here: cyclers step because settings have <strong>performance cliffs</strong> — render scale moves in tens because 73% is not a choice anybody means to make. Sharpening costs the same at every value, so every position is a real choice and a slider is the honest control.</p>
+    <p>It drives three things at once, which is why it had previously seemed to have no effect. <strong>TAA sharpens twice</strong> — once as a post pass at 0.5 and again on the history it samples at 0.35, both on by default — and FSR ignores both and does its own. Turning down only the obvious one leaves the image still crunchy.</p>
+    <p>The curve is anchored at the four levels the earlier cycler had, so anything already tuned to Low or Medium is byte-identical; the slider only fills in between. It is piecewise rather than one interpolation because the anchors are not evenly spaced — the post pass doubles between Medium and High while the history pass barely moves.</p>
+    <p>The default is Low, not Medium. <strong>Medium reproduces HDRP's stock values, and HDRP's stock values are the two passes stacked</strong> — which is the over-sharpened look the control exists to fix.</p>
+
+    <h4>Dynamic resolution</h4>
+    <p>Enabled in the pipeline asset from the very beginning, and it never moved a pixel. The scaler handed to HDRP returned a fixed number, so the machinery ran every frame and always got the same answer back — and the camera flag that lets any of it apply was only set when an upscaler was on. Enabled everywhere, doing nothing.</p>
+    <p>It is one row rather than a toggle beside a target, because a target that is switched off is a control that does nothing: <em>Dynamic Resolution: Target 120 FPS</em> says both things. The controller drops fast and climbs slowly on purpose — being slow is what the player feels now, while climbing back eagerly is what makes these systems visibly pump when a scene is briefly cheap.</p>
+    <p>It is a pure class with no UnityEngine dependency, so a thousand simulated frames run in a millisecond. That matters more here than elsewhere: a controller that hunts by two percent forever passes any code review and is maddening on screen.</p>
+
+    <div class="note">
+      <div class="label">Two HDRP limits worth knowing before designing this screen again</div>
+      <p><strong>Render scale can never exceed 100%.</strong> <code>DynamicResolutionHandler.ApplyScalesOnSize</code> clamps with <code>Math.Min(scaledSize, size)</code> below the hardware/software branch, so it binds on both paths. That <code>maxPercentage</code> accepts values up to 300%, and that the RTHandle system would happily grow to fit, are both red herrings. Supersampling would need a different mechanism entirely.</p>
+      <p><strong>The min and max percentages are asset-only.</strong> They are the one thing here that would have to be written back to the pipeline asset, and DLSS and FSR2 overwrite them from their own optimal settings the moment either is active. Cutting the row that edited them was right; cutting the <em>feature</em> along with it was not, and dynamic resolution went unbuilt for far longer than it needed to as a result. The 50–100% band the asset already defines was always exactly the range a target-frame-rate control wanted.</p>
+    </div>
+
+    <p>Render scale reaches HDRP through <code>SetDynamicResScaler</code> in the User slot. The earlier code called <code>ScalableBufferManager.ResizeBuffers</code> directly, which HDRP overwrites from the dynamic resolution handler every frame — so the row appeared to work and changed nothing that survived. The upscalers claim the System slot while they are active and HDRP reselects User at the top of each camera, which is what makes the row apply exactly when it claims to.</p>
+    <div class="note">
+      <div class="label">Controls that admit what they cannot do</div>
+      <p>Every row that would otherwise sit there inert says why: <em>"Ignored while VSync is on"</em> under the frame cap, <em>"This GPU has no ray tracing support"</em> on hardware without DXR, <em>"Set by the upscaler"</em> on render scale, <em>"Replaced by FSR"</em> on anti-aliasing, <em>"Ray traced levels need a DXR GPU"</em> where a ladder stops at High, <em>"Dynamic shadows are off at this level"</em> on the quality row itself. Three separate dead controls turned up in this project — a volume slider with no listeners, a quality dropdown backed by one asset, an attack-speed upgrade that never applied. This is the habit that came out of them.</p>
+      <p>A note was not enough on its own. An unavailable row still <em>looked</em> exactly like a working one and simply swallowed the click, which is the same failure in a quieter register. Rows now dim and refuse the click — including when a row is down to a single option, which is how the ray-traced rungs vanishing on a non-DXR machine can leave one with nothing to choose.</p>
+      <p>That took three pieces, because the obvious one did nothing. <code>GraphicsOption</code> dims its label and value and clears <code>interactable</code> on both steppers — but these buttons are built with <code>Transition.None</code>, so <code>interactable</code> blocks the click and changes not one pixel. <code>HoloButtonHighlight</code> owns their visual language, so the dimming went there, along with refusing to highlight and declining both the hover and click sounds. A disabled <code>Selectable</code> still delivers pointer events to the other handlers on the object, so without that last check a dead stepper played a click sound for a click that did nothing — worse than silence, because it claims something happened.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">The greying immediately caught one</div>
+      <p>The Upscaling row went permanently grey, and the cause was not the greying. Every preset shipped with an empty <code>advancedUpscalerNames</code>, inherited from all three stock bases. HDRP only walks the upscalers named there, and the director checks that list before offering the row — precisely so it never presents a control that cannot work. With the list empty that check did its job too well: <strong>FSR2 is detected on this hardware and the row still had nothing but Off</strong>, and had done since the presets were first built.</p>
+      <p>The two checks answer different questions, which is why it stayed hidden. The hardware flag says what is <em>present</em>; the asset list says what is <em>permitted</em>. Only the intersection can be offered, and only one of them was filled in.</p>
+    </div>
+    <h3>VSync, and the frame cap that replaced it</h3>
+    <p>A crash and two-second stalls, on one machine, only with VSync on. The cause turned out to be arithmetic rather than a bug: a <strong>200 Hz display is a 5 ms refresh interval, and the game renders a frame in 4.3–5.0 ms.</strong> Every single frame was a coin flip on whether it made the vblank, and the driver answered that by hanging for nearly two seconds at a time.</p>
+    <p>The fix cannot be "cap the frame rate and keep VSync": Unity ignores <code>targetFrameRate</code> entirely while <code>vSyncCount</code> is non-zero, so the two cannot be combined however much one would like to sit just below refresh <em>and</em> sync. The rows say so rather than letting one silently defeat the other.</p>
+    <p>So the frame cap gained a <strong>Just under display</strong> option, derived from whichever monitor the game is on rather than typed — a fixed 144 is the boundary on a 144 Hz panel and nowhere near it on a 165 Hz one. Its margin is a proportion, about 4%, because a flat two frames is 3.3% at 60 Hz and 1% at 200 Hz, where the whole interval is 5 ms and that margin buys nothing at all.</p>
+    <div class="note">
+      <div class="label">A number derived once is a number that goes stale</div>
+      <p>Unity's own documentation warns not to assume the refresh rate seen at startup persists: monitors change when a window moves between displays, laptops throttle when unplugged. The derived cap was computed only when a <em>setting</em> changed, never when the <em>display</em> did — so dragging the game to a second monitor would have kept capping to the first one's refresh rate. It is now re-derived when the display moves underneath it.</p>
+    </div>
+    <p>Separately, <code>vSyncCount</code> was stored per quality level as well as by the player's setting — Medium, High and Very High each turned VSync on independently. The director re-asserted after every quality change so it won in practice, but that is the same value in two places, and all three levels are now zero.</p>
+
+    <p>The interface also has a real typeface now. Chakra Petch, found by searching the font folder rather than by a hardcoded path — seven of those broke silently in the reorganisation, and they only fail at the moment somebody runs a tool.</p>
+  </section>
+
+  <section id="layout">
+    <div class="part-head"><h2>How the project is laid out</h2></div>
+    <p>The jam project stored assets by where they happened to be dropped: prefabs beside scenes, materials beside models, HUD art in its own top-level folder. Everything now sits under a small number of folders named for what a thing <em>is</em>.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Folder</th><th>Holds</th></tr></thead>
+        <tbody>
+          <tr><td><code>Art/</code></td><td>models, materials, textures, shaders, skybox, animations</td></tr>
+          <tr><td><code>Audio/</code></td><td>tracks, and the Sound definitions that describe them</td></tr>
+          <tr><td><code>Data/</code></td><td>ScriptableObject content — enemies, skills, waves</td></tr>
+          <tr><td><code>Prefabs/</code></td><td>by role: Player, Enemies, Boss, Projectiles, VFX</td></tr>
+          <tr><td><code>Scripts/</code></td><td>Core, Gameplay, Systems, UI, Editor</td></tr>
+          <tr><td><code>UI/</code></td><td>the interface's own shaders, materials and render textures</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><code>Scripts/</code> is the division worth keeping: <code>Gameplay/</code> is what the game <em>is</em> — arena, player, enemies, boss, skills, waves — and <code>Systems/</code> is machinery that would work in any game: audio, input, pooling, diagnostics. If something in <code>Systems/</code> starts needing to know about the boss, it has moved to the wrong folder.</p>
+    <p>Four assemblies: <code>SurvivalChaos</code> (runtime), <code>SurvivalChaos.Tests.EditMode</code>, and two editor assemblies kept apart on purpose — <code>SurvivalChaos.Editor</code> references HDRP and is branch-locked, while <code>SurvivalChaos.UI.Editor</code> references nothing pipeline-specific and travels freely.</p>
+    <div class="note">
+      <div class="label">What a reorganisation quietly breaks</div>
+      <p>Unity tracks asset references by guid, so moving files in the Project window preserved every scene reference, material and prefab link — verified rather than assumed. <strong>String paths in code are not tracked.</strong> Seven of them across five editor tools still pointed at folders that no longer existed, and would have failed only at the moment someone ran the tool. The video fixer was the live one: <code>Assets/HUD</code> was gone, so creating its render texture would have thrown.</p>
+    </div>
+
+    <h3>What drives the editor</h3>
+    <p>The project carries <code>com.unity.pipeline</code>, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
+    <p>The difference that mattered was recompilation. The old relay would not trigger a domain reload, because the reload severed its own connection, so every new script needed the editor window focused by hand before it existed. The pipeline drops its connection mid-reload and reconnects on the far side, which closes the loop: write a script, compile it, attach it, and confirm the type is live in the loaded domain without touching the editor.</p>
+    <p>It also made the captions visible for the first time. Capturing the game view with the composited backbuffer includes Screen Space Overlay canvases, which is where they live — before that they had been diagnosed by reading vertex counts, because the relay's camera capture rendered through a camera and missed overlay UI entirely.</p>
+    <div class="warn">
+      <div class="label">A package that edits your player settings</div>
+      <p><code>BasePipelineServer.Start()</code> sets <code>Application.runInBackground = true</code> every time it starts — every editor launch, every domain reload — so the editor keeps pumping its update loop while unfocused and can go on answering commands. In the editor that assignment writes through to PlayerSettings, so setting it back by hand lasts exactly until the next launch.</p>
+      <p>Nothing in a build asks for it: the runtime half of the pipeline is opt-in through a config asset this project does not have, and should not gain. But PlayerSettings is baked into builds, and this game has no pause — left on, alt-tabbing does not stop the run, and the player returns to a death they were not present for. <code>RunInBackgroundOff</code> is an <code>IPreprocessBuildWithReport</code> that clears the flag as a build starts, which is the only place it can be won.</p>
+    </div>
+  </section>
+
+  <section id="tests">
+    <div class="part-head"><h2>The test suite</h2></div>
+    <p>264 tests across 23 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
+        <tbody>
+          <tr><td><code>DisplayOptionsTests</code></td><td class="num">29</td><td>resolution filtering, the inverted vendor quality enums, and the frame cap that must not land on the refresh rate</td></tr>
+          <tr><td><code>MuzzleRowsTests</code></td><td class="num">20</td><td>grouping a bank of muzzles into the rows the artist modelled, pinned against the real heights off the boss</td></tr>
+          <tr><td><code>SkillPoolTests</code></td><td class="num">17</td><td>both original skill bugs, and that an offer is not a pick</td></tr>
+          <tr><td><code>DashCycleTests</code></td><td class="num">16</td><td>the burst, the cooldown, and that invincibility ends with the travel rather than with the cycle</td></tr>
+          <tr><td><code>HealthStateTests</code></td><td class="num">16</td><td>a kill is reported exactly once</td></tr>
+          <tr><td><code>ObjectPoolTests</code></td><td class="num">16</td><td>reuse never hands out a live instance twice</td></tr>
+          <tr><td><code>BossPhaseStateTests</code></td><td class="num">15</td><td>the fight's three acts happen once each and never go backwards</td></tr>
+          <tr><td><code>DynamicResolutionControllerTests</code></td><td class="num">13</td><td>drops fast, climbs slowly, and never hunts</td></tr>
+          <tr><td><code>ShipMotionTests</code></td><td class="num">12</td><td>easing, including frame-rate independence</td></tr>
+          <tr><td><code>PickupPlacementTests</code></td><td class="num">11</td><td>bearings compared the short way round, and clearance clamped to half the neighbour gap</td></tr>
+          <tr><td><code>AudioLevelsTests</code></td><td class="num">10</td><td>the volume curve, and that silence is never -Infinity</td></tr>
+          <tr><td><code>FrameTimeStatsTests</code></td><td class="num">10</td><td>the 1% low arithmetic reported to testers</td></tr>
+          <tr><td><code>BarMotionTests</code></td><td class="num">9</td><td>no damage trail while healing</td></tr>
+          <tr><td><code>SpawnBandTests</code></td><td class="num">9</td><td>spawn heights against the band the player can fly in</td></tr>
+          <tr><td><code>SpawnMathTests</code></td><td class="num">9</td><td>the spawn curve at shipped values</td></tr>
+          <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
+          <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
+          <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
+          <tr><td><code>ArenaLaneTests</code></td><td class="num">6</td><td>a shot eases onto the player's lane without overshooting, and gets there before it has missed its chance</td></tr>
+          <tr><td><code>BossSheddingTests</code></td><td class="num">6</td><td>wreckage is fed evenly to all three heights whatever order the pods died in</td></tr>
+          <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
+          <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
+          <tr><td><code>ExpTests</code></td><td class="num">4</td><td>the experience contract</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <div class="label">What the suite does not reach</div>
+      <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
+    </div>
+    <p>The newer suites all test things that fail <em>quietly</em>. A pool that hands the same object to two callers, a benchmark figure that misrepresents a tester's machine, a health bar showing a red loss stretch while the player is healing, a volume slider that does nothing over its bottom half, an upscaler handed the opposite quality mode to the one the player picked — none of those announce themselves.</p>
+  </section>
+
+  <hr class="div">
+
+  <!-- ============ PART IV ============ -->
+  <section id="lessons">
+    <div class="part-head">
+      <div class="eyebrow">Part IV</div>
+      <h2>Ideas worth carrying forward</h2>
+    </div>
+
+    <h3>Read the data, don't retype it</h3>
+    <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
+
+    <h3>Separate the rule from the Unity object</h3>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 264 tests possible, and it's the single most repeatable idea here.</p>
+
+    <h3>Put a seam where a swap is coming</h3>
+    <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
+
+    <h3>Derive the number, don't store it twice</h3>
+    <p>The countdown to the boss and the boss's actual spawn time were two independent values that had to agree, and they had drifted to 60 and 300 — the scene carried two <code>Timer</code> components, one of which called <code>showHpBar()</code> on a null reference every frame from a minute in. The surviving timer now reads its length from the wave asset's boss stream, located by the prefab carrying <code>BossEmitter</code> rather than by label, so retuning the spawn moves the bar with it. A value stored twice is a value that will eventually disagree.</p>
+
+    <h3>A repair can erase the evidence a later one needs</h3>
+    <p>An early pass filled in every unwired <code>bossHpBar</code> reference. That looked like tidying. It also destroyed the only signal distinguishing the correctly configured timer from the broken one, so the consolidation step written afterwards confidently picked the wrong one. Patching a symptom can remove the information required to find the cause — worth remembering before "fixing" something not yet understood.</p>
+
+    <h3>A setting that does nothing looks exactly like one that works</h3>
+    <p>Three separate controls in this project were enabled, wired, and inert. Dynamic resolution ran its machinery every frame against a scaler that returned a constant. The upscaling row offered FSR after it had been taken out of the pipeline asset, because availability was checked against the <em>hardware</em> rather than against what the asset actually lists. A sharpness control moved one of the two passes TAA runs, leaving the image visibly unchanged.</p>
+    <p>None of them threw, logged, or looked wrong in code review. What catches this class of fault is asking, for every setting, <strong>what would be different on screen if this were doing nothing at all</strong> — and if the answer is "nothing", finding out why before shipping it. The note line under each row exists for the cases where the honest answer is that it genuinely does nothing right now.</p>
+
+    <h3>An index is not an identity</h3>
+    <p>The menu builder set each row's setting with <code>SerializedProperty.enumValueIndex</code>, which is the value's <em>position in the enum declaration</em> rather than the value itself. That worked for as long as the enum ran 0 to 11 with no gaps. Removing the old combined upscaling row left a hole at 11, and every row after it silently drove the wrong setting — the row labelled Anti-Aliasing was writing the quality preset — while the last one threw.</p>
+    <p>The property that means what it says is <code>intValue</code>. The same call in the audio rows was equally wrong and equally invisible, because <code>AudioChannel</code> happens to be contiguous. <strong>Two representations that agree by coincidence will keep agreeing right up until they matter.</strong></p>
+
+    <h3>A poisoned setting outlives the bug that wrote it</h3>
+    <p>While those rows were mis-wired, cycling one wrote quality level 0 into <code>PlayerPrefs</code>. Fixing the rows did not undo it — preferences survive rebuilds and play sessions — and level 0 was the tier that crashed HDRP — the <code>maxShadowRequests = 0</code> fault written up under <a href="#settings">Quality presets and settings</a> — so the game stayed unlaunchable after the actual defect was gone. Worth asking, after any bug in code that <em>persists</em> something: what did it write while it was broken, and is that still there?</p>
+
+    <h3>Read the live state, not the last saved one</h3>
+    <p>Three rounds were spent on silent music. The scene files were read from disk while the editor held unsaved changes, and the conclusion drawn from them — "the clip is definitively not assigned" — described a state that no longer existed and contradicted what was visible in the Inspector. The asterisk in the window title was the tell, and it was there the whole time. When a tool and a person disagree about what is on screen, the person is looking at the live thing.</p>
+    <p>It recurred while building the Display screen: the pipeline asset was read from disk and reported an upscaler priority order that had already been changed in the Inspector. The reliable answer is to ask the editor itself — running a few lines of C# inside it returns <code>SystemInfo</code>, live asset state and detection flags as they actually are. That is also how the graphics card was identified and how the <a href="#settings">shadow crash</a> was pinned to a specific quality tier, in minutes rather than by inference.</p>
+
+    <h3>Preserve behaviour, flag the judgement</h3>
+    <p>The boss's 2 EXP, the laser's fire rate, the 301-second cutoff, the <code>"SexTUPLO Shot!"</code> banner — all preserved exactly, all surfaced as things to decide. Three of those four have since been decided, which is the point: they were reachable as one field each when the moment came. Migration and rebalancing are different jobs, and mixing them makes both harder to review.</p>
+  </section>
+
+  <section id="open">
+    <div class="part-head"><h2>What's still open</h2></div>
+
+    <h4>Decisions, not bugs</h4>
+    <ul>
+      <li>Whether the eighteen 2023 jam branches still on the remote are kept. They are stale, but they are also the only record of who did what on the original project.</li>
+    </ul>
+
+    <h4>Open on the current front</h4>
+    <ul>
+      <li><strong>The cloud bank is committed switched off.</strong> <code>Arena Cloud Bank</code> has <code>m_IsActive: 0</code> in the scene. It was disabled two commits before the sparsity work to keep it out of a lightmap bake and has not been switched back on, so the mask that was just retuned is not being rendered by anything. The volume also grew to 2000&nbsp;&times;&nbsp;300&nbsp;&times;&nbsp;2000 in the same commit, which stretches one mask tile to 1000 world units &mdash; worth a look with fresh eyes before it goes back on.</li>
+      <li><strong>The shadow work is cut; the millisecond is still unattributed.</strong> Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. What remains is the confirmation: that measurement is submitted work from a paused editor frame with GPU timing unavailable, so it proves the mechanism was large without proving it was the 8.4&nbsp;ms spike. A capture from a real run closes it.</li>
+      <li><strong>The shadow budget now bites at the other end of the run.</strong> <code>shadowCastingCount</code> is 4, which costs nothing once Shot Upgrade lands — only two volleys are lit — but means four casters in the opening minute, when every bullet is its own volley and there is least else on screen to justify it. 2 is the defensible number; 4 is what is in the scene.</li>
+      <li><strong>The wreckage reads only as a silhouette.</strong> The plates carry the boss's own hull
+      material, which is nearly black; against the sky or the lava they are unmistakable, and against the dark
+      island one can be lost. An emissive tint would fix it and would also be the first thing in the arena that
+      glows because it is dangerous rather than because it is hot &mdash; a call about the art direction rather
+      than about the mechanic, so it has deliberately not been made.</li>
+      <li><strong>The boss's second act has been measured but not played.</strong> Every figure above &mdash; nine
+      plates, one forced move every four seconds, 36.5 seconds of standing still &mdash; comes from a probe with
+      the player parked and the arena controlled. Standing still is the worst case and nobody plays that way. The
+      cadence, the lane response and the plate's life are one serialized field each for exactly that reason.</li>
+      <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>
+      <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s. The ceiling is the same for a player who takes all four, but taking one or two ends a run lower than the old single pick did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
+      <li><strong>Ray-traced reflections are validated; the rest of the rungs are not.</strong> RT Reflections was selected in a build on DXR hardware and visibly changed the image — which is precisely the bar ray-traced <em>shadows</em> failed. That row shipped allocating a screen-space buffer no light wrote to, invisible in the editor and haze in a build, and was removed outright. RT global illumination is reachable and deliberately unused for the reasons above; no tier selects a ray-traced rung by default, and compiling ray tracing into three of the four tiers makes every build larger.</li>
+      <li><strong>Enemy reuse has only been lightly exercised.</strong> Pooling defects cannot appear until the warmup is exhausted and instances start recycling, which takes a few minutes of play. The three failure modes to watch for are enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and <code>Enemy_1</code> firing faster as a run goes on.</li>
+      <li><strong>LFS is no longer the constraint on lighting.</strong> It was: a bake went through
+      LFS against a 1 GB free quota at roughly 40&nbsp;MB a time, which is a couple of dozen commits before
+      the quota is spent. The bake output is gitignored now — the lightmap EXR, its
+      directionality and shadowmask maps, and the probe volume cell data — and nothing that
+      produces it is: the Baking Set, the Lighting Settings, the volume profiles and the scene itself all
+      stay tracked, so a fresh clone reproduces it with <em>Generate Lighting</em>. Checked rather than
+      assumed: <strong>zero</strong> lightmap or cell-data files are in LFS today, against 273 tracked files
+      in total. The cost of a bake is now disk and time, not quota.</li>
+      <li><strong>The bake was turned down, then turned back up past where it started.</strong> Iterating on
+      lighting is slow, so the settings were halved — 2048 lightmaps, two bounces, half the
+      samples. Once the quota argument above went away they went the other way instead: <strong>4096</strong>
+      lightmaps, <strong>uncompressed</strong>, bake resolution 50, four bounces, and the light-probe sample
+      multiplier back to 8. Sample counts are the one thing still at the reduced figures (32 direct, 512
+      indirect, 256 environment), which is the obvious next thing to raise if a bake still looks noisy. The
+      current output is <strong>68&nbsp;MB</strong> on disk and costs nothing to keep.</li>
+    </ul>
+    <p>The <strong>bullet hell</strong> direction was explored and shelved. The profile can afford it — 1500 simultaneous bullets measured at 0.056 ms, around 0.3% of a frame — and the design work is recorded in the history, but the decision was to improve what exists rather than add a mode. It is available to pick up rather than abandoned.</p>
+
+    <h4>Housekeeping</h4>
+    <ul>
+      <li><code>Prefabs/VFX/Explosion.prefab</code> and <code>PlayerHit.prefab</code> are orphaned outright now that <code>_Archive~</code> has gone with it the last reference to either. <code>PlayerHit</code> is the one that was wearing <code>TESTE cenario_2.mat</code>, a scenery test material, which is worth knowing before anything reuses it.</li>
+      <li>The old HUD art in <code>Art/Textures</code> is no longer <em>drawn</em> — the shaders replaced all of it — but saying it is referenced by nothing was wrong, and worth correcting because it is the kind of claim that gets a live asset deleted. Unity's dependency graph puts <code>hpBar.png</code> and <code>TESTE 1 hud 4copy.png</code> on <code>Image</code> components that are active and enabled, on two root objects both named <code>Border</code>. They render nothing only because neither has a <code>Canvas</code> anywhere above it, which is a condition of the scene rather than of the files: reparent either one and the old art is back on screen. <strong>Delete the objects before the textures</strong>, or the references dangle. <code>skillSlot</code>, the four button sprites, the menu background and the PUC logo are genuinely at zero. <code>timeBar</code> has been deleted; the rest are still there.</li>
+      <li><code>StarfieldCubemapBaker</code> can no longer run: its six source textures were deleted once the cross was baked. That is fine unless the sky ever needs re-baking, in which case they have to come back first.</li>
+      <li>Git history still carries the 302 MB of deleted sky textures; only a history rewrite removes them.</li>
+    </ul>
+    <p>Four of these have since been cleared, each confirmed dead rather than assumed:
+    <code>com.unity.visualscripting</code> (no code reference anywhere under <code>Assets</code>, and nothing
+    in <code>packages-lock.json</code> depending on it), <code>VolumeBar.mat</code> (zero inbound
+    references), <code>timeBar.png</code> (one reference, from inside the archive), and
+    <code>Assets/_Archive~</code> itself — 950&nbsp;KB the editor had never loaded. Removing the archive is
+    what cleared <code>timeBar</code>'s last reference, so nothing is left pointing at anything that has
+    gone.</p>
+
+    <h4>Settled: the settings menus</h4>
+    <p>Audio, Display and Graphics are built and tested. Three things about them are decisions rather than gaps, and all three will look like omissions to anyone reading the screen cold:</p>
+    <ul>
+      <li><strong>No min/max row beside Dynamic Resolution.</strong> The band itself is asset-only and both upscalers overwrite it, so the control chases a target frame rate within the asset's 50–100% instead.</li>
+      <li><strong>No render scale above 100%.</strong> HDRP clamps it; supersampling is a different feature, not a setting.</li>
+      <li><strong>No FSR entry beside DLAA in the anti-aliasing list.</strong> Unity's FSR2 binding has no native-resolution mode.</li>
+    </ul>
+    <div class="warn">
+      <div class="label">One path that has never actually executed</div>
+      <p>The development machine is a Radeon RX 6700 XT, and <code>DLSSPass.SetupFeature</code> requires the graphics device vendor string to contain "nvidia" — this one reports "ATI". DLSS therefore cannot initialise here, the DLSS and DLAA rows are correctly hidden, and <strong>those code paths have never run.</strong> They are verified against the HDRP package source and the quality mapping is unit-tested, but the first real execution will be on someone else's machine. Do not read the missing rows as a bug.</p>
+    </div>
+
+    <h4>Settled: the pipeline</h4>
+    <p>HDRP is the project. <code>hdrp-experiment</code> was promoted to <code>main</code> and deleted, and because it had only ever been <em>ahead</em> of <code>main</code> rather than divergent, that was a fast-forward — no merge, no force-push, and <code>git branch -d</code> accepted the delete, which is its own proof nothing was stranded.</p>
+    <div class="note">
+      <div class="label">Why the editor never noticed</div>
+      <p>The obvious sequence — check out <code>main</code>, then merge — would have rewound the working tree 49 commits and replayed it, with Unity watching hundreds of assets vanish and return. Moving the ref instead (<code>git branch -f main hdrp-experiment</code>) leaves both names on the same commit, so the checkout that follows changes <strong>zero files</strong>. The project stayed open throughout.</p>
+    </div>
+    <p>The branch-locked caveat is now moot: <code>HdrpVfxMaterialFixup</code>, <code>LavaLightPlacer</code> and the render-pipeline references in <code>SurvivalChaos.Editor.asmdef</code> have nowhere else they need to go. That asmdef now names three: <code>HighDefinition.Runtime</code>, <code>Core.Runtime</code> for the dynamic-resolution and probe-volume enums, and <code>GPUDriven.Runtime</code> for <code>GPUResidentDrawerMode</code>. Each was added only when a preset field genuinely needed the type — the first attempt to reach one of them failed to compile, which is a cheaper way to find out than shipping.</p>
+  </section>
+
+  <footer>
+    Survival Chaos · rebuild reference · Unity 6.5 (6000.5.10f1) · HDRP 17.5 · branch <code>main</code> · 256 commits
+  </footer>
+
+</div>

@@ -1,0 +1,639 @@
+<title>Survival Chaos — Open List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="fontlink" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style id="css">
+  /* Neutrals carry a slight green bias so they read as chosen rather than
+     inherited; one burnt-orange accent marks the single thing to do next, and
+     nothing else in the page is allowed to use it. */
+  :root {
+    --ground:   #F6F8F6;
+    --surface:  #FFFFFF;
+    --sunk:     #EDF1EE;
+    --line:     #DCE3DE;
+    --line-2:   #C7D1CB;
+    --ink:      #141817;
+    --ink-2:    #58635E;
+    --ink-3:    #8B948F;
+    --accent:   #B4531A;
+    --accent-b: #B4531A18;
+    --done:     #3F6B4A;
+    --shadow:   0 1px 2px #0F1A140F, 0 8px 24px -18px #0F1A1433;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0F1312;
+      --surface:  #171C1A;
+      --sunk:     #1E2422;
+      --line:     #29312E;
+      --line-2:   #3A443F;
+      --ink:      #E9EEEB;
+      --ink-2:    #9AA49F;
+      --ink-3:    #6D7772;
+      --accent:   #F08A3C;
+      --accent-b: #F08A3C1F;
+      --done:     #74B184;
+      --shadow:   0 1px 0 #FFFFFF08 inset, 0 12px 32px -22px #000000CC;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0F1312;
+    --surface:  #171C1A;
+    --sunk:     #1E2422;
+    --line:     #29312E;
+    --line-2:   #3A443F;
+    --ink:      #E9EEEB;
+    --ink-2:    #9AA49F;
+    --ink-3:    #6D7772;
+    --accent:   #F08A3C;
+    --accent-b: #F08A3C1F;
+    --done:     #74B184;
+    --shadow:   0 1px 0 #FFFFFF08 inset, 0 12px 32px -22px #000000CC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: clamp(1.6rem, 5vw, 3.4rem) clamp(1rem, 4vw, 2rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.1rem;
+  }
+
+  h1, h2, .next-kicker {
+    font-family: "Bricolage Grotesque", "Segoe UI Semibold", system-ui, sans-serif;
+  }
+
+  h1 {
+    font-size: clamp(1.7rem, 4.4vw, 2.3rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .sub { color: var(--ink-2); margin: 0.35rem 0 0; max-width: 34rem; }
+
+  .meter {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--ink-2);
+  }
+  .meter .track {
+    flex: 1;
+    max-width: 12rem;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--sunk);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .meter .fill {
+    height: 100%;
+    background: var(--done);
+    width: 0;
+    transition: width 0.25s ease;
+  }
+  .meter b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* ---------- the one next thing ---------- */
+  .next {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 5px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .next-kicker {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .next h2 { font-size: 1.22rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .next p { margin: 0; color: var(--ink-2); }
+  .next .watch { margin: 0.35rem 0 0; padding-left: 1.05rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .next .watch li { color: var(--ink-2); }
+  .next .watch li::marker { color: var(--accent); }
+
+  /* ---------- groups ---------- */
+  .group { display: flex; flex-direction: column; gap: 0.55rem; }
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .group-head h2 {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .group-head .count {
+    font-size: 0.76rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* ---------- item ---------- */
+  .item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 0.7rem 0.85rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 0.75rem;
+  }
+  .item.is-done { background: transparent; border-color: var(--line); }
+
+  .tick {
+    grid-row: 1 / span 3;
+    width: 1.45rem;
+    height: 1.45rem;
+    margin-top: 0.12rem;
+    border-radius: 4px;
+    border: 1.5px solid var(--line-2);
+    background: var(--sunk);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    padding: 0;
+    color: transparent;
+    flex: none;
+  }
+  .tick:hover { border-color: var(--ink-3); }
+  .tick[aria-checked="true"] {
+    background: var(--done);
+    border-color: var(--done);
+    color: #fff;
+  }
+  .tick svg { width: 0.85rem; height: 0.85rem; display: block; }
+  .tick[disabled] { cursor: default; opacity: 0.55; }
+
+  .title {
+    font-weight: 600;
+    line-height: 1.35;
+    align-self: center;
+  }
+  .is-done .title { text-decoration: line-through; color: var(--ink-3); font-weight: 500; }
+
+  .meta {
+    grid-column: 2;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+  .meta .effort {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    background: var(--sunk);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0.05em 0.4em;
+    white-space: nowrap;
+  }
+  .meta .flag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--done);
+  }
+
+  details.why { grid-column: 2; margin-top: 0.3rem; }
+  details.why > summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--ink-2);
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0;
+  }
+  details.why > summary::-webkit-details-marker { display: none; }
+  details.why > summary::before {
+    content: "";
+    width: 0; height: 0;
+    border-left: 4px solid currentColor;
+    border-top: 3.5px solid transparent;
+    border-bottom: 3.5px solid transparent;
+    transition: transform 0.15s ease;
+  }
+  details.why[open] > summary::before { transform: rotate(90deg); }
+  details.why > summary:hover { color: var(--ink); }
+  .why-body {
+    margin: 0.4rem 0 0.15rem;
+    padding-left: 0.72rem;
+    border-left: 2px solid var(--line);
+    color: var(--ink-2);
+    font-size: 0.92rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .why-body p { margin: 0; }
+  .why-body code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--sunk);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 0.03em 0.3em;
+  }
+
+  /* ---------- parked ---------- */
+  details.parked {
+    background: var(--sunk);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 0.7rem 0.9rem;
+  }
+  details.parked > summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    list-style: none;
+  }
+  details.parked > summary::-webkit-details-marker { display: none; }
+  details.parked ul { margin: 0.75rem 0 0.2rem; padding-left: 1.05rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  details.parked li { color: var(--ink-2); font-size: 0.93rem; }
+  details.parked li::marker { color: var(--ink-3); }
+  details.parked strong { color: var(--ink); font-weight: 600; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 0.9rem;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    justify-content: space-between;
+  }
+  #saving { color: var(--ink-3); font-size: 0.82rem; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (max-width: 30rem) {
+    .item { padding: 0.65rem 0.7rem; }
+  }
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script id="state" type="application/json">{"done":{},"updated":"1 September 2026"}</script>
+
+<script id="app-src">
+(function () {
+  "use strict";
+
+  // The single thing to do next. Deliberately one, not a shortlist: picking is
+  // the expensive part, so the page does it rather than handing over a menu.
+  var NEXT = {
+    id: "play-boss",
+    title: "Play one full boss run",
+    effort: "about 12 minutes",
+    lede: "Everything about the fight is measured and none of it is played. Every number I have came from a probe with the ship parked — and the last change put roughly four times as much boss fire into your lane, on geometry rather than on feel.",
+    watch: [
+      "Armoured: can you still get a pod down? You have to fly to its height, which is now where the fire is thickest.",
+      "Exposed: too thin still, or too busy now? Nine plates plus a ram every 7s was tuned on paper.",
+      "Can you actually see the plates against the dark island?"
+    ]
+  };
+
+  var GROUPS = [
+    {
+      id: "you",
+      name: "Needs you",
+      note: "I can’t do these for you",
+      items: [
+        {
+          id: "plate-glow",
+          title: "Decide whether the wreckage plates should glow",
+          effort: "2 min to decide",
+          why: [
+            "The plates carry the boss’s own hull material, which is nearly black. Against the sky or the lava they read fine; against the dark island one can vanish.",
+            "An emissive tint fixes it and makes them the first thing in the arena that glows because it is dangerous rather than because it is hot. That’s your art direction, not mine — say the word and it’s a one-line change."
+          ]
+        },
+        {
+          id: "charge-sound",
+          title: "Pick a charge sound for the lance and the ram",
+          effort: "30 min",
+          why: [
+            "Both telegraph visually and neither makes a noise. It needs a new SoundDefinition asset and a curated clip.",
+            "Choosing a clip by ear isn’t something I should do on your behalf. Once you’ve picked one, wiring it is quick."
+          ]
+        },
+        {
+          id: "jam-branches",
+          title: "Decide on the 18 stale 2023 jam branches",
+          effort: "5 min",
+          why: [
+            "They’re dead, but they’re also the only record of who did what on the original five-person project. Keep or delete — either is fine, it just wants deciding once."
+          ]
+        }
+      ]
+    },
+    {
+      id: "me",
+      name: "I can do these alone",
+      note: "Just say go",
+      items: [
+        {
+          id: "cloud-bank",
+          title: "Switch the cloud bank back on",
+          effort: "15 min",
+          why: [
+            "Arena Cloud Bank has <code>m_IsActive: 0</code> in the scene — verified. It was switched off to keep it out of a bake and never switched back, so the sparsity work you tuned isn’t being rendered by anything.",
+            "The volume also grew to 2000 units in that same commit, which stretches one mask tile to 1000 world units. Worth a look with fresh eyes before it goes back on."
+          ]
+        },
+        {
+          id: "shadow-count",
+          title: "Drop shadowCastingCount from 4 to 2",
+          effort: "2 min",
+          why: [
+            "The scene has <code>shadowCastingCount: 4</code>; the reasoning behind the one-per-volley work says 2.",
+            "It costs nothing late in a run — once Shot Upgrade lands only two volleys are lit — but means four casters in the opening minute, when every bullet is its own volley and there’s least else on screen to justify them."
+          ]
+        },
+        {
+          id: "identity",
+          title: "Give the game its own identity",
+          effort: "5 min",
+          why: [
+            "<code>companyName: DefaultCompany</code>, <code>productName: Survival-Chaos-main</code>, <code>bundleVersion: 1.0</code> — all verified as still sitting there.",
+            "The product name is the folder someone unzipped, and it’s what shows in the title bar and the save path. Worth fixing before anyone else runs a build."
+          ]
+        },
+        {
+          id: "stray-log",
+          title: "Untrack replay_pid25368.log",
+          effort: "2 min",
+          why: [
+            "It’s committed to git — verified with <code>git ls-files</code>. A stray process log from some tool run, nothing depends on it."
+          ]
+        },
+        {
+          id: "commit-files",
+          title: "Clear the commit-*.txt scratch files",
+          effort: "1 min",
+          why: [
+            "<code>commit-boss.txt</code>, <code>commit-dash.txt</code> and <code>commit-dashbar.txt</code> are sitting in the outer folder. All three are committed already; the files are leftovers from when you were pasting them into git."
+          ]
+        }
+      ]
+    },
+    {
+      id: "later",
+      name: "Waiting on a real run",
+      note: "Blocked until something is played or built",
+      items: [
+        {
+          id: "boss-tuning",
+          title: "Tune the boss against how it actually plays",
+          effort: "after the run above",
+          why: [
+            "The shed cadence, the lane response and a plate’s life are one serialized field each, specifically so this is tuning rather than rework.",
+            "I’d rather move them against something you felt than against a stationary probe."
+          ]
+        },
+        {
+          id: "shadow-spike",
+          title: "Attribute the 8.4 ms shadow spike",
+          effort: "one build + a capture",
+          why: [
+            "Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls.",
+            "But that measurement is submitted work from a paused editor frame with GPU timing unavailable. It proves the mechanism was large; it doesn’t prove it was the spike. A capture from a real run closes it."
+          ]
+        },
+        {
+          id: "pool-soak",
+          title: "Soak-test enemy pooling",
+          effort: "a few minutes of play",
+          why: [
+            "Pooling defects can’t appear until the warmup is exhausted and instances start recycling, which takes minutes.",
+            "Three things to watch for: enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and Enemy_1 firing faster the longer a run goes on."
+          ]
+        }
+      ]
+    }
+  ];
+
+  var PARKED = [
+    ["Overlapping offers stack their captions", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned."],
+    ["Max Health is four ×5 instead of one ×20", "Same ceiling for a player who takes all four, lower for one who takes two. Whether that reads as a choice or a nerf is a question only playing answers."],
+    ["Ray-traced rungs beyond reflections are unvalidated", "RT Reflections was confirmed in a build on DXR hardware. The rest are reachable and deliberately unused."],
+    ["The DLSS path has never executed", "The dev machine is a Radeon, and HDRP requires an NVIDIA vendor string. The rows are correctly hidden; the code is unit-tested but has never run."],
+    ["ActualRenderScale is not a bug", "Checked it — the two render-scale numbers can legitimately disagree, and the report shows both on purpose so you can see which is wrong."]
+  ];
+
+  var ALL = [];
+  GROUPS.forEach(function (g) { g.items.forEach(function (it) { ALL.push(it); }); });
+  ALL.push(NEXT);
+
+  var stateEl = document.getElementById("state");
+  var state;
+  try { state = JSON.parse(stateEl.textContent) || {}; } catch (e) { state = {}; }
+  if (!state.done || typeof state.done !== "object") { state.done = {}; }
+
+  var writable = true;
+  var pending = null;
+  var api = null;
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  // "why" copy is authored here and may carry <code>; everything from state is escaped.
+  function tickSvg() {
+    return '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l3 3 6-6.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function itemHtml(it, groupNote) {
+    var isDone = !!state.done[it.id];
+    var why = (it.why || []).map(function (p) { return "<p>" + p + "</p>"; }).join("");
+    return '' +
+      '<div class="item' + (isDone ? " is-done" : "") + '" data-id="' + esc(it.id) + '">' +
+        '<button class="tick" type="button" role="checkbox" aria-checked="' + (isDone ? "true" : "false") +
+          '" aria-label="' + esc(it.title) + '"' + (writable ? "" : " disabled") + '>' + tickSvg() + '</button>' +
+        '<div class="title">' + esc(it.title) + '</div>' +
+        '<div class="meta">' +
+          '<span class="effort">' + esc(it.effort) + '</span>' +
+          (isDone ? '<span class="flag">done</span>' : "") +
+        '</div>' +
+        (why ? '<details class="why"><summary>why</summary><div class="why-body">' + why + "</div></details>" : "") +
+      "</div>";
+  }
+
+  function render() {
+    var doneCount = 0;
+    ALL.forEach(function (it) { if (state.done[it.id]) { doneCount++; } });
+    var pct = ALL.length ? Math.round((doneCount / ALL.length) * 100) : 0;
+
+    var nextDone = !!state.done[NEXT.id];
+
+    var html = '' +
+      "<header>" +
+        "<h1>Survival Chaos — what’s left</h1>" +
+        '<p class="sub">A living list. Tick something and it stays ticked for anyone who opens this. Nothing here is urgent and nothing here is overdue.</p>' +
+        '<div class="meter">' +
+          '<div class="track"><div class="fill" style="width:' + pct + '%"></div></div>' +
+          "<span><b>" + doneCount + "</b> of <b>" + ALL.length + "</b> done</span>" +
+          '<span id="saving"></span>' +
+        "</div>" +
+      "</header>";
+
+    html += '' +
+      '<section class="next">' +
+        '<div class="next-kicker">' + (nextDone ? "Next · done" : "Start here") + "</div>" +
+        "<h2>" + esc(NEXT.title) + "</h2>" +
+        "<p>" + NEXT.lede + "</p>" +
+        '<ul class="watch">' + NEXT.watch.map(function (w) { return "<li>" + esc(w) + "</li>"; }).join("") + "</ul>" +
+        '<div class="group" style="margin-top:.5rem">' + itemHtml(NEXT) + "</div>" +
+      "</section>";
+
+    GROUPS.forEach(function (g) {
+      var gd = 0;
+      g.items.forEach(function (it) { if (state.done[it.id]) { gd++; } });
+      html += '<section class="group">' +
+        '<div class="group-head"><h2>' + esc(g.name) + '</h2>' +
+        '<span class="count">' + gd + " / " + g.items.length + " · " + esc(g.note) + "</span></div>" +
+        g.items.map(function (it) { return itemHtml(it); }).join("") +
+        "</section>";
+    });
+
+    html += '<details class="parked"><summary>Decided — not doing (' + PARKED.length + ")</summary><ul>" +
+      PARKED.map(function (p) { return "<li><strong>" + esc(p[0]) + ".</strong> " + esc(p[1]) + "</li>"; }).join("") +
+      "</ul></details>";
+
+    html += "<footer><span>Last edited by Claude: " + esc(state.updated || "") + "</span>" +
+      "<span>" + (writable ? "Ticks save automatically" : "Read-only view — ticks won’t save") + "</span></footer>";
+
+    document.getElementById("app").innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll(".tick"), function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.closest(".item").getAttribute("data-id");
+        toggle(id);
+      });
+    });
+  }
+
+  function say(msg) {
+    var el = document.getElementById("saving");
+    if (el) { el.textContent = msg; }
+  }
+
+  function toggle(id) {
+    if (!writable) { return; }
+    if (state.done[id]) { delete state.done[id]; } else { state.done[id] = true; }
+    render();
+    say("saving…");
+    schedulePublish();
+  }
+
+  // Batch rapid ticks into one publish; publish only after someone acts.
+  function schedulePublish() {
+    if (pending) { clearTimeout(pending); }
+    pending = setTimeout(publish, 700);
+  }
+
+  function buildDoc() {
+    var css = document.getElementById("css").textContent;
+    var src = document.getElementById("app-src").textContent;
+    var fonts = document.getElementById("fontlink").outerHTML;
+    var open = "<" + "script";
+    var close = "<" + "/script>";
+    return "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n" +
+      "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n" +
+      "<title>Survival Chaos — Open List</title>\n" + fonts + "\n" +
+      "<style id=\"css\">" + css + "</style>\n</head>\n<body>\n" +
+      "<div class=\"wrap\" id=\"app\"></div>\n" +
+      open + " id=\"state\" type=\"application/json\">" + JSON.stringify(state) + close + "\n" +
+      open + " id=\"app-src\">" + src + close + "\n" +
+      "</body>\n</html>";
+  }
+
+  var waitedForApi = 0;
+
+  function publish() {
+    pending = null;
+    // A tick can land before use("artifact") has resolved. Wait for it a couple
+    // of times rather than dropping the edit on the floor.
+    if (!api) {
+      if (writable && waitedForApi < 12) { waitedForApi++; schedulePublish(); return; }
+      say("");
+      return;
+    }
+    waitedForApi = 0;
+    api.publish(buildDoc()).then(function () {
+      say("saved");
+      setTimeout(function () { say(""); }, 1600);
+    }).catch(function (err) {
+      var code = err && err.code;
+      if (code === "conflict") {
+        // Someone published first; every view reloads to the winner. No retry.
+        say("");
+        return;
+      }
+      if (code === "not_granted" || code === "not_writer") {
+        writable = false;
+        render();
+        return;
+      }
+      say("couldn’t save");
+    });
+  }
+
+  render();
+
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("artifact").then(function (a) {
+      if (!a) { writable = false; render(); return; }
+      api = a;
+    }).catch(function () { writable = false; render(); });
+  } else {
+    writable = false;
+    render();
+  }
+})();
+</script>
