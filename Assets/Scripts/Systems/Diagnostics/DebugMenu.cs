@@ -13,16 +13,19 @@ namespace SurvivalChaos
     ///
     /// Unlike that overlay this does NOT ship. The overlay exists so a tester can
     /// report how the game runs, which is worth having in a release build; this
-    /// hands out levels and invulnerability, which is not. It compiles only in the
-    /// editor and in development builds, and SURVIVAL_CHAOS_DEBUG_MENU forces it
-    /// into a release build for the case where you want to hand a cheat-enabled
-    /// build to a playtester on purpose.
+    /// hands out levels and invulnerability, which is not. It compiles in the
+    /// editor and wherever UNITY_INCLUDE_INSTRUMENTATION is defined - that is, at
+    /// Managed Code Variant Instrumented or above, which is Unity 6.6's
+    /// replacement for the old DEVELOPMENT_BUILD symbol. A plain Release build
+    /// does not get it. SURVIVAL_CHAOS_DEBUG_MENU forces it in regardless, for
+    /// the case where you want to hand a cheat-enabled build to a playtester on
+    /// purpose.
     ///
     /// This replaces the bare F7 level-up that used to live in SkillSelect.Update
     /// with no guard at all, so it was reachable by any player in a shipped build
     /// who pressed F7.
     /// </summary>
-#if UNITY_EDITOR || DEVELOPMENT_BUILD || SURVIVAL_CHAOS_DEBUG_MENU
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
     public sealed class DebugMenu : MonoBehaviour
     {
         /// <summary>
@@ -212,7 +215,7 @@ namespace SurvivalChaos
 
         private void ClearArena()
         {
-            Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+            Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsInactive.Exclude);
             foreach (Enemy enemy in enemies)
             {
                 enemy.Kill();

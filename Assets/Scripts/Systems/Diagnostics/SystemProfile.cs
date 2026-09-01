@@ -200,11 +200,8 @@ namespace SurvivalChaos
 #else
                 .Append("Mono")
 #endif
-#if DEVELOPMENT_BUILD
-                .AppendLine("  |  development build");
-#else
-                .AppendLine("  |  release build");
-#endif
+                .Append("  |  ")
+                .AppendLine(Debug.isDebugBuild ? "development build" : "release build");
         }
     }
 }
