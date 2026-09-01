@@ -23,7 +23,12 @@ namespace SurvivalChaos
     /// is chasing, so the armed face is the face the player sees.
     ///
     /// It rides the mirroring muzzle rig with the guns it belongs to, so it
-    /// changes sides when the boss turns round, the same way they do.
+    /// changes sides when the boss turns round, the same way they do. All of it
+    /// mirrors except one thing, and that exception is the whole of
+    /// <see cref="LateUpdate"/>: the ship really does turn round, so everything
+    /// bolted to it should swap sides, but the correction that keeps this pod in
+    /// the player's firing lane is a correction for the shape of the arena, and
+    /// the arena does not care which way the ship is pointing.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class BossWeakPoint : MonoBehaviour
@@ -60,6 +65,12 @@ namespace SurvivalChaos
                  "resting size.")]
         private float telegraphScale = 1.7f;
 
+        [SerializeField]
+        [Tooltip("How far back towards the middle of the arena this pod sits, in the boss's own " +
+                 "units, to undo the arena's curvature. Authored by the rig builder alongside the " +
+                 "outboard distance it is derived from - the two mean nothing apart.")]
+        private float curvature;
+
         /// <summary>
         /// The emitter this reports to. Found upward rather than assigned, because
         /// there is exactly one answer and it is the object this is parented to.
@@ -93,6 +104,57 @@ namespace SurvivalChaos
             {
                 restingScale = glow.localScale;
             }
+        }
+
+        /// <summary>
+        /// Puts the curvature correction back on the side the middle of the arena
+        /// is actually on, every frame.
+        ///
+        /// The offset that mounts this pod proud of the hull is measured along the
+        /// tangent, and the arena is a circle, so a pod pushed 39.5 units out along
+        /// the tangent from a point on a 137-unit ring ends up 5.6 units outside
+        /// the ring rather than on it. The rig builder takes that back off. What it
+        /// could not do is keep it taken off: the correction was authored as a
+        /// local offset on the mirroring rig, so it mirrored along with everything
+        /// else, and in the heading where the rig sits at yaw 270 it was being
+        /// added outward instead of subtracted inward - which does not cancel the
+        /// error, it doubles it.
+        ///
+        /// Measured on the keel pod across both headings before this existed:
+        /// radius 137.3 travelling one way and 148.0 travelling the other, against
+        /// an intended 137.2. Half the fight, the emplacements sat 10.7 units
+        /// further out than the tool that placed them believed.
+        ///
+        /// Read off the geometry rather than off a heading flag, so it cannot
+        /// disagree with the rig it is correcting: the ship's own forward is the
+        /// direction of the arena's middle, because EnemyMovement points it there
+        /// every frame, and the sign of the rig's X axis against it says which way
+        /// this pod is currently mirrored. In LateUpdate because both of those are
+        /// written in Update, and this has to be the one that reads them last.
+        /// </summary>
+        private void LateUpdate()
+        {
+            Transform rig = transform.parent;
+
+            if (owner == null || rig == null)
+            {
+                return;
+            }
+
+            float alignment = Vector3.Dot(rig.right, owner.transform.forward);
+
+            // The rig is square to the ship in both headings, so this is either
+            // firmly positive or firmly negative. Anything in between means the
+            // rig is mid-turn or has been reparented, and guessing a side from it
+            // would move the pod somewhere neither heading wants it.
+            if (Mathf.Abs(alignment) < 0.5f)
+            {
+                return;
+            }
+
+            Vector3 local = transform.localPosition;
+            local.x = alignment > 0f ? curvature : -curvature;
+            transform.localPosition = local;
         }
 
         /// <summary>

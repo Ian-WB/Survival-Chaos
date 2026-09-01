@@ -364,6 +364,7 @@ MonoBehaviour:
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 3065546095207052095}
   telegraphScale: 1.7
+  curvature: 0.55728626
 --- !u!1 &1515142015807260251
 GameObject:
   m_ObjectHideFlags: 0
@@ -671,6 +672,21 @@ MonoBehaviour:
     burstSeconds: 3
     burstInterval: 0.06
     ramSpeedScale: 3
+  - label: Hull - Wreckage
+    pattern: 5
+    phases: 2
+    weakPoint: {fileID: 0}
+    pivots: []
+    projectileWhenLeft: {fileID: 8717013474816945748, guid: 1c562ba59c0a57849b00ccc9688424f6, type: 3}
+    projectileWhenRight: {fileID: 8717013474816945748, guid: 1c562ba59c0a57849b00ccc9688424f6, type: 3}
+    initialDelay: 0.5
+    interval: 1.8
+    stepSeconds: 0.12
+    openRows: 1
+    chargeSeconds: 1.2
+    burstSeconds: 0.4
+    burstInterval: 0.06
+    ramSpeedScale: 3
   - label: Scuttle
     pattern: 0
     phases: 4
@@ -837,6 +853,7 @@ MonoBehaviour:
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 7801532857751363898}
   telegraphScale: 1.7
+  curvature: 0.7506046
 --- !u!1 &3120404038035122420
 GameObject:
   m_ObjectHideFlags: 0
@@ -1761,6 +1778,7 @@ MonoBehaviour:
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 3582337470430959229}
   telegraphScale: 1.7
+  curvature: 0.55728626
 --- !u!1 &8108779055708958122
 GameObject:
   m_ObjectHideFlags: 0

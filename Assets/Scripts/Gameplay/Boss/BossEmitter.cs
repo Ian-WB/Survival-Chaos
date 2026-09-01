@@ -83,6 +83,15 @@ namespace SurvivalChaos
         private int[] rowCounts;
 
         /// <summary>
+        /// Which emplacements are wrecked, reused between volleys.
+        ///
+        /// One array rather than one per shed, because the shedding attack fires
+        /// on a cadence for the whole of the second act and this is the only
+        /// allocation it would otherwise make.
+        /// </summary>
+        private bool[] wreckedScratch;
+
+        /// <summary>
         /// Which attacks are part-way through a volley that takes time.
         ///
         /// A rake lasts a third of a second and a lance nearly two, and both hold
@@ -205,7 +214,10 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                int perVolley = attack.Pivots.Length;
+                // At least one, because a pattern can fire without muzzles: the
+                // wreckage attack has no pivots at all, and warming zero of it
+                // would move its first allocation into the fight.
+                int perVolley = Mathf.Max(1, attack.Pivots.Length);
                 attack.EachProjectile(projectile => ObjectPool.Warm(projectile, perVolley));
             }
         }
@@ -299,6 +311,10 @@ namespace SurvivalChaos
 
                 case BossFirePattern.Ram:
                     StartCoroutine(RunRam(attack, index));
+                    break;
+
+                case BossFirePattern.Wreckage:
+                    ShedWreckage(attack, volley);
                     break;
 
                 default:
@@ -512,6 +528,55 @@ namespace SurvivalChaos
         /// flashing hull means in this game.
         /// </summary>
         private const float BlinkSeconds = 0.15f;
+
+        /// <summary>
+        /// Tears one plate off a wrecked emplacement and leaves it where it was.
+        ///
+        /// Spawned at the emplacement rather than at the hull's centre, which is
+        /// the whole point of it: the pods are mounted proud of the armour on the
+        /// face the player sees, at the three heights the first act taught, so the
+        /// plate appears where they were aiming a moment ago and stays at that
+        /// height for the rest of its life.
+        ///
+        /// It rides the pool like a projectile because that is what it is to this
+        /// class - something the attack releases, warmed at the entrance with
+        /// everything else. What it does after that is <see cref="BossWreckage"/>'s
+        /// business, and it deliberately has no thread back to here: a plate is
+        /// not part of the boss once it is off, and the boss is not told when one
+        /// breaks.
+        /// </summary>
+        private void ShedWreckage(BossAttack attack, int volley)
+        {
+            GameObject plate = attack.ProjectileFor(TravellingLeft);
+
+            if (plate == null || emplacements == null || emplacements.Length == 0)
+            {
+                return;
+            }
+
+            if (wreckedScratch == null || wreckedScratch.Length != emplacements.Length)
+            {
+                wreckedScratch = new bool[emplacements.Length];
+            }
+
+            for (int i = 0; i < emplacements.Length; i++)
+            {
+                wreckedScratch[i] = emplacements[i] != null && emplacements[i].Destroyed;
+            }
+
+            int source = BossShedding.SourceIndex(wreckedScratch, volley);
+
+            // Nothing wrecked yet. Reachable only if this attack is authored into
+            // a phase where the emplacements can still be standing, and shedding
+            // hull off a gun that is still firing is not what it means.
+            if (source < 0)
+            {
+                return;
+            }
+
+            Transform mount = emplacements[source].transform;
+            ObjectPool.Spawn(plate, mount.position, mount.rotation);
+        }
 
         private bool TravellingLeft => movement != null && movement.TravellingLeft;
 

@@ -63,5 +63,19 @@ namespace SurvivalChaos
         /// was built and measured for.
         /// </summary>
         Ram = 4,
+
+        /// <summary>
+        /// No bullets either: one plate of the boss's own hull, torn off a wrecked
+        /// emplacement and left hanging in the lane.
+        ///
+        /// The only pattern that leaves something behind. Everything else the boss
+        /// does is a problem for the two seconds it takes to cross the screen,
+        /// which is why the second act went flat once the guns were gone - a phase
+        /// made only of events has nothing in it between them. Wreckage is the
+        /// other kind of pressure: it accumulates, it is shed from the three
+        /// heights the first act taught, and clearing it costs shots that would
+        /// otherwise be going into the hull.
+        /// </summary>
+        Wreckage = 5,
     }
 }
