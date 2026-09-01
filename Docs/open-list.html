@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{},"updated":"1 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"code-variant":true},"updated":"1 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -329,8 +329,8 @@
   var NEXT = {
     id: "play-boss",
     title: "Play one full boss run",
-    effort: "about 12 minutes",
-    lede: "Everything about the fight is measured and none of it is played. Every number I have came from a probe with the ship parked — and the last change put roughly four times as much boss fire into your lane, on geometry rather than on feel.",
+    effort: "about 5 minutes",
+    lede: "Everything about the fight is measured and none of it is played. Every number I have came from a probe with the ship parked — and the last change put roughly four times as much boss fire into your lane, on geometry rather than on feel. <strong>There is a build already made</strong>: <code>Builds/26_0109-1616_unity66</code>, on Unity 6.6 with the new bake in it. F8 opens the debug menu, so you can wind the clock on and force the level-ups instead of surviving ten minutes to get there.",
     watch: [
       "Armoured: can you still get a pod down? You have to fly to its height, which is now where the fire is thickest.",
       "Exposed: too thin still, or too busy now? Nine plates plus a ram every 7s was tuned on paper.",
@@ -418,6 +418,15 @@
           effort: "1 min",
           why: [
             "<code>commit-boss.txt</code>, <code>commit-dash.txt</code> and <code>commit-dashbar.txt</code> are sitting in the outer folder. All three are committed already; the files are leftovers from when you were pasting them into git."
+          ]
+        },
+        {
+          id: "code-variant",
+          title: "Set the Managed Code Variant back to Release",
+          effort: "1 min",
+          why: [
+            "It is on <strong>Checked</strong>, which is what puts the F8 debug menu inside a build — handy while you are the one playing it, and wrong the moment a build goes to anybody else, because that menu hands out levels and invulnerability.",
+            "Unity 6.6 moved this off the Development Build checkbox and onto a dropdown in Player Settings, so leaving that box unticked no longer keeps the menu out. Not urgent while the build stays on your machine — say the word once you have finished testing and I will flip it."
           ]
         }
       ]
