@@ -30,7 +30,7 @@ MonoBehaviour:
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   maxFogDistance:
     m_OverrideState: 1
-    m_Value: 500
+    m_Value: 1000
   mipFogMaxMip:
     m_OverrideState: 0
     m_Value: 0.5
@@ -42,13 +42,13 @@ MonoBehaviour:
     m_Value: 1000
   baseHeight:
     m_OverrideState: 1
-    m_Value: 191.3
+    m_Value: 200
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 191.3
+    m_Value: 200
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 1000
+    m_Value: 909.3
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -56,11 +56,11 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
   globalLightProbeDimmer:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
   depthExtent:
     m_OverrideState: 1
-    m_Value: 640
+    m_Value: 300
   denoisingMode:
     m_OverrideState: 0
     m_Value: 2
@@ -135,7 +135,7 @@ MonoBehaviour:
     m_Value: 1
   fixedExposure:
     m_OverrideState: 1
-    m_Value: -0.5
+    m_Value: -1
   compensation:
     m_OverrideState: 0
     m_Value: 0
@@ -604,7 +604,7 @@ MonoBehaviour:
     m_Value: 1
   shadowResolution:
     m_OverrideState: 1
-    m_Value: 1024
+    m_Value: 512
   shadowDistance:
     m_OverrideState: 0
     m_Value: 8000
