@@ -287,9 +287,9 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 256 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 259 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>256</b><span>commits</span></div>
+      <div class="stat"><b>259</b><span>commits</span></div>
       <div class="stat"><b>264</b><span>tests</span></div>
       <div class="stat"><b>97</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
@@ -475,6 +475,8 @@
       because the boss's second act needed a verb the game did not have.</li>
       <li><strong>The boss rebuilt as three acts</strong> &mdash; weak points, telegraphed attacks and guns
       that turn with the ship, out of the muzzles that were already on the model.</li>
+      <li><strong>Unity 6.6</strong> — a minor engine version, five unused packages gone with it,
+      and the deprecated build symbols retired.</li>
       <li><strong>An editor the terminal can drive</strong> — Unity's CLI and the Pipeline package in place of the AI Assistant relay, which closed the write-compile-verify loop without touching the editor window.</li>
     </ul>
   </section>
@@ -1631,6 +1633,24 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p><code>BasePipelineServer.Start()</code> sets <code>Application.runInBackground = true</code> every time it starts — every editor launch, every domain reload — so the editor keeps pumping its update loop while unfocused and can go on answering commands. In the editor that assignment writes through to PlayerSettings, so setting it back by hand lasts exactly until the next launch.</p>
       <p>Nothing in a build asks for it: the runtime half of the pipeline is opt-in through a config asset this project does not have, and should not gain. But PlayerSettings is baked into builds, and this game has no pause — left on, alt-tabbing does not stop the run, and the player returns to a death they were not present for. <code>RunInBackgroundOff</code> is an <code>IPreprocessBuildWithReport</code> that clears the flag as a build starts, which is the only place it can be won.</p>
     </div>
+
+    <h3>The engine version, and what 6.6 moved</h3>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.0f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
+    <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
+
+    <div class="warn">
+      <div class="label">The switch that decides what ships moved somewhere you cannot see it</div>
+      <p>6.6 splits the old <strong>Development Build</strong> checkbox in two, because its managed half was never reliable &mdash; C# compiles once and is reused across different native binaries, so classifying it at build time was guesswork. The box still picks the player; a <strong>Managed Code Variant</strong> dropdown in Player Settings now decides which symbols reach C#, across four levels &mdash; Debug, Checked, Instrumented, Release &mdash; and it defaults to <strong>Release</strong>, which defines none of them. <code>DEVELOPMENT_BUILD</code> and <code>UNITY_64</code> are deprecated alongside it, warning as <code>UAC0009</code> and <code>UAC0008</code>, and stop being emitted in 6.8.</p>
+      <p>Both of this project&rsquo;s uses are gone. <code>DebugMenu</code> gates on <code>UNITY_INCLUDE_INSTRUMENTATION</code> now, and <code>SystemProfile</code> dropped its <code>#if</code> for a runtime <code>Debug.isDebugBuild</code> &mdash; which is what it should always have been, since it only prints a label into a diagnostic banner.</p>
+      <p><strong>The variant is set to Checked, so the debug menu compiles into every build &mdash; including one with Development Build unticked.</strong> That is the reverse of the old arrangement, where an unticked box kept it out, and this is the menu that hands out levels and invulnerability. Set the variant to Release before a build goes to anybody else. The same dropdown governs HDRP&rsquo;s debug overlays, the rendering debugger and physics integrity checks, so a development build with it left at Release is missing all of them &mdash; which reads as a broken install rather than as a setting.</p>
+    </div>
+
+    <div class="note">
+      <div class="label">Two things the upgrade settled</div>
+      <p><code>com.unity.pipeline</code> was the real risk in moving. It is experimental, it declares <code>&quot;unity&quot;: &quot;6000.0&quot;</code>, and it is what the terminal drives the editor through &mdash; so losing it would have cost the whole loop described above. It came through unchanged.</p>
+      <p>And the fault where a Player build nulled all six probe-volume references in <code>Game Baking Set.asset</code> <strong>did not reproduce</strong>. A confirmed clean build &mdash; the editor log says <em>&ldquo;Rebuilding Data files because BuildOptions.CleanBuildCache is set&rdquo;</em> &mdash; left the asset untouched, its modification time still predating the build, and the references at six resolved and none null, through that build and an editor restart afterwards. Two explanations died there: that Editor builds broke it while CLI builds did not, which was a false correlation drawn from three samples in which the CLI build had merely been incremental; and that clean builds were the trigger. The streaming conversion demonstrably ran, since <code>APVStreamingAssets</code> shipped into the player, so &ldquo;the conversion ran&rdquo; was never sufficient to cause the rewrite. Worth checking after a build for a while yet before trusting it.</p>
+    </div>
   </section>
 
   <section id="tests">
@@ -1797,7 +1817,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.5 (6000.5.10f1) · HDRP 17.5 · branch <code>main</code> · 256 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 259 commits
   </footer>
 
 </div>
