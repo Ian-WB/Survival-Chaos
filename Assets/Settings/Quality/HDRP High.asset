@@ -316,7 +316,7 @@ MonoBehaviour:
       maxPlanarReflectionOnScreen: 16
       maxDecalsOnScreen: 512
       maxLightsPerClusterCell: 16
-      maxLocalVolumetricFogSize: 32
+      maxLocalVolumetricFogSize: 128
       maxLocalVolumetricFogOnScreen: 64
     hdShadowInitParams:
       maxShadowRequests: 128

@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace SurvivalChaos.EditorTools
 {
     /// <summary>
-    /// Places rectangle area lights along the lava.
+    /// Places point lights along the lava.
     ///
     /// Emissive materials cannot cast shadows - shadows are rendered from a
     /// light's point of view, and an emissive surface is not a light. So the
@@ -15,9 +15,25 @@ namespace SurvivalChaos.EditorTools
     ///
     /// Rather than have them positioned by hand, this reads the vertices of the
     /// submesh actually using the lava material, splits them into bands by
-    /// height, and puts one light per band - centred on the band, facing along
-    /// its average surface normal, and sized to its footprint. That follows the
-    /// river from the crater down to the pool automatically.
+    /// height, and puts one light per band - centred on the band and sized to
+    /// its footprint. That follows the river from the crater down to the pool
+    /// automatically.
+    ///
+    /// This placed rectangle area lights until 2026-09-01. Do not go back to
+    /// them. Two things kill it:
+    ///
+    /// - HDRP only feeds area lights into volumetric fog under path tracing. In
+    ///   rasterisation they light surfaces and contribute nothing to the fog, so
+    ///   the lava glows on the rock but leaves no glow in the air above it -
+    ///   which is most of what the arena's fog is there for.
+    /// - A rectangle has edges, and the lighting stops at them. Unless the
+    ///   rectangle is placed to match the lava exactly you can see the cut line
+    ///   across the rock.
+    ///
+    /// Point lights have neither problem, and the reason the old hand-placed set
+    /// read as fake was never the light type - it was that five of them with a
+    /// 100 unit range each are five visible spheres. Many small ones spaced
+    /// closer together than they reach read as a continuous river instead.
     ///
     /// Re-running deletes and rebuilds the lights, so it is safe to iterate.
     /// </summary>
@@ -26,33 +42,40 @@ namespace SurvivalChaos.EditorTools
         private const string ContainerName = "Lava Lights";
         private const string LavaMaterialPath = "Assets/Art/Materials/Scenario/lava_.mat";
 
-        [Tooltip("How many lights to spread along the lava, from the crater downward.")]
+        [Tooltip("How many lights to spread along the lava, from the crater downward. Keep this " +
+                 "high enough that neighbours overlap - lights spaced further apart than their " +
+                 "range read as separate bulbs, which is the whole thing this is avoiding.")]
         [SerializeField]
-        private int lightCount= 4;
+        private int lightCount= 14;
 
-        [Tooltip("Lumens per light. HDRP's default area light is 200; lava wants considerably more.")]
+        [Tooltip("Lumens per light. Set through HDRP's own converter, so this really is lumens - " +
+                 "assigning Light.intensity directly writes a raw internal value instead and comes " +
+                 "out roughly a hundred times too bright.")]
         [SerializeField]
-        private float intensity= 4000f;
+        private float intensity= 250000f;
 
         [Tooltip("Colour of the emitted light. Keep it redder than the lava surface - bounced light reads warmer.")]
         [SerializeField]
         private Color color= new Color(1f, 0.35f, 0.12f, 1f);
 
-        [Tooltip("How far each light reaches. Too large and they overlap expensively.")]
+        [Tooltip("How far each light reaches. Short enough not to cross the island, long enough to " +
+                 "overlap its neighbours.")]
         [SerializeField]
-        private float range= 90f;
+        private float range= 100f;
 
         [Tooltip("Lift each light slightly off the surface so it does not z-fight or self-shadow.")]
         [SerializeField]
         private float surfaceOffset= 1.5f;
 
-        [Tooltip("Shadows cost a shadow map per light per frame. Turn off if the frame budget suffers.")]
+        [Tooltip("Shadows cost a shadow map per light per frame, and a point light costs six faces. " +
+                 "Off is the right default at this light count.")]
         [SerializeField]
-        private bool castShadows= true;
+        private bool castShadows= false;
 
-        [Tooltip("Scales the rectangle relative to the band it covers.")]
+        [Tooltip("Emitter radius as a fraction of the band's footprint. Larger softens the falloff " +
+                 "and stops each light reading as a point.")]
         [SerializeField]
-        private float sizeMultiplier= 0.9f;
+        private float sizeMultiplier= 0.35f;
 
         [MenuItem("Survival Chaos/Place Lava Lights")]
         private static void Open()
@@ -82,7 +105,7 @@ namespace SurvivalChaos.EditorTools
             Transform container = PrepareContainer();
             int placed = PlaceLights(points, normals, container);
 
-            Debug.Log($"Placed {placed} rectangle area light(s) along the lava from {points.Count} surface points. " +
+            Debug.Log($"Placed {placed} point light(s) along the lava from {points.Count} surface points. " +
                       (castShadows ? "Shadows are on - watch the frame time with the boss active." : "Shadows are off."));
         }
 
@@ -200,24 +223,13 @@ namespace SurvivalChaos.EditorTools
             Undo.RegisterCreatedObjectUndo(go, "Place Lava Lights");
             go.transform.SetParent(container, false);
 
-            // Sit on the surface, emitting outward along it.
+            // Sit just off the surface. A point light has no orientation, so
+            // unlike the area lights this replaced there is nothing to aim.
             go.transform.position = centre + normal * surfaceOffset;
 
-            // LookRotation needs an up vector that is not parallel to forward.
-            Vector3 reference = Mathf.Abs(Vector3.Dot(normal, Vector3.up)) > 0.95f ? Vector3.forward : Vector3.up;
-            go.transform.rotation = Quaternion.LookRotation(normal, reference);
-
-            // The two widest horizontal dimensions of the band make a rectangle
-            // that roughly covers the lava it stands in for.
-            float width = Mathf.Max(1f, Mathf.Max(extents.x, extents.z) * sizeMultiplier);
-            float height = Mathf.Max(1f, Mathf.Max(extents.y, Mathf.Min(extents.x, extents.z)) * sizeMultiplier);
-
             Light light = go.AddComponent<Light>();
-            light.type = LightType.Rectangle;
-            light.areaSize = new Vector2(width, height);
+            light.type = LightType.Point;
             light.color = color;
-            light.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
-            light.intensity = intensity;
             light.range = range;
             light.shadows = castShadows ? LightShadows.Soft : LightShadows.None;
 
@@ -228,8 +240,30 @@ namespace SurvivalChaos.EditorTools
                 data = go.AddComponent<HDAdditionalLightData>();
             }
 
+            // Go through HDRP's converter. Writing Light.intensity directly
+            // skips the unit conversion and lands a raw value in the pipeline,
+            // which is why this tool used to blow the scene out at its own
+            // default.
+            data.SetIntensity(intensity, UnityEngine.Rendering.LightUnit.Lumen);
+
+            // A point light with a real emitter radius falls off over a shell
+            // rather than from a singularity, so the near rock stops having a
+            // hotspot burnt into it. Sized off the band so the wide pool gets a
+            // wide emitter and the crater a tight one.
+            // Clamped, because the band footprint is a bounding box and the
+            // pool's is enormous - unclamped this hands the lowest lights an
+            // emitter half as wide as their own range, which washes the near
+            // rock out instead of softening it.
+            float footprint = Mathf.Max(extents.x, extents.z);
+            light.shapeRadius = Mathf.Clamp(footprint * sizeMultiplier, 2f, 15f);
+
             data.EnableShadows(castShadows);
             data.affectsVolumetric = true;
+
+            // Physical. The old hand-placed set ran this at 7 to force a glow
+            // out of fog that was too thin to show one, which is exactly what
+            // made the volumetrics read as fake.
+            data.volumetricDimmer = 1f;
         }
     }
 }
