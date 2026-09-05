@@ -82,6 +82,23 @@ namespace SurvivalChaos.EditorTools
         private const float PodRadius = 0.7f;
 
         /// <summary>
+        /// The pod light's colour, range and output.
+        ///
+        /// Held apart from the material's own red: the sphere is what the player
+        /// looks at and wants to clip white at its centre, while this is what
+        /// lands on the plating and wants to stay a colour. So the light is the
+        /// same hue at a sane display value rather than the material's HDR one.
+        ///
+        /// The range is set against the ship, not the arena. A pod is 14 units
+        /// across on a hull tens of units long, and this is meant to wash the
+        /// plating immediately around it - not to light the boss.
+        /// </summary>
+        private static readonly Color PodLightColor = new Color(1f, 0.13f, 0.05f);
+
+        private const float PodLightRange = 60f;
+        private const float PodLightLumens = 9000f;
+
+        /// <summary>
         /// The visible plate of shed hull, in world units. Carried on a child so
         /// the object the collider sits on can stay at scale one.
         ///
@@ -396,7 +413,7 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// The green the pods are lit in, copied from the pickup glow so it
+        /// The red the pods are lit in, copied from the pickup glow so it
         /// inherits a material setup already known to render correctly in this
         /// project rather than one assembled from scratch by a script.
         /// </summary>
@@ -415,13 +432,27 @@ namespace SurvivalChaos.EditorTools
                 skin = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
             }
 
-            // Bright enough to read against the lava the arena is lit by, which is
-            // itself orange - so the one thing the player has to pick out of that
-            // is as far from orange as the wheel goes.
-            var green = new Color(0.05f, 1.6f, 0.35f);
+            // This was green until 2026-09-05, and why it was green is worth
+            // keeping written down: the arena is lit by lava, so the one thing the
+            // player has to pick out of all that orange was put as far from orange
+            // as the wheel goes.
+            //
+            // It is red now because the whole of the boss's output - its rounds,
+            // its lance and its pods - was brought into one warm family, and a
+            // green target on an orange ship reads as a pickup rather than as the
+            // ship's own weak spot. What replaces the hue separation is value and
+            // saturation: this sits well above the lava's own light and is far
+            // more saturated than the rock it lands on, and the pod light added in
+            // BuildGlow throws it onto the hull so a pod reads as a source rather
+            // than as a decal.
+            //
+            // The cost is real and known - a red pod against orange lava is a
+            // harder read than a green one was. This is the first thing to
+            // question if the armoured phase turns out to be hard to aim at.
+            var red = new Color(2.2f, 0.09f, 0.04f);
 
-            skin.SetColor("_UnlitColor", green);
-            skin.SetColor("_EmissiveColor", green);
+            skin.SetColor("_UnlitColor", red);
+            skin.SetColor("_EmissiveColor", red);
             EditorUtility.SetDirty(skin);
 
             return skin;
@@ -594,6 +625,85 @@ namespace SurvivalChaos.EditorTools
             // It is a light source, not a solid. A shadow off an unlit sphere
             // would be a black disc on the hull behind it.
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            BuildPodLight(glow);
+        }
+
+        /// <summary>
+        /// The light the pod throws onto the ship around it.
+        ///
+        /// An emissive sphere lights nothing: emission feeds the camera, not the
+        /// lighting result, so without this the pod is a bright disc pasted on a
+        /// hull that has no idea it is there. One real light makes the pod a
+        /// source - the plating around it picks up its colour, and the pod stops
+        /// reading as a decal and starts reading as something installed in the
+        /// ship.
+        ///
+        /// Lives on the glow object rather than beside it so that
+        /// BossWeakPoint.Show, which walks the glow's children to hide a wrecked
+        /// pod, switches the light off with the sphere. A pod that went on
+        /// lighting the hull after it was destroyed would say the gun behind it
+        /// still worked.
+        ///
+        /// No shadows. Three of these, each a point light, would be eighteen
+        /// cubemap faces a frame for a light whose whole job is a wash of colour
+        /// on the plating a few units away - and the boss is the moment in the
+        /// run when the frame has least to spare. It is set through
+        /// HDAdditionalLightData rather than Light.shadows alone because HDRP
+        /// reads its own copy of that flag.
+        /// </summary>
+        private static void BuildPodLight(Transform glow)
+        {
+            Light lamp = glow.GetComponent<Light>();
+
+            if (lamp == null)
+            {
+                lamp = glow.gameObject.AddComponent<Light>();
+            }
+
+            lamp.type = LightType.Point;
+            lamp.color = PodLightColor;
+            lamp.range = PodLightRange;
+            lamp.shadows = LightShadows.None;
+
+            // The emitter is the sphere itself, so the falloff starts at the
+            // sphere's own surface rather than at a point in the middle of it.
+            // Taken off the rendered size rather than typed in, because the glow
+            // is sized from PodRadius and the two must not drift apart. Held just
+            // inside the sphere so the emitter cannot poke through into the hull,
+            // which is what burns a hard bright patch into the plating.
+            lamp.shapeRadius = Mathf.Max(0.5f, glow.lossyScale.x * 0.35f);
+
+            var data = glow.GetComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalLightData>();
+
+            if (data == null)
+            {
+                data = glow.gameObject.AddComponent<
+                    UnityEngine.Rendering.HighDefinition.HDAdditionalLightData>();
+            }
+
+            // The unit first, then the value, rather than SetIntensity doing both.
+            // SetIntensity converts out of whatever unit the light is currently
+            // in, and a light component added a few lines above has not run its
+            // own initialisation yet - so it is still in the point light's default
+            // candela and the call quietly divides by 4*pi. Measured: asking for
+            // 9000 through SetIntensity stored 716.2, which is 9000/4*pi exactly,
+            // and the inspector then reads 716 lumens rather than the wrong-unit
+            // 9000 that would at least have been visible.
+            //
+            // Assigning HDAdditionalLightData.intensity is not the mistake
+            // LavaLightPlacer warns about; that one is Light.intensity, which
+            // bypasses HDRP's unit handling entirely.
+            data.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
+            data.intensity = PodLightLumens;
+            data.EnableShadows(false);
+
+            // The arena's fog is dense enough to carry a glow now, so the pod
+            // gets one. At 1 it is physical: no multiplier propping up a light
+            // that the fog is too thin to show, which is what made the old lava
+            // lights read as fake.
+            data.affectsVolumetric = true;
+            data.volumetricDimmer = 1f;
         }
 
         /// <summary>

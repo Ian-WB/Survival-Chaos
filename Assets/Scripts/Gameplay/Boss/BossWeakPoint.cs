@@ -281,6 +281,17 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Switches the pod's glow on or off.
+        ///
+        /// Lights as well as renderers. The pod carries a real light so that it
+        /// throws its colour onto the hull around it rather than only being a
+        /// bright sphere, and a light is not a Renderer - so a wrecked
+        /// emplacement whose sphere had been hidden would have gone on lighting
+        /// the ship from a pod that is visibly no longer there. That reads as the
+        /// gun still being alive, which is the one thing this fight cannot
+        /// afford to lie about.
+        /// </summary>
         private void Show(bool visible)
         {
             if (glow == null)
@@ -291,6 +302,11 @@ namespace SurvivalChaos
             foreach (Renderer part in glow.GetComponentsInChildren<Renderer>(includeInactive: true))
             {
                 part.enabled = visible;
+            }
+
+            foreach (Light lamp in glow.GetComponentsInChildren<Light>(includeInactive: true))
+            {
+                lamp.enabled = visible;
             }
         }
     }

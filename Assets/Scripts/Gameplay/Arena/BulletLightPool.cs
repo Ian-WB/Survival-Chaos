@@ -4,8 +4,14 @@ using UnityEngine;
 namespace SurvivalChaos
 {
     /// <summary>
-    /// Lights the player's bullets using a small fixed pool rather than a light
+    /// Lights one set of bullets using a small fixed pool rather than a light
     /// per projectile.
+    ///
+    /// One set, not all of them: the scene carries two of these, one for the
+    /// player's shots and one for the boss's, because the two want different
+    /// colours and very different shadow budgets. They cost nothing to keep
+    /// apart - every field below is already per-instance - and a single pool
+    /// shared between them would have had to pick which colour to be.
     ///
     /// A light on every bullet is not affordable here: with maximum shot skills
     /// the player has around 36 alive at once, and the boss adds ~174 more. Each
@@ -42,7 +48,9 @@ namespace SurvivalChaos
         private Light lightTemplate;
 
         [SerializeField]
-        [Tooltip("Tag on the player's projectiles.")]
+        [Tooltip("Which projectiles this pool lights. 'Shoot' is the player's, " +
+                 "'enemy_Shoot' is everything shot at them - the boss's rounds and " +
+                 "lance, and the ordinary enemies' fire, which share the one tag.")]
         private string bulletTag = "Shoot";
 
         [Header("Budget")]
@@ -258,8 +266,9 @@ namespace SurvivalChaos
                 ShootScript candidate = found[i];
 
                 // The registry carries the player's projectiles and the enemies'
-                // alike; only the player's are lit. A destroyed entry can survive
-                // a route that skipped OnDisable, so that is checked too.
+                // alike, so the tag is what separates this pool's set from the
+                // other pool's. A destroyed entry can survive a route that skipped
+                // OnDisable, so that is checked too.
                 if (candidate == null || !candidate.CompareTag(bulletTag))
                 {
                     continue;
