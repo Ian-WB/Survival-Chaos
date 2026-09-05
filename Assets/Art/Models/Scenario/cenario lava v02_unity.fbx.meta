@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: bdc6c89e3e7aeec4cb64f181c7574f9d
 ModelImporter:
-  serializedVersion: 24501
+  serializedVersion: 24600
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -84,6 +84,8 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    preBakeConvexCollisionMesh: 0
+    preBakeTriangleCollisionMesh: 0
     importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
@@ -113,7 +115,7 @@ ModelImporter:
     secondaryUVAreaDistortion: 15
     secondaryUVHardAngle: 88
     secondaryUVMarginMethod: 1
-    secondaryUVMinLightmapResolution: 5
+    secondaryUVMinLightmapResolution: 6
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 36
     useFileScale: 1
