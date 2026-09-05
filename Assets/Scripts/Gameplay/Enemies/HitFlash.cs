@@ -78,6 +78,26 @@ namespace SurvivalChaos
         /// </summary>
         private Renderer[] targets;
 
+        /// <summary>
+        /// Which material slot of <see cref="targets"/> each entry paints.
+        ///
+        /// A property block set on a renderer applies to every submesh it draws,
+        /// so painting per renderer stamps one colour over all of them. That is
+        /// fine for a hull in a single material and wrong the moment a mesh has a
+        /// lit accent on any slot but the first: the accent's resting colour gets
+        /// replaced by the body's, which is black, and the glow never comes back
+        /// on. Nothing in the game has such an accent today, so nothing is
+        /// visibly broken - but a canopy or a panel added on slot 1 would be
+        /// erased the instant the enemy spawned, and it would look like the
+        /// material had failed rather than like this had overwritten it.
+        ///
+        /// Renderer.Get/SetPropertyBlock take a material index for exactly this.
+        /// One entry per (renderer, slot) that has somewhere to put the colour,
+        /// so a renderer with one lit slot and three dark ones costs four entries
+        /// and each keeps its own resting value.
+        /// </summary>
+        private int[] slots;
+
         private Color[] resting;
         private MaterialPropertyBlock block;
         private Coroutine running;
@@ -97,6 +117,7 @@ namespace SurvivalChaos
         private void Awake()
         {
             var found = new System.Collections.Generic.List<Renderer>();
+            var index = new System.Collections.Generic.List<int>();
             var rest = new System.Collections.Generic.List<Color>();
 
             foreach (Renderer candidate in GetComponentsInChildren<Renderer>(includeInactive: true))
@@ -112,23 +133,30 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                Material material = candidate.sharedMaterial;
+                Material[] materials = candidate.sharedMaterials;
 
-                if (material == null || !material.HasProperty(EmissiveColor))
+                for (int slot = 0; slot < materials.Length; slot++)
                 {
-                    continue;
+                    Material material = materials[slot];
+
+                    if (material == null || !material.HasProperty(EmissiveColor))
+                    {
+                        continue;
+                    }
+
+                    found.Add(candidate);
+                    index.Add(slot);
+
+                    // What to put back afterwards, read from the shared material
+                    // rather than remembered from before the flash - a second hit
+                    // landing inside the first flash would otherwise record the lit
+                    // colour as the resting one and leave the enemy glowing forever.
+                    rest.Add(material.GetColor(EmissiveColor));
                 }
-
-                found.Add(candidate);
-
-                // What to put back afterwards, read from the shared material
-                // rather than remembered from before the flash - a second hit
-                // landing inside the first flash would otherwise record the lit
-                // colour as the resting one and leave the enemy glowing forever.
-                rest.Add(material.GetColor(EmissiveColor));
             }
 
             targets = found.ToArray();
+            slots = index.ToArray();
             resting = rest.ToArray();
         }
 
@@ -193,9 +221,9 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                target.GetPropertyBlock(block);
+                target.GetPropertyBlock(block, slots[i]);
                 block.SetColor(EmissiveColor, lit ? color : resting[i]);
-                target.SetPropertyBlock(block);
+                target.SetPropertyBlock(block, slots[i]);
             }
         }
     }
