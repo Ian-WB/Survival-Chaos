@@ -40,6 +40,38 @@ namespace SurvivalChaos.EditorTools
 
         private const string WreckagePath = "Assets/Prefabs/Boss/BossWreckage.prefab";
 
+        /// <summary>
+        /// The keel's rounds, one per direction of travel like the rest.
+        ///
+        /// The keel bank fires out of a row of long vertical slots in the
+        /// underside of the hull, and a slot is not a gun port. Discs read as
+        /// something that shape would actually throw, and they cost nothing to
+        /// tell apart from the crown's fire at a glance - which matters, because
+        /// the two banks are the fight's way of saying that height is the thing
+        /// you are being asked about.
+        ///
+        /// Sized on the prefab at 7 world units across, which is the same as a
+        /// pod, and that number is not cosmetic. The keel's twelve muzzles are
+        /// three rows of four, 12.65 units apart vertically; the player's ship is
+        /// 4.09 tall. So the clear gap between two firing rows is 12.65 minus
+        /// whatever the round is, and the round the curtain used to fire was 1.76
+        /// tall - leaving 10.9 units between every row.
+        ///
+        /// Which means the curtain has never been a wall. FireCurtain's own
+        /// summary describes a wall with one gap in it, stepping upward so it can
+        /// be learned, and the player could in fact fly between any two rows at
+        /// any time. At 7 the gap is 6.15 and the ship needs 4.09 of it, so the
+        /// open row finally is the way through rather than one of four.
+        ///
+        /// That makes disc size a difficulty dial and not a look, and it is the
+        /// first thing to lower if the curtain reads as unfair rather than as
+        /// tight. Going the other way, anything past about 8.5 closes the gaps
+        /// entirely and the attack stops being threadable at all.
+        /// </summary>
+        private const string DiscLeftPath = "Assets/Prefabs/Boss/boss_disc 1.prefab";
+
+        private const string DiscRightPath = "Assets/Prefabs/Boss/boss_disc 2.prefab";
+
         private const string RigName = "Muzzles";
         private const string OrphanName = "Laser Trigger";
         private const string GlowName = "Glow";
@@ -80,6 +112,36 @@ namespace SurvivalChaos.EditorTools
         /// emplacements sit at three different heights.
         /// </summary>
         private const float PodRadius = 0.7f;
+
+        /// <summary>
+        /// Hit points per emplacement, and with them the length of the first act.
+        ///
+        /// This was 50, and 50 is why the fight played easy. The player's gun
+        /// ends a run at six bullets a volley on a 0.15s floor - forty damage a
+        /// second - so three pods at 50 were about six seconds of shooting. The
+        /// three armoured attacks were on 4, 5 and 6 second intervals, so the act
+        /// ended after roughly two cycles of each. The cadences never got to say
+        /// anything.
+        ///
+        /// 150 buys about nineteen seconds at a normal late-run rate, which is
+        /// six or seven cycles of each attack now that the intervals below have
+        /// come down with it. Health and cadence are the two ways to buy the same
+        /// thing here and they are not interchangeable: health decides how many
+        /// cycles the player sees, cadence decides how hard each one is. This
+        /// went to 200 first, and came back to 150 with the intervals tightened
+        /// to match - the same pressure over less time, which reads as a fight
+        /// rather than as a health bar.
+        /// </summary>
+        private const int PodHealth = 150;
+
+        /// <summary>
+        /// Health remaining when every magazine still aboard goes off at once.
+        ///
+        /// Scaled with the rest rather than retuned. At 30 against a 300 point
+        /// boss it was the last tenth of the fight, and 90 against 900 keeps it
+        /// exactly that.
+        /// </summary>
+        private const int ScuttleThreshold = 90;
 
         /// <summary>
         /// The pod light's colour, range and output.
@@ -535,7 +597,7 @@ namespace SurvivalChaos.EditorTools
 
             var properties = new SerializedObject(weakPoint);
             properties.FindProperty("label").stringValue = bank.Label;
-            properties.FindProperty("healthPoints").intValue = 50;
+            properties.FindProperty("healthPoints").intValue = PodHealth;
             properties.FindProperty("hitEffect").objectReferenceValue = Load<GameObject>(SparkPath);
             properties.FindProperty("explosion").objectReferenceValue = Load<GameObject>(BlastPath);
             properties.FindProperty("glow").objectReferenceValue = pod.Find(GlowName);
@@ -935,6 +997,19 @@ namespace SurvivalChaos.EditorTools
             public bool LanceRound;
 
             /// <summary>
+            /// An explicit pair of rounds, one per direction of travel, for an
+            /// attack that fires something other than the shared bullet.
+            ///
+            /// Separate from <see cref="Round"/> below, which is for things that
+            /// are not aimed and so need only one prefab. A disc still orbits, so
+            /// it still needs the two opposite angular speeds that every other
+            /// round comes in.
+            /// </summary>
+            public string RoundLeft;
+
+            public string RoundRight;
+
+            /// <summary>
             /// What this attack releases, when it is not one of the four rounds.
             ///
             /// The emitter asks an attack for a prefab per travel direction and
@@ -965,9 +1040,14 @@ namespace SurvivalChaos.EditorTools
         /// rather than out of a difficulty number.
         ///
         /// The cadences are set against a lap rather than against each other. A
-        /// boss bullet goes round the ring in 4.5 seconds, so the curtain's 6
-        /// brings the previous wall back just before the next one leaves, and the
-        /// player spends most of the phase between two of them.
+        /// boss bullet goes round the ring in 4.5 seconds, and that is the number
+        /// every interval here is reasoned from.
+        ///
+        /// Tightened on 2026-09-07, after the first full playthrough found both
+        /// acts easy. The intervals were not the main fault - the acts were
+        /// ending after about two cycles of each attack, which is what PodHealth
+        /// addresses - but with the acts now long enough to express themselves
+        /// these had more room in them than they need.
         /// </summary>
         private static readonly Volley[] Fight =
         {
@@ -978,8 +1058,32 @@ namespace SurvivalChaos.EditorTools
                 Phases = BossPhaseMask.Armoured,
                 Bank = "Keel",
                 Muzzles = new[] { 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 },
+
+                // Discs, not bullets. The keel is the lowest of the three banks -
+                // the floor of the playable band - and it fires from slots rather
+                // than barrels. Giving it its own round means a glance at what is
+                // coming tells the player which height it came from, which is the
+                // single thing the armoured act is asking them to read.
+                RoundLeft = DiscLeftPath,
+                RoundRight = DiscRightPath,
                 InitialDelay = 1.5f,
-                Interval = 6f,
+
+                // Under the lap, which is the change that matters. A boss bullet
+                // takes 4.5s to come round, so at 3.4 the next wall leaves while
+                // the last one is still a quarter of the ring from home: there are
+                // now stretches with two walls on the ring at once, at different
+                // gap rows. At 6 there was a second and a half of open ring between
+                // them and that gap was where the act was won.
+                //
+                // This is the one interval here that changes what the attack is
+                // rather than how often it happens, so it is the first to walk
+                // back if the curtain stops being readable.
+                Interval = 3.4f,
+
+                // Still one row. This is the learnable part - two watched volleys
+                // tell you where the third gap will be - and widening it would
+                // trade the one thing the curtain teaches for difficulty that
+                // Interval provides more honestly.
                 OpenRows = 1,
             },
             new Volley
@@ -990,7 +1094,17 @@ namespace SurvivalChaos.EditorTools
                 Bank = "Crown",
                 Muzzles = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
                 InitialDelay = 0.5f,
-                Interval = 4f,
+
+                // Sixteen muzzles at 0.12 is a 1.9s sweep, so 4 left two full
+                // seconds of quiet after each one. 2.4 leaves half a second - the
+                // rake is very nearly continuous, and the player is now behind it
+                // rather than waiting for it.
+                Interval = 2.4f,
+
+                // Unchanged, deliberately. The step is how fast the rake crosses
+                // the band, and it is what makes the attack readable rather than a
+                // wall. Interval is the honest place to add pressure; this is the
+                // attack's identity.
                 StepSeconds = 0.12f,
             },
             new Volley
@@ -1002,9 +1116,23 @@ namespace SurvivalChaos.EditorTools
                 Muzzles = new[] { 16, 29, 30, 31 },
                 LanceRound = true,
                 InitialDelay = 2.5f,
-                Interval = 5f,
+
+                // A 1.2s wind-up and a 0.6s burst is 1.8s of the cycle, so 2.6
+                // leaves eight tenths of a second between the end of one lance and
+                // the start of the next wind-up. That is the floor for this
+                // attack: any less and the telegraph is running more often than
+                // not, which makes a warning into a background noise.
+                Interval = 2.6f,
+
+                // The wind-up is untouched. It is the fight's one real telegraph,
+                // it now makes a noise, and shortening it would make the warning
+                // worth less at exactly the moment the fight leans on it harder.
                 ChargeSeconds = 1.2f,
-                BurstSeconds = 0.4f,
+
+                // The burst is the part that grew: 0.6 over 0.06 is ten rounds
+                // where 0.4 was seven. Something announced for a second and a
+                // fifth should cost more than seven rounds to stand in front of.
+                BurstSeconds = 0.6f,
                 BurstInterval = 0.06f,
             },
             new Volley
@@ -1014,9 +1142,23 @@ namespace SurvivalChaos.EditorTools
                 Phases = BossPhaseMask.Exposed,
                 Muzzles = new int[0],
                 InitialDelay = 1f,
-                Interval = 7f,
+
+                // 4.5, and it cannot usefully go lower. A ram is a 1s charge plus
+                // a 3s pass, and Tick skips any attack whose running flag is still
+                // set - so an interval under 4 does not fire more often, it just
+                // stops meaning anything and the ram runs back to back. This
+                // leaves half a second of hull between passes.
+                //
+                // The dash comes back in 1.2s, so the counterplay still answers
+                // comfortably; what changed is that it is no longer idle for most
+                // of the act.
+                Interval = 4.5f,
                 ChargeSeconds = 1f,
                 BurstSeconds = 3f,
+
+                // Untouched. The dash is the answer to this, and a faster ram is
+                // not a harder version of the same question - it is a different
+                // one, about whether the dash can catch it at all.
                 RamSpeedScale = 3f,
             },
             new Volley
@@ -1028,12 +1170,20 @@ namespace SurvivalChaos.EditorTools
                 Muzzles = new int[0],
                 InitialDelay = 0.5f,
 
-                // Life over interval is how many plates stand at once, and a third
-                // of those sit at any one height. 16 over 1.8 holds about nine, so
-                // three at the player's own altitude - which against a player
-                // lapping the ring every 12.3 seconds is a forced move every four
-                // seconds or so.
-                Interval = 1.8f,
+                // Life over interval is how many plates stand at once, and a
+                // third of those sit at any one height.
+                //
+                // 16 over 1.8 held about nine - but only in a steady state that
+                // takes a whole plate lifetime to build, and the act used to be
+                // over in five seconds. The density this was tuned for had never
+                // once been on screen.
+                //
+                // BossWreckage.lifeSeconds is 11 now so the steady state arrives
+                // inside the act, and 11 over 0.7 holds about sixteen plates -
+                // five of them at the player's own altitude, against a player
+                // lapping the ring every 12.3 seconds. That is a forced move
+                // roughly every two and a half seconds.
+                Interval = 0.7f,
             },
             new Volley
             {
@@ -1056,12 +1206,17 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
+            // The first four are indexed by the offset below, so nothing may be
+            // inserted before them. The discs ride along at the end purely so
+            // TuneRounds reaches them - they are picked by name, not by index.
             GameObject[] rounds =
             {
                 Load<GameObject>("Assets/Prefabs/Boss/boss_shoot 3.prefab"),
                 Load<GameObject>("Assets/Prefabs/Boss/boss_shoot 4.prefab"),
                 Load<GameObject>("Assets/Prefabs/Boss/boss_shoot 5.prefab"),
                 Load<GameObject>("Assets/Prefabs/Boss/boss_shoot 6.prefab"),
+                Load<GameObject>(DiscLeftPath),
+                Load<GameObject>(DiscRightPath),
             };
 
             TuneRounds(rounds);
@@ -1069,7 +1224,7 @@ namespace SurvivalChaos.EditorTools
             var so = new SerializedObject(emitter);
 
             so.FindProperty("hullSpark").objectReferenceValue = Load<GameObject>(SparkPath);
-            so.FindProperty("scuttleThreshold").intValue = 30;
+            so.FindProperty("scuttleThreshold").intValue = ScuttleThreshold;
             so.FindProperty("phaseChangeSilence").floatValue = 2f;
 
             SerializedProperty attacks = so.FindProperty("attacks");
@@ -1095,7 +1250,12 @@ namespace SurvivalChaos.EditorTools
                 GameObject left;
                 GameObject right;
 
-                if (volley.Round != null)
+                if (volley.RoundLeft != null)
+                {
+                    left = Load<GameObject>(volley.RoundLeft);
+                    right = Load<GameObject>(volley.RoundRight);
+                }
+                else if (volley.Round != null)
                 {
                     left = right = Load<GameObject>(volley.Round);
                 }

@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"code-variant":true,"cloud-bank":true},"updated":"6 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true},"updated":"7 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -330,12 +330,13 @@
     id: "play-boss",
     title: "Play one full boss run",
     effort: "about 5 minutes",
-    lede: "Everything about the fight is measured and none of it is played. Every number I have came from a probe with the ship parked — and two changes since then went in on geometry rather than on feel: roughly four times as much boss fire in your lane, and the whole of the boss’s output recoloured. <strong>There is a fresh build waiting</strong>: <code>Builds/26_0906-1052_bossglow</code>, clean, with the orange fire and the red pods in it. F8 opens the debug menu — verified present in this exe, not assumed — so you can wind the clock on and force the level-ups instead of surviving ten minutes to get there.",
+    lede: "Everything about the fight is measured and none of it is played. Every number I have came from a probe with the ship parked — and two changes since then went in on geometry rather than on feel: roughly four times as much boss fire in your lane, and the whole of the boss’s output recoloured. <strong>There is a fresh build waiting</strong>: <code>Builds/26_0907-1030_audiomix</code>, clean, with the orange fire, the red pods, and the rebalanced mix in it. F8 opens the debug menu — verified present in this exe, not assumed — so you can wind the clock on and force the level-ups instead of surviving ten minutes to get there.",
     watch: [
       "Armoured: can you still get a pod down? You have to fly to its height, which is now where the fire is thickest.",
       "Exposed: too thin still, or too busy now? Nine plates plus a ram every 7s was tuned on paper.",
       "Can you actually see the plates against the dark island?",
-      "The pods are red now, not green. Against orange lava, can you still find the one you are meant to shoot?"
+      "The pods are red now, not green. Against orange lava, can you still find the one you are meant to shoot?",
+      "The lance and the ram make a noise now. Does the wind-up give you enough time — and does the lance's stop if you kill the prow pod part way through?"
     ]
   };
 
@@ -346,21 +347,21 @@
       note: "I can’t do these for you",
       items: [
         {
-          id: "plate-glow",
-          title: "Decide whether the wreckage plates should glow",
-          effort: "2 min to decide",
-          why: [
-            "The plates carry the boss’s own hull material, which is nearly black. Against the sky or the lava they read fine; against the dark island one can vanish.",
-            "An emissive tint fixes it and makes them the first thing in the arena that glows because it is dangerous rather than because it is hot. That’s your art direction, not mine — say the word and it’s a one-line change."
-          ]
-        },
-        {
           id: "charge-sound",
           title: "Pick a charge sound for the lance and the ram",
           effort: "30 min",
           why: [
-            "Both telegraph visually and neither makes a noise. It needs a new SoundDefinition asset and a curated clip.",
-            "Choosing a clip by ear isn’t something I should do on your behalf. Once you’ve picked one, wiring it is quick."
+            "Done, and synthesised rather than picked. Nothing in the packs is a charge — measured, every engine and thruster is a flat five-second drone and the only things that rise are door slams — so both were made with the project’s own SfxrSynth, called directly rather than through the menu item that would have replaced every sound in the game.",
+            "The lance rises 198 to 694Hz over 1.15s against a 1.2s wind-up; the ram spools from a 39Hz fundamental under a low-pass that opens. The lance’s is cut short if you shoot the prow emplacement mid-charge, which needed a Stop the audio system did not have."
+          ]
+        },
+        {
+          id: "hit-clip",
+          title: "Pick a punchier clip for taking damage",
+          effort: "10 min",
+          why: [
+            "<code>PlayerHit</code> is the anchor of the whole mix and it is the weakest clip in the set — measured over its loudest 300ms it is the quietest thing there. Because <code>volume</code> caps at 1, everything else had to come down to sit under it, which is why the game is now about 6dB quieter overall.",
+            "A clip with more in it would let the whole ladder come back up. BalanceSoundLevels says this itself: something that hits the ceiling before reaching the target wants a different clip, not more gain."
           ]
         },
         {
@@ -376,8 +377,8 @@
           title: "Decide what the ordinary enemies’ shots should look like",
           effort: "2 min to decide",
           why: [
-            "The boss’s rounds and the basic enemies’ share one tag, <code>enemy_Shoot</code>, so the new light pool cannot tell them apart. Enemy 1’s shots are already red and gain from it; the basic Enemy’s grey spikes now carry an orange glow they have no emissive to justify.",
-            "Two ways out and they are opposite art calls: warm those two materials so all hostile fire reads warm, or give the boss’s rounds their own tag so only the boss glows. Either is quick once you have picked."
+            "Done — warmed, rather than given their own tag. All hostile fire now reads warm on one ladder below the boss’s own rounds.",
+            "Their materials were embedded in <code>tiro_inimigo_2.fbx</code>, so they are new assets with the base greys copied across untouched. Only emission was added, which is deliberately not what happened the time the palette got rejected."
           ]
         },
         {
@@ -412,6 +413,15 @@
           why: [
             "<code>ArenaCloudBank.driftSpeed</code> is 8, down from 25, because the texture sliding was the thing you could see. Slower is quieter, but it is the same tell.",
             "At 0 the banks hold still and all the parallax comes from your own orbit instead — which is motion the player is causing rather than motion happening to them. Untried; it is one field."
+          ]
+        },
+        {
+          id: "loudness-metric",
+          title: "Match clips on windowed loudness, not gated RMS",
+          effort: "45 min",
+          why: [
+            "<code>BalanceSoundLevels</code> normalises every clip to the same gated RMS, and that is not what a listener hears: two clips both balanced to -16 dBFS measured 13dB apart over their loudest 300ms. That gap is why the mix drifted so far.",
+            "<code>IntentDb</code> is currently carrying both the design judgement it is for and a correction for that gap, which is written down as the compromise it is. Fixing the metric would let it go back to being purely about how often a sound fires — but it rewrites every file in <code>Balanced/</code>, so it wants doing deliberately rather than in passing."
           ]
         },
         {
@@ -496,6 +506,7 @@
   ];
 
   var PARKED = [
+    ["The wreckage plates stay dark", "Asked on 7 September and answered: no glow for now. They carry the boss’s hull material, which is nearly black, so one can vanish against the dark island — worth revisiting if the boss run shows it happening, but it is a deliberate no rather than an open question."],
     ["Overlapping offers stack their captions", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned."],
     ["Max Health is four ×5 instead of one ×20", "Same ceiling for a player who takes all four, lower for one who takes two. Whether that reads as a choice or a nerf is a question only playing answers."],
     ["Ray-traced rungs beyond reflections are unvalidated", "RT Reflections was confirmed in a build on DXR hardware. The rest are reachable and deliberately unused."],
