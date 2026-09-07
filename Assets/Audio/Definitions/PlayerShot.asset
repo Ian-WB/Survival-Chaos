@@ -16,7 +16,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 90af8196dfcf27c4280e472c178e2fa8, type: 3}
   - {fileID: 8300000, guid: 3308cc27bbbd3f14e9cbb47d0cb452ad, type: 3}
   channel: 2
-  volume: 0.4466836
+  volume: 0.1218
   pitchRange: {x: 0.94, y: 1.06}
   minRetrigger: 0.06
   maxVoices: 4

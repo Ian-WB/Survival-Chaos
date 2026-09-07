@@ -60,57 +60,73 @@ namespace SurvivalChaos.EditorTools
         {
             // Fires every 0.5s at base attack speed and faster with upgrades, so
             // it carries the widest pitch spread and the tightest retrigger.
-            new Spec("playerShot", "PlayerShot", AudioChannel.Sfx, 0.55f,
+            new Spec("playerShot", "PlayerShot", AudioChannel.Sfx, 0.1218f,
                 new Vector2(0.94f, 1.06f), 0.06f, 4, 0f, "one per volley"),
 
-            new Spec("playerHit", "PlayerHit", AudioChannel.Sfx, 0.9f,
+            new Spec("playerHit", "PlayerHit", AudioChannel.Sfx, 1f,
                 new Vector2(0.96f, 1.04f), 0.08f, 2, 0f, "taking damage"),
 
             // Once per run. No spread and no throttle - it should never be the
             // sound that gets dropped.
-            new Spec("playerDeath", "PlayerDeath", AudioChannel.Sfx, 1f,
+            new Spec("playerDeath", "PlayerDeath", AudioChannel.Sfx, 0.5642f,
                 Vector2.one, 0f, 1, 0f, "the run ending badly"),
 
-            // -5dB, on the same ladder BalanceSoundLevels puts the rest on, and
-            // level with the boss's gun: a dash is rarer than a shot and the
-            // player needs to hear that it went.
+            // Far down the ladder, and it used to be near the top. Measured over
+            // its loudest 300 ms this clip is the hottest in the whole set, it
+            // fires on a 1.2s cycle, and it was sitting eight decibels above the
+            // sound of taking damage. It is player-caused and constant, so it
+            // reads perfectly well from underneath.
+            //
+            // The pitch below makes it hotter still: lifting a sample half an
+            // octave shortens it and raises it into the ear's most sensitive
+            // range, and none of that is in the measurement. So if anything this
+            // number is not low enough.
             //
             // The pitch range sits well above 1 rather than straddling it, which
             // is doing real work here. The clip is an explosion, and played at
             // its own pitch it reads as damage taken; lifted half an octave the
             // same sample reads as a thruster. The spread across it is the usual
             // anti-repetition jitter.
-            new Spec("playerDash", "PlayerDash", AudioChannel.Sfx, 0.5623413f,
+            new Spec("playerDash", "PlayerDash", AudioChannel.Sfx, 0.0905f,
                 new Vector2(1.35f, 1.5f), 0.1f, 2, 0f, "the dash burst"),
 
-            new Spec("levelUp", "LevelUp", AudioChannel.Sfx, 0.9f,
+            new Spec("levelUp", "LevelUp", AudioChannel.Sfx, 0.7702f,
                 Vector2.one, 0f, 1, 0f, "reaching a new level"),
 
-            new Spec("skillPicked", "SkillPicked", AudioChannel.Ui, 0.85f,
+            new Spec("skillPicked", "SkillPicked", AudioChannel.Ui, 0.609f,
                 Vector2.one, 0f, 1, 0f, "a skill being granted"),
 
             // Dozens die a minute and several can land in the same frame, so this
             // is the one most in need of variation and a voice cap.
-            new Spec("enemyDeath", "EnemyDeath", AudioChannel.Sfx, 0.7f,
+            new Spec("enemyDeath", "EnemyDeath", AudioChannel.Sfx, 0.332f,
                 new Vector2(0.9f, 1.1f), 0.04f, 5, 0.8f, "shared enemy explosion"),
 
-            new Spec("bossShot", "BossShot", AudioChannel.Sfx, 0.5f,
+            new Spec("bossShot", "BossShot", AudioChannel.Sfx, 0.4154f,
                 new Vector2(0.95f, 1.05f), 0.12f, 3, 0.6f, "one per boss attack"),
 
-            new Spec("bossDeath", "BossDeath", AudioChannel.Sfx, 1f,
+            new Spec("bossDeath", "BossDeath", AudioChannel.Sfx, 0.4255f,
                 Vector2.one, 0f, 1, 0f, "the boss going down"),
 
-            new Spec("victory", "Victory", AudioChannel.Ui, 1f,
+            // Telegraphs. One voice and no pitch spread on purpose: a warning the
+            // player is meant to learn has to sound the same every time, and two
+            // copies of a wind-up overlapping would say two shots are coming.
+            new Spec("bossChargeLance", "BossChargeLance", AudioChannel.Sfx, 0.5056f,
+                Vector2.one, 0.3f, 1, 0.6f, "the lance winding up"),
+
+            new Spec("bossChargeRam", "BossChargeRam", AudioChannel.Sfx, 0.5036f,
+                Vector2.one, 0.3f, 1, 0.6f, "the hull spooling up to ram"),
+
+            new Spec("victory", "Victory", AudioChannel.Ui, 0.8597f,
                 Vector2.one, 0f, 1, 0f, "the victory panel"),
 
             // Menu sounds answer to the Interface slider, which until now had
             // nothing to attenuate.
-            new Spec("uiClick", "UiClick", AudioChannel.Ui, 0.8f,
+            new Spec("uiClick", "UiClick", AudioChannel.Ui, 0.8147f,
                 Vector2.one, 0.05f, 2, 0f, "any framed button"),
 
             // Retrigger matters here: hover fires again on reselection, and the
             // pointer crossing a column of buttons should not machine-gun.
-            new Spec("uiHover", "UiHover", AudioChannel.Ui, 0.45f,
+            new Spec("uiHover", "UiHover", AudioChannel.Ui, 0.1281f,
                 new Vector2(0.98f, 1.02f), 0.07f, 2, 0f, "pointer arriving on a button")
         };
 

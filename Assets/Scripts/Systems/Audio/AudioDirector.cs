@@ -131,10 +131,20 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Every channel starts open. Balance belongs in the sources — the music
-        /// AudioSource is authored at 0.15, and that is the mix the team chose —
-        /// so a slider at full should sound exactly like the game does today.
-        /// Sliders attenuate from there; they are not a place to set balance.
+        /// Every channel starts open. Balance belongs in the sources, so a slider
+        /// at full should sound exactly like the game does today; sliders
+        /// attenuate from there and are not a place to set balance.
+        ///
+        /// This used to say the music AudioSource was authored at 0.15. It was
+        /// not - both scenes had it at 1, and had for long enough that the note
+        /// was being read as fact. Music was therefore the loudest thing in the
+        /// game by about nine decibels, with every effect fighting underneath it,
+        /// and no amount of work on the effects' own levels could have fixed
+        /// that. It is 0.12 in Game and 0.162 in Menu now.
+        ///
+        /// The lesson is the note, not the number: this comment described a value
+        /// living in two scene files that nothing here can see. If it drifts
+        /// again, measure it - do not trust this sentence either.
         /// </summary>
         private static float DefaultFor(AudioChannel channel)
         {
@@ -288,6 +298,61 @@ namespace SurvivalChaos
             }
 
             return count;
+        }
+
+        /// <summary>
+        /// Silences whatever copies of <paramref name="sound"/> are still
+        /// sounding, and frees their voices.
+        ///
+        /// Everything else this class plays is short enough that it is over
+        /// before anyone could want it back. A telegraph is not: it runs for the
+        /// length of a wind-up precisely so the player can act on it, which means
+        /// there is a window in which the thing being announced can stop being
+        /// true. The boss's lance is the case - shoot its emplacement part way
+        /// through and the shot never comes, and a charge that kept sounding
+        /// would be telling the player to dodge something that no longer exists.
+        ///
+        /// Only sounds that are still running are touched, so calling this on a
+        /// telegraph that already finished does nothing.
+        /// </summary>
+        public static void Stop(SoundDefinition sound)
+        {
+            if (Instance != null)
+            {
+                Instance.StopInternal(sound);
+            }
+        }
+
+        private void StopInternal(SoundDefinition sound)
+        {
+            if (sound == null || voices == null)
+            {
+                return;
+            }
+
+            float now = Time.unscaledTime;
+
+            for (int i = 0; i < voices.Length; i++)
+            {
+                if (voiceOwner[i] != sound || voiceFreeAt[i] <= now)
+                {
+                    continue;
+                }
+
+                voices[i].Stop();
+
+                // Free the slot as well as the source. Without this the voice
+                // stays reserved until the clip it is no longer playing would
+                // have ended, and MaxVoices 1 - which every telegraph wants -
+                // would silently refuse the next charge.
+                voiceFreeAt[i] = now;
+                voiceOwner[i] = null;
+            }
+
+            // The retrigger guard is keyed on when a sound last started, and a
+            // cancelled telegraph should not be made to wait out the gap meant to
+            // stop it stacking on itself.
+            lastStarted.Remove(sound);
         }
 
         private int FindFreeVoice(float now)

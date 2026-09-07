@@ -436,6 +436,19 @@ namespace SurvivalChaos
             BossWeakPoint pod = attack.WeakPoint;
             float charge = attack.ChargeSeconds;
 
+            // The wind-up says what is coming, and until now it only said it to
+            // the eye - the pod swells and nothing makes a noise. A player
+            // watching the lane they are flying in was given no reason to look
+            // at the prow.
+            SoundDefinition chargeSound = GameSounds.Instance != null
+                ? GameSounds.Instance.BossChargeLance
+                : null;
+
+            if (chargeSound != null)
+            {
+                GameSounds.PlayAt(chargeSound, transform.position);
+            }
+
             for (float elapsed = 0f; elapsed < charge; elapsed += Time.deltaTime)
             {
                 // Shot off its mounting part way through the wind-up. The warning
@@ -443,6 +456,14 @@ namespace SurvivalChaos
                 // never coming.
                 if (pod != null && pod.Destroyed)
                 {
+                    // The sound is half of that warning now, and it outlives the
+                    // coroutine that started it, so it has to be cut rather than
+                    // simply not continued.
+                    if (chargeSound != null)
+                    {
+                        AudioDirector.Stop(chargeSound);
+                    }
+
                     break;
                 }
 
@@ -499,6 +520,15 @@ namespace SurvivalChaos
 
             float charge = attack.ChargeSeconds;
             float nextBlink = 0f;
+
+            // The ram telegraphs by flashing the hull, which is only visible if
+            // the boss is on screen - and the thing it is announcing is the boss
+            // arriving, so by definition it often is not. The sound is the half
+            // of the warning that reaches a player looking somewhere else.
+            if (GameSounds.Instance != null && GameSounds.Instance.BossChargeRam != null)
+            {
+                GameSounds.PlayAt(GameSounds.Instance.BossChargeRam, transform.position);
+            }
 
             for (float elapsed = 0f; elapsed < charge; elapsed += Time.deltaTime)
             {

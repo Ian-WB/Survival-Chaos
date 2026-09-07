@@ -10,16 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
-  m_Name: BossShot
+  m_Name: BossChargeRam
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 2fcc40816c109554d984d8e6f872f847, type: 3}
-  - {fileID: 8300000, guid: a9049f77ac4f897478b3966c8bb73aa5, type: 3}
-  - {fileID: 8300000, guid: f6a26654506b7364e8a0557d962f1476, type: 3}
+  - {fileID: 8300000, guid: 9317f8741a4b8e9449bd420269fb244b, type: 3}
   channel: 2
-  volume: 0.4154
-  pitchRange: {x: 0.95, y: 1.05}
-  minRetrigger: 0.12
-  maxVoices: 3
+  volume: 0.5036
+  pitchRange: {x: 1, y: 1}
+  minRetrigger: 0.3
+  maxVoices: 1
   spatialBlend: 0.6
   output: {fileID: 0}

@@ -54,13 +54,66 @@ namespace SurvivalChaos.EditorTools
         /// measurement, which is exactly why it is a short readable table instead
         /// of eleven numbers spread across eleven assets.
         /// </summary>
+        /// Rewritten on 2026-09-07 against measurement, because the table above it
+        /// does not do what the comment on TargetRmsDb assumes. Gated RMS matches
+        /// clips on their average level over everything above the gate, and that
+        /// is not what a listener hears: measured over the loudest 300 ms - which
+        /// is much closer to perception - two clips both "balanced" to -16 dBFS
+        /// came out 13 dB apart. The dash explosion measured -10.5 and the impact
+        /// the player takes damage to measured -23.4.
+        ///
+        /// So these numbers now carry two things at once: how often a sound fires,
+        /// and a correction for how far its clip's perceived loudness sits from
+        /// its gated RMS. That is not ideal - the honest fix is to match clips on
+        /// a windowed loudness in the first place, which would let this table go
+        /// back to being purely about frequency - but that rewrites every file in
+        /// Balanced, and this does not.
+        ///
+        /// The ladder is anchored on PlayerHit at 0, because its clip is the
+        /// quietest thing here and volume cannot exceed 1. Everything else is
+        /// placed relative to it, in dB: deaths +5 and +6, the charges and the
+        /// boss's fire a little under, and the sounds that repeat furthest down.
+        /// Taking damage now sits above your own gun rather than seven decibels
+        /// below it, which is the single thing that was most backwards.
         private static readonly Dictionary<string, float> IntentDb = new Dictionary<string, float>
         {
-            { "PlayerShot", -7f },   // five a second, forever
-            { "UiHover", -9f },      // fires on every pointer crossing
-            { "BossShot", -5f },     // constant through the whole fight
-            { "EnemyDeath", -2f },   // frequent, and often several at once
-            { "UiClick", -1f }
+            // Rare, and the run is over - loud is the point.
+            { "PlayerDeath", -5f },
+            { "BossDeath", -7.4f },
+            { "Victory", -1.3f },
+
+            // The anchor. An impact that has to be felt, from the quietest clip
+            // in the set, so it gets everything the volume field can give it.
+            { "PlayerHit", 0f },
+
+            // Once a run, or once per level.
+            { "LevelUp", -2.3f },
+            { "SkillPicked", -4.3f },
+
+            // Warnings. They run for a whole wind-up, so they do not need to be
+            // loud to be noticed - they need to be clear of the fire around them.
+            { "BossChargeLance", -5.9f },
+            { "BossChargeRam", -6f },
+
+            // Constant through the whole fight, and the thing being warned about.
+            { "BossShot", -7.6f },
+
+            { "UiClick", -1.8f },
+
+            // Frequent, and often several at once.
+            { "EnemyDeath", -9.6f },
+
+            // The two that were most wrong. Both are player-caused, both repeat
+            // relentlessly - the dash on a 1.2s cycle - and both were sitting
+            // above the sounds that carry threat. Their clips are also the two
+            // hottest in the set once measured properly, which is why the numbers
+            // are so large.
+            { "PlayerShot", -18.3f },
+            { "PlayerDash", -20.9f },
+
+            // Fires on every pointer crossing, and must sit well under the click
+            // it precedes; it was one decibel above it.
+            { "UiHover", -17.8f }
         };
 
         [MenuItem("Survival Chaos/Balance Sound Levels", priority = 45)]

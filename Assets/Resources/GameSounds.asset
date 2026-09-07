@@ -21,6 +21,8 @@ MonoBehaviour:
   enemyDeath: {fileID: 11400000, guid: 44cca5e94b65cd64ab2fe4a8d389daa6, type: 2}
   bossShot: {fileID: 11400000, guid: 4a4d0466c6a55e5458f9193dc8271357, type: 2}
   bossDeath: {fileID: 11400000, guid: b1dc6b90a4938ee47885ff58b201b664, type: 2}
+  bossChargeLance: {fileID: 11400000, guid: 913436face918d245b0ca1dcf82426dd, type: 2}
+  bossChargeRam: {fileID: 11400000, guid: 63841c2cad0c6d848b4aca04ad6c3d74, type: 2}
   victory: {fileID: 11400000, guid: 740d9d00cb550e746a4b9ac50f13fca0, type: 2}
   uiClick: {fileID: 11400000, guid: a01a46782ba92de44840b51fd89af255, type: 2}
   uiHover: {fileID: 11400000, guid: 9a6b3a802738c924da0469c37a825d42, type: 2}

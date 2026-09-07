@@ -64,6 +64,16 @@ namespace SurvivalChaos
         [SerializeField]
         private SoundDefinition bossDeath;
 
+        [SerializeField]
+        [Tooltip("The lance winding up. A telegraph rather than an event: it runs for the whole " +
+                 "of the charge and is cut short if the emplacement firing it dies first.")]
+        private SoundDefinition bossChargeLance;
+
+        [SerializeField]
+        [Tooltip("The hull spooling up before it rams. Nothing can cancel this one - by the second " +
+                 "act there is no emplacement left to shoot off.")]
+        private SoundDefinition bossChargeRam;
+
         [Header("Run")]
         [SerializeField]
         private SoundDefinition victory;
@@ -85,6 +95,8 @@ namespace SurvivalChaos
         public SoundDefinition EnemyDeath => enemyDeath;
         public SoundDefinition BossShot => bossShot;
         public SoundDefinition BossDeath => bossDeath;
+        public SoundDefinition BossChargeLance => bossChargeLance;
+        public SoundDefinition BossChargeRam => bossChargeRam;
         public SoundDefinition Victory => victory;
         public SoundDefinition UiClick => uiClick;
         public SoundDefinition UiHover => uiHover;

@@ -15,7 +15,7 @@ MonoBehaviour:
   clips:
   - {fileID: 8300000, guid: a4ceb35822aeeb54b9676dcacba0b9ca, type: 3}
   channel: 3
-  volume: 1
+  volume: 0.609
   pitchRange: {x: 1, y: 1}
   minRetrigger: 0
   maxVoices: 1
