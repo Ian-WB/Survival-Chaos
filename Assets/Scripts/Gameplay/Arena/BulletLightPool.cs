@@ -24,6 +24,20 @@ namespace SurvivalChaos
     /// and only a few of those cast shadows. Nobody counts the lights; they read
     /// the fact that the bullets are lit.
     ///
+    /// Which bullets are lit is decided by distance every frame. Which *light* is
+    /// on which of them is not, and that distinction is the whole of the stability
+    /// here. The pool used to bind light i to the i-th nearest bullet, so a light
+    /// was attached to a rank rather than to a projectile: two bullets swapping
+    /// places in the ordering - which happens constantly, since they all orbit -
+    /// teleported a light from one to the other. With the lights feeding
+    /// volumetric fog that read as flicker, and it was worked around once by
+    /// softening the emitter and halving its fog contribution rather than fixed.
+    ///
+    /// A light keeps its bullet now for as long as that bullet is alive and still
+    /// in the lit set, and is only ever handed on once it is not. The set is the
+    /// same set it always was, so nothing about which bullets glow has changed -
+    /// only that a glow now stays on the round it started on.
+    ///
     /// The shadow casters are picked one per volley rather than by distance
     /// alone. A volley is not a loose group that drifts apart: Player.FireLine
     /// stacks its bullets up the pivot and every one of them orbits the same
@@ -55,7 +69,16 @@ namespace SurvivalChaos
 
         [Header("Budget")]
         [SerializeField]
-        [Tooltip("How many lights exist. They follow the bullets closest to the camera.")]
+        [Tooltip("How many lights THIS pool has - this pool alone, not the scene. There are two " +
+                 "of these components, one for the player's shots and one for the boss's, and " +
+                 "each carries its own budget: raising the player's does nothing for the boss's. " +
+                 "They follow the bullets closest to the camera.\n\n" +
+                 "It is also not the ceiling. HDRP holds at most maxLightsPerClusterCell lights " +
+                 "in any one cluster cell - 24 on this project's quality assets - and silently " +
+                 "drops the rest, with no warning and no error. So wherever bullets bunch, and a " +
+                 "volley is a rigid column by design, lights beyond that buy nothing and still " +
+                 "cost their culling. If lights are vanishing rather than missing, that limit is " +
+                 "what to raise, not this one.")]
         private int lightCount = 8;
 
         [SerializeField]
@@ -76,6 +99,17 @@ namespace SurvivalChaos
         private Light[] pool;
         private Transform[] poolTransforms;
         private Camera view;
+
+        // Which bullet each light is currently on, or null for a free light.
+        // This is the state that makes the binding sticky; everything else in
+        // here is rebuilt from scratch every frame.
+        private ShootScript[] owners;
+
+        // Which lights cast this frame. Cleared and refilled each frame, and
+        // held apart from the pool loop because shadows are chosen in distance
+        // order while the lights are visited in pool order - those used to be
+        // the same list and deliberately are not any more.
+        private bool[] casting;
 
         // Which volleys already have a shadow this frame. An array and a count
         // rather than a HashSet: it holds at most shadowCastingCount entries, and
@@ -102,6 +136,8 @@ namespace SurvivalChaos
             int count = Mathf.Max(0, lightCount);
             pool = new Light[count];
             poolTransforms = new Transform[count];
+            owners = new ShootScript[count];
+            casting = new bool[count];
             volleysCovered = new int[Mathf.Max(1, count)];
 
             // The template itself stays in the scene as the reference copy; it is
@@ -203,12 +239,37 @@ namespace SurvivalChaos
 
             CollectNearestBullets(pool.Length);
 
+            ReleaseLostOwners();
+            ClaimFreeLights();
+
             int budget = ShadowBudget();
             volleysCoveredCount = 0;
 
+            for (int i = 0; i < casting.Length; i++)
+            {
+                casting[i] = false;
+            }
+
+            // Nearest first, one per volley, until the budget runs out. Walked
+            // over the distance-sorted bullets rather than over the pool, because
+            // a light's index no longer says anything about how near it is. The
+            // second and later bullets of a volley still get a light - those are
+            // cheap - and no shadow, because the first one's already covers the
+            // same couple of units.
+            for (int b = 0; b < bullets.Count && volleysCoveredCount < budget; b++)
+            {
+                int slot = SlotOf(bullets[b]);
+
+                if (slot >= 0 && ClaimVolley(bullets[b].Volley))
+                {
+                    casting[slot] = true;
+                }
+            }
+
             for (int i = 0; i < pool.Length; i++)
             {
-                bool used = i < bullets.Count;
+                ShootScript owner = owners[i];
+                bool used = owner != null;
 
                 if (used)
                 {
@@ -217,18 +278,10 @@ namespace SurvivalChaos
                     // boss's, whose art is modelled above its own pivot - so
                     // using the transform lit the empty air under every boss
                     // round while the round itself stayed dark.
-                    poolTransforms[i].position = bullets[i].LightPoint + offset;
+                    poolTransforms[i].position = owner.LightPoint + offset;
                 }
 
-                // Nearest first, one per volley, until the budget runs out. The
-                // second and later bullets of a volley still get a light - those
-                // are cheap - and no shadow, because the first one's already
-                // covers the same couple of units.
-                bool casts = used
-                    && volleysCoveredCount < budget
-                    && ClaimVolley(bullets[i].Volley);
-
-                LightShadows wanted = casts ? lightTemplate.shadows : LightShadows.None;
+                LightShadows wanted = casting[i] ? lightTemplate.shadows : LightShadows.None;
                 if (pool[i].shadows != wanted)
                 {
                     pool[i].shadows = wanted;
@@ -241,6 +294,102 @@ namespace SurvivalChaos
                     pool[i].gameObject.SetActive(used);
                 }
             }
+        }
+
+        /// <summary>
+        /// Frees any light whose bullet has died or has dropped out of the lit
+        /// set. Every other light keeps exactly the bullet it already had.
+        ///
+        /// The null test has to come first and has to be Unity's: a projectile
+        /// returned to the pool is deactivated rather than destroyed, but one
+        /// destroyed outright would throw on any property read.
+        /// </summary>
+        private void ReleaseLostOwners()
+        {
+            for (int i = 0; i < owners.Length; i++)
+            {
+                ShootScript owner = owners[i];
+
+                if (owner == null || !owner.isActiveAndEnabled || !InLitSet(owner))
+                {
+                    owners[i] = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Hands a free light to every bullet in the set that does not have one.
+        ///
+        /// The set is capped at the number of lights, so after this every bullet
+        /// in it is lit - which is what keeps this a change of assignment rather
+        /// than a change of what glows.
+        /// </summary>
+        private void ClaimFreeLights()
+        {
+            for (int b = 0; b < bullets.Count; b++)
+            {
+                ShootScript bullet = bullets[b];
+
+                if (SlotOf(bullet) >= 0)
+                {
+                    continue;
+                }
+
+                int free = FreeSlot();
+
+                if (free < 0)
+                {
+                    return;
+                }
+
+                owners[free] = bullet;
+            }
+        }
+
+        /// <summary>
+        /// Which light is on <paramref name="bullet"/>, or -1.
+        ///
+        /// Reference equality throughout these three, not Unity's ==: the
+        /// question is which object this is, and the overload answers a different
+        /// one about whether it has been destroyed.
+        /// </summary>
+        private int SlotOf(ShootScript bullet)
+        {
+            for (int i = 0; i < owners.Length; i++)
+            {
+                if (ReferenceEquals(owners[i], bullet))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private int FreeSlot()
+        {
+            for (int i = 0; i < owners.Length; i++)
+            {
+                if (owners[i] == null)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private bool InLitSet(ShootScript bullet)
+        {
+            for (int i = 0; i < bullets.Count; i++)
+            {
+                if (ReferenceEquals(bullets[i], bullet))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
