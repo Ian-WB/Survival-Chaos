@@ -115,6 +115,15 @@ namespace SurvivalChaos
         [SerializeField]
         private float speed;
 
+        /// <summary>
+        /// Degrees a second around the arena axis, sign included - which is where
+        /// this attack's left and right have always been encoded. Read by
+        /// <see cref="BossLanceBeam"/>, which stands in for a stream of these and
+        /// inherits its direction and its pace from the round it replaces rather
+        /// than carrying a second copy of them.
+        /// </summary>
+        public float Speed => speed;
+
         [SerializeField]
         [Tooltip("How fast this projectile settles onto the lane the player flies in. 0 leaves " +
                  "it at whatever distance from the arena's axis it was fired at, which is what " +
@@ -135,6 +144,10 @@ namespace SurvivalChaos
                 Body = transform;
             }
 
+            // A deterministic starting point, not the final orientation: every
+            // frame of Update ends by facing the arena axis, and FaceOrbitCentre
+            // below settles this to the same place before the round is ever
+            // drawn. This is what a round falls back to if there is no centre.
             Body.rotation = Quaternion.Euler(0f, 0f, 90f);
 
             // Once per instance, not per spawn: the mesh does not move relative
@@ -168,6 +181,31 @@ namespace SurvivalChaos
             }
 
             center = sharedCenter;
+
+            // Without this a round spends its first frame at the placeholder
+            // rotation above and only squares up on its first Update - one frame
+            // of every shot in the game drawn sideways, the player's included.
+            // It also matters to the light pool, which reads LightPoint through
+            // this transform: a wrong rotation puts the light in the wrong place
+            // for exactly as long as the mesh is wrong.
+            FaceOrbitCentre();
+        }
+
+        /// <summary>
+        /// Points the round at the arena axis, level with itself - the orientation
+        /// <see cref="Update"/> settles on, applied at spawn so the first frame
+        /// already matches every frame after it.
+        /// </summary>
+        private void FaceOrbitCentre()
+        {
+            if (center == null)
+            {
+                return;
+            }
+
+            Vector3 pos = center.position;
+            pos.y = transform.position.y;
+            transform.LookAt(pos);
         }
 
         // Update is called once per frame

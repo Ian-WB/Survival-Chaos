@@ -39,6 +39,24 @@ namespace SurvivalChaos
                  "travelling and to drive the ram.")]
         private GameObject enemyShip;
 
+        /// <summary>
+        /// The tag every hostile projectile carries, and so the tag of the light
+        /// pool whose look the lance beam borrows.
+        /// </summary>
+        private const string HostileFireTag = "enemy_Shoot";
+
+        [SerializeField]
+        [Tooltip("Light cloned along the lance beam. Leave it empty and the beam borrows the " +
+                 "template from the light pool that lights the boss's rounds, which is usually " +
+                 "what you want - set this only to make the beam deliberately different.")]
+        private Light beamLightTemplate;
+
+        [SerializeField]
+        [Tooltip("How many lights are spread along the lance beam. Four sits well under the 24 " +
+                 "per cluster cell HDRP will hold before it starts dropping lights silently, " +
+                 "which the forty-round stream this replaced did not.")]
+        private int beamLights = 4;
+
         [SerializeField]
         [Tooltip("Sparks thrown when a shot hits the armoured hull. Deliberately not the same " +
                  "feedback as a shot that lands: while the armour is up the hull does not react " +
@@ -106,6 +124,17 @@ namespace SurvivalChaos
         /// </summary>
         private bool[] running;
 
+        /// <summary>
+        /// One beam, built on the first lance and reused for every one after it.
+        /// The attack fires every 2.6 seconds and a pass lasts two, so there is
+        /// never a second one to draw - and a mesh rebuilt every frame is not
+        /// something to allocate and throw away twenty times a fight.
+        /// </summary>
+        private BossLanceBeam lanceBeam;
+
+        private Transform arenaCentre;
+        private bool warnedAboutCentre;
+
         private void Awake()
         {
             if (enemyShip != null)
@@ -159,6 +188,20 @@ namespace SurvivalChaos
             if (Active == this) { Active = null; }
             ReleaseMovement();
             ClearTelegraphs();
+        }
+
+        /// <summary>
+        /// The beam is a root object rather than a child of the boss - it has to
+        /// be, since it is drawn in world space and the boss moves - so nothing
+        /// else would ever collect it. Without this, killing the boss leaves an
+        /// arc of hostile geometry on the ring with no one left to switch it off.
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (lanceBeam != null)
+            {
+                Destroy(lanceBeam.gameObject);
+            }
         }
 
         private void Start()
@@ -381,6 +424,12 @@ namespace SurvivalChaos
         /// leave their stagger at zero, because a wall that arrives in pieces is
         /// not a wall.
         ///
+        /// Nothing calls this at the moment. The lance was the one bank clustered
+        /// enough to need it, and since 8 September the lance is a beam rather than
+        /// a stream - see <see cref="FireLanceBeam"/>. It is kept because the next
+        /// clustered bank will want it and because every volley still carries the
+        /// field, not because anything is waiting on it.
+        ///
         /// The volley sound still fires once, on the first round rather than on
         /// each, for the same reason it always did.
         /// </summary>
@@ -542,26 +591,103 @@ namespace SurvivalChaos
 
             if (pod == null || !pod.Destroyed)
             {
-                GameObject projectile = attack.ProjectileFor(TravellingLeft);
-                float until = Time.time + attack.BurstSeconds;
-
-                do
-                {
-                    if (attack.MuzzleStagger > 0f)
-                    {
-                        yield return FireMuzzlesStaggered(attack, projectile, rows[index], -1);
-                    }
-                    else
-                    {
-                        FireMuzzles(attack, projectile, rows[index], -1);
-                    }
-
-                    yield return new WaitForSeconds(attack.BurstInterval);
-                }
-                while (Time.time < until);
+                FireLanceBeam(attack);
             }
 
             running[index] = false;
+        }
+
+        /// <summary>
+        /// One beam from the prow, where this attack used to put forty rounds.
+        ///
+        /// The muzzles are averaged rather than fired one at a time. They sit
+        /// between 0.53 and 2.37 units apart, which is what made four simultaneous
+        /// rounds read as one bundle rather than as a line, and a single beam has
+        /// no use for the distinction - their average is the middle of the prow,
+        /// which is where a lance should look like it comes from.
+        ///
+        /// The round prefab is still read even though nothing spawns it any more:
+        /// it is where the beam takes its material and its direction from, so the
+        /// weapon keeps the art it had and left and right stay encoded in exactly
+        /// one place instead of two.
+        /// </summary>
+        private void FireLanceBeam(BossAttack attack)
+        {
+            Transform[] pivots = attack.Pivots;
+            GameObject round = attack.ProjectileFor(TravellingLeft);
+
+            if (pivots == null || round == null)
+            {
+                return;
+            }
+
+            Vector3 sum = Vector3.zero;
+            int found = 0;
+
+            for (int i = 0; i < pivots.Length; i++)
+            {
+                if (pivots[i] == null)
+                {
+                    continue;
+                }
+
+                sum += pivots[i].position;
+                found++;
+            }
+
+            Transform centre = ArenaCentre();
+
+            if (found == 0 || centre == null)
+            {
+                return;
+            }
+
+            if (lanceBeam == null)
+            {
+                // Falls back to the light the boss's own rounds are lit by, so the
+                // beam matches the fire it replaced without a second copy of the
+                // same colour and range to keep in step. Assigning the field above
+                // is only for making it deliberately different.
+                Light template = beamLightTemplate != null
+                    ? beamLightTemplate
+                    : BulletLightPool.TemplateFor(HostileFireTag);
+
+                lanceBeam = BossLanceBeam.Create(round, template, beamLights);
+            }
+
+            lanceBeam.Fire(sum / found, centre);
+            PlayVolleySound();
+        }
+
+        /// <summary>
+        /// The point the arena turns around, found the same way the projectiles
+        /// find it. Cached after the first hit: the tag lookup is once per fight,
+        /// not once per lance.
+        /// </summary>
+        private Transform ArenaCentre()
+        {
+            if (arenaCentre != null)
+            {
+                return arenaCentre;
+            }
+
+            GameObject scenario = GameObject.FindWithTag("Scenario");
+
+            if (scenario == null)
+            {
+                if (!warnedAboutCentre)
+                {
+                    warnedAboutCentre = true;
+                    Debug.LogWarning(
+                        "BossEmitter found nothing tagged 'Scenario', so the lance has no ring " +
+                        "to follow and will not fire.", this);
+                }
+
+                return null;
+            }
+
+            arenaCentre = scenario.transform;
+            return arenaCentre;
         }
 
         /// <summary>

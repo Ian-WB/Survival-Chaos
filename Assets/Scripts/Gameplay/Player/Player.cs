@@ -212,6 +212,25 @@ namespace SurvivalChaos
         /// <summary>Maximum hit points, for the debug menu's readout.</summary>
         public int MaxHealth => health != null ? health.Max : 0;
 
+        /// <summary>
+        /// Damage from something that has no collider to enter - the boss's lance,
+        /// which is an arc test against the ring rather than a trigger volume.
+        ///
+        /// This mirrors what <see cref="OnTriggerEnter"/> does for a projectile
+        /// rather than calling straight through to the damage: the dash still
+        /// protects, and the hit effect still spawns. Anything that skipped those
+        /// would be a second, quieter set of rules for being hit.
+        /// </summary>
+        public void TakeBeamHit()
+        {
+            if (Phased)
+            {
+                return;
+            }
+
+            TakeHit(spawnHitEffect: true);
+        }
+
         private void TakeHit(bool spawnHitEffect)
         {
             // Already dead: the death screen is up and time has stopped, but queued

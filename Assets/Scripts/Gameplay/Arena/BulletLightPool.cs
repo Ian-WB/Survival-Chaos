@@ -119,6 +119,53 @@ namespace SurvivalChaos
 
         private readonly List<ShootScript> bullets = new List<ShootScript>();
 
+        /// <summary>
+        /// Every pool currently in the scene, so something that lights hostile
+        /// fire without being a projectile can find the look it should match.
+        ///
+        /// A registry rather than a Find call for the same reason ShootScript
+        /// keeps its own list of live rounds: the answer is wanted at the moment
+        /// an attack fires, and searching the scene then is both slower and a
+        /// worse description of what is being asked for.
+        /// </summary>
+        private static readonly List<BulletLightPool> pools = new List<BulletLightPool>();
+
+        /// <summary>
+        /// The light the pool for <paramref name="tag"/> clones, or null when
+        /// there is no such pool. Callers are expected to cope with null: a pool
+        /// is a scene object and the thing asking may outlive it.
+        /// </summary>
+        public static Light TemplateFor(string tag)
+        {
+            for (int i = 0; i < pools.Count; i++)
+            {
+                BulletLightPool pool = pools[i];
+
+                if (pool != null && pool.bulletTag == tag)
+                {
+                    return pool.lightTemplate;
+                }
+            }
+
+            return null;
+        }
+
+        private void OnEnable()
+        {
+            pools.Add(this);
+        }
+
+        private void OnDisable()
+        {
+            pools.Remove(this);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPools()
+        {
+            pools.Clear();
+        }
+
         private void Awake()
         {
             if (lightTemplate == null)

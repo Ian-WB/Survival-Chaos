@@ -144,13 +144,24 @@ namespace SurvivalChaos.EditorTools
         /// share of the clock was larger than its share of the bar. At 100 it is
         /// 300, about thirteen seconds rather than nineteen.
         ///
-        /// The other two acts are untouched on purpose, which is what the matching
-        /// 150 off Boss.asset buys: the exposed act still runs its same 360
-        /// points. It needs roughly a whole plate lifetime before the steady state
-        /// its wreckage cadence was tuned for exists at all, and shortening it is
-        /// exactly how you get back the version whose design never got to happen.
+        /// The other two acts were untouched at that point, which is what the
+        /// matching 150 off Boss.asset bought: the exposed act kept its 360.
+        ///
+        /// 80 since the second verdict the same day, and that one was not about
+        /// this act at all - the fight still ran long, and the fault was named as
+        /// the total rather than as any one phase. So this cut is spread. The
+        /// asset came down 750 to 600 and this came 100 to 80, which leaves the
+        /// armoured act 240 and the exposed act the remaining 270.
+        ///
+        /// The exposed act is the one with a floor under it. It needs roughly a
+        /// whole plate lifetime - about eleven seconds - before the steady state
+        /// its wreckage cadence was tuned for exists at all. Measured against the
+        /// roughly 23 points a second the earlier acts actually came down at, 270
+        /// is about 11.7 seconds: still over the floor, but no longer comfortably
+        /// over it. If a run reports that the wreckage never builds up, this is
+        /// the reason, and the next cut should come out of the pods instead.
         /// </summary>
-        private const int PodHealth = 100;
+        private const int PodHealth = 80;
 
         /// <summary>
         /// Health remaining when every magazine still aboard goes off at once.
@@ -159,11 +170,12 @@ namespace SurvivalChaos.EditorTools
         /// boss it was the last tenth of the fight, and 90 against 900 kept it
         /// exactly that.
         ///
-        /// It stayed at 90 when the total came down to 750 on 8 September, so it
-        /// is nearer an eighth now. That is deliberate. What matters about the
-        /// last act is how long it lasts, not what fraction of the bar it is, and
-        /// at forty damage a second it is a little over two seconds either way -
-        /// scaling it would only have shortened the one act nobody asked to be
+        /// It stayed at 90 through both cuts on 8 September - 900 to 750, then
+        /// 750 to 600 - so it is nearer a seventh of the bar now. That is
+        /// deliberate, and it was reconsidered the second time rather than
+        /// carried over unexamined. What matters about the last act is how long
+        /// it lasts, not what fraction of the bar it is: scaling it to 72 would
+        /// have taken well under a second off the one act nobody has asked to be
         /// shorter.
         /// </summary>
         private const int ScuttleThreshold = 90;
@@ -1152,11 +1164,13 @@ namespace SurvivalChaos.EditorTools
                 LanceRound = true,
                 InitialDelay = 2.5f,
 
-                // A 1.2s wind-up and a 0.6s burst is 1.8s of the cycle, so 2.6
-                // leaves eight tenths of a second between the end of one lance and
-                // the start of the next wind-up. That is the floor for this
-                // attack: any less and the telegraph is running more often than
-                // not, which makes a warning into a background noise.
+                // 2.6 was set against a burst that no longer exists. A 1.2s wind-up
+                // and 0.6s of firing left eight tenths of a second of quiet, and
+                // that was the floor: any less and the telegraph runs more often
+                // than not, which turns a warning into background noise. The beam
+                // that replaced the burst is instant to fire and then lives its two
+                // seconds on its own, so the attack itself is shorter than it was
+                // and the quiet is longer. The floor still holds.
                 Interval = 2.6f,
 
                 // The wind-up is untouched. It is the fight's one real telegraph,
@@ -1164,30 +1178,32 @@ namespace SurvivalChaos.EditorTools
                 // worth less at exactly the moment the fight leans on it harder.
                 ChargeSeconds = 1.2f,
 
-                // The burst is the part that grew: 0.6 over 0.06 is ten rounds
-                // where 0.4 was seven. Something announced for a second and a
-                // fifth should cost more than seven rounds to stand in front of.
-                BurstSeconds = 0.6f,
+                // Zero, and none of the three is read any more: since 8 September
+                // this attack is BossLanceBeam, one arc drawn along the ring, and
+                // the rounds it used to fire are kept only as the thing the beam
+                // takes its material and its direction from.
+                //
+                // They are left here rather than deleted because they say what the
+                // attack was, and the measurement that ended it is the reason the
+                // beam exists. The ring is 862 units around and a round crossed it
+                // at 191.6 units a second, so rounds leaving 0.06s apart were 11.5
+                // units apart while each was 12.86 units long - consecutive rounds
+                // overlapped by 1.4 units before they had gone anywhere. The stream
+                // was never a row of bullets waiting to be separated. It was
+                // already a solid line, drawn the expensive way: forty objects,
+                // forty colliders and forty lights for one continuous thing, into a
+                // light cluster that holds 24 per cell and drops the rest in
+                // silence.
+                //
+                // Welding them into four 33-unit rounds was tried first, on
+                // 8 September, and rejected on sight - at that length they read as
+                // sticks flying in formation rather than as a beam. 33 was not a
+                // taste either: it is the longest a straight mesh can be on a
+                // circle this size before it visibly stops following the lane. The
+                // conclusion was that the shape wanted was never a projectile.
+                BurstSeconds = 0f,
                 BurstInterval = 0.06f,
-
-                // The four prow muzzles are between 0.53 and 2.37 units apart -
-                // measured off live rounds, not off the model - and a lance round
-                // is about two units thick. Fired together they were four meshes
-                // stacked in one place, which is what "glued together" looks like
-                // and also four rounds spent drawing one.
-                //
-                // 0.02 walks the bank across exactly one burst interval, so the
-                // four leave as a line rather than as a bundle and the cycle costs
-                // 0.12s instead of 0.06 - which halves the rounds a burst puts
-                // out, from about forty to about twenty.
-                //
-                // It does not separate them, and the arithmetic says nothing here
-                // can: this round is 12.86 units long and travels at 80, so two of
-                // them clear each other only 0.16s apart, and 0.6s of burst has
-                // room for four of those. Forty rounds in six tenths of a second
-                // overlap however they are arranged. The dial that would finish
-                // the job is the round's own size, not its timing.
-                MuzzleStagger = 0.02f,
+                MuzzleStagger = 0f,
             },
             new Volley
             {

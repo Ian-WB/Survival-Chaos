@@ -305,10 +305,10 @@ MonoBehaviour:
     m_Value: {x: 0, y: 0}
   bottomAltitude:
     m_OverrideState: 1
-    m_Value: 1000
+    m_Value: 0.01
   altitudeRange:
     m_OverrideState: 1
-    m_Value: 5000
+    m_Value: 6000
   fadeInMode:
     m_OverrideState: 0
     m_Value: 0
@@ -340,7 +340,7 @@ MonoBehaviour:
     m_Value: 1
   m_CloudPreset:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 4
   cumulusMap:
     m_OverrideState: 0
     m_Value: {fileID: 0}
