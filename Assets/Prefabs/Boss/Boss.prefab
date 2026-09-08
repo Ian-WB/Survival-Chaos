@@ -567,7 +567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossWeakPoint
   label: Crown
-  healthPoints: 150
+  healthPoints: 100
   hitEffect: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 3065546095207052095}
@@ -782,7 +782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossEmitter
   definition: {fileID: 11400000, guid: c42f7f73dcd21af47bfd4f1f671fbde1, type: 2}
-  healthPoints: 900
+  healthPoints: 750
   enemyShip: {fileID: 2752971980227408059}
   hullSpark: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   scuttleThreshold: 90
@@ -814,6 +814,7 @@ MonoBehaviour:
     chargeSeconds: 1.2
     burstSeconds: 0.4
     burstInterval: 0.06
+    muzzleStagger: 0
     ramSpeedScale: 3
   - label: Crown - Rake
     pattern: 2
@@ -845,6 +846,7 @@ MonoBehaviour:
     chargeSeconds: 1.2
     burstSeconds: 0.4
     burstInterval: 0.06
+    muzzleStagger: 0
     ramSpeedScale: 3
   - label: Prow - Lance
     pattern: 3
@@ -864,6 +866,7 @@ MonoBehaviour:
     chargeSeconds: 1.2
     burstSeconds: 0.6
     burstInterval: 0.06
+    muzzleStagger: 0.02
     ramSpeedScale: 3
   - label: Hull - Ram
     pattern: 4
@@ -879,6 +882,7 @@ MonoBehaviour:
     chargeSeconds: 1
     burstSeconds: 3
     burstInterval: 0.06
+    muzzleStagger: 0
     ramSpeedScale: 3
   - label: Hull - Wreckage
     pattern: 5
@@ -894,6 +898,7 @@ MonoBehaviour:
     chargeSeconds: 1.2
     burstSeconds: 0.4
     burstInterval: 0.06
+    muzzleStagger: 0
     ramSpeedScale: 3
   - label: Scuttle
     pattern: 0
@@ -941,6 +946,7 @@ MonoBehaviour:
     chargeSeconds: 1.2
     burstSeconds: 0.4
     burstInterval: 0.06
+    muzzleStagger: 0
     ramSpeedScale: 3
 --- !u!1 &2761499119940645981
 GameObject:
@@ -1056,7 +1062,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossWeakPoint
   label: Prow
-  healthPoints: 150
+  healthPoints: 100
   hitEffect: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 7801532857751363898}
@@ -2189,7 +2195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossWeakPoint
   label: Keel
-  healthPoints: 150
+  healthPoints: 100
   hitEffect: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 3582337470430959229}

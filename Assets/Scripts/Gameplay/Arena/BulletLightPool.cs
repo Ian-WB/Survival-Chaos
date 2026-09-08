@@ -68,7 +68,9 @@ namespace SurvivalChaos
 
         [Header("Placement")]
         [SerializeField]
-        [Tooltip("Lifts the light off the bullet so it does not sit inside its own mesh.")]
+        [Tooltip("An extra nudge on top of the bullet's own drawn centre, in world space. " +
+                 "Normally zero: the light already lands on the mesh rather than on the " +
+                 "projectile's pivot, which is not the same point on every prefab.")]
         private Vector3 offset = Vector3.zero;
 
         private Light[] pool;
@@ -210,7 +212,12 @@ namespace SurvivalChaos
 
                 if (used)
                 {
-                    poolTransforms[i].position = bullets[i].Body.position + offset;
+                    // The drawn centre, not the transform. They are the same
+                    // point on the player's rounds and 2.66 units apart on the
+                    // boss's, whose art is modelled above its own pivot - so
+                    // using the transform lit the empty air under every boss
+                    // round while the round itself stayed dark.
+                    poolTransforms[i].position = bullets[i].LightPoint + offset;
                 }
 
                 // Nearest first, one per volley, until the budget runs out. The

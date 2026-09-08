@@ -367,6 +367,59 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// The same muzzles as <see cref="FireMuzzles"/>, one at a time.
+        ///
+        /// Four rounds leaving four muzzles at one instant is four rounds in one
+        /// place when the muzzles are close together, and the prow's four are
+        /// within about two units of each other - measured live at 0.53 to 2.37
+        /// apart, against a round two units thick. So the lance was spawning a
+        /// bundle four meshes deep rather than a stream. Walking the bank apart in
+        /// time strings them along the flight path instead, which is the shape the
+        /// attack is named for.
+        ///
+        /// Only worth it where the muzzles are clustered. The curtain and the rake
+        /// leave their stagger at zero, because a wall that arrives in pieces is
+        /// not a wall.
+        ///
+        /// The volley sound still fires once, on the first round rather than on
+        /// each, for the same reason it always did.
+        /// </summary>
+        private IEnumerator FireMuzzlesStaggered(
+            BossAttack attack, GameObject projectile, int[] muzzleRows, int row)
+        {
+            Transform[] pivots = attack.Pivots;
+
+            if (projectile == null || pivots == null)
+            {
+                yield break;
+            }
+
+            var gap = new WaitForSeconds(attack.MuzzleStagger);
+            bool fired = false;
+
+            for (int i = 0; i < pivots.Length; i++)
+            {
+                if (pivots[i] == null || (row >= 0 && muzzleRows[i] != row))
+                {
+                    continue;
+                }
+
+                if (fired)
+                {
+                    yield return gap;
+                }
+
+                ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity);
+
+                if (!fired)
+                {
+                    fired = true;
+                    PlayVolleySound();
+                }
+            }
+        }
+
+        /// <summary>
         /// A wall with a gap in it, the gap stepping upward one row per volley.
         ///
         /// Stepped rather than random so it can be learned, which is the whole
@@ -494,7 +547,15 @@ namespace SurvivalChaos
 
                 do
                 {
-                    FireMuzzles(attack, projectile, rows[index], -1);
+                    if (attack.MuzzleStagger > 0f)
+                    {
+                        yield return FireMuzzlesStaggered(attack, projectile, rows[index], -1);
+                    }
+                    else
+                    {
+                        FireMuzzles(attack, projectile, rows[index], -1);
+                    }
+
                     yield return new WaitForSeconds(attack.BurstInterval);
                 }
                 while (Time.time < until);

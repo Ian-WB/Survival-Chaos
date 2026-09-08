@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Boss
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.EnemyDefinition
   displayName: Boss
-  maxHealth: 900
+  maxHealth: 750
   experienceReward: 50
   deathSound: {fileID: 0}

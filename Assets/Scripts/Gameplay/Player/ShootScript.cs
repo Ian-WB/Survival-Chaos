@@ -38,6 +38,35 @@ namespace SurvivalChaos
         public Transform Body { get; private set; }
 
         /// <summary>
+        /// Where this projectile visually is, for anything placing itself on it.
+        /// </summary>
+        public Vector3 LightPoint =>
+            Body != null ? Body.TransformPoint(drawnCentre) : transform.position;
+
+        private void MeasureDrawnCentre()
+        {
+            drawnCentreMeasured = true;
+            drawnCentre = Vector3.zero;
+
+            Renderer[] parts = GetComponentsInChildren<Renderer>(includeInactive: true);
+
+            if (parts.Length == 0)
+            {
+                return;
+            }
+
+            Vector3 sum = Vector3.zero;
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                Vector3 world = parts[i].localToWorldMatrix.MultiplyPoint3x4(parts[i].localBounds.center);
+                sum += Body.InverseTransformPoint(world);
+            }
+
+            drawnCentre = sum / parts.Length;
+        }
+
+        /// <summary>
         /// Which volley fired this projectile. Equal for every bullet of one shot,
         /// different for every shot.
         ///
@@ -63,6 +92,26 @@ namespace SurvivalChaos
         private static Transform sharedCenter;
         private static bool warnedAboutMissingCenter;
 
+        /// <summary>
+        /// The middle of what is actually drawn, in this projectile's own space.
+        ///
+        /// It is not always the origin, and that is the whole reason this exists.
+        /// The player's rounds are modelled on their pivot, so for those it is
+        /// zero and nothing here changes anything. The boss's darts are not: the
+        /// imported art sits 2.66 units above the transform it hangs off. Anything
+        /// that wants to be *at* the projectile rather than at its pivot - a light
+        /// above all - lands under the round if it uses the transform, which is
+        /// exactly what BulletLightPool used to do.
+        ///
+        /// Measured through each renderer's own matrix from localBounds rather
+        /// than from Renderer.bounds, because that one is an axis-aligned box in
+        /// world space: its centre shifts as the object turns, and these turn
+        /// every frame.
+        /// </summary>
+        private Vector3 drawnCentre;
+
+        private bool drawnCentreMeasured;
+
         [SerializeField]
         private float speed;
 
@@ -87,6 +136,13 @@ namespace SurvivalChaos
             }
 
             Body.rotation = Quaternion.Euler(0f, 0f, 90f);
+
+            // Once per instance, not per spawn: the mesh does not move relative
+            // to its own root, and a pooled round is the same object each life.
+            if (!drawnCentreMeasured)
+            {
+                MeasureDrawnCentre();
+            }
 
             Volley = Time.frameCount;
             live.Add(this);

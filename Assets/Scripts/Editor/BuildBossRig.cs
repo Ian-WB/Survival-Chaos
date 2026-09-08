@@ -131,15 +131,40 @@ namespace SurvivalChaos.EditorTools
         /// went to 200 first, and came back to 150 with the intervals tightened
         /// to match - the same pressure over less time, which reads as a fight
         /// rather than as a health bar.
+        ///
+        /// 100 since 8 September, on the first playtest verdict that was about
+        /// length rather than difficulty: the fight felt good but ran a bit long.
+        /// The cadences were called good, so they are not what moved - this is.
+        ///
+        /// The whole cut lands on this act rather than being spread across the
+        /// three, and the reason is the shared pool. Every point of damage in the
+        /// fight comes off the boss's one health pool, pods included, so three
+        /// pods at 150 were 450 of the 900 - half the fight spent on one act, and
+        /// the act you also have to fly between three heights to finish, so its
+        /// share of the clock was larger than its share of the bar. At 100 it is
+        /// 300, about thirteen seconds rather than nineteen.
+        ///
+        /// The other two acts are untouched on purpose, which is what the matching
+        /// 150 off Boss.asset buys: the exposed act still runs its same 360
+        /// points. It needs roughly a whole plate lifetime before the steady state
+        /// its wreckage cadence was tuned for exists at all, and shortening it is
+        /// exactly how you get back the version whose design never got to happen.
         /// </summary>
-        private const int PodHealth = 150;
+        private const int PodHealth = 100;
 
         /// <summary>
         /// Health remaining when every magazine still aboard goes off at once.
         ///
         /// Scaled with the rest rather than retuned. At 30 against a 300 point
-        /// boss it was the last tenth of the fight, and 90 against 900 keeps it
+        /// boss it was the last tenth of the fight, and 90 against 900 kept it
         /// exactly that.
+        ///
+        /// It stayed at 90 when the total came down to 750 on 8 September, so it
+        /// is nearer an eighth now. That is deliberate. What matters about the
+        /// last act is how long it lasts, not what fraction of the bar it is, and
+        /// at forty damage a second it is a little over two seconds either way -
+        /// scaling it would only have shortened the one act nobody asked to be
+        /// shorter.
         /// </summary>
         private const int ScuttleThreshold = 90;
 
@@ -1027,6 +1052,16 @@ namespace SurvivalChaos.EditorTools
             public float ChargeSeconds = 1.2f;
             public float BurstSeconds = 0.4f;
             public float BurstInterval = 0.06f;
+
+            /// <summary>
+            /// Seconds between one muzzle and the next inside a single volley.
+            ///
+            /// Zero everywhere but the lance, and that is not an oversight. The
+            /// curtain and the rake want their muzzles to go off together,
+            /// because what they are is a wall arriving at once; a wall delivered
+            /// in pieces is a different, weaker attack.
+            /// </summary>
+            public float MuzzleStagger;
             public float RamSpeedScale = 3f;
         }
 
@@ -1134,6 +1169,25 @@ namespace SurvivalChaos.EditorTools
                 // fifth should cost more than seven rounds to stand in front of.
                 BurstSeconds = 0.6f,
                 BurstInterval = 0.06f,
+
+                // The four prow muzzles are between 0.53 and 2.37 units apart -
+                // measured off live rounds, not off the model - and a lance round
+                // is about two units thick. Fired together they were four meshes
+                // stacked in one place, which is what "glued together" looks like
+                // and also four rounds spent drawing one.
+                //
+                // 0.02 walks the bank across exactly one burst interval, so the
+                // four leave as a line rather than as a bundle and the cycle costs
+                // 0.12s instead of 0.06 - which halves the rounds a burst puts
+                // out, from about forty to about twenty.
+                //
+                // It does not separate them, and the arithmetic says nothing here
+                // can: this round is 12.86 units long and travels at 80, so two of
+                // them clear each other only 0.16s apart, and 0.6s of burst has
+                // room for four of those. Forty rounds in six tenths of a second
+                // overlap however they are arranged. The dial that would finish
+                // the job is the round's own size, not its timing.
+                MuzzleStagger = 0.02f,
             },
             new Volley
             {
@@ -1285,6 +1339,7 @@ namespace SurvivalChaos.EditorTools
                 entry.FindPropertyRelative("chargeSeconds").floatValue = volley.ChargeSeconds;
                 entry.FindPropertyRelative("burstSeconds").floatValue = volley.BurstSeconds;
                 entry.FindPropertyRelative("burstInterval").floatValue = volley.BurstInterval;
+                entry.FindPropertyRelative("muzzleStagger").floatValue = volley.MuzzleStagger;
                 entry.FindPropertyRelative("ramSpeedScale").floatValue = volley.RamSpeedScale;
             }
 

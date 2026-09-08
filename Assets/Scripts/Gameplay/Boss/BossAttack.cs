@@ -92,6 +92,13 @@ namespace SurvivalChaos
         private float burstInterval = 0.06f;
 
         [SerializeField]
+        [Tooltip("Seconds between one muzzle and the next within a single volley. 0 fires them " +
+                 "together, which is what a wall wants. A Lance wants a small value instead: its " +
+                 "four prow muzzles sit inside about two units of each other, so firing them at " +
+                 "one instant stacks four rounds in one place rather than streaming them.")]
+        private float muzzleStagger;
+
+        [SerializeField]
         [Range(1f, 6f)]
         [Tooltip("How much faster the boss travels during a Ram, as a multiple of its cruise. " +
                  "It has to beat the player's own orbit speed or running away wins.")]
@@ -138,6 +145,11 @@ namespace SurvivalChaos
         /// and hangs the frame.
         /// </summary>
         public float BurstInterval => Mathf.Max(0.01f, burstInterval);
+
+        /// <summary>
+        /// Seconds between muzzles inside one volley. Zero fires them together.
+        /// </summary>
+        public float MuzzleStagger => Mathf.Max(0f, muzzleStagger);
 
         /// <summary>How much faster the boss travels during a Ram.</summary>
         public float RamSpeedScale => Mathf.Max(1f, ramSpeedScale);
