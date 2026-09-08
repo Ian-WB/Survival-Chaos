@@ -25,6 +25,13 @@ namespace SurvivalChaos
         private void Awake()
         {
             Snap();
+
+            // The existing camera uses the same orbit controller as the player.
+            // Install framing here after the authored radius has been applied.
+            if (TryGetComponent<Camera>(out _) && !TryGetComponent<BossCameraFraming>(out _))
+            {
+                gameObject.AddComponent<BossCameraFraming>();
+            }
         }
 
         [ContextMenu("Snap Now")]

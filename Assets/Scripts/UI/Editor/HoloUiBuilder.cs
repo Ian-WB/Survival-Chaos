@@ -209,11 +209,12 @@ namespace SurvivalChaos.EditorTools
 
         private static void BuildTimer(Transform parent, Material bar)
         {
-            HoloUiFactory.CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+            Slider timer = HoloUiFactory.CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -44f), new Vector2(860f, 22f), bar, HoloUiFactory.Accent, 20f, 0f);
 
-            HoloUiFactory.CreateText(parent, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -20f), new Vector2(600f, 22f), 16f, TextAlignmentOptions.Center)
+            // The countdown and its caption have one lifetime during the boss handover.
+            HoloUiFactory.CreateText(timer.transform, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, 24f), new Vector2(600f, 22f), 16f, TextAlignmentOptions.Center)
                 .text = "Incoming";
         }
 
@@ -230,6 +231,33 @@ namespace SurvivalChaos.EditorTools
             HoloUiFactory.CreateText(slider.transform, "Boss Label", new Vector2(0.5f, 1f),
                 new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(600f, 24f), 20f,
                 TextAlignmentOptions.Center).text = "Leviathan";
+
+            RectTransform briefing = HoloUiFactory.CreateRect(slider.transform, "Boss Briefing Background",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, -6f),
+                new Vector2(1160f, 72f));
+            Image backing = Undo.AddComponent<Image>(briefing.gameObject);
+            backing.color = new Color(0.015f, 0.025f, 0.035f, 0.90f);
+            backing.raycastTarget = false;
+
+            TMP_Text phaseLabel = HoloUiFactory.CreateText(slider.transform, "Boss Phase",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, -12f),
+                new Vector2(1160f, 30f), 18f, TextAlignmentOptions.Center);
+            phaseLabel.text = "Armoured hull - destroy 3 green targets";
+
+            BossFightHud fightHud = Undo.AddComponent<BossFightHud>(slider.gameObject);
+            HoloUiFactory.Assign(fightHud, "phaseLabel", phaseLabel);
+            SerializedObject fight = new SerializedObject(fightHud);
+            SerializedProperty markers = fight.FindProperty("weakPointLabels");
+            markers.arraySize = 3;
+            for (int i = 0; i < 3; i++)
+            {
+                TMP_Text marker = HoloUiFactory.CreateText(slider.transform, "Weak Point " + (i + 1),
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2((i - 1) * 370f, -46f),
+                    new Vector2(360f, 24f), 15f, TextAlignmentOptions.Center);
+                marker.text = "Target " + (i + 1);
+                markers.GetArrayElementAtIndex(i).objectReferenceValue = marker;
+            }
+            fight.ApplyModifiedPropertiesWithoutUndo();
 
             // Hidden until the timer runs out; BossHpBar switches it on.
             slider.gameObject.SetActive(false);
@@ -296,6 +324,7 @@ namespace SurvivalChaos.EditorTools
             if (dashBar != null)
             {
                 HoloUiFactory.Assign(dashBar, "dash", dash);
+                HoloUiFactory.Assign(dashBar, "controlLabel", HoloUiFactory.Find<TMP_Text>(root, "Dash Label"));
                 wired++;
             }
 

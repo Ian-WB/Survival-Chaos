@@ -133,7 +133,10 @@ namespace SurvivalChaos
         // Update is called once per frame
         void Update()
         {
-
+            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded || Time.timeScale <= 0f)
+            {
+                return;
+            }
             if(GameInput.ToggleDirectionReleased)
             {
                 rotate = !rotate;
@@ -350,7 +353,7 @@ namespace SurvivalChaos
             }
         }
 
-        private void LevelUp()
+        private void LevelUp(bool offerSkill = true)
         {
             if (GameSounds.Instance != null)
             {
@@ -365,13 +368,27 @@ namespace SurvivalChaos
             RunStats.RecordLevel(currentLevel);
 
             //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
-            skillSelect.PickSkill();
+            if (offerSkill && skillSelect != null) { skillSelect.PickSkill(); }
 
             currentExperience = 0;
             expBar.setCurrentExp(currentExperience);
             maxExperience += 35;
             expBar.setMaxExp(maxExperience);
         }
+
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
+        /// <summary>
+        /// Advances the actual level/XP threshold and UI through the normal path.
+        /// Presets suppress offers because they apply their selected skills directly.
+        /// </summary>
+        public void DebugLevelUp(bool offerSkill = true)
+        {
+            if (!RunOutcome.RunEnded && health != null && !health.IsDead)
+            {
+                LevelUp(offerSkill);
+            }
+        }
+#endif
 
         // How many shot upgrades have been taken. Drives the pattern flags below,
         // which Shoot() reads.

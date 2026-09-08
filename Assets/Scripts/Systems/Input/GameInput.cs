@@ -43,6 +43,22 @@ namespace SurvivalChaos
 
         public static bool DashPressed => source.DashPressed;
 
+        public static bool UsingGamepad
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                var pad = UnityEngine.InputSystem.Gamepad.current;
+                var keyboard = UnityEngine.InputSystem.Keyboard.current;
+                return pad != null && (keyboard == null || pad.lastUpdateTime > keyboard.lastUpdateTime);
+#else
+                return false;
+#endif
+            }
+        }
+
+        public static string DashControlLabel => UsingGamepad ? "RB / R1" : "Space";
+
         public static bool DebugLevelUpPressed => source.DebugLevelUpPressed;
 
         public static bool DebugOverlayTogglePressed => source.DebugOverlayTogglePressed;

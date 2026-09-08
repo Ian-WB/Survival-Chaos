@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace SurvivalChaos
 {
@@ -25,6 +26,8 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("The dash this reads. Wired by the HUD builder; found in the scene when empty.")]
         private PlayerDash dash;
+
+        [SerializeField] private TMP_Text controlLabel;
 
         private Image fill;
 
@@ -62,6 +65,11 @@ namespace SurvivalChaos
         private void Update()
         {
             fill.fillAmount = dash.ReadyFraction;
+            if (controlLabel != null)
+            {
+                string caption = "Dash  [" + GameInput.DashControlLabel + "]";
+                if (controlLabel.text != caption) { controlLabel.text = caption; }
+            }
         }
     }
 }

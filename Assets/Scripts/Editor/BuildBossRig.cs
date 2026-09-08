@@ -155,7 +155,7 @@ namespace SurvivalChaos.EditorTools
         /// across on a hull tens of units long, and this is meant to wash the
         /// plating immediately around it - not to light the boss.
         /// </summary>
-        private static readonly Color PodLightColor = new Color(1f, 0.13f, 0.05f);
+        private static readonly Color PodLightColor = new Color(0.25f, 1f, 0.08f);
 
         private const float PodLightRange = 60f;
         private const float PodLightLumens = 9000f;
@@ -475,7 +475,7 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// The red the pods are lit in, copied from the pickup glow so it
+        /// The green the pods are lit in, copied from the pickup glow so it
         /// inherits a material setup already known to render correctly in this
         /// project rather than one assembled from scratch by a script.
         /// </summary>
@@ -494,27 +494,12 @@ namespace SurvivalChaos.EditorTools
                 skin = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
             }
 
-            // This was green until 2026-09-05, and why it was green is worth
-            // keeping written down: the arena is lit by lava, so the one thing the
-            // player has to pick out of all that orange was put as far from orange
-            // as the wheel goes.
-            //
-            // It is red now because the whole of the boss's output - its rounds,
-            // its lance and its pods - was brought into one warm family, and a
-            // green target on an orange ship reads as a pickup rather than as the
-            // ship's own weak spot. What replaces the hue separation is value and
-            // saturation: this sits well above the lava's own light and is far
-            // more saturated than the rock it lands on, and the pod light added in
-            // BuildGlow throws it onto the hull so a pod reads as a source rather
-            // than as a decal.
-            //
-            // The cost is real and known - a red pod against orange lava is a
-            // harder read than a green one was. This is the first thing to
-            // question if the armoured phase turns out to be hard to aim at.
-            var red = new Color(2.2f, 0.09f, 0.04f);
+            // Targets carry green while incoming fire carries pink-red. The
+            // phase HUD explains the target, and the hue survives the lava.
+            var target = new Color(0.30f, 2.2f, 0.10f);
 
-            skin.SetColor("_UnlitColor", red);
-            skin.SetColor("_EmissiveColor", red);
+            skin.SetColor("_UnlitColor", target);
+            skin.SetColor("_EmissiveColor", target);
             EditorUtility.SetDirty(skin);
 
             return skin;
@@ -908,6 +893,7 @@ namespace SurvivalChaos.EditorTools
                 StripRootShape(plate);
 
                 BuildPlateBody(plate.transform, skin);
+                CombatReadabilityBuilder.EnsureWreckageEdges(plate);
 
                 SphereCollider hit = plate.GetComponent<SphereCollider>();
 

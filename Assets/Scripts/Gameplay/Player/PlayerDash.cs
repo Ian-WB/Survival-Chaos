@@ -76,6 +76,8 @@ namespace SurvivalChaos
         /// <summary>True while the dash's invincibility is up.</summary>
         public bool Invincible => cycle != null && cycle.IsDashing(Time.time);
 
+        public bool HasDashed { get; private set; }
+
         /// <summary>
         /// How far the cooldown has recovered, 0 to 1. For a UI bar; nothing
         /// reads it yet.
@@ -107,6 +109,7 @@ namespace SurvivalChaos
 
         private void Update()
         {
+            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded || Time.timeScale <= 0f) { return; }
             float now = Time.time;
 
             if (holdingBurst && !cycle.IsDashing(now))
@@ -120,6 +123,7 @@ namespace SurvivalChaos
             }
 
             Vector2 heading = Heading();
+            HasDashed = true;
             holdingBurst = true;
             PlayerMovement.BeginDash(heading.x, heading.y, speedMultiplier);
 

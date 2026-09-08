@@ -118,6 +118,18 @@ namespace SurvivalChaos
             ObjectPool.Despawn(gameObject);
         }
 
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
+        /// <summary>Returns a live enemy to its pool without XP, kill credit or effects.</summary>
+        public void DebugDespawn()
+        {
+            if (health != null && !health.IsDead)
+            {
+                health.TakeDamage(health.Current);
+                ObjectPool.Despawn(gameObject);
+            }
+        }
+#endif
+
         private void Death()
         {
             int reward = definition != null ? definition.ExperienceReward : 5;

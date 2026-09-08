@@ -30,6 +30,12 @@ namespace SurvivalChaos
     public sealed class HitFlash : MonoBehaviour
     {
         private static readonly int EmissiveColor = Shader.PropertyToID("_EmissiveColor");
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+
+        // A small cool fill keeps dark plating readable against the island and
+        // cloud bank. It is part of the resting state, so hits and pooled reuse
+        // restore it without a second component competing for the same block.
+        private static readonly Color HullFill = new Color(0.08f, 0.12f, 0.18f);
 
         /// <summary>
         /// The colour of a hit, and the intensity is as much of the decision as
@@ -151,7 +157,15 @@ namespace SurvivalChaos
                     // rather than remembered from before the flash - a second hit
                     // landing inside the first flash would otherwise record the lit
                     // colour as the resting one and leave the enemy glowing forever.
-                    rest.Add(material.GetColor(EmissiveColor));
+                    Color idle = material.GetColor(EmissiveColor);
+                    if (material.HasProperty(BaseColor) && idle.maxColorComponent < 0.08f)
+                    {
+                        idle.r = Mathf.Max(idle.r, HullFill.r);
+                        idle.g = Mathf.Max(idle.g, HullFill.g);
+                        idle.b = Mathf.Max(idle.b, HullFill.b);
+                    }
+
+                    rest.Add(idle);
                 }
             }
 

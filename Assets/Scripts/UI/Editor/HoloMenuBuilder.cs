@@ -367,12 +367,12 @@ namespace SurvivalChaos.EditorTools
         private static GameObject BuildTutorialPrompt(Transform parent, Material panelMaterial)
         {
             Image panel = HoloUiFactory.CreatePanel(parent, "Shift Prompt", new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(520f, 76f),
+                new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(720f, 126f),
                 panelMaterial, HoloUiFactory.PanelFill, "HoloPrompt");
 
             HoloUiFactory.CreateText(panel.transform, "Prompt Text", Centre, Centre,
-                Vector2.zero, new Vector2(470f, 60f), 22f, TextAlignmentOptions.Center)
-                .text = "Shift  -  Reverse";
+                Vector2.zero, new Vector2(676f, 110f), 18f, TextAlignmentOptions.Center)
+                .text = "WASD - Move\nShift - Reverse fire\nSpace - Dash / brief invulnerability";
 
             panel.gameObject.SetActive(false);
             return panel.gameObject;

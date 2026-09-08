@@ -65,6 +65,15 @@ namespace SurvivalChaos
         private BossPhaseState phase;
         private BossWeakPoint[] emplacements;
 
+        public static BossEmitter Active { get; private set; }
+        public int CurrentHealth => health != null ? health.Current : 0;
+        public int MaxHealth => health != null ? health.Max : 0;
+        public IReadOnlyList<BossWeakPoint> Emplacements => emplacements;
+        public float LastBlockedHitTime { get; private set; } = float.NegativeInfinity;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetActive() => Active = null;
+
         private VolleyTimer[] timers;
 
         /// <summary>
@@ -130,6 +139,8 @@ namespace SurvivalChaos
         /// </summary>
         private void OnEnable()
         {
+            Active = this;
+            LastBlockedHitTime = float.NegativeInfinity;
             health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
             phase = new BossPhaseState(emplacements != null ? emplacements.Length : 0, scuttleThreshold);
 
@@ -150,6 +161,7 @@ namespace SurvivalChaos
         /// </summary>
         private void OnDisable()
         {
+            if (Active == this) { Active = null; }
             ReleaseMovement();
             ClearTelegraphs();
         }
@@ -625,6 +637,7 @@ namespace SurvivalChaos
 
             if (!phase.HullVulnerable)
             {
+                LastBlockedHitTime = Time.time;
                 // Armour. The shot is spent and the boss does not react at all -
                 // which is the point, and is why this is sparks rather than the
                 // hull flash. A flash here would say "that landed" 150 times over
@@ -713,6 +726,35 @@ namespace SurvivalChaos
         /// <summary>Which act the fight is in. For the HUD and for tests.</summary>
         public BossPhase Phase => phase != null ? phase.Phase : BossPhase.Armoured;
 
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
+        /// <summary>Advances through the real damage and phase transitions, without ending the run.</summary>
+        public bool DebugAdvancePhase()
+        {
+            if (RunOutcome.RunEnded || health == null || health.IsDead)
+            {
+                return false;
+            }
+
+            BossPhase before = Phase;
+            if (before == BossPhase.Armoured)
+            {
+                foreach (BossWeakPoint pod in emplacements)
+                {
+                    if (pod == null || pod.Destroyed) { continue; }
+                    ReportEmplacementDamage(pod.CurrentHealth);
+                    pod.Wreck();
+                    if (health.IsDead) { break; }
+                }
+            }
+            else if (before == BossPhase.Exposed)
+            {
+                SpendHealth(Mathf.Max(0, health.Current - Mathf.Max(1, scuttleThreshold)));
+            }
+
+            return Phase != before;
+        }
+#endif
+
         /// <summary>
         /// The beat where the fight changes shape.
         ///
@@ -775,6 +817,8 @@ namespace SurvivalChaos
 
         private void Death()
         {
+            // Final XP still counts, but cannot create a new upgrade choice behind the ending.
+            RunOutcome.ReportRunEnded();
             int reward = definition != null ? definition.ExperienceReward : 2;
 
             if (EXP.Instance != null)
