@@ -326,7 +326,50 @@ Getting these wrong produces confident, wrong answers. They are not guessable.
 
 ---
 
-## 10. Two agents, one editor
+## 10. The project's own documentation, and why not to edit it
+
+Three written pages live in `Docs/` as committed HTML. They are **the best
+context on this project that exists** — better than the code for understanding
+*why* something is the way it is — and you should read them before proposing
+anything substantial.
+
+| File | Size | What it is |
+| --- | --- | --- |
+| `rebuild-reference.html` | 204 KB | How every system works and what the rebuild changed. Start here |
+| `leviathan-dossier.html` | 44 KB | The boss fight in detail: every act, every attack, the numbers and the reasoning behind them |
+| `open-list.html` | 30 KB | The living list of what is left to do, grouped by whether it needs Ian, an agent, or a playthrough |
+
+They are also **published pages**, each with a live URL on Ian's account. The
+HTML in `Docs/` is a committed snapshot of a page that lives somewhere else.
+
+**Do not edit these files.** Publishing them uses a tool only Claude Code has,
+so an edit you make here either gets overwritten on the next publish or silently
+diverges from what Ian actually reads. If your work makes a page wrong — you
+changed a number it quotes, or closed something it lists as open — **say so in
+your report** and let Ian have it updated. That is a genuinely useful thing to
+flag, and it is not the same as fixing it yourself.
+
+`open-list.html` deserves an extra note: the live page **republishes itself**
+when Ian ticks an item off, so the committed snapshot is stale the moment he
+uses it. Read it for *what the open questions are*, never for *what is still
+open*.
+
+The live pages are private to Ian's account, so you almost certainly cannot
+fetch them; read the local snapshots instead. For reference, they are:
+
+- Rebuild Reference — `https://claude.ai/code/artifact/2fbe095a-4519-4635-bab9-ad45852bc116`
+- Leviathan Dossier — `https://claude.ai/code/artifact/ccfd2f08-33d2-42f8-a405-c97dd32d1ea7`
+- Open List — `https://claude.ai/code/artifact/b3696389-86a6-4b65-9926-6288839449c9`
+
+One more source worth more than its size suggests:
+`Assets/Scripts/Editor/BuildBossRig.cs` is the boss's authoring tool, and its
+comments carry the design argument for every number in the fight — what was
+tried, what it felt like, and why it moved. Read it before touching any boss
+value.
+
+---
+
+## 11. Two agents, one editor
 
 Claude Code drives this same editor. **Only one agent should be issuing relay
 commands at a time.** A recompile or a build started while the other is
@@ -338,7 +381,7 @@ always safe.
 
 ---
 
-## 11. Still not yours to decide
+## 12. Still not yours to decide
 
 Tooling access does not change these:
 
