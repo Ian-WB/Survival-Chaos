@@ -85,6 +85,8 @@ namespace SurvivalChaos
         /// <summary>Inspector-only name. Nothing reads this at runtime.</summary>
         public string Label => label;
 
+        public int CurrentHealth => health != null ? health.Current : healthPoints;
+
         /// <summary>
         /// Whether this emplacement is wrecked, and so whether the attack it feeds
         /// still fires.

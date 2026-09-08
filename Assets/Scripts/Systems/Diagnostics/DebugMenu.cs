@@ -39,7 +39,7 @@ namespace SurvivalChaos
         /// </summary>
         private const float RefreshInterval = 1f;
 
-        private const float BaseWidth = 232f;
+        private const float BaseWidth = 300f;
         private const float BaseRow = 24f;
         private const float BaseGap = 6f;
 
@@ -91,7 +91,7 @@ namespace SurvivalChaos
             // live and is genuinely the one worth reaching for mid-run. The
             // difference is that it is behind this file's compile gate now
             // instead of running in every shipped build.
-            if (GameInput.DebugLevelUpPressed)
+            if (GameInput.DebugLevelUpPressed && !RunOutcome.RunEnded)
             {
                 Refresh();
                 LevelUp();
@@ -126,6 +126,7 @@ namespace SurvivalChaos
         /// </summary>
         private void ReadShortcuts()
         {
+            if (RunOutcome.RunEnded) { return; }
             switch (GameInput.DebugShortcutPressed)
             {
                 case 1: LevelUp(); break;
@@ -156,10 +157,7 @@ namespace SurvivalChaos
 
         private void LevelUp()
         {
-            if (skills != null)
-            {
-                skills.PickSkill();
-            }
+            if (player != null) { player.DebugLevelUp(); }
         }
 
         /// <summary>
@@ -173,6 +171,7 @@ namespace SurvivalChaos
         /// </summary>
         private void Advance(float seconds)
         {
+            if (RunOutcome.RunEnded) { return; }
             if (timer != null) { timer.AdvanceBy(seconds); }
             if (director != null) { director.AdvanceBy(seconds); }
         }
@@ -186,6 +185,7 @@ namespace SurvivalChaos
         /// </summary>
         private void SkipToBoss()
         {
+            if (RunOutcome.RunEnded) { return; }
             if (timer != null && !timer.HandedOver)
             {
                 Advance(Mathf.Max(0f, timer.RunLength - timer.Elapsed));
@@ -199,7 +199,7 @@ namespace SurvivalChaos
 
         private void FullHeal()
         {
-            if (player != null)
+            if (player != null && !RunOutcome.RunEnded)
             {
                 player.Heal(player.MaxHealth - player.CurrentHealth);
             }
@@ -207,18 +207,20 @@ namespace SurvivalChaos
 
         private void ToggleInvulnerable()
         {
-            if (player != null)
+            if (player != null && !RunOutcome.RunEnded)
             {
                 player.Invulnerable = !player.Invulnerable;
             }
         }
 
-        private void ClearArena()
+        private void ClearArena(bool reward = false)
         {
+            if (RunOutcome.RunEnded) { return; }
             Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsInactive.Exclude);
             foreach (Enemy enemy in enemies)
             {
-                enemy.Kill();
+                if (reward) { enemy.Kill(); }
+                else { enemy.DebugDespawn(); }
             }
         }
 
@@ -226,18 +228,12 @@ namespace SurvivalChaos
         /// Cycles slow motion, for watching a bullet pattern that is otherwise
         /// over before it can be read.
         ///
-        /// It never sets zero. The death, pause and victory screens all pause by
-        /// writing timeScale, and a debug tool that could also produce a stopped
-        /// game would be indistinguishable from those - you would be left looking
-        /// at a frozen arena with no way to tell which of the two put it there.
+        /// The requested speed is separate from the effective time scale, so
+        /// choosing a speed cannot dismiss a pause or restart an ended run.
         /// </summary>
         private void StepTimeScale()
         {
-            float current = Time.timeScale;
-
-            if (current > 0.9f) { Time.timeScale = 0.5f; }
-            else if (current > 0.4f) { Time.timeScale = 0.25f; }
-            else { Time.timeScale = 1f; }
+            RunTime.CycleSlowMotion();
         }
 
         // ---- drawing -------------------------------------------------------
@@ -261,11 +257,11 @@ namespace SurvivalChaos
             statusContent.text = status.ToString();
             float statusHeight = labelStyle.CalcHeight(statusContent, width);
 
-            // Eight buttons, three separators, the title and the status block.
+            // Thirteen buttons, separators, title and status block.
             float height = pad * 2f
                            + row + gap
                            + statusHeight + gap
-                           + row * 8f + gap * 7f
+                           + row * 13f + gap * 12f
                            + gap * 3f;
 
             Rect panel = new Rect(Screen.width - width - pad * 2f - pad, pad, width + pad * 2f, height);
@@ -280,7 +276,8 @@ namespace SurvivalChaos
             GUI.Label(new Rect(x, y, width, statusHeight), statusContent, labelStyle);
             y += statusHeight + gap;
 
-            if (Draw(x, ref y, width, row, gap, "1  Level up", skills != null)) { LevelUp(); }
+            bool running = !RunOutcome.RunEnded;
+            if (Draw(x, ref y, width, row, gap, "1  Level up + offer (F7)", player != null && running)) { LevelUp(); }
             if (Draw(x, ref y, width, row, gap, "2  Advance 10s", timer != null || director != null)) { Advance(10f); }
             if (Draw(x, ref y, width, row, gap, "3  Advance 30s", timer != null || director != null)) { Advance(30f); }
             // Stays live after the handover, because the two halves can be in
@@ -299,8 +296,17 @@ namespace SurvivalChaos
 
             y += gap;
 
-            if (Draw(x, ref y, width, row, gap, "7  Clear arena", true)) { ClearArena(); }
-            if (Draw(x, ref y, width, row, gap, "8  Time x" + Time.timeScale.ToString("0.##"), true)) { StepTimeScale(); }
+            if (Draw(x, ref y, width, row, gap, "7  Clear arena (no XP)", running)) { ClearArena(); }
+            string timeLabel = "8  Speed x" + RunTime.RequestedSpeed.ToString("0.##");
+            if (PauseMenu.GameIsPaused) { timeLabel += " (paused)"; }
+            if (RunOutcome.RunEnded) { timeLabel += " (ended)"; }
+            if (Draw(x, ref y, width, row, gap, timeLabel, running)) { StepTimeScale(); }
+            if (Draw(x, ref y, width, row, gap, "Generate offer (no level)", skills != null && running)) { skills.PickSkill(); }
+            if (Draw(x, ref y, width, row, gap, "Kill enemies + reward XP", running)) { ClearArena(reward: true); }
+            BossEmitter boss = BossEmitter.Active;
+            if (Draw(x, ref y, width, row, gap, "Next boss phase", boss != null && boss.Phase != BossPhase.Scuttle && running)) { boss.DebugAdvancePhase(); }
+            if (Draw(x, ref y, width, row, gap, "Boss kit: balanced", skills != null && running)) { skills.ApplyDebugLoadout(false); }
+            if (Draw(x, ref y, width, row, gap, "Boss kit: strong", skills != null && running)) { skills.ApplyDebugLoadout(true); }
         }
 
         /// <summary>

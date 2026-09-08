@@ -209,11 +209,12 @@ namespace SurvivalChaos.EditorTools
 
         private static void BuildTimer(Transform parent, Material bar)
         {
-            HoloUiFactory.CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+            Slider timer = HoloUiFactory.CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -44f), new Vector2(860f, 22f), bar, HoloUiFactory.Accent, 20f, 0f);
 
-            HoloUiFactory.CreateText(parent, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -20f), new Vector2(600f, 22f), 16f, TextAlignmentOptions.Center)
+            // The countdown and its caption have one lifetime during the boss handover.
+            HoloUiFactory.CreateText(timer.transform, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, 24f), new Vector2(600f, 22f), 16f, TextAlignmentOptions.Center)
                 .text = "Incoming";
         }
 

@@ -22,7 +22,7 @@ namespace SurvivalChaos
         /// </summary>
         void Awake()
         {
-            GameIsPaused = false;
+            RunTime.ResetForNewRun();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -61,6 +61,12 @@ namespace SurvivalChaos
         }
 
         public void Resume(){
+            if (RunOutcome.RunEnded)
+            {
+                RunTime.Apply();
+                return;
+            }
+
             // Every screen, not just the two this component happens to hold
             // references to - the player could be several screens deep in options.
             // Closed before time restarts, so play never resumes under a menu.
@@ -74,14 +80,15 @@ namespace SurvivalChaos
                 optionsUI.SetActive(false);
             }
 
-            Time.timeScale = 1f;
             GameIsPaused = false;
+            RunTime.Apply();
         }
 
         void Pause(){
-            pauseMenuUI.SetActive(true);
-            Time.timeScale = 0f;
+            if (RunOutcome.RunEnded) { return; }
+            if (pauseMenuUI != null) { pauseMenuUI.SetActive(true); }
             GameIsPaused = true;
+            RunTime.Apply();
         }
     }
 }

@@ -71,10 +71,10 @@ namespace SurvivalChaos
         {
             var into = new StringBuilder();
 
-            into.Append("SURVIVED ").AppendLine(Clock(RunStats.Seconds));
-            into.Append("LEVEL ").AppendLine(RunStats.LevelReached.ToString());
-            into.Append("DESTROYED ").AppendLine(RunStats.EnemiesDestroyed.ToString());
-            into.Append("EXPERIENCE ").AppendLine(RunStats.ExperienceEarned.ToString());
+            into.Append("SURVIVED ").Append(Clock(RunStats.Seconds));
+            into.Append("    LEVEL ").AppendLine(RunStats.LevelReached.ToString());
+            into.Append("DESTROYED ").Append(RunStats.EnemiesDestroyed);
+            into.Append("    EXPERIENCE ").AppendLine(RunStats.ExperienceEarned.ToString());
 
             // Counted rather than listed. Twenty picks is twenty lines of mostly
             // the same four words, and what the player wants back is the shape of
@@ -89,7 +89,8 @@ namespace SurvivalChaos
 
                     if (i > 0)
                     {
-                        into.Append("   ");
+                        if (i % 2 == 0) { into.AppendLine(); }
+                        else { into.Append("   "); }
                     }
 
                     into.Append(skill).Append(" x").Append(RunStats.PicksOf(skill));
@@ -145,8 +146,11 @@ namespace SurvivalChaos
             }
 
             text.alignment = TextAlignmentOptions.Top;
-            text.fontSize = 22f;
-            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.fontSize = 18f;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 14f;
+            text.fontSizeMax = 18f;
             text.raycastTarget = false;
 
             RectTransform rect = text.rectTransform;

@@ -20,9 +20,7 @@ namespace SurvivalChaos
     /// looking across the ring, which is where the player is; a frisbee would be
     /// edge-on and read as a line.
     ///
-    /// Unscaled time, for the reason the hit flash gives: both endings stop the
-    /// clock, and a disc frozen mid-flight behind a death screen should not still
-    /// be turning.
+    /// Uses gameplay time so pause, slow motion and endings also affect the spin.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class DiscSpin : MonoBehaviour
@@ -61,7 +59,7 @@ namespace SurvivalChaos
 
         private void Update()
         {
-            body.Rotate(0f, degreesPerSecond * Time.unscaledDeltaTime, 0f, Space.Self);
+            body.Rotate(0f, degreesPerSecond * Time.deltaTime, 0f, Space.Self);
         }
     }
 }

@@ -43,7 +43,7 @@ namespace SurvivalChaos
 
         void Start()
         {
-            pool = new SkillPool(Upgrades());
+            if (pool == null) { pool = new SkillPool(Upgrades()); }
         }
 
         /// <summary>
@@ -87,6 +87,10 @@ namespace SurvivalChaos
         /// player actually collects one.
         /// </summary>
         public void PickSkill(){
+            // Final boss XP still updates progression, but the ending screen must
+            // not create another offer or health drop behind itself.
+            if (RunOutcome.RunEnded) { return; }
+
             if(pool == null){
                 pool = new SkillPool(Upgrades());
             }
@@ -107,6 +111,47 @@ namespace SurvivalChaos
                 player != null ? player.currentLevel : 0,
                 pool.Draw(pickups.OfferSize));
         }
+
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
+        /// <summary>
+        /// Tops up to a minimum boss-testing kit using the real skill definitions
+        /// and their pick caps. Repeating it grants nothing extra and never removes
+        /// upgrades already collected. Returns how many upgrades were added.
+        /// </summary>
+        public int ApplyDebugLoadout(bool stronger)
+        {
+            if (player == null || RunOutcome.RunEnded || player.CurrentHealth <= 0) { return 0; }
+            if (pool == null) { pool = new SkillPool(Upgrades()); }
+
+            int granted = 0;
+            foreach (SkillDefinition skill in skills)
+            {
+                int wanted = skill is ShotUpgradeSkill ? (stronger ? 3 : 2)
+                    : skill is AttackSpeedSkill ? (stronger ? 6 : 3)
+                    : skill is MoveSpeedSkill ? (stronger ? 4 : 2)
+                    : skill is MaxHealthSkill ? (stronger ? 2 : 1)
+                    : 0;
+                if (skill == null || wanted == 0) { continue; }
+                if (!skill.IsUnlimited) { wanted = Mathf.Min(wanted, skill.MaxPicks); }
+
+                while (pool.PicksTaken(skill) < wanted)
+                {
+                    pool.RecordPick(skill);
+                    skill.Apply(player);
+                    RunStats.RecordSkill(skill.DisplayName);
+                    player.DebugLevelUp(offerSkill: false);
+                    granted++;
+                }
+            }
+
+            player.Heal(player.MaxHealth - player.CurrentHealth);
+            if (granted > 0 && skillTextObject != null && skillText != null)
+            {
+                ShowBanner(stronger ? "Boss kit: strong" : "Boss kit: balanced");
+            }
+            return granted;
+        }
+#endif
 
         /// <summary>
         /// Applies a skill the player has just flown into, and only now charges it
@@ -192,6 +237,14 @@ namespace SurvivalChaos
         /// <summary>The banner still counting down, so the next pick can stop it.</summary>
         private Coroutine banner;
 
+        private void LateUpdate()
+        {
+            if (!RunOutcome.RunEnded || banner == null) { return; }
+            StopCoroutine(banner);
+            banner = null;
+            if (skillTextObject != null) { skillTextObject.SetActive(false); }
+        }
+
         /// <summary>
         /// Shows one level-up banner, replacing whichever is still on screen.
         ///
@@ -210,6 +263,7 @@ namespace SurvivalChaos
         /// </summary>
         private void ShowBanner(string skillName)
         {
+            if (RunOutcome.RunEnded) { return; }
             if (banner != null)
             {
                 StopCoroutine(banner);

@@ -107,6 +107,7 @@ namespace SurvivalChaos
 
         private void Update()
         {
+            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded || Time.timeScale <= 0f) { return; }
             float now = Time.time;
 
             if (holdingBurst && !cycle.IsDashing(now))
