@@ -104,3 +104,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]cenes/**/[Rr]eflection[Pp]robe-*
 /[Aa]ssets/[Ss]cenes/**/[Ll]ighting[Dd]ata.asset*
 /[Aa]ssets/[Ss]cenes/**/*.[Cc]ell*.bytes*
+
+# Stray process logs. replay_pid*.log was committed once by accident - a tool
+# run left it in the project root - and nothing reads it. Ignore the shape so
+# the next one never gets staged.
+replay_pid*.log

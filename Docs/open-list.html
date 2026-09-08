@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true},"updated":"7 September 2026"}</script>
+<script id="state" type="application/json">{"done": {"code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true}, "updated": "8 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,16 +327,16 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-boss",
-    title: "Play one full boss run",
-    effort: "about 5 minutes",
-    lede: "Everything about the fight is measured and none of it is played. Every number I have came from a probe with the ship parked — and two changes since then went in on geometry rather than on feel: roughly four times as much boss fire in your lane, and the whole of the boss’s output recoloured. <strong>There is a fresh build waiting</strong>: <code>Builds/26_0907-1030_audiomix</code>, clean, with the orange fire, the red pods, and the rebalanced mix in it. F8 opens the debug menu — verified present in this exe, not assumed — so you can wind the clock on and force the level-ups instead of surviving ten minutes to get there.",
+    id: "boss-tuning",
+    title: "Tell me how the boss fight actually felt",
+    effort: "5 minutes to say",
+    lede: "You asked for substantially harder and got it: three times the health, every interval pulled under the orbit lap, and a keel that throws discs wide enough to close rows that were never actually closed. <strong>You have now played it.</strong> Every dial in the fight is a single serialized field, deliberately, so this is tuning rather than rework — but I would rather move them against something you felt than against a stationary probe. Say what happened and I will move them.",
     watch: [
-      "Armoured: can you still get a pod down? You have to fly to its height, which is now where the fire is thickest.",
-      "Exposed: too thin still, or too busy now? Nine plates plus a ram every 7s was tuned on paper.",
-      "Can you actually see the plates against the dark island?",
-      "The pods are red now, not green. Against orange lava, can you still find the one you are meant to shoot?",
-      "The lance and the ram make a noise now. Does the wind-up give you enough time — and does the lance's stop if you kill the prow pod part way through?"
+      "Armoured: does the disc curtain read as tight, or as unfair? Curtain interval first, disc diameter second — in that order.",
+      "Exposed: sixteen plates in the steady state, five of them at your own altitude. Too busy now, or finally enough?",
+      "Did the fight outstay its welcome? Three times the health buys cycles, but it also buys length.",
+      "The ram is already at its floor — under four seconds it does not fire more often, it just runs back to back. If it needs to be scarier it needs a different change.",
+      "Could you find the pods you were meant to shoot?"
     ]
   };
 
@@ -353,6 +353,15 @@
           why: [
             "Done, and synthesised rather than picked. Nothing in the packs is a charge — measured, every engine and thruster is a flat five-second drone and the only things that rise are door slams — so both were made with the project’s own SfxrSynth, called directly rather than through the menu item that would have replaced every sound in the game.",
             "The lance rises 198 to 694Hz over 1.15s against a 1.2s wind-up; the ram spools from a 39Hz fundamental under a low-pass that opens. The lance’s is cut short if you shoot the prow emplacement mid-charge, which needed a Stop the audio system did not have."
+          ]
+        },
+        {
+          id: "play-boss",
+          title: "Play a full boss run",
+          effort: "5 min",
+          why: [
+            "Done, twice. The 7 September run reported both acts as easy, which is what the retune answered; the 8 September build was played to check the pause, debug and ending fixes.",
+            "Everything the fight is tuned to now came out of those runs rather than out of a probe with the ship parked."
           ]
         },
         {
@@ -379,6 +388,15 @@
           why: [
             "Done — warmed, rather than given their own tag. All hostile fire now reads warm on one ladder below the boss’s own rounds.",
             "Their materials were embedded in <code>tiro_inimigo_2.fbx</code>, so they are new assets with the base greys copied across untouched. Only emission was added, which is deliberately not what happened the time the palette got rejected."
+          ]
+        },
+        {
+          id: "pod-visibility",
+          title: "Decide whether the red pods actually read in play",
+          effort: "2 min to decide",
+          why: [
+            "The pods were green until 5 September, and the comment written when they turned red flagged the cost at the time: a red pod against orange lava is a harder read than a green one was, and this would be the first thing to question if the armoured phase turned out to be hard to aim at.",
+            "On 8 September a second pass reached the same diagnosis from scratch and moved every hostile thing off orange — pink fire, green pods. You reverted it, and its version did wash a third of the island green. But that rejects the execution, not the diagnosis. If you were hunting for pods, there is a much smaller version: keep the red and drop <code>PodLightLumens</code> from 9000, so the target reads without the arena changing colour."
           ]
         },
         {
@@ -429,8 +447,8 @@
           title: "Drop shadowCastingCount from 4 to 2",
           effort: "2 min",
           why: [
-            "The scene has <code>shadowCastingCount: 4</code>; the reasoning behind the one-per-volley work says 2.",
-            "It costs nothing late in a run — once Shot Upgrade lands only two volleys are lit — but means four casters in the opening minute, when every bullet is its own volley and there’s least else on screen to justify them."
+            "Done on 8 September. The player’s bullet pool is at 2. The enemy pool was already at 0 and stays there — their shots glow but cast nothing.",
+            "It cost nothing late in a run — once Shot Upgrade lands only two volleys are lit — but meant four casters in the opening minute, when every bullet is its own volley and there is least else on screen to justify them."
           ]
         },
         {
@@ -438,8 +456,8 @@
           title: "Give the game its own identity",
           effort: "5 min",
           why: [
-            "<code>companyName: DefaultCompany</code>, <code>productName: Survival-Chaos-main</code>, <code>bundleVersion: 1.0</code> — all verified as still sitting there.",
-            "The product name is the folder someone unzipped, and it’s what shows in the title bar and the save path. Worth fixing before anyone else runs a build."
+            "Done on 8 September: <code>Ian Wanderley</code> / <code>Survival Chaos</code> / <code>0.9.0</code>, with an explicit <code>com.ianwanderley.survivalchaos</code> rather than the identifier Unity derives.",
+            "The company name is the least settled of the four. Nothing in the repo records a team name for the original five, so it came from your own git author name — it is one field and changes on a word. Note it also moves where settings live, so one previous build’s graphics and audio choices will not be found the first time."
           ]
         },
         {
@@ -447,7 +465,7 @@
           title: "Untrack replay_pid25368.log",
           effort: "2 min",
           why: [
-            "It’s committed to git — verified with <code>git ls-files</code>. A stray process log from some tool run, nothing depends on it."
+            "Done on 8 September. Untracked, deleted, and <code>replay_pid*.log</code> added to .gitignore so the next one is never staged in the first place."
           ]
         },
         {
@@ -455,7 +473,7 @@
           title: "Clear the commit-*.txt scratch files",
           effort: "1 min",
           why: [
-            "<code>commit-boss.txt</code>, <code>commit-dash.txt</code> and <code>commit-dashbar.txt</code> are sitting in the outer folder. All three are committed already; the files are leftovers from when you were pasting them into git."
+            "Done on 8 September. All three deleted from the outer folder — every one of them had been committed long before."
           ]
         },
         {
@@ -474,15 +492,6 @@
       name: "Waiting on a real run",
       note: "Blocked until something is played or built",
       items: [
-        {
-          id: "boss-tuning",
-          title: "Tune the boss against how it actually plays",
-          effort: "after the run above",
-          why: [
-            "The shed cadence, the lane response and a plate’s life are one serialized field each, specifically so this is tuning rather than rework.",
-            "I’d rather move them against something you felt than against a stationary probe."
-          ]
-        },
         {
           id: "shadow-spike",
           title: "Attribute the 8.4 ms shadow spike",
@@ -506,6 +515,7 @@
   ];
 
   var PARKED = [
+    ["The boss HUD, the camera pull-back and the pink palette", "A readability pass on 8 September added a HUD naming the phase and the three targets, pulled the camera back during the fight, rewrote the dash tutorial and moved all hostile fire to pink with green pods. Reverted the same day; the four correctness fixes underneath it were kept. Only the colour half is still an open question — see “Decide whether the red pods actually read in play” above."],
     ["The wreckage plates stay dark", "Asked on 7 September and answered: no glow for now. They carry the boss’s hull material, which is nearly black, so one can vanish against the dark island — worth revisiting if the boss run shows it happening, but it is a deliberate no rather than an open question."],
     ["Overlapping offers stack their captions", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned."],
     ["Max Health is four ×5 instead of one ×20", "Same ceiling for a player who takes all four, lower for one who takes two. Whether that reads as a choice or a nerf is a question only playing answers."],

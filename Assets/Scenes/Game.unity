@@ -12633,7 +12633,7 @@ MonoBehaviour:
   lightTemplate: {fileID: 1138035253}
   bulletTag: Shoot
   lightCount: 30
-  shadowCastingCount: 4
+  shadowCastingCount: 2
   offset: {x: 0, y: 0, z: 0}
 --- !u!4 &784058706
 Transform:
