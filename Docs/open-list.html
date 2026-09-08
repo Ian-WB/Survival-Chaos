@@ -327,16 +327,17 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "boss-tuning",
-    title: "Tell me how the boss fight actually felt",
-    effort: "5 minutes to say",
-    lede: "You asked for substantially harder and got it: three times the health, every interval pulled under the orbit lap, and a keel that throws discs wide enough to close rows that were never actually closed. <strong>You have now played it.</strong> Every dial in the fight is a single serialized field, deliberately, so this is tuning rather than rework — but I would rather move them against something you felt than against a stationary probe. Say what happened and I will move them.",
+    id: "play-lightfixes",
+    title: "Play the light-fixes build",
+    effort: "one run, ~10 minutes",
+    lede: "<code>Builds/26_0908-0930_lightfixes/</code> is the first build carrying all four of the last day’s changes, and <strong>none of them has been played</strong>: the armoured act cut from 450 to 300, the boss’s bullet lights moved onto its rounds instead of sitting 2.66 units under them, the lance’s four prow muzzles staggered so they stop firing as one, and the light ceiling raised so they stop vanishing at close range. Four changes, one run — and four other things on this list are answered just by looking while you are already in there.",
     watch: [
-      "Armoured: does the disc curtain read as tight, or as unfair? Curtain interval first, disc diameter second — in that order.",
-      "Exposed: sixteen plates in the steady state, five of them at your own altitude. Too busy now, or finally enough?",
-      "Did the fight outstay its welcome? Three times the health buys cycles, but it also buys length.",
-      "The ram is already at its floor — under four seconds it does not fire more often, it just runs back to back. If it needs to be scarier it needs a different change.",
-      "Could you find the pods you were meant to shoot?"
+      "Does the fight still run long, now the armoured act is a third shorter? That act was half the whole health bar, which is why the cut landed there alone and nothing else moved.",
+      "Are the boss’s rounds lit at the round rather than under it — and do the lights stay put as bullets pass each other, instead of hopping between them?",
+      "Does the lance read as four muzzles now, or still as one smear? That decides the lance item below.",
+      "Can you find the red pods against the orange lava? That answers the pod item below, which has been open since they turned red.",
+      "Does Enemy 3 disappear against the dark island? That answers the silhouette item below.",
+      "Anything odd late in the run — enemies dying to one hit, an enemy setting off the wrong way round the ring, Enemy_1 firing faster than it should. That is the pooling soak, for free."
     ]
   };
 
@@ -361,6 +362,7 @@
           effort: "5 min",
           why: [
             "Done, twice. The 7 September run reported both acts as easy, which is what the retune answered; the 8 September build was played to check the pause, debug and ending fixes.",
+            "A third run on 8 September said it felt good but ran long. That is what cut the armoured act from 450 to 300 and the boss from 900 to 750 — that act alone was half the whole bar, and the only one that made you fly between three heights, so it owned a disproportionate share of the clock.",
             "Everything the fight is tuned to now came out of those runs rather than out of a probe with the ship parked."
           ]
         },
@@ -397,6 +399,15 @@
           why: [
             "The pods were green until 5 September, and the comment written when they turned red flagged the cost at the time: a red pod against orange lava is a harder read than a green one was, and this would be the first thing to question if the armoured phase turned out to be hard to aim at.",
             "On 8 September a second pass reached the same diagnosis from scratch and moved every hostile thing off orange — pink fire, green pods. You reverted it, and its version did wash a third of the island green. But that rejects the execution, not the diagnosis. If you were hunting for pods, there is a much smaller version: keep the red and drop <code>PodLightLumens</code> from 9000, so the target reads without the arena changing colour."
+          ]
+        },
+        {
+          id: "lance-legibility",
+          title: "Decide whether the lance stream can be told apart",
+          effort: "2 min to decide",
+          why: [
+            "The lance throws forty rounds over 0.6s from four prow muzzles sitting 0.53 to 2.37 units apart. Each round is 12.86 units long and travels at 80, so consecutive shots leave 0.16s apart and far closer together than their own length — they overlap by construction, which is why it looked like the bullets were glued to each other.",
+            "Staggering the muzzles by 0.02s unstacked the four that were firing as one, and that was the half of the problem timing could reach. Nothing about cadence can separate the stream itself: at that length and that speed the rounds cannot help but touch. If it still reads as one smear, the fix is a shorter round — and that changes how the weapon looks, so it is your call rather than mine."
           ]
         },
         {
@@ -507,7 +518,8 @@
           effort: "a few minutes of play",
           why: [
             "Pooling defects can’t appear until the warmup is exhausted and instances start recycling, which takes minutes.",
-            "Three things to watch for: enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and Enemy_1 firing faster the longer a run goes on."
+            "Three things to watch for: enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and Enemy_1 firing faster the longer a run goes on.",
+            "It costs nothing extra to do it in the light-fixes build — it is the same run as the one at the top of this list."
           ]
         }
       ]
