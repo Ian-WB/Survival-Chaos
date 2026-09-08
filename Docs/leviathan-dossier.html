@@ -310,7 +310,10 @@
         <h3>A shot never changes lane</h3>
         <p class="dim">
           Projectiles orbit with <code>RotateAround</code>, which preserves the distance from the
-          axis they were born at &mdash; exactly, and for their whole life. The player is pinned to
+          axis they were born at &mdash; exactly, and for their whole life. It is the birth radius
+          that is negotiable, not the lane: a boss round eases onto the player&rsquo;s radius over its
+          first moments and is then fixed there forever, which is how three quarters of the fire was
+          recovered further down. The player is pinned to
           <span class="mono">137.200</span>, and with both hitboxes a shot can only touch them if it
           was born between <span class="mono">133.9</span> and <span class="mono">140.5</span>.
           <span class="em">A shot fired off that lane misses forever.</span> This is the fact that
@@ -343,7 +346,7 @@
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
           <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">4.5 s per lap</td></tr>
           <tr><td>Boss orbit</td><td class="num">15&deg;/s</td><td class="dim">24 s per lap &mdash; you lap it every 25 s</td></tr>
-          <tr><td>Boss health</td><td class="num">750</td><td class="dim">1 damage per bullet</td></tr>
+          <tr><td>Boss health</td><td class="num">600</td><td class="dim">1 damage per bullet</td></tr>
           <tr><td>Hittable lane</td><td class="num">133.9 &rarr; 140.5</td><td class="dim">where a shot has to be born to reach the player at all</td></tr>
           <tr><td>Muzzle spread</td><td class="num">131.6 &rarr; 150.2</td><td class="dim">across a hull 30 units deep &mdash; wider than the lane</td></tr>
         </tbody>
@@ -461,7 +464,7 @@
     <div class="eyebrow">As built</div>
     <h2>Armoured &rarr; Exposed &rarr; Scuttle</h2>
     <p class="lede">
-      Three acts out of one 750-point pool, so the bar moves throughout and retuning an
+      Three acts out of one 600-point pool, so the bar moves throughout and retuning an
       emplacement cannot quietly change what the boss is worth. The Resogun rule underneath is the
       one all five of its bosses share: <span class="em">the hull is not the target &mdash;
       specific, colour-coded things on it are</span>, and destroying one takes an attack out of
@@ -473,11 +476,11 @@
     <div class="phase">
       <div class="phase-n">1</div>
       <div class="phase-body">
-        <h3>ARMOURED &mdash; 300 HP across three weak points</h3>
+        <h3>ARMOURED &mdash; 240 HP across three weak points</h3>
         <p class="dim">
           The hull is invulnerable; bullets spark off it and die. Three weak points sit at the
-          centroid of each bank, 100 HP each, and they are the only things that take damage.
-          Killing one <span class="em">silences that bank permanently</span> and the arena gets
+          centroid of each bank, 80 HP each, and they are the only things that take damage.
+          Killing one <span class="em">silences that bank for the rest of the fight&rsquo;s two long acts</span> and the arena gets
           measurably quieter.
         </p>
         <p class="dim">
@@ -547,12 +550,12 @@
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-prow">Prow</span><strong>Lance</strong>
-            <span class="timing">4 muzzles &middot; charge 1.2 s &middot; stream 0.6 s &middot; cycle 2.6 s</span>
+            <span class="timing">one arc &middot; charge 1.2 s &middot; beam 2.0 s &middot; cycle 2.6 s</span>
           </div>
           <p class="dim">
             The laser, timed rather than triggered. The prow pod swells for the whole 1.2&thinsp;s
             wind-up &mdash; that swell <em>is</em> the telegraph, and it is the only one, because a
-            muzzle is an empty transform with nothing to light up. Then a dense stream fires.
+            muzzle is an empty transform with nothing to light up. Then the beam is simply there.
             <span class="em">The design said the lance captured your height during the charge; it
             does not.</span> The boss holds altitude now, so what the lance actually does is own the
             middle of the band, which nothing else in the fight reaches. The 1.2&thinsp;s telegraph
@@ -565,11 +568,27 @@
             synthesised through the project&rsquo;s own sfxr.
           </p>
           <p class="dim">
-            The four prow muzzles sit between 0.53 and 2.37 units apart &mdash; measured off live
-            rounds &mdash; against a round two units thick, so firing them together spawned a bundle
-            four meshes deep rather than a stream. They are staggered across one burst interval now.
-            That removes the stack and halves what a burst puts out; it does not separate the rounds,
-            and nothing about timing can. See <em>Still open</em>.
+            <span class="em">It fires nothing.</span> Until 8 September the lance was forty rounds
+            out of four muzzles, and the whole of the tuning was an attempt to make them read as one
+            beam instead of as a stack. The measurement that ended that is worth keeping, because it
+            says the attempt could never have worked: the ring is 862 units around and a round
+            crossed it at 191.6&nbsp;units a second, so rounds leaving 0.06&thinsp;s apart were
+            <span class="mono">11.5</span> units apart while each was <span class="mono">12.86</span>
+            long. <span class="em">Consecutive rounds overlapped by 1.4 units before they had gone
+            anywhere.</span> It was already a solid line. It was just being drawn the expensive way
+            &mdash; forty objects, forty colliders and forty lights for one continuous thing, into a
+            light cluster that holds 24 per cell and drops the surplus in silence.
+          </p>
+          <p class="dim">
+            Welding them into four 33-unit rounds was tried first and rejected on sight: at that
+            length they read as sticks flying in formation. 33 was not a taste either &mdash; it is
+            the longest a straight mesh can be on a circle this size before it visibly stops
+            following the lane, which is what said the shape wanted here was never a projectile at
+            all. So the lance is now a single 128-unit arc, 24 segments bent along the ring, that
+            grows from its own muzzle, sweeps the band at the same 80&deg;/s the rounds had, and
+            lives two seconds. It borrows its material and its direction from the round prefab it
+            replaced, so it cannot drift out of step with the rest of the boss&rsquo;s fire, and it
+            bills damage on a 0.15&thinsp;s tick rather than per collider entry.
           </p>
         </div>
       </div>
@@ -578,7 +597,7 @@
     <div class="phase">
       <div class="phase-n">2</div>
       <div class="phase-body">
-        <h3>EXPOSED &mdash; 360 HP on the core</h3>
+        <h3>EXPOSED &mdash; 270 HP on the core</h3>
         <p class="dim">
           All three weak points down. Every gun goes quiet, the boss holds a 2&thinsp;s silence
           &mdash; every attack restarts its cadence from there, which is the beat the player is
@@ -751,7 +770,7 @@
       <div class="card">
         <h3>The bar stays honest</h3>
         <p class="dim">
-          750 total: 100 apiece on the three emplacements, then 360 on the open hull, then the
+          600 total: 80 apiece on the three emplacements, then 270 on the open hull, then the
           last 90 to the Scuttle. One pool, so the bar moves throughout Armoured rather than sitting
           full while the player does real work &mdash; and so retuning a pod cannot quietly change
           what the boss is worth.
@@ -764,6 +783,16 @@
           each is. Both moved, then the fight came back reported as good but a bit long and the cut
           landed entirely on the first act, which was half the bar on its own and is also the act
           you must fly between three heights to finish.
+        </p>
+        <p class="dim">
+          Played again at that shape it still ran long, and this time the report was about the
+          fight&rsquo;s length rather than any one act of it &mdash; so the second cut came off the
+          pool as a whole rather than off a phase: <span class="mono">750</span> to
+          <span class="mono">600</span>, pods from 100 to 80, the open hull from 360 to 270, and the
+          Scuttle left alone at 90. <span class="em">The Scuttle is the one number here that is a
+          duration rather than a fraction</span> &mdash; it is a crescendo measured in seconds, and
+          shrinking it with the rest of the bar would have shortened the only part of the fight that
+          was never the problem.
         </p>
       </div>
     </div>
@@ -920,14 +949,17 @@
         </p>
       </div>
       <div class="card">
-        <h3>The lance fires more rounds than can be told apart</h3>
+        <h3>Whether the beam reads as a beam</h3>
         <p class="dim">
-          Staggering the prow bank removed the four-deep stack, and the arithmetic says nothing about
-          timing can finish the job: the round is <span class="mono">12.86</span> units long at speed
-          80, so two clear each other only <span class="mono">0.16&thinsp;s</span> apart, and a
-          0.6&thinsp;s burst has room for four of those against the forty it fires. The remaining dial
-          is the round&rsquo;s own size, which visibly shrinks the fight&rsquo;s signature attack
-          &mdash; a look decision rather than a fix.
+          The lance stopped being a stream of rounds on 8 September and became one drawn arc. That
+          settles the legibility argument on paper &mdash; there is nothing left to tell apart
+          &mdash; but it has not been played. The things to watch for are its own: whether a
+          128-unit chord bent into 24 segments still reads as straight at this radius, whether a
+          beam that grows from the muzzle rather than appearing whole is legible as a beam or as a
+          very fast projectile, and whether a 0.15&thinsp;s damage tick over two seconds is a fair
+          exchange for a hitbox the player can be inside. <span class="em">Length, thickness,
+          segments, lifetime and tick are all constants in one file</span>, which is the same
+          reason the numbers it replaced were easy to move.
         </p>
       </div>
       <div class="card">
@@ -936,9 +968,10 @@
           The fight has now been played rather than only probed, and the verdict moved the numbers on
           this page: both acts read easy, then &mdash; at three times the health with every interval
           tightened &mdash; good but a bit long. What has <em>not</em> been played is the shape after
-          that cut, or with discs closing the curtain, or with the lance streaming rather than
-          bundling. Every one of those is a single serialized field, which is the whole reason they
-          were built that way.
+          that cut, or with discs closing the curtain, or with the lance drawn as one beam rather
+          than fired as forty rounds. The first two are a single serialized field each, which is the
+          whole reason they were built that way; the beam is the one change here that is a new
+          object rather than a new number, and so the one most worth watching.
         </p>
       </div>
     </div>
