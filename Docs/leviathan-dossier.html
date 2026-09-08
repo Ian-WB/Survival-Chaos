@@ -343,7 +343,7 @@
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
           <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">4.5 s per lap</td></tr>
           <tr><td>Boss orbit</td><td class="num">15&deg;/s</td><td class="dim">24 s per lap &mdash; you lap it every 25 s</td></tr>
-          <tr><td>Boss health</td><td class="num">300</td><td class="dim">1 damage per bullet</td></tr>
+          <tr><td>Boss health</td><td class="num">750</td><td class="dim">1 damage per bullet</td></tr>
           <tr><td>Hittable lane</td><td class="num">133.9 &rarr; 140.5</td><td class="dim">where a shot has to be born to reach the player at all</td></tr>
           <tr><td>Muzzle spread</td><td class="num">131.6 &rarr; 150.2</td><td class="dim">across a hull 30 units deep &mdash; wider than the lane</td></tr>
         </tbody>
@@ -461,7 +461,7 @@
     <div class="eyebrow">As built</div>
     <h2>Armoured &rarr; Exposed &rarr; Scuttle</h2>
     <p class="lede">
-      Three acts out of one 300-point pool, so the bar moves throughout and retuning an
+      Three acts out of one 750-point pool, so the bar moves throughout and retuning an
       emplacement cannot quietly change what the boss is worth. The Resogun rule underneath is the
       one all five of its bosses share: <span class="em">the hull is not the target &mdash;
       specific, colour-coded things on it are</span>, and destroying one takes an attack out of
@@ -473,18 +473,26 @@
     <div class="phase">
       <div class="phase-n">1</div>
       <div class="phase-body">
-        <h3>ARMOURED &mdash; 150 HP across three weak points</h3>
+        <h3>ARMOURED &mdash; 300 HP across three weak points</h3>
         <p class="dim">
-          The hull is invulnerable; bullets spark off it and die. Three neon-green weak points
-          sit at the centroid of each bank, 50 HP each, and they are the only things that take
-          damage. Killing one <span class="em">silences that bank permanently</span> and the
-          arena gets measurably quieter.
+          The hull is invulnerable; bullets spark off it and die. Three weak points sit at the
+          centroid of each bank, 100 HP each, and they are the only things that take damage.
+          Killing one <span class="em">silences that bank permanently</span> and the arena gets
+          measurably quieter.
         </p>
         <p class="dim">
           The tension is geometric and comes free from the rig: player bullets travel at the
           player&rsquo;s own height, so <span class="em">to kill a bank you have to fly at that
           bank&rsquo;s height</span> &mdash; which is precisely where its own fire is thickest.
           Each attack below is densest in its own third of the band.
+        </p>
+        <p class="dim">
+          <span class="em">They were neon green and they are red now</span>, and the trade is worth
+          stating because it is not settled. Green put the one thing the player must find as far
+          from the lava as the wheel goes; red brought the whole of the boss&rsquo;s output into one
+          warm family, and buys separation from value and saturation instead of from hue. The cost
+          was written down at the time: a red pod on an orange ship over orange lava is the harder
+          read. See <em>Still open</em>.
         </p>
         <p class="dim">
           Each pod sits at the centroid of its own bank&rsquo;s muzzle heights, averaged from the
@@ -498,23 +506,35 @@
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-keel">Keel</span><strong>Curtain</strong>
-            <span class="timing">12 muzzles &middot; one row open &middot; cycle 6.0 s</span>
+            <span class="timing">12 muzzles &middot; one row open &middot; discs &middot; cycle 3.4 s</span>
           </div>
           <p class="dim">
             All twelve keel muzzles except one row, so the wall has exactly one gap in it. The
             open row steps up one each volley and wraps, which makes it learnable rather than
             random. The rows are read off the muzzle heights rather than authored, because the
-            second copy of a fact is the one that goes stale. Because a shot wraps in 4.5&thinsp;s
-            and the cycle is 6&thinsp;s, the previous curtain comes back round just before the next
-            one leaves &mdash; the player is threaded between two walls for most of the phase. This
-            is the Cylinder Wrap turned into a mechanic.
+            second copy of a fact is the one that goes stale. At 3.4&thinsp;s the cycle is now
+            <em>under</em> the 4.5&thinsp;s a shot takes to wrap, so the next wall leaves while the
+            last is still a quarter of the ring from home: there are stretches with two curtains on
+            the ring at once, at different gap rows. This is the Cylinder Wrap turned into a
+            mechanic.
+          </p>
+          <p class="dim">
+            <span class="em">It had never actually been a wall.</span> The keel&rsquo;s rows are
+            12.65 units apart and the darts it fired were 1.76 tall, so there were 10.9-unit gaps
+            between every row &mdash; the one open row the whole design rests on was one of four
+            ways through, and had been since the attack was built. The keel throws
+            <strong>discs</strong> now, which is also what a bank firing out of slots rather than
+            barrels should be throwing. At seven units across they leave 6.15 units of clear gap
+            against a ship 4.09 wide: passable, and only through the row that is meant to be open.
+            The diameter is a difficulty dial rather than a look, and the first thing to lower if
+            the curtain reads as unfair rather than as tight.
           </p>
         </div>
 
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-crown">Crown</span><strong>Rake</strong>
-            <span class="timing">16 muzzles &middot; 0.12 s per row &middot; cycle 4.0 s</span>
+            <span class="timing">16 muzzles &middot; 0.12 s per row &middot; cycle 2.4 s</span>
           </div>
           <p class="dim">
             The same 16 muzzles, fired row by row instead of all at once, with the direction
@@ -527,7 +547,7 @@
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-prow">Prow</span><strong>Lance</strong>
-            <span class="timing">4 muzzles &middot; charge 1.2 s &middot; stream 0.4 s &middot; cycle 5.0 s</span>
+            <span class="timing">4 muzzles &middot; charge 1.2 s &middot; stream 0.6 s &middot; cycle 2.6 s</span>
           </div>
           <p class="dim">
             The laser, timed rather than triggered. The prow pod swells for the whole 1.2&thinsp;s
@@ -538,7 +558,18 @@
             middle of the band, which nothing else in the fight reaches. The 1.2&thinsp;s telegraph
             is one full band crossing at 70&nbsp;u/s: always escapable, never for free. Shoot the pod
             off mid-charge and the warning stops with it, rather than leaving the player dodging a
-            shot that is never coming.
+            shot that is never coming &mdash; which now means cutting a sound as well as a swell,
+            since the wind-up makes a noise. It rises 198 to 694&thinsp;Hz over 1.15&thinsp;s
+            against the 1.2&thinsp;s charge, and nothing in the sound packs was a charge: every
+            engine and thruster measured as a flat drone, so both this and the ram&rsquo;s were
+            synthesised through the project&rsquo;s own sfxr.
+          </p>
+          <p class="dim">
+            The four prow muzzles sit between 0.53 and 2.37 units apart &mdash; measured off live
+            rounds &mdash; against a round two units thick, so firing them together spawned a bundle
+            four meshes deep rather than a stream. They are staggered across one burst interval now.
+            That removes the stack and halves what a burst puts out; it does not separate the rounds,
+            and nothing about timing can. See <em>Still open</em>.
           </p>
         </div>
       </div>
@@ -547,7 +578,7 @@
     <div class="phase">
       <div class="phase-n">2</div>
       <div class="phase-body">
-        <h3>EXPOSED &mdash; 120 HP on the core</h3>
+        <h3>EXPOSED &mdash; 360 HP on the core</h3>
         <p class="dim">
           All three weak points down. Every gun goes quiet, the boss holds a 2&thinsp;s silence
           &mdash; every attack restarts its cadence from there, which is the beat the player is
@@ -561,7 +592,7 @@
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-cut">Hull</span><strong>Ram</strong>
-            <span class="timing">telegraph 1.0 s &middot; charge 3.0 s &middot; cycle 7.0 s</span>
+            <span class="timing">telegraph 1.0 s &middot; charge 3.0 s &middot; cycle 4.5 s</span>
           </div>
           <p class="dim">
             The hull flashes &mdash; by this act there are no emplacements left to light up
@@ -573,12 +604,19 @@
             The dash is built: 0.22&thinsp;s of invincibility covering 74.5 world units against a
             70.5-unit hull, which is the measurement it was sized to.
           </p>
+          <p class="dim">
+            4.5&thinsp;s is its floor rather than a preference. A ram is a 1&thinsp;s charge plus a
+            3&thinsp;s pass, and an attack whose running flag is still set is skipped &mdash; so an
+            interval under four does not fire more often, it just stops meaning anything and the ram
+            runs back to back. This leaves half a second of hull between passes, against a dash that
+            comes back in 1.2.
+          </p>
         </div>
 
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-cut">Arena</span><strong>Wreckage</strong>
-            <span class="timing">a plate every 1.8 s &middot; each lasts 16 s</span>
+            <span class="timing">a plate every 0.7 s &middot; each lasts 11 s</span>
           </div>
           <p class="dim">
             Armoured is a fight about height; Exposed threw that away, because the hull spans the
@@ -592,9 +630,12 @@
             They do not drift. Everything else here rides the ring; these are the one thing that does
             not, which is what makes them read as debris rather than as another attacker &mdash; and
             it means the boss, cruising at 15&deg;/s while it sheds, leaves a wake of its own hull and
-            eventually comes back round into it. Life over cadence is the tuning: 16&thinsp;s against
-            1.8 holds about nine plates, three at any one height, which against a 12.3&thinsp;s lap is
-            a forced move every four seconds or so. Three shots break one, and breaking it earns
+            eventually comes back round into it. Life over cadence is the tuning: 11&thinsp;s against
+            0.7 holds about sixteen plates, five at any one height, which against a 12.3&thinsp;s lap
+            is a forced move every two and a half seconds or so. It was 16 over 1.8 &mdash; about
+            nine plates &mdash; but that density only exists in a steady state that takes a whole
+            plate lifetime to build, and the act used to be over before it arrived, so the number it
+            was tuned for had never once been on screen. Three shots break one, and breaking it earns
             nothing &mdash; clearing a lane is the whole of its reward. Which pod sheds next counts
             over the wrecked ones rather than indexing all three and skipping, so the order the player
             killed them in cannot change how much wreckage they face.
@@ -606,7 +647,7 @@
     <div class="phase">
       <div class="phase-n">3</div>
       <div class="phase-body">
-        <h3>SCUTTLE &mdash; last 30 HP</h3>
+        <h3>SCUTTLE &mdash; last 90 HP</h3>
         <p class="dim">
           Every magazine on the ship cooks off at once: all 32 muzzles fire simultaneous volleys on
           a 1.2&thinsp;s cycle regardless of which emplacements are wrecked, until it dies. Loud,
@@ -710,10 +751,19 @@
       <div class="card">
         <h3>The bar stays honest</h3>
         <p class="dim">
-          300 total: 50 apiece on the three emplacements, then 120 on the open hull, then the
-          last 30 to the Scuttle. One pool, so the bar moves throughout Armoured rather than sitting
+          750 total: 100 apiece on the three emplacements, then 360 on the open hull, then the
+          last 90 to the Scuttle. One pool, so the bar moves throughout Armoured rather than sitting
           full while the player does real work &mdash; and so retuning a pod cannot quietly change
           what the boss is worth.
+        </p>
+        <p class="dim">
+          It was 300, with 50 a pod, and that is why the fight played easy: a run ends at forty
+          damage a second, so the armoured act was about six seconds &mdash; two cycles of attacks
+          on four, five and six second intervals. <span class="em">The cadences never got to say
+          anything.</span> Health decides how many cycles the player sees; cadence decides how hard
+          each is. Both moved, then the fight came back reported as good but a bit long and the cut
+          landed entirely on the first act, which was half the bar on its own and is also the act
+          you must fly between three heights to finish.
         </p>
       </div>
     </div>
@@ -723,10 +773,9 @@
 
   <section>
     <div class="eyebrow">Found while measuring</div>
-    <h2>Five things the build turned up</h2>
+    <h2>Seven things the build turned up</h2>
     <p class="lede">
-      All five were invisible from the outside. Four are fixed; the fifth is a correction to this
-      page.
+      Every one of them was invisible from the outside, and none would have been found by playing.
     </p>
 
     <div class="card">
@@ -807,6 +856,19 @@
     </div>
 
     <div class="card">
+      <h3>Every boss round was lit from below &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        The bullet lights were placed on each projectile&rsquo;s transform. That is the same point as
+        the mesh on the player&rsquo;s shots and is <em>not</em> on the boss&rsquo;s: its imported
+        dart art sits <span class="mono">2.66</span> units above its own pivot, so every boss round
+        lit the empty air beneath itself while the round stayed dark. The pool had been written and
+        tuned against the one case where the two coincide. The colliders were correct throughout,
+        which is why nothing about it read as a hitbox problem. Each projectile measures the centre
+        of what it actually draws now, once, and the error is <span class="mono">0.000</span>.
+      </p>
+    </div>
+
+    <div class="card">
       <h3>The orphaned trigger volume &mdash; <span class="em">deleted</span></h3>
       <p class="dim">
         <code>27b8a93</code> added a &ldquo;Laser Trigger&rdquo; sphere to the prefab;
@@ -841,34 +903,42 @@
           They carry the boss&rsquo;s own hull material, which is nearly black. Against the sky or
           the lava they are unmistakable; against the dark island one can be lost. An emissive tint
           would fix it, and would also make them the first thing in the arena that glows because it
-          is <em>dangerous</em> rather than because it is hot &mdash; a call about the art direction
-          rather than about the mechanic, so it has deliberately not been made.
+          is <em>dangerous</em> rather than because it is hot. It was put as a question and answered
+          &mdash; <span class="em">no glow for now</span> &mdash; so this is a deliberate no rather
+          than an open one, worth revisiting only if a run shows a plate actually being lost.
         </p>
       </div>
       <div class="card">
-        <h3>Measured, not played</h3>
+        <h3>Whether the red pods read</h3>
         <p class="dim">
-          Every figure here comes from a probe with the player parked and the arena controlled
-          &mdash; nine plates, a forced move every four seconds, 36.5&thinsp;s of standing still at
-          the keel&rsquo;s own height under the new lane. Standing still is the worst case and nobody
-          plays that way. The shed cadence, the lane response and a plate&rsquo;s life are one
-          serialized field each for exactly that reason.
+          The comment written when they turned red flagged this as the first thing to question if the
+          armoured act became hard to aim at. A later pass reached the same diagnosis from scratch and
+          moved every hostile thing off orange &mdash; pink fire, green pods &mdash; which was
+          reverted for washing a third of the island green. That rejects the execution rather than the
+          diagnosis. The small version is to keep the red and drop the pod lights from 9000 lumens, so
+          the target reads without the arena changing colour.
         </p>
       </div>
       <div class="card">
-        <h3>No charge sound</h3>
+        <h3>The lance fires more rounds than can be told apart</h3>
         <p class="dim">
-          The lance and the ram both telegraph visually and neither makes a noise. Adding one means a
-          new <code>SoundDefinition</code> and a curated clip, and picking that by ear is not a
-          decision to take on somebody&rsquo;s behalf.
+          Staggering the prow bank removed the four-deep stack, and the arithmetic says nothing about
+          timing can finish the job: the round is <span class="mono">12.86</span> units long at speed
+          80, so two clear each other only <span class="mono">0.16&thinsp;s</span> apart, and a
+          0.6&thinsp;s burst has room for four of those against the forty it fires. The remaining dial
+          is the round&rsquo;s own size, which visibly shrinks the fight&rsquo;s signature attack
+          &mdash; a look decision rather than a fix.
         </p>
       </div>
       <div class="card">
-        <h3>What the guns cost, still unmeasured</h3>
+        <h3>Played once, at this shape</h3>
         <p class="dim">
-          Roughly four times as much boss fire now reaches the player as did before. The damage rate
-          against a stationary target is known; what a competent player actually loses across the
-          three acts is not, and that is the number that decides whether any of this is tuned right.
+          The fight has now been played rather than only probed, and the verdict moved the numbers on
+          this page: both acts read easy, then &mdash; at three times the health with every interval
+          tightened &mdash; good but a bit long. What has <em>not</em> been played is the shape after
+          that cut, or with discs closing the curtain, or with the lance streaming rather than
+          bundling. Every one of those is a single serialized field, which is the whole reason they
+          were built that way.
         </p>
       </div>
     </div>
