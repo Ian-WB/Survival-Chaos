@@ -26,14 +26,14 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>
         /// Radius of the trigger, in world units, against an orbit radius of
-        /// 137.2. Deliberately larger than the visible object - the player flies
+        /// 13.72. Deliberately larger than the visible object - the player flies
         /// past at speed, and a collect volume that matches the art exactly reads
         /// as the pickup failing to work rather than as a near miss.
         /// </summary>
-        private const float TriggerRadius = 9f;
+        private const float TriggerRadius = 0.9f;
 
         /// <summary>Edge length of the visible core. A bullet is roughly a third of this.</summary>
-        private const float CoreScale = 4.5f;
+        private const float CoreScale = 0.45f;
 
         /// <summary>
         /// Where the interface typeface lives. Searched rather than referenced by
@@ -47,7 +47,7 @@ namespace SurvivalChaos.EditorTools
         /// 4.5 cube stood on a corner, so its silhouette reaches about 3.9 out
         /// from centre - this clears it without floating free of it.
         /// </summary>
-        private const float LabelRise = 7.5f;
+        private const float LabelRise = 0.75f;
 
         /// <summary>Where the caption board goes: a child of the overlay canvas.</summary>
         private const string BoardName = "Pickup Labels (Holo)";

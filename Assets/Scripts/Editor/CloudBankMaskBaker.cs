@@ -10,7 +10,7 @@ namespace SurvivalChaos.EditorTools
     /// HDRP's volumetric clouds cannot be used for cloud that touches the
     /// island. They refuse to render within roughly twenty units of the camera,
     /// their altitude range has a hard 100m floor, and their noise runs at
-    /// kilometre scale - measured across this 370 unit island the field is
+    /// kilometre scale - measured across this 37 unit island the field is
     /// uniform, so the sky is either wholly overcast or wholly clear and no
     /// cloud ever drifts past anything. Local Volumetric Fog is the local-scale
     /// equivalent and it takes a Texture3D density mask, which is what this

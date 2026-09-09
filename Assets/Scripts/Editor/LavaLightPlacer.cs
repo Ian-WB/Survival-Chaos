@@ -52,7 +52,7 @@ namespace SurvivalChaos.EditorTools
                  "assigning Light.intensity directly writes a raw internal value instead and comes " +
                  "out roughly a hundred times too bright.")]
         [SerializeField]
-        private float intensity= 250000f;
+        private float intensity= 2500f;
 
         [Tooltip("Colour of the emitted light. Keep it redder than the lava surface - bounced light reads warmer.")]
         [SerializeField]
@@ -61,11 +61,11 @@ namespace SurvivalChaos.EditorTools
         [Tooltip("How far each light reaches. Short enough not to cross the island, long enough to " +
                  "overlap its neighbours.")]
         [SerializeField]
-        private float range= 100f;
+        private float range= 10f;
 
         [Tooltip("Lift each light slightly off the surface so it does not z-fight or self-shadow.")]
         [SerializeField]
-        private float surfaceOffset= 1.5f;
+        private float surfaceOffset= 0.15f;
 
         [Tooltip("Shadows cost a shadow map per light per frame, and a point light costs six faces. " +
                  "Off is the right default at this light count.")]

@@ -820,10 +820,10 @@ namespace SurvivalChaos
             // project - five lights, all point - so what it still does is fade
             // shadows out, which wants one sane number rather than a ladder.
             //
-            // 500 against an arena 274.4 units across with camera trailing at radius
-            // 212.2 (75 units behind the player lane at radius 137.2).
+            // 50 against an arena 27.44 units across with camera trailing at radius
+            // 21.22 (7.5 units behind the player lane at radius 13.72).
             shadowSettings.maxShadowDistance.overrideState = true;
-            shadowSettings.maxShadowDistance.value = 500f;
+            shadowSettings.maxShadowDistance.value = 50f;
         }
 
         /// <summary>

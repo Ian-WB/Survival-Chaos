@@ -165,7 +165,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossWreckage
   healthPoints: 3
-  lifeSeconds: 11
+  lifeSeconds: 16
   fadeSeconds: 0.75
   hitEffect: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
@@ -191,5 +191,5 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 8
+  m_Radius: 0.8
   m_Center: {x: 0, y: 0, z: 0}

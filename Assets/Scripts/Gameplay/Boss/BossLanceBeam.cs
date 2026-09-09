@@ -7,15 +7,15 @@ namespace SurvivalChaos
     /// a stream of projectiles.
     ///
     /// It was forty rounds until 8 September, and the measurement that ended that
-    /// is worth keeping: the ring is 862 units around and a lance round crossed it
-    /// at 191.6 units a second, so rounds leaving 0.06s apart were 11.5 units
-    /// apart while each was 12.86 units long. Consecutive rounds overlapped by 1.4
+    /// is worth keeping: the ring is 86.2 units around and a lance round crossed it
+    /// at 19.16 units a second, so rounds leaving 0.06s apart were 1.15 units
+    /// apart while each was 1.286 units long. Consecutive rounds overlapped by 0.14
     /// units before they had gone anywhere. The stream was never a row of bullets
     /// waiting to be separated - it was already a solid line, costing forty
     /// objects, forty colliders and forty lights to draw one thing, into a light
     /// cluster that holds 24 lights per cell and silently drops the rest.
     ///
-    /// Welding them into four 33-unit rounds was tried first and rejected on
+    /// Welding them into four 3.3-unit rounds was tried first and rejected on
     /// sight: at that length they read as sticks flying in formation, not as a
     /// beam. So this draws the arc itself.
     ///
@@ -33,18 +33,18 @@ namespace SurvivalChaos
         /// <summary>
         /// How far the beam reaches behind its own head, in units of arc.
         ///
-        /// 128 is not a taste: it is what the forty-round stream covered - 0.6s of
-        /// firing at 191.6 units a second plus the length of the last round - so
+        /// 12.8 is not a taste: it is what the forty-round stream covered - 0.6s of
+        /// firing at 19.16 units a second plus the length of the last round - so
         /// the beam threatens exactly the span the rounds did. The attack is not
         /// bigger than it was, only continuous.
         /// </summary>
-        private const float BeamLength = 128f;
+        private const float BeamLength = 12.8f;
 
         /// <summary>
         /// Cross-section, matching the round it replaces so the art still reads as
-        /// the same weapon. The rounds measured 2.00 by 2.00.
+        /// the same weapon. The rounds measured 0.200 by 0.200.
         /// </summary>
-        private const float Thickness = 2f;
+        private const float Thickness = 0.2f;
 
         /// <summary>
         /// Segments along the arc. The mesh is rebuilt every frame, so this is a

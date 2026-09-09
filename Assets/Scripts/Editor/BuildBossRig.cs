@@ -50,22 +50,22 @@ namespace SurvivalChaos.EditorTools
         /// the two banks are the fight's way of saying that height is the thing
         /// you are being asked about.
         ///
-        /// Sized on the prefab at 7 world units across, which is the same as a
+        /// Sized on the prefab at 0.7 world units across, which is the same as a
         /// pod, and that number is not cosmetic. The keel's twelve muzzles are
-        /// three rows of four, 12.65 units apart vertically; the player's ship is
-        /// 4.09 tall. So the clear gap between two firing rows is 12.65 minus
-        /// whatever the round is, and the round the curtain used to fire was 1.76
-        /// tall - leaving 10.9 units between every row.
+        /// three rows of four, 1.265 units apart vertically; the player's ship is
+        /// 0.409 tall. So the clear gap between two firing rows is 1.265 minus
+        /// whatever the round is, and the round the curtain used to fire was 0.176
+        /// tall - leaving 1.09 units between every row.
         ///
         /// Which means the curtain has never been a wall. FireCurtain's own
         /// summary describes a wall with one gap in it, stepping upward so it can
         /// be learned, and the player could in fact fly between any two rows at
-        /// any time. At 7 the gap is 6.15 and the ship needs 4.09 of it, so the
+        /// any time. At 0.7 the gap is 0.615 and the ship needs 0.409 of it, so the
         /// open row finally is the way through rather than one of four.
         ///
         /// That makes disc size a difficulty dial and not a look, and it is the
         /// first thing to lower if the curtain reads as unfair rather than as
-        /// tight. Going the other way, anything past about 8.5 closes the gaps
+        /// tight. Going the other way, anything past about 0.85 closes the gaps
         /// entirely and the attack stops being threadable at all.
         /// </summary>
         private const string DiscLeftPath = "Assets/Prefabs/Boss/boss_disc 1.prefab";
@@ -195,7 +195,7 @@ namespace SurvivalChaos.EditorTools
         private static readonly Color PodLightColor = new Color(1f, 0.13f, 0.05f);
 
         private const float PodLightRange = 60f;
-        private const float PodLightLumens = 9000f;
+        private const float PodLightLumens = 90f;
 
         /// <summary>
         /// The visible plate of shed hull, in world units. Carried on a child so
@@ -220,7 +220,7 @@ namespace SurvivalChaos.EditorTools
         /// one collision costs one hit lives in BossWreckage, where the reasoning
         /// and the measurements are.
         /// </summary>
-        private const float PlateRadius = 8f;
+        private const float PlateRadius = 0.8f;
 
         /// <summary>
         /// How fast the boss's shots settle onto the lane the player flies in.
@@ -228,9 +228,9 @@ namespace SurvivalChaos.EditorTools
         /// They have to settle onto it at all because a projectile orbits with
         /// RotateAround, which preserves the distance from the axis it was born
         /// at exactly and forever. The muzzles are spread across the width of a
-        /// ship 30 units deep and sit anywhere from 131.6 to 150.2 from the axis,
-        /// while the player is pinned to 137.2 and, with their own hitbox and the
-        /// shot's, can only be touched between 133.9 and 140.5. Measured on the
+        /// ship 3 units deep and sit anywhere from 13.16 to 15.02 from the axis,
+        /// while the player is pinned to 13.72 and, with their own hitbox and the
+        /// shot's, can only be touched between 13.39 and 14.05. Measured on the
         /// rig, 8 of the 32 muzzles were inside that band and 24 were not: three
         /// quarters of every volley was incapable of hitting anyone, which is why
         /// a curtain of twelve arrived as a wall of three.
@@ -411,8 +411,8 @@ namespace SurvivalChaos.EditorTools
         /// the fight loses a third of itself to a weak point that cannot be
         /// reached at all.
         ///
-        /// Nothing is lost by it. The hull is 153 units tall against a band of
-        /// 89, so it already spans every height the player can occupy: matching
+        /// Nothing is lost by it. The hull is 15.3 units tall against a band of
+        /// 8.9, so it already spans every height the player can occupy: matching
         /// their altitude never changed whether the boss could be flown over,
         /// only where its guns were pointing. This is the one enemy in the game
         /// that is a wall rather than a chaser, and walls hold station.
@@ -655,10 +655,10 @@ namespace SurvivalChaos.EditorTools
         /// lane, given how far out along the ring it is mounted.
         ///
         /// The offset that puts a pod in front of the hull is measured along the
-        /// tangent, and the arena is a circle: 39.5 units along the tangent from a
-        /// point on a 137-unit ring leaves you 5.6 units outside the ring, not on
+        /// tangent, and the arena is a circle: 3.95 units along the tangent from a
+        /// point on a 13.7-unit ring leaves you 0.56 units outside the ring, not on
         /// it. Player bullets orbit at a fixed radius and never leave it, so those
-        /// 5.6 units come straight off the target - a pod 7 units across loses
+        /// 0.56 units come straight off the target - a pod 0.7 units across loses
         /// most of its height to a miss that is sideways rather than vertical, and
         /// loses it invisibly, because from the camera the pod still looks like it
         /// is where the shots are going.
@@ -1185,19 +1185,19 @@ namespace SurvivalChaos.EditorTools
                 //
                 // They are left here rather than deleted because they say what the
                 // attack was, and the measurement that ended it is the reason the
-                // beam exists. The ring is 862 units around and a round crossed it
-                // at 191.6 units a second, so rounds leaving 0.06s apart were 11.5
-                // units apart while each was 12.86 units long - consecutive rounds
-                // overlapped by 1.4 units before they had gone anywhere. The stream
+                // beam exists. The ring is 86.2 units around and a round crossed it
+                // at 19.16 units a second, so rounds leaving 0.06s apart were 1.15
+                // units apart while each was 1.286 units long - consecutive rounds
+                // overlapped by 0.14 units before they had gone anywhere. The stream
                 // was never a row of bullets waiting to be separated. It was
                 // already a solid line, drawn the expensive way: forty objects,
                 // forty colliders and forty lights for one continuous thing, into a
                 // light cluster that holds 24 per cell and drops the rest in
                 // silence.
                 //
-                // Welding them into four 33-unit rounds was tried first, on
+                // Welding them into four 3.3-unit rounds was tried first, on
                 // 8 September, and rejected on sight - at that length they read as
-                // sticks flying in formation rather than as a beam. 33 was not a
+                // sticks flying in formation rather than as a beam. 3.3 was not a
                 // taste either: it is the longest a straight mesh can be on a
                 // circle this size before it visibly stops following the lane. The
                 // conclusion was that the shape wanted was never a projectile.

@@ -47,7 +47,7 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Distance at which a caption is drawn at full size. Closer than this it " +
                  "stops growing; further away it shrinks towards the floor below.")]
-        private float referenceDistance = 160f;
+        private float referenceDistance = 16f;
 
         [SerializeField]
         [Range(0.2f, 1f)]
@@ -70,7 +70,7 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Radius of the volcano at the height everything sits at. Zero switches the " +
                  "occlusion test off and draws every caption, hidden or not.")]
-        private float occluderRadius = 50f;
+        private float occluderRadius = 5f;
 
         [Header("Combat numbers")]
         [SerializeField]
@@ -84,10 +84,10 @@ namespace SurvivalChaos
         private float numberSeconds = 0.9f;
 
         [SerializeField]
-        [Range(0f, 80f)]
+        [Range(0f, 8f)]
         [Tooltip("World units a number climbs per second while it fades, so several at the " +
                  "same spot separate instead of stacking into an unreadable pile.")]
-        private float numberRise = 22f;
+        private float numberRise = 2.2f;
 
         /// <summary>
         /// The board every label talks to.
@@ -409,13 +409,13 @@ namespace SurvivalChaos
         /// The test is flat because the arena is. Pickups spawn at the player's own
         /// height (PickupSpawner passes player.position.y straight through) and the
         /// camera holds that height and looks along the horizontal, so every sight
-        /// line that matters runs level at y = 70. A cone sliced at one height is a
+        /// line that matters runs level at y = 7. A cone sliced at one height is a
         /// circle, which reduces the whole question to two dimensions.
         ///
         /// The radius came off the island mesh rather than out of the air. Sampling
-        /// its 40,050 vertices in ten-unit height bands gives a body of revolution
-        /// reaching 49.88 out across the band around y = 70, tapering to 28.60 by
-        /// y = 130. Below roughly y = 65 the reading jumps to 171+, which is the
+        /// its 40,050 vertices in one-unit height bands gives a body of revolution
+        /// reaching 4.988 out across the band around y = 7, tapering to 2.860 by
+        /// y = 13. Below roughly y = 6.5 the reading jumps to 17.1+, which is the
         /// island's own rim rather than the cone, and is well under the sight line
         /// anyway.
         /// </summary>

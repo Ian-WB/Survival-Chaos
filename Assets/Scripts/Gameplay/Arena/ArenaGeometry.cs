@@ -5,7 +5,7 @@ namespace SurvivalChaos
     /// <summary>
     /// The shape of the arena, in one place.
     ///
-    /// The orbit radius used to be the bare literal 137.2f, written out twice in
+    /// The orbit radius used to be the bare literal 13.72f, written out twice in
     /// EnemyMovement and ObstacleScript, with nothing tying the player's own
     /// distance from the centre to it.
     /// </summary>
@@ -15,7 +15,7 @@ namespace SurvivalChaos
         /// Distance from the arena axis that enemies converge to and hold.
         /// Anything meant to share a lane with them belongs at this radius.
         /// </summary>
-        public const float OrbitRadius = 137.2f;
+        public const float OrbitRadius = 13.72f;
 
         /// <summary>
         /// Eases a point toward the orbit circle, keeping its bearing around the

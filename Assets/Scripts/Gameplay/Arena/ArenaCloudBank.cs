@@ -9,8 +9,8 @@ namespace SurvivalChaos
     ///
     /// The sky's volumetric clouds cannot do this. HDRP will not render them
     /// within about twenty units of the camera, their altitude range has a hard
-    /// 100m floor - above the y = 70 lane the ships fly at, so cloud can never
-    /// reach them - and their noise runs at kilometre scale, so across 370 units
+    /// 100m floor - far above the y = 7 lane the ships fly at, so cloud can never
+    /// reach them - and their noise runs at kilometre scale, so across 37 units
     /// of arena the field is uniform and the sky simply turns overcast as a
     /// whole. Local Volumetric Fog is the local equivalent, and this drives it.
     ///
@@ -29,9 +29,9 @@ namespace SurvivalChaos
     public sealed class ArenaCloudBank : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("How fast the banks travel, in world units per second. At 25 a bank crosses " +
-                 "the 370 unit island in about fifteen seconds.")]
-        private float driftSpeed = 25f;
+        [Tooltip("How fast the banks travel, in world units per second. At 2.5 a bank crosses " +
+                 "the 37 unit island in about fifteen seconds.")]
+        private float driftSpeed = 2.5f;
 
         [SerializeField]
         [Range(0f, 360f)]

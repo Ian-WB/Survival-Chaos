@@ -42,8 +42,8 @@ namespace SurvivalChaos
     /// alone. A volley is not a loose group that drifts apart: Player.FireLine
     /// stacks its bullets up the pivot and every one of them orbits the same
     /// centre at the same angular speed at its own fixed height, so a six-shot
-    /// volley is a rigid column about twenty units tall for the whole of its
-    /// flight. Six lights of range 50 strung up twenty units cover very nearly the
+    /// volley is a rigid column about two units tall for the whole of its
+    /// flight. Six lights of range 5 strung up two units cover very nearly the
     /// same ground, and shadowing all six was six cubemap renders of one place.
     ///
     /// Picking by distance chose exactly those six, because the bullets nearest
@@ -321,7 +321,7 @@ namespace SurvivalChaos
                 if (used)
                 {
                     // The drawn centre, not the transform. They are the same
-                    // point on the player's rounds and 2.66 units apart on the
+                    // point on the player's rounds and 0.266 units apart on the
                     // boss's, whose art is modelled above its own pivot - so
                     // using the transform lit the empty air under every boss
                     // round while the round itself stayed dark.

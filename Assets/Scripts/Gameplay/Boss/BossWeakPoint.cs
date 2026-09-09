@@ -113,8 +113,8 @@ namespace SurvivalChaos
         /// is actually on, every frame.
         ///
         /// The offset that mounts this pod proud of the hull is measured along the
-        /// tangent, and the arena is a circle, so a pod pushed 39.5 units out along
-        /// the tangent from a point on a 137-unit ring ends up 5.6 units outside
+        /// tangent, and the arena is a circle, so a pod pushed 3.95 units out along
+        /// the tangent from a point on a 13.7-unit ring ends up 0.56 units outside
         /// the ring rather than on it. The rig builder takes that back off. What it
         /// could not do is keep it taken off: the correction was authored as a
         /// local offset on the mirroring rig, so it mirrored along with everything
@@ -123,8 +123,8 @@ namespace SurvivalChaos
         /// error, it doubles it.
         ///
         /// Measured on the keel pod across both headings before this existed:
-        /// radius 137.3 travelling one way and 148.0 travelling the other, against
-        /// an intended 137.2. Half the fight, the emplacements sat 10.7 units
+        /// radius 13.73 travelling one way and 14.80 travelling the other, against
+        /// an intended 13.72. Half the fight, the emplacements sat 1.07 units
         /// further out than the tool that placed them believed.
         ///
         /// Read off the geometry rather than off a heading flag, so it cannot

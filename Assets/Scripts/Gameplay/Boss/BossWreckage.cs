@@ -10,8 +10,8 @@ namespace SurvivalChaos
     /// about. Armoured is a fight about height - the emplacements sit at the
     /// floor, the middle and the ceiling of the band, player bullets fly at the
     /// player's own height and never change it, so killing a bank means going to
-    /// that bank's height. Exposed threw all of that away: the hull is 156 units
-    /// tall against a band of 89, so it spans every height the player can reach
+    /// that bank's height. Exposed threw all of that away: the hull is 15.6 units
+    /// tall against a band of 8.9, so it spans every height the player can reach
     /// and any height is as good as any other. What was left was holding the
     /// trigger and dashing once every seven seconds.
     ///
@@ -80,7 +80,7 @@ namespace SurvivalChaos
         [Tooltip("How far clear of this plate the player has to get before it can charge them " +
                  "again. Wide enough that drifting along the surface does not read as leaving " +
                  "and coming back.")]
-        private float contactClearance = 4f;
+        private float contactClearance = 0.4f;
 
         private HealthState health;
         private HitFlash flash;

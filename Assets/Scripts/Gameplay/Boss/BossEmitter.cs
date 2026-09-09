@@ -696,8 +696,8 @@ namespace SurvivalChaos
         /// Its counter is the dash and only the dash. Three times cruise beats the
         /// player's own orbit speed, so running the same way loses; the hull spans
         /// more than the whole playable band, so climbing loses. What is left is
-        /// going through it, which the dash was measured against - 74.5 units of
-        /// invincible travel against a hull 70.5 units wide along the ring.
+        /// going through it, which the dash was measured against - 7.45 units of
+        /// invincible travel against a hull 7.05 units wide along the ring.
         ///
         /// The telegraph is the hull flashing, because by this act there are no
         /// emplacements left to light up.
@@ -812,7 +812,7 @@ namespace SurvivalChaos
             }
 
             // Read before despawning, so sparks land where the bullet broke
-            // rather than at the middle of a hull 150 units tall.
+            // rather than at the middle of a hull 15 units tall.
             Vector3 impact = other.transform.position;
 
             ObjectPool.Despawn(other.gameObject);

@@ -98,7 +98,7 @@ namespace SurvivalChaos
         /// It is not always the origin, and that is the whole reason this exists.
         /// The player's rounds are modelled on their pivot, so for those it is
         /// zero and nothing here changes anything. The boss's darts are not: the
-        /// imported art sits 2.66 units above the transform it hangs off. Anything
+        /// imported art sits 0.266 units above the transform it hangs off. Anything
         /// that wants to be *at* the projectile rather than at its pivot - a light
         /// above all - lands under the round if it uses the transform, which is
         /// exactly what BulletLightPool used to do.
@@ -128,7 +128,7 @@ namespace SurvivalChaos
         [Tooltip("How fast this projectile settles onto the lane the player flies in. 0 leaves " +
                  "it at whatever distance from the arena's axis it was fired at, which is what " +
                  "the player's own shots want. The boss needs it: its 32 muzzles are spread " +
-                 "across the width of a ship 30 units deep, so most of them sit outside the " +
+                 "across the width of a ship 3 units deep, so most of them sit outside the " +
                  "band the player can ever be in, and an orbit preserves that error forever.")]
         private float laneResponse;
 
