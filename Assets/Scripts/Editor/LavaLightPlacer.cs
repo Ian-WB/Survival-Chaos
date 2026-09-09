@@ -255,7 +255,7 @@ namespace SurvivalChaos.EditorTools
             // emitter half as wide as their own range, which washes the near
             // rock out instead of softening it.
             float footprint = Mathf.Max(extents.x, extents.z);
-            light.shapeRadius = Mathf.Clamp(footprint * sizeMultiplier, 2f, 15f);
+            light.shapeRadius = Mathf.Clamp(footprint * sizeMultiplier, 0.2f, 1.5f);
 
             data.EnableShadows(castShadows);
             data.affectsVolumetric = true;

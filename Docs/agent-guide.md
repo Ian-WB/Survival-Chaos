@@ -292,9 +292,9 @@ Getting these wrong produces confident, wrong answers. They are not guessable.
 - **The arena is a ring.** Every position in it is really a bearing, a radius
   and a height. Problems that look like 3D geometry are usually one angle
   comparison.
-- `ArenaGeometry.OrbitRadius = 137.2`. The ring is **862 units** around.
+- `ArenaGeometry.OrbitRadius = 13.72`. The ring is **86.2 units** around.
 - **Projectile `speed` is degrees per second** about the arena axis, not units
-  per second. 80 deg/s is **191.6 units/s**. Anything reasoning about spacing
+  per second. 80 deg/s is **19.16 units/s**. Anything reasoning about spacing
   between shots must convert first.
 - **Unity's `RotateAround(centre, Vector3.up, +angle)` carries +X toward −Z.**
   The textbook `(cos θ, sin θ)` parametrisation carries it toward +Z, so code

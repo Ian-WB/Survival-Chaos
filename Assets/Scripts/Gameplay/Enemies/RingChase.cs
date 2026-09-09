@@ -8,15 +8,16 @@ namespace SurvivalChaos
     /// This replaces six trigger volumes per enemy prefab. Each was a box that
     /// set <see cref="EnemyMovement.TravellingLeft"/> when the player entered
     /// it, three to a side, and between them they answered the question badly:
-    /// two of the six could never fire at all, because they sat 87 units along
-    /// the tangent from a point on a 137-unit circle and by that distance the
-    /// arc has bowed some 26 units clear of a box only 16.5 deep. The four that
+    /// two of the six could never fire at all, because they sat 8.7 units along
+    /// the tangent from a point on a 13.7-unit circle and by that distance the
+    /// arc has bowed some 2.6 units clear of a box only 1.65 deep. The four that
     /// did fire covered 25.6 degrees of the 360 between them. For the rest of
     /// the ring an enemy simply kept whatever direction it last had.
     ///
-    /// None of that was rescale damage - radius, offsets and box sizes all
-    /// scaled by ten together, so the coverage was the same before the arena
-    /// grew. It was a proximity test standing in for an angle comparison.
+    /// None of that was rescale damage, and the world has since been ten times
+    /// this size and back - radius, offsets and box sizes all scale together, so
+    /// the coverage was identical at every scale. It was a proximity test
+    /// standing in for an angle comparison.
     ///
     /// Both bodies are pinned to the same circle - <see cref="SnapToOrbit"/>
     /// puts the player on the enemy lane at a radius offset of zero - so the

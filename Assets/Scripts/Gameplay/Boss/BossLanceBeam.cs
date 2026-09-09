@@ -52,7 +52,7 @@ namespace SurvivalChaos
         /// single round this replaced forty of.
         ///
         /// It is also what keeps the beam on the lane. A straight mesh across the
-        /// whole 128 units would sit 15.8 units off the true arc at this radius;
+        /// whole 12.8 units would sit 1.58 units off the true arc at this radius;
         /// broken into 24 it is under a twentieth of a unit.
         /// </summary>
         private const int Segments = 24;
@@ -281,7 +281,7 @@ namespace SurvivalChaos
         /// The head runs from the prow at the round's own speed and the tail
         /// follows one beam-length behind it, so the beam grows out of the muzzle
         /// and then slides along the ring at full length. That is the same shape
-        /// the stream had - a leading round and a last round 128 units back - with
+        /// the stream had - a leading round and a last round 12.8 units back - with
         /// the gap between them filled in rather than implied.
         /// </summary>
         private void Step(float deltaTime)

@@ -28,7 +28,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 20, y: 12, z: 9}
+  m_LocalScale: {x: 2, y: 1.2, z: 0.9}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1997577410470998420}
@@ -165,13 +165,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BossWreckage
   healthPoints: 3
-  lifeSeconds: 16
+  lifeSeconds: 11
   fadeSeconds: 0.75
   hitEffect: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   tumbleDegreesPerSecond: 40
   tumbleWobble: 0.25
-  contactClearance: 4
+  contactClearance: 0.4
 --- !u!135 &3928928740836482548
 SphereCollider:
   m_ObjectHideFlags: 0

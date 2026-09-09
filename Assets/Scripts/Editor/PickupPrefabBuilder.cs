@@ -44,7 +44,7 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>
         /// How far above the core the label sits, in world units. The core is a
-        /// 4.5 cube stood on a corner, so its silhouette reaches about 3.9 out
+        /// 0.45 cube stood on a corner, so its silhouette reaches about 0.39 out
         /// from centre - this clears it without floating free of it.
         /// </summary>
         private const float LabelRise = 0.75f;

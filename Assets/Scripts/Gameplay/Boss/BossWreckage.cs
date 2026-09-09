@@ -48,7 +48,7 @@ namespace SurvivalChaos
                  "gets: life over interval is how many are up at once, and a third of those sit " +
                  "at any one height. 16 against a 1.8 second cadence holds about nine plates, " +
                  "which works out at one forced move every four seconds or so.")]
-        private float lifeSeconds = 16f;
+        private float lifeSeconds = 11f;
 
         [SerializeField]
         [Tooltip("Seconds a plate spends shrinking out at the end of its life. A plate this " +

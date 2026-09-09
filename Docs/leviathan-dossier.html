@@ -314,8 +314,8 @@
           that is negotiable, not the lane: a boss round eases onto the player&rsquo;s radius over its
           first moments and is then fixed there forever, which is how three quarters of the fire was
           recovered further down. The player is pinned to
-          <span class="mono">137.200</span>, and with both hitboxes a shot can only touch them if it
-          was born between <span class="mono">133.9</span> and <span class="mono">140.5</span>.
+          <span class="mono">13.7200</span>, and with both hitboxes a shot can only touch them if it
+          was born between <span class="mono">13.39</span> and <span class="mono">14.05</span>.
           <span class="em">A shot fired off that lane misses forever.</span> This is the fact that
           had been quietly costing the boss three quarters of its fire.
         </p>
@@ -323,9 +323,9 @@
       <div class="card">
         <h3>You cannot fly over it</h3>
         <p class="dim">
-          The hull trigger is <span class="mono">153</span> units tall against a playable band of
-          <span class="mono">89</span>. It spans <span class="mono">y&nbsp;12&ndash;165</span>;
-          you live in <span class="mono">y&nbsp;44&ndash;133</span>.
+          The hull trigger is <span class="mono">15.3</span> units tall against a playable band of
+          <span class="mono">8.9</span>. It spans <span class="mono">y&nbsp;1.2&ndash;16.5</span>;
+          you live in <span class="mono">y&nbsp;4.4&ndash;13.3</span>.
           <span class="em">The boss is a moving wall</span> &mdash; the Stormruler shape, already
           built. The only way past it is around, which makes the direction flip the most
           important key on the board.
@@ -339,16 +339,16 @@
           <tr><th>Quantity</th><th>Value</th><th>Reads as</th></tr>
         </thead>
         <tbody>
-          <tr><td>Orbit radius</td><td class="num">137.2</td><td class="dim">the ring everything shares</td></tr>
-          <tr><td>Playable band</td><td class="num">y 44.2 &rarr; 133.2</td><td class="dim">89.0 units tall</td></tr>
+          <tr><td>Orbit radius</td><td class="num">13.72</td><td class="dim">the ring everything shares</td></tr>
+          <tr><td>Playable band</td><td class="num">y 4.42 &rarr; 13.32</td><td class="dim">8.90 units tall</td></tr>
           <tr><td>Player orbit</td><td class="num">29.2&deg;/s</td><td class="dim">12.3 s per lap</td></tr>
-          <tr><td>Player climb</td><td class="num">70 u/s</td><td class="dim">1.27 s floor to ceiling</td></tr>
+          <tr><td>Player climb</td><td class="num">7 u/s</td><td class="dim">1.27 s floor to ceiling</td></tr>
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
           <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">4.5 s per lap</td></tr>
           <tr><td>Boss orbit</td><td class="num">15&deg;/s</td><td class="dim">24 s per lap &mdash; you lap it every 25 s</td></tr>
           <tr><td>Boss health</td><td class="num">600</td><td class="dim">1 damage per bullet</td></tr>
-          <tr><td>Hittable lane</td><td class="num">133.9 &rarr; 140.5</td><td class="dim">where a shot has to be born to reach the player at all</td></tr>
-          <tr><td>Muzzle spread</td><td class="num">131.6 &rarr; 150.2</td><td class="dim">across a hull 30 units deep &mdash; wider than the lane</td></tr>
+          <tr><td>Hittable lane</td><td class="num">13.39 &rarr; 14.05</td><td class="dim">where a shot has to be born to reach the player at all</td></tr>
+          <tr><td>Muzzle spread</td><td class="num">13.16 &rarr; 15.02</td><td class="dim">across a hull 3 units deep &mdash; wider than the lane</td></tr>
         </tbody>
       </table>
     </div>
@@ -374,12 +374,12 @@
         <!-- ceiling / floor labels -->
         <line x1="70" y1="30" x2="230" y2="30" stroke="var(--line)" stroke-dasharray="3 3"/>
         <line x1="70" y1="390" x2="230" y2="390" stroke="var(--line)" stroke-dasharray="3 3"/>
-        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">133.2</text>
-        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">44.2</text>
+        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">13.32</text>
+        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">4.42</text>
         <text x="238" y="27" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">CEILING</text>
         <text x="238" y="399" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">FLOOR</text>
 
-        <!-- CROWN rows: world y 134.1,133.7,128.8,124.2,120.0  -> map y=44.2..133.2 to 390..30 -->
+        <!-- CROWN rows: world y 13.41,13.37,12.88,12.42,12.00  -> map y=4.42..13.32 to 390..30 -->
         <g stroke="var(--weak)" stroke-width="2">
           <line x1="96" y1="26.4" x2="204" y2="26.4"/>
           <line x1="96" y1="28.0" x2="204" y2="28.0"/>
@@ -390,12 +390,12 @@
         <text x="238" y="60" fill="var(--weak)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">CROWN</text>
         <text x="238" y="73" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">16 muzzles</text>
 
-        <!-- PROW: world y 91.7 -->
+        <!-- PROW: world y 9.17 -->
         <line x1="96" y1="198.1" x2="204" y2="198.1" stroke="var(--ember)" stroke-width="3"/>
         <text x="238" y="196" fill="var(--ember)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">PROW</text>
         <text x="238" y="209" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">4 muzzles</text>
 
-        <!-- KEEL rows: world y 66.5, 66.3, 53.5, 52.8, 41.5, 41.2 -->
+        <!-- KEEL rows: world y 6.65, 6.63, 5.35, 5.28, 4.15, 4.12 -->
         <g stroke="var(--holo)" stroke-width="2">
           <line x1="96" y1="299.9" x2="204" y2="299.9"/>
           <line x1="96" y1="300.7" x2="204" y2="300.7"/>
@@ -411,9 +411,9 @@
               letter-spacing="1.5" transform="rotate(-90 10 215)" text-anchor="middle">PLAYABLE BAND</text>
       </svg>
       <figcaption>
-        Muzzle heights with the boss at its spawn height of 77.9. The outermost rows of each
-        bank sit fractionally outside the band &mdash; the top crown row 0.9 above the ceiling,
-        the bottom keel row 2.9 below the floor &mdash; which is close enough to read as
+        Muzzle heights with the boss at its spawn height of 7.79. The outermost rows of each
+        bank sit fractionally outside the band &mdash; the top crown row 0.09 above the ceiling,
+        the bottom keel row 0.29 below the floor &mdash; which is close enough to read as
         &ldquo;the guns reach the edges of the world&rdquo; and worth leaving alone.
       </figcaption>
     </figure>
@@ -426,17 +426,17 @@
         <tbody>
           <tr>
             <td><span class="tag t-crown">Crown</span></td>
-            <td class="num">16</td><td class="num">120.0 &ndash; 134.1</td>
+            <td class="num">16</td><td class="num">12.00 &ndash; 13.41</td>
             <td class="dim">the upper wing, four rows of four</td>
           </tr>
           <tr>
             <td><span class="tag t-prow">Prow</span></td>
-            <td class="num">4</td><td class="num">91.7</td>
+            <td class="num">4</td><td class="num">9.17</td>
             <td class="dim">a single line at the furthest-forward point of the hull</td>
           </tr>
           <tr>
             <td><span class="tag t-keel">Keel</span></td>
-            <td class="num">12</td><td class="num">41.2 &ndash; 66.5</td>
+            <td class="num">12</td><td class="num">4.12 &ndash; 6.65</td>
             <td class="dim">three rows down the lower hull, both flanks</td>
           </tr>
         </tbody>
@@ -500,8 +500,8 @@
         <p class="dim">
           Each pod sits at the centroid of its own bank&rsquo;s muzzle heights, averaged from the
           model at build time rather than typed in, so it cannot drift away from the guns it stands
-          for &mdash; world y <span class="mono">53.8</span>, <span class="mono">91.7</span> and
-          <span class="mono">127.1</span>. They are mounted proud of the hull, which is not
+          for &mdash; world y <span class="mono">5.38</span>, <span class="mono">9.17</span> and
+          <span class="mono">12.71</span>. They are mounted proud of the hull, which is not
           decoration: the hull is a trigger that eats bullets, so a target inside it could never be
           hit at all.
         </p>
@@ -523,12 +523,12 @@
           </p>
           <p class="dim">
             <span class="em">It had never actually been a wall.</span> The keel&rsquo;s rows are
-            12.65 units apart and the darts it fired were 1.76 tall, so there were 10.9-unit gaps
+            1.265 units apart and the darts it fired were 0.176 tall, so there were 1.09-unit gaps
             between every row &mdash; the one open row the whole design rests on was one of four
             ways through, and had been since the attack was built. The keel throws
             <strong>discs</strong> now, which is also what a bank firing out of slots rather than
-            barrels should be throwing. At seven units across they leave 6.15 units of clear gap
-            against a ship 4.09 wide: passable, and only through the row that is meant to be open.
+            barrels should be throwing. At 0.7 units across they leave 0.615 units of clear gap
+            against a ship 0.409 wide: passable, and only through the row that is meant to be open.
             The diameter is a difficulty dial rather than a look, and the first thing to lower if
             the curtain reads as unfair rather than as tight.
           </p>
@@ -571,20 +571,20 @@
             <span class="em">It fires nothing.</span> Until 8 September the lance was forty rounds
             out of four muzzles, and the whole of the tuning was an attempt to make them read as one
             beam instead of as a stack. The measurement that ended that is worth keeping, because it
-            says the attempt could never have worked: the ring is 862 units around and a round
-            crossed it at 191.6&nbsp;units a second, so rounds leaving 0.06&thinsp;s apart were
-            <span class="mono">11.5</span> units apart while each was <span class="mono">12.86</span>
+            says the attempt could never have worked: the ring is 86.2 units around and a round
+            crossed it at 19.16&nbsp;units a second, so rounds leaving 0.06&thinsp;s apart were
+            <span class="mono">1.15</span> units apart while each was <span class="mono">1.286</span>
             long. <span class="em">Consecutive rounds overlapped by 1.4 units before they had gone
             anywhere.</span> It was already a solid line. It was just being drawn the expensive way
             &mdash; forty objects, forty colliders and forty lights for one continuous thing, into a
             light cluster that holds 24 per cell and drops the surplus in silence.
           </p>
           <p class="dim">
-            Welding them into four 33-unit rounds was tried first and rejected on sight: at that
+            Welding them into four 3.3-unit rounds was tried first and rejected on sight: at that
             length they read as sticks flying in formation. 33 was not a taste either &mdash; it is
             the longest a straight mesh can be on a circle this size before it visibly stops
             following the lane, which is what said the shape wanted here was never a projectile at
-            all. So the lance is now a single 128-unit arc, 24 segments bent along the ring, that
+            all. So the lance is now a single 12.8-unit arc, 24 segments bent along the ring, that
             grows from its own muzzle, sweeps the band at the same 80&deg;/s the rounds had, and
             lives two seconds. It borrows its material and its direction from the round prefab it
             replaced, so it cannot drift out of step with the rest of the boss&rsquo;s fire, and it
@@ -620,8 +620,8 @@
             than the player&rsquo;s 29.2&deg;/s, so running the same way loses. The hull spans the
             whole band so climbing loses too. <span class="em">The counter is to dash straight
             through it</span> &mdash; Doomsphere&rsquo;s bull-fight, played as Resogun plays it.
-            The dash is built: 0.22&thinsp;s of invincibility covering 74.5 world units against a
-            70.5-unit hull, which is the measurement it was sized to.
+            The dash is built: 0.22&thinsp;s of invincibility covering 7.45 world units against a
+            7.05-unit hull, which is the measurement it was sized to.
           </p>
           <p class="dim">
             4.5&thinsp;s is its floor rather than a preference. A ram is a 1&thinsp;s charge plus a
@@ -697,9 +697,9 @@
           <tr><td>Burst length</td><td class="num">0.22 s</td><td class="dim">measured at 0.225 in play &mdash; one frame of quantisation</td></tr>
           <tr><td>Speed</td><td class="num">&times;5</td><td class="dim">on top of Move Speed picks, so it stays worth taking late</td></tr>
           <tr><td>Cooldown</td><td class="num">1.0 s</td><td class="dim">from the end of the burst, not the start</td></tr>
-          <tr><td>Distance</td><td class="num">74.5 units</td><td class="dim"><span class="em">the boss hull is 70.5 along the ring</span> &mdash; one dash clears it</td></tr>
+          <tr><td>Distance</td><td class="num">7.45 units</td><td class="dim"><span class="em">the boss hull is 7.05 along the ring</span> &mdash; one dash clears it</td></tr>
           <tr><td>Arc</td><td class="num">31.1&deg;</td><td class="dim">measured, with nothing held, from the ship&rsquo;s facing</td></tr>
-          <tr><td>Climb rate</td><td class="num">350 u/s</td><td class="dim">exactly 5 &times; the authored 70; a dash owns a height as well as a bearing</td></tr>
+          <tr><td>Climb rate</td><td class="num">35 u/s</td><td class="dim">exactly 5 &times; the authored 7; a dash owns a height as well as a bearing</td></tr>
           <tr><td>Camera drift</td><td class="num">0.000&deg;</td><td class="dim">the burst is shared state, so the camera makes the identical move</td></tr>
           <tr><td>Invincible</td><td class="num">18 / 18 frames</td><td class="dim">the whole burst, no more and no less</td></tr>
         </tbody>
@@ -760,7 +760,7 @@
       <div class="card">
         <h3>Upgrades read on the boss</h3>
         <p class="dim">
-          A pod is 7 units across, so the sextuple spread lands maybe four of six on a centred
+          A pod is 0.7 units across, so the sextuple spread lands maybe four of six on a centred
           volley and none on one aimed a body-length off. At stage 0 and 0.5&thinsp;s between volleys
           that is a long minute per emplacement; fully upgraded it is a handful of seconds. The boss
           is where twenty picks of Attack Speed and Shot Upgrade finally show up as something other
@@ -813,7 +813,7 @@
         <code>EnemySpaceShip</code> rotates the <code>NAVEBOSS</code> model &plusmn;90&deg; to face
         its direction of travel, but all 32 pivots hung off the <em>Boss root</em>, which only ever
         faces the middle of the arena. So when <code>RingChase</code> reversed the boss, the ship
-        turned and the guns stayed put &mdash; the prow muzzle swinging <span class="mono">87</span>
+        turned and the guns stayed put &mdash; the prow muzzle swinging <span class="mono">8.7</span>
         world units. A telegraphed lance is meaningless if the muzzle is not where the barrel is, so
         this blocked everything else. The muzzles hang off a rig carrying the <em>same</em>
         <code>EnemySpaceShip</code> component now &mdash; not a second copy of the rule kept in step
@@ -825,9 +825,9 @@
     <div class="card">
       <h3>Three quarters of the boss&rsquo;s fire could not reach the player &mdash; <span class="em">fixed</span></h3>
       <p class="dim">
-        A shot keeps the radius it was born at, forever. The muzzles are spread across a hull 30
-        units deep and sit from <span class="mono">131.6</span> to <span class="mono">150.2</span>,
-        against a hittable lane of <span class="mono">133.9&ndash;140.5</span>. Only
+        A shot keeps the radius it was born at, forever. The muzzles are spread across a hull 3
+        units deep and sit from <span class="mono">13.16</span> to <span class="mono">15.02</span>,
+        against a hittable lane of <span class="mono">13.39&ndash;14.05</span>. Only
         <span class="em">8 of the 32</span> were inside it &mdash; keel 3 of 12, prow 1 of 4, crown 4
         of 16 &mdash; so a curtain of twelve arrived as a wall of three, the rake had four of its
         sixteen steps, and the lance fired one muzzle in four. The fight&rsquo;s own vocabulary was
@@ -846,13 +846,13 @@
       <h3>The emplacements swapped lanes with the heading &mdash; <span class="em">fixed</span></h3>
       <p class="dim">
         A pod is mounted proud of the hull along the <em>tangent</em>, and the arena is a circle, so
-        39.5 units out from a point on a 137-unit ring leaves you 5.6 units outside it. The builder
+        3.95 units out from a point on a 13.7-unit ring leaves you 0.56 units outside it. The builder
         takes that back off &mdash; but the correction was authored on the mirroring rig, so it
         mirrored too, and in one heading it was added outward instead of subtracted inward. That does
-        not cancel the error, it doubles it: <span class="mono">137.3</span> travelling one way,
-        <span class="mono">148.0</span> the other. It is re-applied every frame against the direction
+        not cancel the error, it doubles it: <span class="mono">13.73</span> travelling one way,
+        <span class="mono">14.80</span> the other. It is re-applied every frame against the direction
         the middle of the arena is actually in now. The mirroring that was wanted survives &mdash;
-        the keel pod sits at +3.95 and &minus;3.95 along the ring, and at +0.56 inward in both.
+        the keel pod sits at +0.395 and &minus;0.395 along the ring, and at +0.056 inward in both.
       </p>
     </div>
 
@@ -889,7 +889,7 @@
       <p class="dim">
         The bullet lights were placed on each projectile&rsquo;s transform. That is the same point as
         the mesh on the player&rsquo;s shots and is <em>not</em> on the boss&rsquo;s: its imported
-        dart art sits <span class="mono">2.66</span> units above its own pivot, so every boss round
+        dart art sits <span class="mono">0.266</span> units above its own pivot, so every boss round
         lit the empty air beneath itself while the round stayed dark. The pool had been written and
         tuned against the one case where the two coincide. The colliders were correct throughout,
         which is why nothing about it read as a hitbox problem. Each projectile measures the centre
@@ -944,7 +944,7 @@
           armoured act became hard to aim at. A later pass reached the same diagnosis from scratch and
           moved every hostile thing off orange &mdash; pink fire, green pods &mdash; which was
           reverted for washing a third of the island green. That rejects the execution rather than the
-          diagnosis. The small version is to keep the red and drop the pod lights from 9000 lumens, so
+          diagnosis. The small version is to keep the red and drop the pod lights from 90 lumens, so
           the target reads without the arena changing colour.
         </p>
       </div>
@@ -954,7 +954,7 @@
           The lance stopped being a stream of rounds on 8 September and became one drawn arc. That
           settles the legibility argument on paper &mdash; there is nothing left to tell apart
           &mdash; but it has not been played. The things to watch for are its own: whether a
-          128-unit chord bent into 24 segments still reads as straight at this radius, whether a
+          12.8-unit chord bent into 24 segments still reads as straight at this radius, whether a
           beam that grows from the muzzle rather than appearing whole is legible as a beam or as a
           very fast projectile, and whether a 0.15&thinsp;s damage tick over two seconds is a fair
           exchange for a hitbox the player can be inside. <span class="em">Length, thickness,

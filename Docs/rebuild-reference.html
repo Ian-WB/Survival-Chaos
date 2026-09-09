@@ -532,9 +532,9 @@
     <p>Start here. Almost everything else follows from it.</p>
     <div class="note">
       <div class="label">Every distance on this page is at the current scale</div>
-      <p>The world was rescaled by ten after most of this was written. Figures describing how things stand now are given at the current scale &mdash; an orbit radius of 137.2, a 370-unit island, bullet lights of range 100. Passages recounting a past change keep the numbers that were true when it happened, so a diameter of 27.44 in the review notes above and one of 274.4 today are the same fact ten times apart.</p>
+      <p>The world was scaled up by ten part-way through this project and scaled back down again on 9 September 2026, so it is <strong>1&times;</strong> once more &mdash; an orbit radius of 13.72, a 37-unit island, bullet lights of range 10. Most of the ten-times figures that used to need this warning have gone with it, and passages recounting a change from before the round trip are correct as written rather than ten times out. The one place the two still meet is the boss fight, where every number was first derived at 10&times; and is quoted here at 1&times;.</p>
     </div>
-    <p>The island sits at the world origin. Everything that moves does so on a <strong>circle around the vertical axis</strong> through that origin. <code>ArenaGeometry.OrbitRadius</code> — currently <code>137.2</code> — is the radius of the lane enemies converge to and hold.</p>
+    <p>The island sits at the world origin. Everything that moves does so on a <strong>circle around the vertical axis</strong> through that origin. <code>ArenaGeometry.OrbitRadius</code> — currently <code>13.72</code> — is the radius of the lane enemies converge to and hold.</p>
 
     <h3>How things get onto the lane</h3>
     <p><code>SnapToOrbit</code> runs at <code>Awake</code> and projects its object onto that circle, keeping its bearing and height and changing only its distance from the axis. The Player uses it with an offset of 0; the camera uses an offset so it trails at a fixed distance behind.</p>
@@ -691,7 +691,7 @@ transform.LookAt(pos);</code></pre>
 
     <h3>The floor moved, and four streams stayed where they were</h3>
     <p>The player's vertical band is a box in the scene. The heights enemies arrive at are numbers in a wave asset. Nothing connected the two, so when the band was raised — floor from 1.103 to 4.421, ceiling from 11.129 to 13.318 — the spawn heights did not move with it, and four of the twelve obstacle streams, authored at 2.9 and spawning over 1.8 to 3.7, ended up entirely beneath the floor.</p>
-    <p><strong>It only showed on one enemy, and that is what made it hard to see.</strong> Three of the four enemy prefabs carry <code>EnemyMovement</code>, which climbs towards the player once inside its 164.6 chase radius — so those spawn low, notice, and fix themselves within seconds. <code>Enemy 3</code> is the only one carrying <code>ObstacleScript</code>, and that script has no orbit branch and no chase branch at all: it flies inward in X and Z, reaches the orbit radius, and then holds its spawn height for the rest of its life. The ones that could recover did, and hid the ones that could not.</p>
+    <p><strong>It only showed on one enemy, and that is what made it hard to see.</strong> Three of the four enemy prefabs carry <code>EnemyMovement</code>, which climbs towards the player once inside its 16.46 chase radius — so those spawn low, notice, and fix themselves within seconds. <code>Enemy 3</code> is the only one carrying <code>ObstacleScript</code>, and that script has no orbit branch and no chase branch at all: it flies inward in X and Z, reaches the orbit radius, and then holds its spawn height for the rest of its life. The ones that could recover did, and hid the ones that could not.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>What it cost</th><th class="num">Per run</th></tr></thead>
@@ -743,7 +743,7 @@ transform.LookAt(pos);</code></pre>
     <h3>The guns did not turn with the ship</h3>
     <div class="warn">
       <div class="label">This blocked everything else</div>
-      <p><code>EnemySpaceShip</code> rotates the model 90&deg; either way to face the direction of travel, and <code>RingChase</code> makes the boss reverse every time the player crosses its bearing. All 32 muzzles were parented to the Boss root, which only ever faces the middle of the arena &mdash; so the ship turned and the guns stayed where they were, and half the time the boss fired out of its own tail. The prow muzzle swings <strong>87 world units</strong> between the two headings.</p>
+      <p><code>EnemySpaceShip</code> rotates the model 90&deg; either way to face the direction of travel, and <code>RingChase</code> makes the boss reverse every time the player crosses its bearing. All 32 muzzles were parented to the Boss root, which only ever faces the middle of the arena &mdash; so the ship turned and the guns stayed where they were, and half the time the boss fired out of its own tail. The prow muzzle swings <strong>8.7 world units</strong> between the two headings.</p>
       <p>A telegraphed attack is meaningless if the muzzle is not where the barrel is, so nothing else could be built until this was fixed. They hang off a <code>Muzzles</code> object carrying the <em>same</em> <code>EnemySpaceShip</code> component now, pointed at the same <code>EnemyMovement</code> &mdash; not a second copy of the rule kept in step with the first, but the same rule, read once, in the same frame. The rig is saved at the yaw the pivots were authored against, so the fix moved nothing: every muzzle's position in the boss's own frame is identical to three decimals, and mirroring is all it adds.</p>
     </div>
 
@@ -804,18 +804,18 @@ transform.LookAt(pos);</code></pre>
     <p>The rows a curtain and a rake work in are read off the muzzle heights rather than authored, because the second copy of a fact is the one that goes stale. Cadences are set against a lap rather than against each other: a boss bullet goes round the ring in 4.5 seconds, and the curtain's 3.4 is <em>under</em> that &mdash; so the next wall leaves while the last is still a quarter of the ring from home, and there are stretches with two on the ring at once at different gap rows.</p>
     <div class="warn">
       <div class="label">The curtain had never actually been a wall</div>
-      <p>The keel's rows are 12.65 units apart and the darts it fired were 1.76 tall, so there were 10.9-unit
+      <p>The keel's rows are 1.265 units apart and the darts it fired were 0.176 tall, so there were 1.09-unit
       gaps between every row. The &ldquo;one open row&rdquo; the whole design rests on was one of four ways
       through, and the attack the fight is named around had been porous since it was built.</p>
-      <p>Discs close it. At seven units across they leave 6.15 units of clear gap against a ship 4.09 wide
+      <p>Discs close it. At 0.7 units across they leave 0.615 units of clear gap against a ship 0.409 wide
       &mdash; passable, and only through the row that is meant to be open. The diameter is a difficulty dial
       rather than a look, and it is the first thing to lower if the curtain reads as unfair rather than as
       tight.</p>
     </div>
     <div class="note">
       <div class="label">The boss stopped climbing to meet the player</div>
-      <p>That is the one real behaviour change, and it had to go. The pods sit at fixed offsets from the hull, so a boss that matches the player's altitude parks the crown pod 49 units above them &mdash; above whatever height they climb to, forever &mdash; and the fight loses a third of itself to a weak point that cannot be reached.</p>
-      <p>Nothing is lost by holding station. The hull is <strong>156 units tall against a band of 89</strong>, so it already spans every height the player can occupy; matching their altitude never changed whether the boss could be flown over, only where its guns pointed. This is the one enemy in the game that is a wall rather than a chaser.</p>
+      <p>That is the one real behaviour change, and it had to go. The pods sit at fixed offsets from the hull, so a boss that matches the player's altitude parks the crown pod 4.9 units above them &mdash; above whatever height they climb to, forever &mdash; and the fight loses a third of itself to a weak point that cannot be reached.</p>
+      <p>Nothing is lost by holding station. The hull is <strong>15.6 units tall against a band of 8.9</strong>, so it already spans every height the player can occupy; matching their altitude never changed whether the boss could be flown over, only where its guns pointed. This is the one enemy in the game that is a wall rather than a chaser.</p>
     </div>
 
     <h3>The second act had lost what the first one was about</h3>
@@ -832,7 +832,7 @@ transform.LookAt(pos);</code></pre>
     <div class="warn">
       <div class="label">The lane a shot is born on is the lane it dies on</div>
       <p>A projectile here orbits with <code>RotateAround</code> about the vertical axis, which preserves its distance from that axis <em>exactly, and for its whole life</em>. So a shot fired from a barrel that is not on the player's lane never reaches it and never can, however long it flies.</p>
-      <p>The player is pinned to radius <strong>137.200</strong>. With their own hitbox and the shot's &mdash; radial half-extents of 2.31 and 0.98 &mdash; a shot can only ever touch them if it was born between <strong>133.9 and 140.5</strong>. The boss's muzzles are spread across the width of a ship 30 units deep and sit anywhere from 131.6 to 150.2.</p>
+      <p>The player is pinned to radius <strong>13.7200</strong>. With their own hitbox and the shot's &mdash; radial half-extents of 0.231 and 0.098 &mdash; a shot can only ever touch them if it was born between <strong>13.39 and 14.05</strong>. The boss's muzzles are spread across the width of a ship 3 units deep and sit anywhere from 13.16 to 15.02.</p>
       <div class="scroll">
         <table>
           <thead><tr><th>Bank</th><th class="num">Muzzles</th><th class="num">Able to hit</th></tr></thead>
@@ -847,14 +847,14 @@ transform.LookAt(pos);</code></pre>
       <p>So a curtain of twelve arrived as a wall of three, the rake's staircase had four of its sixteen steps, and the lance &mdash; a charge, a telegraph, then a dense stream &mdash; was firing one muzzle in four. The fight's own vocabulary was describing something the player never actually faced, and had been since the boss existed.</p>
     </div>
     <p><strong>The muzzles do not move, because that is the one thing the rig must not do.</strong> Moving the barrels onto the lane would buy this back by giving up the thing the rig was built to protect. So the shot leaves the barrel and then eases onto the lane, through the same frame-rate-independent easing every ship in the arena already uses on its way to the ring. Radius only &mdash; bearing and height stay the shot's own business, because a shot that closed on the player's altitude too would be a homing missile rather than a bullet in a lane.</p>
-    <p>It is off unless something asks for it: <code>laneResponse</code> defaults to zero, meaning &ldquo;keep the distance you were fired at&rdquo;, so the player's own rounds are unchanged by construction rather than by anybody remembering to leave them alone. A response of 5 puts the worst-placed muzzle's shot inside the band in <strong>0.275&nbsp;s</strong>, by which time it has travelled about 22&deg; of arc and is clear of a hull 71 units wide &mdash; fast enough to be dangerous while it still matters, slow enough to read as a shot curving in rather than as a muzzle in the wrong place.</p>
+    <p>It is off unless something asks for it: <code>laneResponse</code> defaults to zero, meaning &ldquo;keep the distance you were fired at&rdquo;, so the player's own rounds are unchanged by construction rather than by anybody remembering to leave them alone. A response of 5 puts the worst-placed muzzle's shot inside the band in <strong>0.275&nbsp;s</strong>, by which time it has travelled about 22&deg; of arc and is clear of a hull 7.1 units wide &mdash; fast enough to be dangerous while it still matters, slow enough to read as a shot curving in rather than as a muzzle in the wrong place.</p>
     <p>Measured with the boss isolated as the only thing firing, shots in the player's lane went from about a quarter to <strong>87&ndash;100%</strong>. What it costs: a player standing still at the keel bank's own height &mdash; the height the design sends them to &mdash; now loses the whole bar in <strong>36.5 seconds</strong>, against roughly four times that before. A pod is 80 hit points, so it can still be taken, but not while parked.</p>
 
     <div class="warn">
       <div class="label">The emplacements were swapping lanes with the heading</div>
-      <p>Found while measuring the wreckage, because the plates inherited it. A pod is mounted proud of the hull along the <em>tangent</em>, and the arena is a circle, so 39.5 units out from a point on a 137-unit ring leaves you 5.6 units outside it. The rig builder takes that back off &mdash; but the correction was authored as a local offset on the mirroring muzzle rig, so it mirrored with everything else, and in one of the two headings it was being added outward instead of subtracted inward. That does not cancel the error, it doubles it.</p>
-<pre><code>before   yaw  90 -&gt; keel 137.3     yaw 270 -&gt; keel 148.0
-after    yaw  90 -&gt; keel 137.3     yaw 270 -&gt; keel 137.3</code></pre>
+      <p>Found while measuring the wreckage, because the plates inherited it. A pod is mounted proud of the hull along the <em>tangent</em>, and the arena is a circle, so 3.95 units out from a point on a 13.7-unit ring leaves you 0.56 units outside it. The rig builder takes that back off &mdash; but the correction was authored as a local offset on the mirroring muzzle rig, so it mirrored with everything else, and in one of the two headings it was being added outward instead of subtracted inward. That does not cancel the error, it doubles it.</p>
+<pre><code>before   yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 14.80
+after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
       <p>The ship really does turn round, so everything bolted to it should swap sides &mdash; that is right for the guns and right for the pod. The exception is this one correction, which is a correction for the shape of the <em>arena</em>, and the arena does not care which way the ship is pointing. It is re-applied every frame against the direction the middle of the arena is actually in, read off the geometry rather than off a heading flag so it cannot disagree with the rig it corrects. The mirroring that was wanted survives: the keel pod sits at +3.95 and &minus;3.95 along the ring in the two headings, and at +0.56 inward in both.</p>
     </div>
 
@@ -939,20 +939,20 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <h4>In front of the camera is not the same as visible</h4>
     <p>The volcano stands in the middle of the ring, so a pickup on the far side projects to a perfectly good screen position — straight across the cone that is hiding it. A three-way offer would routinely put one of its three names on a rock.</p>
     <p>The test is arithmetic rather than <code>Physics.Linecast</code>, because the scene has no scenery colliders at all: not the island, not the ruins, not the volcano. Giving the island a MeshCollider would push 40,050 vertices of static geometry into the physics world for the first time, and bullets and enemies would then need keeping off it. That is a gameplay change to fix a caption.</p>
-    <p>It is flat because the arena is. <code>PickupSpawner</code> places pickups at the player's own height, and the camera holds that height and looks along the horizontal, so every sight line that matters runs level at y&nbsp;=&nbsp;70. A cone sliced at one height is a circle, and the whole question drops to two dimensions — closest approach of the camera-to-label segment to the arena axis, clamped to the segment so a pickup in front, with the volcano behind it, is not mistaken for one hiding behind the volcano.</p>
+    <p>It is flat because the arena is. <code>PickupSpawner</code> places pickups at the player's own height, and the camera holds that height and looks along the horizontal, so every sight line that matters runs level at y&nbsp;=&nbsp;7. A cone sliced at one height is a circle, and the whole question drops to two dimensions — closest approach of the camera-to-label segment to the arena axis, clamped to the segment so a pickup in front, with the volcano behind it, is not mistaken for one hiding behind the volcano.</p>
     <p>The radius was measured, not guessed. The volcano is not its own object — it is part of the island mesh — so sampling that mesh's 40,050 vertices in one-unit height bands gives the profile of a body of revolution:</p>
     <div class="scroll">
       <table>
         <thead><tr><th class="num">Height</th><th class="num">Max radius</th><th>What is being measured</th></tr></thead>
         <tbody>
-          <tr><td class="num">50 – 60</td><td class="num">174.34</td><td>the island's rim, well below the sight line</td></tr>
-          <tr><td class="num">60 – 70</td><td class="num">54.49</td><td>the cone, at the height everything sits at</td></tr>
-          <tr><td class="num">70 – 80</td><td class="num">45.39</td><td>the cone</td></tr>
-          <tr><td class="num">130 – 140</td><td class="num">25.78</td><td>near the summit</td></tr>
+          <tr><td class="num">5 – 6</td><td class="num">17.434</td><td>the island's rim, well below the sight line</td></tr>
+          <tr><td class="num">6 – 7</td><td class="num">5.449</td><td>the cone, at the height everything sits at</td></tr>
+          <tr><td class="num">7 – 8</td><td class="num">4.539</td><td>the cone</td></tr>
+          <tr><td class="num">13 – 14</td><td class="num">2.578</td><td>near the summit</td></tr>
         </tbody>
       </table>
     </div>
-    <p>Hence a radius of 50, serialized so it can be retuned if the volcano is ever reshaped, and zero to switch the test off. The arena centre falls back to the world origin, which is where the island already is, so the existing board needed no edit in the scene.</p>
+    <p>Hence a radius of 5, serialized so it can be retuned if the volcano is ever reshaped, and zero to switch the test off. The arena centre falls back to the world origin, which is where the island already is, so the existing board needed no edit in the scene.</p>
 
     <h3>Ten minutes, and enough to earn across them</h3>
     <p>The pool held eight picks and the run was five minutes, so a player reached the end of their build
@@ -1089,7 +1089,7 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
 
     <h3>Cloud that drifts through the arena</h3>
     <p>HDRP's volumetric clouds cannot do this one. They refuse to render within roughly twenty units of the camera, their altitude range has a hard
-    100&nbsp;m floor, and their noise runs at kilometre scale &mdash; measured across a 370-unit island the field is uniform, so the sky turns overcast
+    100&nbsp;m floor, and their noise runs at kilometre scale &mdash; measured across a 37-unit island the field is uniform, so the sky turns overcast
     as a whole and no cloud ever drifts <em>past</em> anything. <code>ArenaCloudBank</code> drives a Local Volumetric Fog volume instead, which is the
     local-scale equivalent and takes a Texture3D density mask.</p>
     <p><strong>The mask scrolls; the volume does not move.</strong> HDRP samples the mask in the volume's own space, so scrolling a tiling texture
@@ -1125,8 +1125,8 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     straddling it as well, and a column only counts as open when it is clear floor to ceiling. Those measured figures went into the tooltip rather
     than being left to guesswork, and the bake log reports the open-sky share now &mdash; the volume percentage is the misleading one, since it moves
     whenever banks merely get thinner.</p>
-    <p>In arena terms: the volume is 2000 units across at a tiling of 2, so one mask tile is <strong>1000 world units</strong> and the largest cloud
-    features are a quarter of that &mdash; 250 units, against a 370-unit island. At <code>driftSpeed</code> 25 a whole tile passes in forty seconds.
+    <p>In arena terms: the volume is 200 units across at a tiling of 2, so one mask tile is <strong>100 world units</strong> and the largest cloud
+    features are a quarter of that &mdash; 25 units, against a 37-unit island. At <code>driftSpeed</code> 2.5 a whole tile passes in forty seconds.
     Backing the change out is one bake, because the seed is fixed and sparsity 0 reproduces the packed mask exactly.</p>
 
     <h3>The lava shader</h3>
@@ -1172,14 +1172,14 @@ emission  = hot * glow * veins;</code></pre>
       decides which bullets glow; it no longer decides which light does the glowing.</p>
       <p>Shadow selection moved with it, from walking the pool to walking the distance-sorted bullets, because
       those two orders used to be the same list and deliberately are not any more.</p>
-      <p>And the lights were landing 2.66 units <em>under</em> every boss round. They were placed on the
+      <p>And the lights were landing 0.266 units <em>under</em> every boss round. They were placed on the
       projectile's transform, which is the same point as the mesh on the player's shots and is not on the
       boss's &mdash; its imported dart art sits above its own pivot. The pool had been written and tuned
       against the one case where the two coincide. Each projectile measures the centre of what it actually
       draws once, through each renderer's own matrix rather than from <code>Renderer.bounds</code>, whose
       world-space box moves as the object turns.</p>
     </div>
-    <p><strong>Which few was the expensive question, and distance was the wrong answer.</strong> A volley is not a loose group that drifts apart. <code>FireLine</code> stacks its bullets up the pivot, and every one of them orbits the same centre at the same angular speed at its own fixed height — so at full Shot Upgrade the six bullets are a <em>rigid column about twenty units tall</em> for the whole of their flight, offsets of 0.5, 1.5 and 2.5 either way against a <code>shotSpacing</code> of 4. Each carries a light of range 100. Six lights of range a hundred strung up twenty units cover very nearly the same ground.</p>
+    <p><strong>Which few was the expensive question, and distance was the wrong answer.</strong> A volley is not a loose group that drifts apart. <code>FireLine</code> stacks its bullets up the pivot, and every one of them orbits the same centre at the same angular speed at its own fixed height — so at full Shot Upgrade the six bullets are a <em>rigid column about two units tall</em> for the whole of their flight, offsets of 0.5, 1.5 and 2.5 either way against a <code>shotSpacing</code> of 0.4. Each carries a light of range 10. Six lights of range ten strung up two units cover very nearly the same ground.</p>
     <p>Picking casters by distance chose exactly those six, because the bullets nearest the camera are overwhelmingly the newest volley. So the shadow cost <em>scaled with Shot Upgrade</em>: the pick that makes the gun feel good was the pick that made the frame expensive. Casters are now chosen one per volley, nearest first.</p>
     <div class="scroll">
       <table>
@@ -1837,10 +1837,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       rounds out of four prow muzzles, and the whole argument was about separating them. The arithmetic
       ended that argument rather than settling it, and it is a units lesson worth keeping: the round's
       <em>speed</em> of 80 is degrees a second, not units a second, so converting through the ring first
-      &mdash; 862 units around, 191.6&nbsp;units a second &mdash; puts rounds leaving 0.06&nbsp;s apart
-      <strong>11.5 units apart while each is 12.86 units long</strong>. They overlapped by 1.4 units
+      &mdash; 86.2 units around, 19.16&nbsp;units a second &mdash; puts rounds leaving 0.06&nbsp;s apart
+      <strong>1.15 units apart while each is 1.286 units long</strong>. They overlapped by 0.14 units
       before they had gone anywhere. It was already one solid line, drawn as forty objects, forty
-      colliders and forty lights. So it is a single 128-unit arc bent along the ring now, and what is
+      colliders and forty lights. So it is a single 12.8-unit arc bent along the ring now, and what is
       open is whether that reads as a beam in play rather than whether the rounds can be told
       apart.</li>
       <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>

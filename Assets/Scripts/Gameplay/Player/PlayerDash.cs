@@ -19,8 +19,8 @@ namespace SurvivalChaos
     ///
     /// Sized against the arena rather than by feel. At the authored orbit speed
     /// the ship covers 29.2 degrees a second, so a 0.22s burst at five times that
-    /// is 32 degrees of arc - about 77 world units at the orbit radius, against a
-    /// boss hull 70 units wide along the ring. That is the number that matters:
+    /// is 32 degrees of arc - about 7.7 world units at the orbit radius, against a
+    /// boss hull 7.05 units wide along the ring. That is the number that matters:
     /// one dash carries you all the way through the boss rather than into the
     /// middle of it.
     /// </summary>
@@ -30,7 +30,7 @@ namespace SurvivalChaos
         [SerializeField]
         [Range(0.05f, 1f)]
         [Tooltip("How long one burst lasts, in seconds. With the multiplier below this decides " +
-                 "the distance covered - 0.22s at 5x is roughly 77 world units of arc, which is " +
+                 "the distance covered - 0.22s at 5x is roughly 7.7 world units of arc, which is " +
                  "just wider than the boss hull.")]
         private float duration = 0.22f;
 

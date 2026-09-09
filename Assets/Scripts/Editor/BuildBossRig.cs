@@ -26,7 +26,7 @@ namespace SurvivalChaos.EditorTools
     /// and RingChase makes the boss reverse every time the player crosses its
     /// bearing - but all 32 muzzles were parented to the Boss root, which only
     /// ever faces the middle of the arena. So the ship turned and the guns did
-    /// not, and half the time the boss fired out of its own tail, up to 87 world
+    /// not, and half the time the boss fired out of its own tail, up to 8.7 world
     /// units from the barrels. A telegraphed attack is meaningless if the muzzle
     /// is not where the barrel is.
     /// </summary>
@@ -102,11 +102,11 @@ namespace SurvivalChaos.EditorTools
         private const float PodOutboard = 3.95f;
 
         /// <summary>
-        /// Pod radius in local units, so 7 world units across a playable band of
-        /// 89.
+        /// Pod radius in local units, so 0.7 world units across a playable band of
+        /// 8.9.
         ///
         /// A target the player has to line up with rather than one they cannot
-        /// miss. The widest shot upgrade spreads six bullets over 15 world units,
+        /// miss. The widest shot upgrade spreads six bullets over 1.5 world units,
         /// so a centred volley lands about four of six on a pod and a volley aimed
         /// a body-length off lands none - which is the whole reason the
         /// emplacements sit at three different heights.
@@ -188,13 +188,18 @@ namespace SurvivalChaos.EditorTools
         /// lands on the plating and wants to stay a colour. So the light is the
         /// same hue at a sane display value rather than the material's HDR one.
         ///
-        /// The range is set against the ship, not the arena. A pod is 14 units
-        /// across on a hull tens of units long, and this is meant to wash the
+        /// The range is set against the ship, not the arena. A pod is 1.4 units
+        /// across on a hull a few units long, and this is meant to wash the
         /// plating immediately around it - not to light the boss.
+        ///
+        /// Range is the one light property the boss transform does not carry.
+        /// A collider radius under a root at scale 1 is a local number; a light
+        /// range is handed straight to HDRP in world units, so this divided by
+        /// ten with the world while the pods around it did not.
         /// </summary>
         private static readonly Color PodLightColor = new Color(1f, 0.13f, 0.05f);
 
-        private const float PodLightRange = 60f;
+        private const float PodLightRange = 6f;
         private const float PodLightLumens = 90f;
 
         /// <summary>
@@ -205,7 +210,7 @@ namespace SurvivalChaos.EditorTools
         /// parented to the boss once it is off - it is spawned into the pool like
         /// a projectile and left where it was made.
         /// </summary>
-        private static readonly Vector3 PlateSize = new Vector3(20f, 12f, 9f);
+        private static readonly Vector3 PlateSize = new Vector3(2f, 1.2f, 0.9f);
 
         /// <summary>
         /// The plate's hit radius, in world units - about what the boss's own pods
@@ -243,7 +248,7 @@ namespace SurvivalChaos.EditorTools
         ///
         /// 5 puts the worst-placed muzzle's shot inside the band in 0.275
         /// seconds, by which time it has travelled about 22 degrees of arc and is
-        /// clear of a hull 71 units wide. Fast enough to be dangerous while it
+        /// clear of a hull 7.1 units wide. Fast enough to be dangerous while it
         /// still matters, slow enough to read as a shot curving in rather than as
         /// a muzzle in the wrong place.
         /// </summary>
@@ -406,8 +411,8 @@ namespace SurvivalChaos.EditorTools
         /// parts of the playable band, and that is only true while the boss holds
         /// an altitude. Chasing the player's, which is what every other enemy
         /// does and what this one was set to do, drags the banks along with it -
-        /// so the crown emplacement ends up parked 49 units above the player
-        /// forever, which is 49 units above whatever height they climb to, and
+        /// so the crown emplacement ends up parked 4.9 units above the player
+        /// forever, which is 4.9 units above whatever height they climb to, and
         /// the fight loses a third of itself to a weak point that cannot be
         /// reached at all.
         ///
@@ -665,7 +670,7 @@ namespace SurvivalChaos.EditorTools
         ///
         /// Pulling it back by the sagitta puts the pod's middle back on the lane.
         /// It is a fraction of a local unit and it is the difference between a
-        /// target with a 7-unit window and one with about 4.
+        /// target with a 0.7-unit window and one with about 0.4.
         /// </summary>
         private static float Curvature(Transform root, float outboard)
         {
@@ -979,7 +984,7 @@ namespace SurvivalChaos.EditorTools
 
                 var properties = new SerializedObject(wreckage);
                 properties.FindProperty("healthPoints").intValue = 3;
-                properties.FindProperty("lifeSeconds").floatValue = 16f;
+                properties.FindProperty("lifeSeconds").floatValue = 11f;
                 properties.FindProperty("hitEffect").objectReferenceValue = Load<GameObject>(SparkPath);
                 properties.FindProperty("explosion").objectReferenceValue = Load<GameObject>(BlastPath);
                 properties.ApplyModifiedPropertiesWithoutUndo();
