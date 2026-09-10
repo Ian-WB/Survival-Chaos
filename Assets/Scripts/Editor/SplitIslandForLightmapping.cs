@@ -99,20 +99,30 @@ namespace SurvivalChaos.EditorTools
         /// and measured 36 off its lightmapScaleOffset: 60 x sqrt(0.357) = 35.8.
         ///
         /// The pair below is chosen against the atlas rather than against taste.
-        /// A 4096 lightmap holds 16.78M texels and the island held 59.4% of it;
-        /// these two tiles come to 10.7M. What that costs the rest of the scene is
-        /// less than it sounds - measured, the island is 91.8% of every lightmapped
-        /// surface here, the fourteen ruins are 5.7% and all seventy-three trees
-        /// together are 2.5%. At the measured utilisations - 47.8% on the cone,
-        /// 42.5% on the base - the pair lands near 100 and 30 texels per unit
-        /// against the 36 both halves shared before the split.
+        /// A 4096 lightmap holds 16.78M texels; these two tiles come to 12.6M -
+        /// 2.10M for the cone, 10.51M for the base. What that costs the rest of
+        /// the scene is less than it sounds - measured, the island is 91.8% of
+        /// every lightmapped surface here, the fourteen ruins are 5.7% and all
+        /// seventy-three trees together are 2.5%. At the measured utilisations -
+        /// 47.8% on the cone, 42.5% on the base - the pair lands near 62 and 42
+        /// texels per unit, against the 36 both halves shared before the split.
+        ///
+        /// The first pair tried here was 145 and 46, and it was the wrong shape.
+        /// It baked exactly as asked, and looked identical to no split at all,
+        /// because the base is 2487 of the island's 2746 square units - 91% of
+        /// the surface anyone ever looks at - and 46 against a global resolution
+        /// of 50 made it *coarser* than leaving both halves alone. All of the
+        /// sharpening landed on the cone, which is the other 9%, and which has no
+        /// artefact on it to fix: the red rock was a Contribute GI double-count,
+        /// not a resolution problem. So the split is worth having only while the
+        /// larger number is pointed at the larger surface.
         ///
         /// Asking for more is not free and not silent-free: request past what the
         /// atlas holds and Unity scales every renderer down to fit, which is
         /// exactly the failure this tool exists to undo.
         /// </summary>
-        private const float ConeTexelsPerUnit = 145f;
-        private const float BaseTexelsPerUnit = 46f;
+        private const float ConeTexelsPerUnit = 90f;
+        private const float BaseTexelsPerUnit = 65f;
 
         [MenuItem("Survival Chaos/Split Island For Lightmapping")]
         public static void Run()
