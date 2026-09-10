@@ -815,10 +815,16 @@ namespace SurvivalChaos
             globalIllumination = overrides.profile.Add<GlobalIllumination>();
             shadowSettings = overrides.profile.Add<HDShadowSettings>();
 
-            // Set once rather than tiered. maxShadowDistance is chiefly the
-            // directional cascade split, and there is no directional light in this
-            // project - five lights, all point - so what it still does is fade
-            // shadows out, which wants one sane number rather than a ladder.
+            // Set once rather than tiered, because this is a distance the arena
+            // fixes rather than a quality knob to trade off.
+            //
+            // maxShadowDistance is chiefly the directional cascade split, and it
+            // is one here: of the scene's ten lights the only real shadow caster
+            // is the Directional Light, realtime with soft shadows. The seven
+            // lava lights are Mixed and shadowless, and the other two are the
+            // point-light templates cloned onto bullets. So this is the range the
+            // profile's four cascades are spread across, and the distance past
+            // which shadows stop.
             //
             // 50 against an arena 27.44 units across with camera trailing at radius
             // 23.72 (10 units behind the player lane at radius 13.72).
