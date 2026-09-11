@@ -10,9 +10,15 @@ namespace SurvivalChaos
     ///
     /// The Input System reports keys digitally, whereas the legacy Input Manager
     /// smoothed "Horizontal" and "Vertical" toward their target. Reading raw keys
-    /// here would make the ship noticeably twitchier than it was, so this
-    /// reproduces the legacy ramp using the Input Manager's default sensitivity,
-    /// gravity, and snap behaviour.
+    /// here would make the ship noticeably twitchier than it was, so this keeps a
+    /// ramp, with the legacy axis's snap behaviour.
+    ///
+    /// The rates are no longer the legacy ones. They started at the Input
+    /// Manager's defaults of 3, which is a third of a second to reach full speed
+    /// and another third to stop - and the ship has no acceleration of its own,
+    /// so on a keyboard that ramp is the whole of how the ship responds. The
+    /// 11 September 2026 playtest, played on keys, called it sluggish, and 6
+    /// halves both.
     ///
     /// A stick does not want that ramp. It already reports how far it is pushed,
     /// so feeding it through a rate limit would add lag to the one input that
@@ -34,10 +40,10 @@ namespace SurvivalChaos
     public sealed class InputSystemGameInput : IGameInput
     {
         /// <summary>Units per second the axis climbs toward a held direction.</summary>
-        private const float Sensitivity = 3f;
+        private const float Sensitivity = 6f;
 
         /// <summary>Units per second the axis falls back to zero when released.</summary>
-        private const float Gravity = 3f;
+        private const float Gravity = 6f;
 
         private float horizontal;
         private float vertical;

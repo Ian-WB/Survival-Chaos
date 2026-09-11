@@ -23,6 +23,17 @@ namespace SurvivalChaos
     /// boss hull 7.05 units wide along the ring. That is the number that matters:
     /// one dash carries you all the way through the boss rather than into the
     /// middle of it.
+    ///
+    /// The climb is sized separately, and against something else. It used to
+    /// share that multiplier, which made a vertical dash 7.7 units too - 87% of
+    /// a flight band 8.9 tall, so a dash from the floor meant for the middle
+    /// landed near the ceiling, and the 11 September 2026 playtest said the dash
+    /// travelled too far. Nothing needs that much. The ram cannot be climbed
+    /// over at any distance, since its hull is taller than the band, and the
+    /// lance is left by clearing its height by about half a unit. What the climb
+    /// does answer to is the boss's three banks, which sit on the band's floor,
+    /// middle and ceiling about 4.45 units apart - so one climb moves you one
+    /// height.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class PlayerDash : MonoBehaviour
@@ -42,6 +53,14 @@ namespace SurvivalChaos
         private float speedMultiplier = 5f;
 
         [SerializeField]
+        [Range(1f, 12f)]
+        [Tooltip("Speed of the burst's vertical half, as a multiple of the player's current climb " +
+                 "speed. Separate from the multiplier above because the ring distance is sized " +
+                 "against the ram and the climb is not: 0.22s at 2.9x is about 4.47 units, one of " +
+                 "the boss's three heights to the next.")]
+        private float climbMultiplier = 2.9f;
+
+        [SerializeField]
         [Range(0f, 5f)]
         [Tooltip("Seconds after a burst ends before another may start. Measured from the end of " +
                  "the dash, so this is the gap between dashes rather than the gap between starts.")]
@@ -56,7 +75,7 @@ namespace SurvivalChaos
         /// How much held input counts as a direction.
         ///
         /// Only has to reject noise. The stick already arrives through a 0.125
-        /// deadzone, and the keyboard ramp passes this within about a thirtieth
+        /// deadzone, and the keyboard ramp passes this within about a sixtieth
         /// of a second of the key going down, so a player who taps a direction
         /// and immediately dashes gets the direction they asked for.
         /// </summary>
@@ -77,8 +96,7 @@ namespace SurvivalChaos
         public bool Invincible => cycle != null && cycle.IsDashing(Time.time);
 
         /// <summary>
-        /// How far the cooldown has recovered, 0 to 1. For a UI bar; nothing
-        /// reads it yet.
+        /// How far the cooldown has recovered, 0 to 1. Read by <see cref="DashBar"/>.
         /// </summary>
         public float ReadyFraction => cycle != null ? cycle.ReadyFraction(Time.time) : 1f;
 
@@ -122,7 +140,7 @@ namespace SurvivalChaos
 
             Vector2 heading = Heading();
             holdingBurst = true;
-            PlayerMovement.BeginDash(heading.x, heading.y, speedMultiplier);
+            PlayerMovement.BeginDash(heading.x, heading.y, speedMultiplier, climbMultiplier);
 
             if (GameSounds.Instance != null)
             {

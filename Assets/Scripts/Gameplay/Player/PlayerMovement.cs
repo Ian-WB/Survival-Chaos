@@ -70,20 +70,24 @@ namespace SurvivalChaos
         private static float dashHorizontal;
         private static float dashVertical;
         private static float dashMultiplier = 1f;
+        private static float dashClimbMultiplier = 1f;
 
         /// <summary>
         /// Starts the burst, for every object running this. The heading is a unit
-        /// vector in the same axes the player steers with.
+        /// vector in the same axes the player steers with. The two multipliers
+        /// are separate because the two distances answer to different things -
+        /// see <see cref="PlayerDash"/>.
         /// </summary>
-        public static void BeginDash(float horizontal, float vertical, float multiplier)
+        public static void BeginDash(float horizontal, float vertical, float multiplier, float climbMultiplier)
         {
             dashing = true;
             dashHorizontal = horizontal;
             dashVertical = vertical;
 
             // Never below 1: a dash that slowed the ship down would be a dash
-            // that got the player killed, and the field is authored per scene.
+            // that got the player killed, and the fields are authored per scene.
             dashMultiplier = Mathf.Max(1f, multiplier);
+            dashClimbMultiplier = Mathf.Max(1f, climbMultiplier);
         }
 
         /// <summary>Ends the burst and hands steering back to the player.</summary>
@@ -93,6 +97,7 @@ namespace SurvivalChaos
             dashHorizontal = 0f;
             dashVertical = 0f;
             dashMultiplier = 1f;
+            dashClimbMultiplier = 1f;
         }
 
         /// <summary>True while a dash burst is in progress.</summary>
@@ -177,17 +182,20 @@ namespace SurvivalChaos
             // everything else running this.
             float degreesPerSecond = orbitSpeed * Mathf.Rad2Deg / ArenaGeometry.OrbitRadius;
 
-            // Both axes take the dash, so the two authored speeds keep their
-            // relationship through a burst the same way they keep it through a
-            // run of speed picks - a dash that only moved you around the ring
-            // would be no use against an attack that owns a height.
-            float scale = speedMultiplier * dashMultiplier;
+            // Both axes take the dash - one that only moved you around the ring
+            // would be no use against an attack that owns a height - but not by
+            // the same amount. The ring distance is sized to carry you through
+            // the ram, and the climb to carry you one height, so a burst bends
+            // the two authored speeds' relationship on purpose. Speed picks
+            // still scale both alike.
+            float orbitScale = speedMultiplier * dashMultiplier;
+            float climbScale = speedMultiplier * dashClimbMultiplier;
 
             transform.RotateAround(
-                pos, Vector3.up, -h * Time.deltaTime * degreesPerSecond * scale);
+                pos, Vector3.up, -h * Time.deltaTime * degreesPerSecond * orbitScale);
             transform.LookAt(pos);
 
-            transform.position += Vector3.up * v * Time.deltaTime * climbSpeed * scale;
+            transform.position += Vector3.up * v * Time.deltaTime * climbSpeed * climbScale;
         }
     }
 }
