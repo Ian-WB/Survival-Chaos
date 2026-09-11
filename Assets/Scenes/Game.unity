@@ -1038,7 +1038,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 238.7324
-  m_Range: 15
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -1082,7 +1082,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 6.01e-43, y: 6.01e-43, z: 1e-45, w: 1.0624656e-15}
+  m_BoundingSphereOverride: {x: 8.030002e-39, y: 1.5441969e+25, z: 4.7275348e+27, w: 6.141389e+28}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -5458,7 +5458,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6663775022177658896, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
       propertyPath: m_ScaleInLightmap
-      value: 1.3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6663775022177658896, guid: bdc6c89e3e7aeec4cb64f181c7574f9d, type: 3}
       propertyPath: m_LightmapParameters
@@ -6561,7 +6561,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 238.7324
-  m_Range: 15
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -6605,7 +6605,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 9.36e-43, y: 9.36e-43, z: 1e-45, w: 1.0621404e-15}
+  m_BoundingSphereOverride: {x: 8.030002e-39, y: 1.5441969e+25, z: 4.7275348e+27, w: 6.141389e+28}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -7301,7 +7301,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 238.7324
-  m_Range: 15
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -7345,7 +7345,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 6.1e-43, y: 6.1e-43, z: 1e-45, w: 1.0619777e-15}
+  m_BoundingSphereOverride: {x: 0, y: 9.1837e-41, z: -1.06e-43, w: 1.18e-43}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -21933,7 +21933,7 @@ MeshRenderer:
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1.8
+  m_ScaleInLightmap: 1
   m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
@@ -22755,7 +22755,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 238.7324
-  m_Range: 15
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -22799,7 +22799,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 9.36e-43, y: 9.36e-43, z: 1e-45, w: 1.0619777e-15}
+  m_BoundingSphereOverride: {x: 0, y: 9.1837e-41, z: -1.06e-43, w: 1.18e-43}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -29691,7 +29691,7 @@ Transform:
   m_GameObject: {fileID: 1905525055}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.32869434, y: 8.715, z: -1.985}
+  m_LocalPosition: {x: 0.32869434, y: 8.16, z: -2.35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -29850,7 +29850,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 238.7324
-  m_Range: 15
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -29894,7 +29894,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 9.65e-43, y: 9.65e-43, z: 1e-45, w: 1.0621404e-15}
+  m_BoundingSphereOverride: {x: 8.030002e-39, y: 1.5441969e+25, z: 4.7275348e+27, w: 6.141389e+28}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -34152,7 +34152,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 0.35, b: 0.12, a: 1}
   m_Intensity: 238.7324
-  m_Range: 15
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -34196,7 +34196,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 4.7e-43, y: 4.7e-43, z: 1e-45, w: 1.0621404e-15}
+  m_BoundingSphereOverride: {x: 0, y: 9.1837e-41, z: -1.06e-43, w: 1.18e-43}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -34450,6 +34450,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.PlayerDash
   duration: 0.22
   speedMultiplier: 5
+  climbMultiplier: 2.9
   cooldown: 1
   player: {fileID: 1345772188}
 --- !u!1660057539 &9223372036854775807
