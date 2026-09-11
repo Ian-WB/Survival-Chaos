@@ -235,8 +235,10 @@ namespace SurvivalChaos.EditorTools
         /// at exactly and forever. The muzzles are spread across the width of a
         /// ship 3 units deep and sit anywhere from 13.16 to 15.02 from the axis,
         /// while the player is pinned to 13.72 and, with their own hitbox and the
-        /// shot's, can only be touched between 13.39 and 14.05. Measured on the
-        /// rig, 8 of the 32 muzzles were inside that band and 24 were not: three
+        /// shot's, can only be touched between about 13.48 and 13.93. (It was
+        /// 13.39 to 14.05 until 11 September 2026, when the player's ship was
+        /// halved; the band is mostly the ship.) Measured on the rig with the
+        /// wider band, 8 of the 32 muzzles were inside it and 24 were not: three
         /// quarters of every volley was incapable of hitting anyone, which is why
         /// a curtain of twelve arrived as a wall of three.
         ///
@@ -246,11 +248,13 @@ namespace SurvivalChaos.EditorTools
         /// and then eases in, which is also what every ship in the arena does on
         /// its way to the ring.
         ///
-        /// 5 puts the worst-placed muzzle's shot inside the band in 0.275
-        /// seconds, by which time it has travelled about 22 degrees of arc and is
+        /// 5 put the worst-placed muzzle's shot inside the band in 0.275
+        /// seconds, by which time it had travelled about 22 degrees of arc and was
         /// clear of a hull 7.1 units wide. Fast enough to be dangerous while it
         /// still matters, slow enough to read as a shot curving in rather than as
-        /// a muzzle in the wrong place.
+        /// a muzzle in the wrong place. Against the half-size ship's narrower
+        /// band the same 5 takes about 0.36 seconds and 29 degrees; about 6.6
+        /// would restore 0.275, if the fight turns out to want it back.
         /// </summary>
         private const float RoundLaneResponse = 5f;
 
