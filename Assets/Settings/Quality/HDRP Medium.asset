@@ -520,8 +520,8 @@ MonoBehaviour:
       Fog_ControlMode: 000000000000000000000000i
       Fog_Budget:
       - 0.166
+      - 0.25
       - 0.333
-      - 0.666
       Fog_DepthRatio:
       - 0.5
       - 0.5

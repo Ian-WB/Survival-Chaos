@@ -1242,6 +1242,20 @@ namespace SurvivalChaos
             fog.enableVolumetricFog.overrideState = true;
             fog.enableVolumetricFog.value = QualityLadder.IsOn(quality);
 
+            // The level picks a budget out of the tier's HDRP asset, and that is
+            // where the row's real numbers live: 0.166, 0.25 and 0.333 on every
+            // asset that supports volumetrics, the same ladder on each so the row
+            // means one thing whatever the tier. They were HDRP's template values
+            // until the 11 September 2026 playtest, up to 0.75 on High and Ultra.
+            // The fog's cell count climbs steeply with the budget, 0.75 holding
+            // over six times as many cells as 0.333, and in the editor at 1080p on
+            // an RX 6700 XT the old High cost about 18.5 ms of fog alone where the
+            // new one costs about 6.7. What keeps the lower budgets from shimmering
+            // is not here but in
+            // the scene's fog profile: its denoising includes reprojection, which
+            // jitters the fog's samples and blends them across frames. Without it
+            // the samples sit still on screen, and the sun's shadows through the
+            // bare trees crawl through them as the camera orbits.
             fog.quality.overrideState = true;
             fog.quality.value = QualityLadder.ScalableLevel(quality);
         }
