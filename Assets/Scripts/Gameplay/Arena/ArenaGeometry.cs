@@ -12,10 +12,25 @@ namespace SurvivalChaos
     public static class ArenaGeometry
     {
         /// <summary>
-        /// Distance from the arena axis that enemies converge to and hold.
-        /// Anything meant to share a lane with them belongs at this radius.
+        /// The lane's authored radius, before any offset. What editor tools and
+        /// tests measure against; anything running in the game wants
+        /// <see cref="LaneRadius"/>.
         /// </summary>
         public const float OrbitRadius = 13.72f;
+
+        /// <summary>
+        /// Distance from the arena axis that enemies converge to and hold, as the
+        /// game is actually running it. Anything meant to share a lane with them
+        /// belongs at this radius.
+        ///
+        /// It is <see cref="OrbitRadius"/> plus the radius offset on the one
+        /// SnapToOrbit that defines the lane, which is the Player's. Before this
+        /// existed that offset moved the player alone, off the lane everything
+        /// else was hard-wired to, which left a ship nothing could reach and
+        /// that could reach nothing. Now it moves the lane, and the enemies, the
+        /// boss, its rounds and lance, the pickups and the camera go with it.
+        /// </summary>
+        public static float LaneRadius => Mathf.Max(0f, OrbitRadius + SnapToOrbit.LaneOffset);
 
         /// <summary>
         /// Eases a point toward the orbit circle, keeping its bearing around the

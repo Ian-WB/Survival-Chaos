@@ -52,7 +52,7 @@ namespace SurvivalChaos
 
             transform.LookAt(pos);
 
-            if(Vector3.Distance(center, flat) >= ArenaGeometry.OrbitRadius)
+            if(Vector3.Distance(center, flat) >= ArenaGeometry.LaneRadius)
             {
                 // Through ShipMotion.Approach for the same reason as EnemyMovement:
                 // the original `position += (center - position) * deltaTime * speed`

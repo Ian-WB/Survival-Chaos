@@ -15494,6 +15494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 206122948}
+  definesLane: 0
   radiusOffset: 6
 --- !u!114 &963194234
 MonoBehaviour:
@@ -17759,8 +17760,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.2, g: 1, b: 0.35, a: 1}
-  m_Intensity: 9.947184
-  m_Range: 1.5
+  m_Intensity: 16
+  m_Range: 3.5
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -17844,7 +17845,7 @@ MonoBehaviour:
   m_ObsoleteContactShadows: 0
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
-  m_VolumetricDimmer: 0.15
+  m_VolumetricDimmer: 0.4
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
   m_AffectDiffuse: 1
@@ -34435,7 +34436,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 206122948}
-  radiusOffset: 0
+  definesLane: 1
+  radiusOffset: 2
 --- !u!114 &919132148744893765
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -74,7 +74,7 @@ namespace SurvivalChaos
         /// feel value, not a constant, and different enemies may want different
         /// answers.
         /// </summary>
-        private float ChaseRadius => ArenaGeometry.OrbitRadius * chaseRadiusFraction;
+        private float ChaseRadius => ArenaGeometry.LaneRadius * chaseRadiusFraction;
 
         /// <summary>
         /// The direction the prefab was authored to travel, captured before anything
@@ -172,7 +172,7 @@ namespace SurvivalChaos
             // enemy diverges instead of arriving. That is reachable on a slow
             // machine, and presents as enemies flying off rather than as a frame
             // rate complaint.
-            if(Vector3.Distance(center, flat) >= ArenaGeometry.OrbitRadius)
+            if(Vector3.Distance(center, flat) >= ArenaGeometry.LaneRadius)
             {
                 Vector3 next = transform.position;
                 next.x = ShipMotion.Approach(next.x, center.x, spawnSpeed, Time.deltaTime);

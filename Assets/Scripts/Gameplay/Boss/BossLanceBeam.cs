@@ -247,7 +247,7 @@ namespace SurvivalChaos
             offset.y = 0f;
 
             startAngle = BearingOf(offset);
-            radius = ArenaGeometry.OrbitRadius;
+            radius = ArenaGeometry.LaneRadius;
             height = origin.y;
 
             elapsed = 0f;

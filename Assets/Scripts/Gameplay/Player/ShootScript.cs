@@ -223,7 +223,7 @@ namespace SurvivalChaos
                 transform.position = ArenaGeometry.EaseOntoOrbit(
                     transform.position,
                     center.position,
-                    ArenaGeometry.OrbitRadius,
+                    ArenaGeometry.LaneRadius,
                     laneResponse,
                     Time.deltaTime);
             }

@@ -393,28 +393,27 @@ namespace SurvivalChaos
 
         /// <summary>
         /// The radius to place pickups at: whatever the player is actually
-        /// orbiting at, falling back to the arena constant.
+        /// orbiting at, falling back to the lane radius.
         ///
         /// Measured rather than taken from ArenaGeometry because the two can
-        /// legitimately differ. SnapToOrbit carries a radiusOffset - it is how
-        /// the camera sits further out than the lane - and a player given one
-        /// would orbit at a radius the constant does not describe. Pickups on
-        /// the wrong circle are not slightly off, they are unreachable, and
-        /// nothing about the bug would point at this line.
+        /// still differ, if only for a moment. The player's radius offset now
+        /// moves the lane itself, so they agree once SnapToOrbit has run - but
+        /// pickups on the wrong circle are not slightly off, they are
+        /// unreachable, and nothing about that bug would point at this line.
         /// </summary>
         private float CurrentOrbitRadius(Vector3 center)
         {
             if (player == null)
             {
-                return ArenaGeometry.OrbitRadius;
+                return ArenaGeometry.LaneRadius;
             }
 
             Vector3 flat = player.position - center;
             flat.y = 0f;
 
             // Before SnapToOrbit has run, or if the player somehow sits on the
-            // axis, the measurement is meaningless and the constant is better.
-            return flat.sqrMagnitude < 0.01f ? ArenaGeometry.OrbitRadius : flat.magnitude;
+            // axis, the measurement is meaningless and the lane is better.
+            return flat.sqrMagnitude < 0.01f ? ArenaGeometry.LaneRadius : flat.magnitude;
         }
 
         private float CurrentPlayerBearing()

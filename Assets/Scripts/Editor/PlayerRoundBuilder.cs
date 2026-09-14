@@ -10,10 +10,12 @@ namespace SurvivalChaos.EditorTools
     /// the swap onto the two player bullet prefabs.
     ///
     /// It replaces Unity's primitive capsule, which read as a cheap solid object.
-    /// The needle is 0.32 long and 0.048 across in world units, nearly three
-    /// times the capsule's length. A round covers about 0.6 units a frame at
-    /// 60 fps, so this still does not fill the gap between frames; what it buys
-    /// is a sample that reads as a shape pointing along its flight.
+    /// The needle is 0.48 long and 0.077 across in world units. It began at the
+    /// spec's 0.32 by 0.048, which read as too small in play on 14 September
+    /// 2026, and was scaled 1.5 along its length and 1.6 across. A round covers
+    /// about 0.6 units a frame at 60 fps, so this still does not fill the gap
+    /// between frames; what it buys is a sample that reads as a shape pointing
+    /// along its flight. Six in a volley 0.2 apart still leave 0.12 between them.
     ///
     /// Both ends are identical on purpose. <c>shoot</c> and <c>shoot 1</c> fly in
     /// opposite directions along the same local X, and a round with a head and a
@@ -48,8 +50,8 @@ namespace SurvivalChaos.EditorTools
 
         // The needle's profile along its length, in world units: pointed at both
         // ends, widest at the centre.
-        private static readonly float[] ProfileX = { -0.160f, -0.055f, 0f, 0.055f, 0.160f };
-        private static readonly float[] ProfileRadius = { 0f, 0.018f, 0.024f, 0.018f, 0f };
+        private static readonly float[] ProfileX = { -0.240f, -0.0825f, 0f, 0.0825f, 0.240f };
+        private static readonly float[] ProfileRadius = { 0f, 0.0288f, 0.0384f, 0.0288f, 0f };
 
         /// <summary>Sides around each cross-section. Normals are smoothed around them.</summary>
         private const int Sides = 8;
