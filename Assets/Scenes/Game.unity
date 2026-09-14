@@ -15420,7 +15420,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 1000
-  field of view: 75
+  field of view: 60
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -15494,7 +15494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 206122948}
-  radiusOffset: 5
+  radiusOffset: 6
 --- !u!114 &963194234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17758,9 +17758,9 @@ Light:
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 2
-  m_Color: {r: 0.5213118, g: 1, b: 0, a: 1}
-  m_Intensity: 19.894367
-  m_Range: 5
+  m_Color: {r: 0.2, g: 1, b: 0.35, a: 1}
+  m_Intensity: 9.947184
+  m_Range: 1.5
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -17844,7 +17844,7 @@ MonoBehaviour:
   m_ObsoleteContactShadows: 0
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
-  m_VolumetricDimmer: 0.5
+  m_VolumetricDimmer: 0.15
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
   m_AffectDiffuse: 1
