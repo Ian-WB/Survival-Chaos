@@ -35,9 +35,10 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Tooltip("Vertical gap between multi-shot bullets, in world units. The wider spreads " +
-                 "use double this. Scales with the arena - it was 3 when the arena was ten " +
-                 "times the size.")]
-        private float shotSpacing = 0.3f;
+                 "use double this. Scales with the ship and its rounds - the scene's 0.4 halved " +
+                 "to 0.2 when both were halved in September 2026, and it was ten times larger " +
+                 "again when the arena was.")]
+        private float shotSpacing = 0.2f;
 
         [Header("Pooling")]
         [SerializeField]
