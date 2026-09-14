@@ -52,7 +52,9 @@ namespace SurvivalChaos
 
             transform.LookAt(pos);
 
-            if(Vector3.Distance(center, flat) >= ArenaGeometry.LaneRadius)
+            float lane = ArenaGeometry.LaneRadius;
+
+            if(Vector3.Distance(center, flat) > lane + 0.001f)
             {
                 // Through ShipMotion.Approach for the same reason as EnemyMovement:
                 // the original `position += (center - position) * deltaTime * speed`
@@ -61,6 +63,17 @@ namespace SurvivalChaos
                 Vector3 next = transform.position;
                 next.x = ShipMotion.Approach(next.x, center.x, spawnSpeed, Time.deltaTime);
                 next.z = ShipMotion.Approach(next.z, center.z, spawnSpeed, Time.deltaTime);
+
+                // Stops on the lane, not past it: a long frame would otherwise
+                // leave it wherever the step ended, as EnemyMovement explains.
+                Vector3 nextFlat = next;
+                nextFlat.y = 0f;
+
+                if (Vector3.Distance(center, nextFlat) <= lane)
+                {
+                    next = ArenaGeometry.ProjectOntoOrbit(next, center, lane);
+                }
+
                 transform.position = next;
             }
         }

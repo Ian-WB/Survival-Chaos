@@ -77,6 +77,20 @@ namespace SurvivalChaos
         private float ChaseRadius => ArenaGeometry.LaneRadius * chaseRadiusFraction;
 
         /// <summary>
+        /// How far outside the lane still counts as on it. Not zero, because an
+        /// enemy placed exactly on the lane can measure a hair outside it, and
+        /// would then approach and be put back every frame without ever orbiting.
+        /// </summary>
+        private const float LaneTolerance = 0.001f;
+
+        /// <summary>
+        /// How quickly an orbiting enemy is drawn back onto the lane, in
+        /// ShipMotion.Approach's units: about three quarters of a second to close
+        /// most of a gap, gentle enough that a correction reads as drift.
+        /// </summary>
+        private const float LaneSettleResponse = 4f;
+
+        /// <summary>
         /// The direction the prefab was authored to travel, captured before anything
         /// can turn it.
         ///
@@ -172,11 +186,28 @@ namespace SurvivalChaos
             // enemy diverges instead of arriving. That is reachable on a slow
             // machine, and presents as enemies flying off rather than as a frame
             // rate complaint.
-            if(Vector3.Distance(center, flat) >= ArenaGeometry.LaneRadius)
+            float lane = ArenaGeometry.LaneRadius;
+
+            if(Vector3.Distance(center, flat) > lane + LaneTolerance)
             {
                 Vector3 next = transform.position;
                 next.x = ShipMotion.Approach(next.x, center.x, spawnSpeed, Time.deltaTime);
                 next.z = ShipMotion.Approach(next.z, center.z, spawnSpeed, Time.deltaTime);
+
+                // Land on the lane rather than wherever this step ends. The orbit
+                // below keeps the radius an enemy arrives at, and one long frame -
+                // a hitch, a capture - carries it well past the line: on
+                // 14 September 2026 an Enemy 2 settled 0.80 inside an 18.72 lane
+                // and stayed there, twice its own hitbox's reach from the player's
+                // rounds, unkillable for the rest of its life.
+                Vector3 nextFlat = next;
+                nextFlat.y = 0f;
+
+                if (Vector3.Distance(center, nextFlat) <= lane)
+                {
+                    next = ArenaGeometry.ProjectOntoOrbit(next, center, lane);
+                }
+
                 transform.position = next;
             }
             else
@@ -184,6 +215,13 @@ namespace SurvivalChaos
                 float direction = leftOrRight ? 1f : -1f;
                 transform.RotateAround(
                     pos, Vector3.up, direction * rotationSpeed * OrbitSpeedScale * Time.deltaTime);
+
+                // Hold the lane while riding it. Costs nothing for an enemy already
+                // on it, puts one that arrived off it back, and follows the lane if
+                // the Player's radius offset moves it outward during play - which
+                // the approach above cannot, since it only ever moves inward.
+                transform.position = ArenaGeometry.EaseOntoOrbit(
+                    transform.position, center, lane, LaneSettleResponse, Time.deltaTime);
 
                 if(Vector3.Distance(transform.position, player.position) <= ChaseRadius)
                 {

@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos.EditorTools
 {
@@ -63,6 +66,31 @@ namespace SurvivalChaos.EditorTools
         private const float PulseSpeed = 3f;
         private const float PulseDepth = 0.06f;
 
+        // ---------- the trail ----------
+        //
+        // Added on 14 September 2026 because the needle alone read as a dot once a
+        // volley flew away from the camera. A short streak carries the direction
+        // of travel where the needle's own shape is lost to distance.
+
+        private const string TrailMaterialPath = "Assets/Art/Materials/VFX/PlayerRoundTrail.mat";
+        private const string TrailTexturePath = "Assets/Art/Textures/PlayerRoundTrail.png";
+
+        /// <summary>
+        /// Seconds of path the trail keeps. A round covers about 36 units a second,
+        /// so this is about 1.1 units, of which the rear 0.24 lies under the
+        /// needle. Short on purpose: long enough to point, not a beam.
+        /// </summary>
+        private const float TrailSeconds = 0.03f;
+
+        /// <summary>World width at the head, a little under the needle's 0.077; tapers to nothing.</summary>
+        private const float TrailWidth = 0.06f;
+
+        /// <summary>The needle's body green, a step dimmer so the needle stays the brightest part.</summary>
+        private static readonly Color TrailColour = new Color(0.12f, 1.00f, 0.25f) * 1.5f;
+
+        // HDRP's BlendMode enum, as HdrpVfxMaterialFixup uses it: Additive = 1.
+        private const float BlendAdditive = 1f;
+
         [MenuItem("Survival Chaos/Build Player Round", priority = 49)]
         public static void BuildFromMenu()
         {
@@ -92,10 +120,12 @@ namespace SurvivalChaos.EditorTools
 
             Mesh needle = BuildMesh(1f / rootScale);
             Material material = BuildMaterial(shader);
+            Material trailMaterial = BuildTrailMaterial();
 
             foreach (string path in PrefabPaths)
             {
                 ApplyToPrefab(path, needle, material, log);
+                ApplyTrail(path, trailMaterial, log);
             }
 
             AssetDatabase.SaveAssets();
@@ -300,6 +330,121 @@ namespace SurvivalChaos.EditorTools
 
             AssetDatabase.SaveAssetIfDirty(root);
             log.Append(path + ": needle and PlayerRound material assigned.\n");
+        }
+
+        /// <summary>
+        /// A ribbon texture for the trail: opaque at the head, fading to nothing at
+        /// the tail, with soft edges across its width so it reads as light rather
+        /// than a strip of tape. White, because the material supplies the colour.
+        ///
+        /// A texture rather than the trail's own colour gradient because HDRP/Unlit
+        /// does not read vertex colour, and the gradient would be silently ignored.
+        /// </summary>
+        private static Texture2D BuildTrailTexture()
+        {
+            const int width = 64;
+            const int height = 16;
+            var pixels = new Color32[width * height];
+
+            for (int y = 0; y < height; y++)
+            {
+                float across = Mathf.Abs((y + 0.5f) / height * 2f - 1f);
+                float edge = 1f - Mathf.SmoothStep(0.35f, 1f, across);
+
+                for (int x = 0; x < width; x++)
+                {
+                    // Stretch mode runs U from the head (0) to the tail (1).
+                    float along = (x + 0.5f) / width;
+                    float fade = Mathf.Pow(1f - along, 1.6f);
+                    byte alpha = (byte)Mathf.RoundToInt(255f * fade * edge);
+                    pixels[y * width + x] = new Color32(255, 255, 255, alpha);
+                }
+            }
+
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            texture.SetPixels32(pixels);
+            texture.Apply();
+
+            EnsureFolder(Path.GetDirectoryName(TrailTexturePath).Replace('\\', '/'));
+            File.WriteAllBytes(TrailTexturePath, texture.EncodeToPNG());
+            Object.DestroyImmediate(texture);
+            AssetDatabase.ImportAsset(TrailTexturePath, ImportAssetOptions.ForceUpdate);
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(TrailTexturePath);
+            importer.textureType = TextureImporterType.Default;
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = false;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SaveAndReimport();
+
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(TrailTexturePath);
+        }
+
+        /// <summary>
+        /// HDRP/Unlit, transparent and additive, the way HdrpVfxMaterialFixup sets
+        /// one up: HDMaterial.SetSurfaceType last, so the keywords and render queue
+        /// agree with the properties.
+        /// </summary>
+        private static Material BuildTrailMaterial()
+        {
+            Shader unlit = Shader.Find("HDRP/Unlit");
+            Texture2D texture = BuildTrailTexture();
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(TrailMaterialPath);
+
+            if (material == null)
+            {
+                material = new Material(unlit);
+                AssetDatabase.CreateAsset(material, TrailMaterialPath);
+            }
+            else
+            {
+                material.shader = unlit;
+            }
+
+            material.SetColor("_UnlitColor", TrailColour);
+            material.SetTexture("_UnlitColorMap", texture);
+            material.SetFloat("_BlendMode", BlendAdditive);
+            HDMaterial.SetSurfaceType(material, transparent: true);
+
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        /// <summary>
+        /// Puts the trail on the prefab root, which draws nothing itself: a
+        /// GameObject carries one renderer, and the visual child already has the
+        /// needle's. Added through the asset rather than a prefab stage, for the
+        /// reason in this class's summary. ShootScript clears it on every spawn.
+        /// </summary>
+        private static void ApplyTrail(string path, Material trailMaterial, StringBuilder log)
+        {
+            GameObject root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            TrailRenderer trail = root.GetComponent<TrailRenderer>();
+            bool added = trail == null;
+
+            if (added)
+            {
+                trail = root.AddComponent<TrailRenderer>();
+            }
+
+            trail.time = TrailSeconds;
+            trail.widthMultiplier = TrailWidth;
+            trail.widthCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 0f));
+            trail.minVertexDistance = 0.02f;
+            trail.numCapVertices = 0;
+            trail.numCornerVertices = 0;
+            trail.textureMode = LineTextureMode.Stretch;
+            trail.alignment = LineAlignment.View;
+            trail.autodestruct = false;
+            trail.emitting = true;
+            trail.shadowCastingMode = ShadowCastingMode.Off;
+            trail.receiveShadows = false;
+            trail.generateLightingData = false;
+            trail.sharedMaterial = trailMaterial;
+
+            PrefabUtility.SavePrefabAsset(root);
+            log.Append(path + ": trail " + (added ? "added" : "updated") + ".\n");
         }
 
         private static void EnsureFolder(string folder)
