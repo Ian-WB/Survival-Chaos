@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -73,7 +72,7 @@ namespace SurvivalChaos.EditorTools
         // of travel where the needle's own shape is lost to distance.
 
         private const string TrailMaterialPath = "Assets/Art/Materials/VFX/PlayerRoundTrail.mat";
-        private const string TrailTexturePath = "Assets/Art/Textures/PlayerRoundTrail.png";
+        private const string TrailShaderPath = "Assets/Art/Shaders/PlayerRoundTrail.shadergraph";
 
         /// <summary>
         /// Seconds of path the trail keeps. A round covers about 36 units a second,
@@ -86,10 +85,8 @@ namespace SurvivalChaos.EditorTools
         private const float TrailWidth = 0.06f;
 
         /// <summary>The needle's body green, a step dimmer so the needle stays the brightest part.</summary>
-        private static readonly Color TrailColour = new Color(0.12f, 1.00f, 0.25f) * 1.5f;
-
-        // HDRP's BlendMode enum, as HdrpVfxMaterialFixup uses it: Additive = 1.
-        private const float BlendAdditive = 1f;
+        private static readonly Vector3 TrailColour = new Vector3(0.12f, 1.00f, 0.25f);
+        private const float TrailIntensity = 1.5f;
 
         [MenuItem("Survival Chaos/Build Player Round", priority = 49)]
         public static void BuildFromMenu()
@@ -122,10 +119,19 @@ namespace SurvivalChaos.EditorTools
             Material material = BuildMaterial(shader);
             Material trailMaterial = BuildTrailMaterial();
 
+            if (trailMaterial == null)
+            {
+                log.Append("No usable shader at " + TrailShaderPath + "; trails left as they were.\n");
+            }
+
             foreach (string path in PrefabPaths)
             {
                 ApplyToPrefab(path, needle, material, log);
-                ApplyTrail(path, trailMaterial, log);
+
+                if (trailMaterial != null)
+                {
+                    ApplyTrail(path, trailMaterial, log);
+                }
             }
 
             AssetDatabase.SaveAssets();
@@ -333,79 +339,61 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// A ribbon texture for the trail: opaque at the head, fading to nothing at
-        /// the tail, with soft edges across its width so it reads as light rather
-        /// than a strip of tape. White, because the material supplies the colour.
+        /// The trail's material, on PlayerRoundTrail.shadergraph: HDRP Unlit,
+        /// transparent, additive, fading from head to tail and softening across the
+        /// ribbon inside the shader.
         ///
-        /// A texture rather than the trail's own colour gradient because HDRP/Unlit
-        /// does not read vertex colour, and the gradient would be silently ignored.
-        /// </summary>
-        private static Texture2D BuildTrailTexture()
-        {
-            const int width = 64;
-            const int height = 16;
-            var pixels = new Color32[width * height];
-
-            for (int y = 0; y < height; y++)
-            {
-                float across = Mathf.Abs((y + 0.5f) / height * 2f - 1f);
-                float edge = 1f - Mathf.SmoothStep(0.35f, 1f, across);
-
-                for (int x = 0; x < width; x++)
-                {
-                    // Stretch mode runs U from the head (0) to the tail (1).
-                    float along = (x + 0.5f) / width;
-                    float fade = Mathf.Pow(1f - along, 1.6f);
-                    byte alpha = (byte)Mathf.RoundToInt(255f * fade * edge);
-                    pixels[y * width + x] = new Color32(255, 255, 255, alpha);
-                }
-            }
-
-            var texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            texture.SetPixels32(pixels);
-            texture.Apply();
-
-            EnsureFolder(Path.GetDirectoryName(TrailTexturePath).Replace('\\', '/'));
-            File.WriteAllBytes(TrailTexturePath, texture.EncodeToPNG());
-            Object.DestroyImmediate(texture);
-            AssetDatabase.ImportAsset(TrailTexturePath, ImportAssetOptions.ForceUpdate);
-
-            var importer = (TextureImporter)AssetImporter.GetAtPath(TrailTexturePath);
-            importer.textureType = TextureImporterType.Default;
-            importer.alphaIsTransparency = true;
-            importer.mipmapEnabled = false;
-            importer.wrapMode = TextureWrapMode.Clamp;
-            importer.textureCompression = TextureImporterCompression.Uncompressed;
-            importer.SaveAndReimport();
-
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(TrailTexturePath);
-        }
-
-        /// <summary>
-        /// HDRP/Unlit, transparent and additive, the way HdrpVfxMaterialFixup sets
-        /// one up: HDMaterial.SetSurfaceType last, so the keywords and render queue
-        /// agree with the properties.
+        /// A shader graph because the trail has to be excluded from TAA and the
+        /// temporal upscalers, and plain HDRP/Unlit cannot be. The first version was
+        /// HDRP/Unlit with a fade texture, and it drifted off its needle whenever the
+        /// camera moved up or down: TAA reprojected the trail's pixels by the motion
+        /// of whatever lay behind them, and the island and the sky move very
+        /// differently on screen from a streak a few units from the camera.
+        ///
+        /// The second version wrote motion vectors instead, with the renderer in
+        /// Object mode, and it was worse - the round read as a dragonfly. A
+        /// TrailRenderer's mesh is built in world space on a moving object, so its
+        /// vectors came out wildly wrong and TAA and motion blur smeared it sideways.
+        /// Excluding it from temporal reprojection sidesteps vectors altogether: no
+        /// history to drift from, nothing to smear along. The cost is that the ribbon
+        /// is not anti-aliased by TAA, which its soft alpha edges mostly hide.
+        ///
+        /// Returns null, leaving the trails alone, if the graph is missing or broken.
         /// </summary>
         private static Material BuildTrailMaterial()
         {
-            Shader unlit = Shader.Find("HDRP/Unlit");
-            Texture2D texture = BuildTrailTexture();
+            Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(TrailShaderPath);
+            if (shader == null || ShaderUtil.ShaderHasError(shader))
+            {
+                return null;
+            }
+
             Material material = AssetDatabase.LoadAssetAtPath<Material>(TrailMaterialPath);
 
             if (material == null)
             {
-                material = new Material(unlit);
+                material = new Material(shader);
                 AssetDatabase.CreateAsset(material, TrailMaterialPath);
             }
             else
             {
-                material.shader = unlit;
+                material.shader = shader;
             }
 
-            material.SetColor("_UnlitColor", TrailColour);
-            material.SetTexture("_UnlitColorMap", texture);
-            material.SetFloat("_BlendMode", BlendAdditive);
-            HDMaterial.SetSurfaceType(material, transparent: true);
+            material.SetVector("_TrailColor", TrailColour);
+            material.SetFloat("_TrailIntensity", TrailIntensity);
+
+            // Stated here rather than left to the graph's defaults, because a
+            // material that already exists keeps its own saved values over the
+            // graph's. A view-aligned ribbon can face either way; the other two
+            // are the drift fix described above.
+            material.SetFloat("_DoubleSidedEnable", 1f);
+            material.SetFloat("_TransparentWritingMotionVec", 0f);
+            material.SetFloat("_ExcludeFromTUAndAA", 1f);
+
+            // Brings the material's keywords and passes in line with the graph's
+            // surface options, motion vectors included.
+            HDMaterial.ValidateMaterial(material);
 
             EditorUtility.SetDirty(material);
             return material;
@@ -442,6 +430,12 @@ namespace SurvivalChaos.EditorTools
             trail.receiveShadows = false;
             trail.generateLightingData = false;
             trail.sharedMaterial = trailMaterial;
+
+            // Camera, not Object. Object mode made HDRP reproject the trail's
+            // world-space mesh through the moving round's matrices, which smeared it
+            // into a dragonfly. The material is excluded from TAA and writes no
+            // vectors, so nothing reads this beyond keeping it out of the way.
+            trail.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
 
             PrefabUtility.SavePrefabAsset(root);
             log.Append(path + ": trail " + (added ? "added" : "updated") + ".\n");

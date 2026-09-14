@@ -15420,7 +15420,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 1000
-  field of view: 70
+  field of view: 80
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -15495,7 +15495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 206122948}
   definesLane: 0
-  radiusOffset: 6
+  radiusOffset: 5
 --- !u!114 &963194234
 MonoBehaviour:
   m_ObjectHideFlags: 0

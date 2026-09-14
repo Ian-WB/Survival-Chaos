@@ -122,6 +122,24 @@ namespace SurvivalChaos
         /// <summary>The round's trail, if its prefab has one. Only the player's do.</summary>
         private TrailRenderer trail;
 
+        /// <summary>
+        /// The trigger this round hits with, swept between physics steps by
+        /// <see cref="FixedUpdate"/>.
+        /// </summary>
+        private BoxCollider hitBox;
+
+        /// <summary>Where this round was when the previous physics step tested it.</summary>
+        private Vector3 lastStepPosition;
+
+        private bool hasLastStep;
+
+        /// <summary>
+        /// Shared by every round: a sweep is read and finished before the next one
+        /// starts, and allocating per round per step would be the garbage
+        /// ShootScript's registry exists to avoid.
+        /// </summary>
+        private static readonly RaycastHit[] sweepHits = new RaycastHit[16];
+
         [SerializeField]
         private float speed;
 
@@ -153,7 +171,12 @@ namespace SurvivalChaos
             {
                 Body = transform;
                 trail = GetComponent<TrailRenderer>();
+                hitBox = GetComponent<BoxCollider>();
             }
+
+            // A reused round must not sweep from where it died to where it has just
+            // been fired, through everything in between.
+            hasLastStep = false;
 
             // ObjectPool places a round before enabling it, so clearing here drops
             // the path from its last life without drawing a streak across the arena
@@ -225,6 +248,135 @@ namespace SurvivalChaos
             Vector3 pos = center.position;
             pos.y = transform.position.y;
             transform.LookAt(pos);
+        }
+
+        /// <summary>
+        /// Catches what this round flies through between two physics steps.
+        ///
+        /// Rounds move in Update by setting their transform, and the physics system
+        /// only tests the positions it finds at each fixed step, 50 times a second.
+        /// Between two of those a player round at the lane covers about 0.98 units
+        /// (150 degrees a second at radius 18.72), and a hit only registers if one
+        /// of those samples lands while the round overlaps a hitbox - a window of
+        /// the box's width plus the round's length. For the halved enemies that is
+        /// 0.69 to 0.89, so roughly one round in ten to one in three skipped clean
+        /// over an enemy it was dead on. Found on 14 September 2026 when a still
+        /// player missed a still enemy that the previous round had hit.
+        ///
+        /// So each step sweeps this round's box along the stretch it has moved since
+        /// the last one. Anything the box overlaps at either end is left alone,
+        /// because the physics system reports those itself; only what lies wholly in
+        /// the gap is delivered, as the same OnTriggerEnter the engine would have
+        /// sent. Every receiver - Enemy, Enemy_1, the boss's emplacements, the
+        /// player - keeps its own rules, and nothing can be hit twice.
+        ///
+        /// A straight sweep along a curved path: at this radius a 0.98-unit step
+        /// bows 0.006 from its chord, far inside any hitbox.
+        /// </summary>
+        private void FixedUpdate()
+        {
+            if (hitBox == null || !hitBox.enabled)
+            {
+                return;
+            }
+
+            Vector3 now = transform.position;
+
+            if (!hasLastStep)
+            {
+                lastStepPosition = now;
+                hasLastStep = true;
+                return;
+            }
+
+            Vector3 from = lastStepPosition;
+            lastStepPosition = now;
+
+            Vector3 travel = now - from;
+            float distance = travel.magnitude;
+
+            if (distance < 0.0001f)
+            {
+                return;
+            }
+
+            Quaternion rotation = transform.rotation;
+            Vector3 centreOffset = transform.TransformPoint(hitBox.center) - now;
+            Vector3 halfExtents = Vector3.Scale(hitBox.size, transform.lossyScale) * 0.5f;
+
+            int count = Physics.BoxCastNonAlloc(
+                from + centreOffset,
+                halfExtents,
+                travel / distance,
+                sweepHits,
+                rotation,
+                distance,
+                Physics.AllLayers,
+                QueryTriggerInteraction.Collide);
+
+            for (int i = 0; i < count; i++)
+            {
+                Collider other = sweepHits[i].collider;
+
+                if (other == null || other == hitBox || !other.enabled)
+                {
+                    continue;
+                }
+
+                // Rounds pass through rounds, as they do in the physics system.
+                if (other.GetComponentInParent<ShootScript>() != null)
+                {
+                    continue;
+                }
+
+                if (Physics.GetIgnoreLayerCollision(gameObject.layer, other.gameObject.layer))
+                {
+                    continue;
+                }
+
+                if (OverlapsAt(from, rotation, other) || OverlapsAt(now, rotation, other))
+                {
+                    continue;
+                }
+
+                DeliverTrigger(other);
+
+                // The hit usually sends this round back to the pool, and a round
+                // that has already landed does not carry on to a second target.
+                if (!gameObject.activeInHierarchy)
+                {
+                    return;
+                }
+            }
+        }
+
+        private bool OverlapsAt(Vector3 position, Quaternion rotation, Collider other)
+        {
+            return Physics.ComputePenetration(
+                hitBox, position, rotation,
+                other, other.transform.position, other.transform.rotation,
+                out _, out _);
+        }
+
+        /// <summary>
+        /// Sends what the physics system would have sent had it caught the overlap:
+        /// OnTriggerEnter to both sides, and to the struck collider's rigidbody when
+        /// that sits on a different object.
+        /// </summary>
+        private void DeliverTrigger(Collider other)
+        {
+            other.gameObject.SendMessage("OnTriggerEnter", hitBox, SendMessageOptions.DontRequireReceiver);
+
+            Rigidbody body = other.attachedRigidbody;
+            if (body != null && body.gameObject != other.gameObject && gameObject.activeInHierarchy)
+            {
+                body.gameObject.SendMessage("OnTriggerEnter", hitBox, SendMessageOptions.DontRequireReceiver);
+            }
+
+            if (gameObject.activeInHierarchy && other.gameObject.activeInHierarchy)
+            {
+                SendMessage("OnTriggerEnter", other, SendMessageOptions.DontRequireReceiver);
+            }
         }
 
         // Update is called once per frame
