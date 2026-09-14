@@ -29,6 +29,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
+  - _TRANSPARENT_WRITES_MOTION_VEC
   m_InvalidKeywords:
   - _DOUBLESIDED_ON
   m_LightmapFlags: 4
@@ -116,18 +117,18 @@ Material:
     - _EmissiveIntensityUnit: 0
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 0
-    - _ExcludeFromTUAndAA: 1
+    - _ExcludeFromTUAndAA: 0
     - _IncludeIndirectLighting: 1
     - _OpaqueCullMode: 2
     - _PerPixelSorting: 0
     - _RenderQueueType: 5
     - _SrcBlend: 1
-    - _StencilRef: 2
-    - _StencilRefDepth: 3
+    - _StencilRef: 0
+    - _StencilRefDepth: 1
     - _StencilRefDistortionVec: 4
     - _StencilRefMV: 33
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 11
+    - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
     - _StencilWriteMaskMV: 43
     - _SurfaceType: 1
@@ -137,7 +138,7 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
-    - _TransparentWritingMotionVec: 0
+    - _TransparentWritingMotionVec: 1
     - _TransparentZWrite: 0
     - _UseEmissiveIntensity: 0
     - _UseShadowThreshold: 0

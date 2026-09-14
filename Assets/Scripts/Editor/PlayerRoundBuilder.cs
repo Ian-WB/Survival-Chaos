@@ -65,24 +65,40 @@ namespace SurvivalChaos.EditorTools
         private const float PulseSpeed = 3f;
         private const float PulseDepth = 0.06f;
 
-        // ---------- the trail ----------
+        // ---------- the streak ----------
         //
         // Added on 14 September 2026 because the needle alone read as a dot once a
         // volley flew away from the camera. A short streak carries the direction
         // of travel where the needle's own shape is lost to distance.
+        //
+        // It is rigid geometry on the round, not a TrailRenderer, and that is the
+        // whole lesson of its first day. A TrailRenderer drifted off its needle
+        // whenever the camera climbed or fell, and the cause, found by capturing
+        // mid-climb with each effect switched off in turn, was FSR: the game's
+        // temporal upscaler moved the trail's pixels by the motion vectors of the
+        // island and sky behind it. Excluding it from temporal passes did not stop
+        // FSR, and writing motion vectors from a TrailRenderer made it worse - its
+        // world-space mesh on a moving object smeared into a dragonfly. The needle,
+        // rigid and writing its own vectors, was perfect in every capture. So the
+        // streak is built the same way: a mesh that moves with its round.
 
         private const string TrailMaterialPath = "Assets/Art/Materials/VFX/PlayerRoundTrail.mat";
         private const string TrailShaderPath = "Assets/Art/Shaders/PlayerRoundTrail.shadergraph";
+        private const string StreakPathBehindPositiveX = MeshFolder + "/PlayerRoundStreakPosX.asset";
+        private const string StreakPathBehindNegativeX = MeshFolder + "/PlayerRoundStreakNegX.asset";
 
         /// <summary>
-        /// Seconds of path the trail keeps. A round covers about 36 units a second,
-        /// so this is about 1.1 units, of which the rear 0.24 lies under the
-        /// needle. Short on purpose: long enough to point, not a beam.
+        /// World length behind the round's centre, of which the rear 0.24 lies
+        /// under the needle. About what the old trail's 0.03 seconds of path came
+        /// to at the 18.72 lane, where a round covers 49 units a second.
         /// </summary>
-        private const float TrailSeconds = 0.03f;
+        private const float StreakLength = 1.2f;
 
-        /// <summary>World width at the head, a little under the needle's 0.077; tapers to nothing.</summary>
-        private const float TrailWidth = 0.06f;
+        /// <summary>World width at the head, a little under the needle's 0.077.</summary>
+        private const float StreakHeadWidth = 0.06f;
+
+        /// <summary>World width at the tail; the shader fades it out before it gets there.</summary>
+        private const float StreakTailWidth = 0.01f;
 
         /// <summary>The needle's body green, a step dimmer so the needle stays the brightest part.</summary>
         private static readonly Vector3 TrailColour = new Vector3(0.12f, 1.00f, 0.25f);
@@ -121,7 +137,7 @@ namespace SurvivalChaos.EditorTools
 
             if (trailMaterial == null)
             {
-                log.Append("No usable shader at " + TrailShaderPath + "; trails left as they were.\n");
+                log.Append("No usable shader at " + TrailShaderPath + "; streaks left as they were.\n");
             }
 
             foreach (string path in PrefabPaths)
@@ -130,7 +146,7 @@ namespace SurvivalChaos.EditorTools
 
                 if (trailMaterial != null)
                 {
-                    ApplyTrail(path, trailMaterial, log);
+                    ApplyStreak(path, rootScale, trailMaterial, log);
                 }
             }
 
@@ -339,26 +355,16 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// The trail's material, on PlayerRoundTrail.shadergraph: HDRP Unlit,
+        /// The streak's material, on PlayerRoundTrail.shadergraph: HDRP Unlit,
         /// transparent, additive, fading from head to tail and softening across the
         /// ribbon inside the shader.
         ///
-        /// A shader graph because the trail has to be excluded from TAA and the
-        /// temporal upscalers, and plain HDRP/Unlit cannot be. The first version was
-        /// HDRP/Unlit with a fade texture, and it drifted off its needle whenever the
-        /// camera moved up or down: TAA reprojected the trail's pixels by the motion
-        /// of whatever lay behind them, and the island and the sky move very
-        /// differently on screen from a streak a few units from the camera.
+        /// A shader graph because the streak has to write motion vectors, and plain
+        /// HDRP/Unlit cannot for a transparent. On rigid geometry those vectors are
+        /// right, so FSR and TAA reproject it exactly as they do the needle - see the
+        /// note on the streak constants for the two approaches that failed first.
         ///
-        /// The second version wrote motion vectors instead, with the renderer in
-        /// Object mode, and it was worse - the round read as a dragonfly. A
-        /// TrailRenderer's mesh is built in world space on a moving object, so its
-        /// vectors came out wildly wrong and TAA and motion blur smeared it sideways.
-        /// Excluding it from temporal reprojection sidesteps vectors altogether: no
-        /// history to drift from, nothing to smear along. The cost is that the ribbon
-        /// is not anti-aliased by TAA, which its soft alpha edges mostly hide.
-        ///
-        /// Returns null, leaving the trails alone, if the graph is missing or broken.
+        /// Returns null, leaving the streaks alone, if the graph is missing or broken.
         /// </summary>
         private static Material BuildTrailMaterial()
         {
@@ -385,11 +391,11 @@ namespace SurvivalChaos.EditorTools
 
             // Stated here rather than left to the graph's defaults, because a
             // material that already exists keeps its own saved values over the
-            // graph's. A view-aligned ribbon can face either way; the other two
-            // are the drift fix described above.
+            // graph's. The streak's quads can face either way, and it writes motion
+            // vectors and takes part in TAA and FSR like any other rigid object.
             material.SetFloat("_DoubleSidedEnable", 1f);
-            material.SetFloat("_TransparentWritingMotionVec", 0f);
-            material.SetFloat("_ExcludeFromTUAndAA", 1f);
+            material.SetFloat("_TransparentWritingMotionVec", 1f);
+            material.SetFloat("_ExcludeFromTUAndAA", 0f);
 
             // Brings the material's keywords and passes in line with the graph's
             // surface options, motion vectors included.
@@ -400,45 +406,139 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// Puts the trail on the prefab root, which draws nothing itself: a
+        /// Puts the streak on the prefab root, which draws nothing itself: a
         /// GameObject carries one renderer, and the visual child already has the
-        /// needle's. Added through the asset rather than a prefab stage, for the
-        /// reason in this class's summary. ShootScript clears it on every spawn.
+        /// needle's. Removes the TrailRenderer that used to live there. Added
+        /// through the asset rather than a prefab stage, for the reason in this
+        /// class's summary.
         /// </summary>
-        private static void ApplyTrail(string path, Material trailMaterial, StringBuilder log)
+        private static void ApplyStreak(string path, float rootScale, Material trailMaterial, StringBuilder log)
         {
             GameObject root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            TrailRenderer trail = root.GetComponent<TrailRenderer>();
-            bool added = trail == null;
 
-            if (added)
+            TrailRenderer oldTrail = root.GetComponent<TrailRenderer>();
+            if (oldTrail != null)
             {
-                trail = root.AddComponent<TrailRenderer>();
+                Object.DestroyImmediate(oldTrail, true);
             }
 
-            trail.time = TrailSeconds;
-            trail.widthMultiplier = TrailWidth;
-            trail.widthCurve = new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(1f, 0f));
-            trail.minVertexDistance = 0.02f;
-            trail.numCapVertices = 0;
-            trail.numCornerVertices = 0;
-            trail.textureMode = LineTextureMode.Stretch;
-            trail.alignment = LineAlignment.View;
-            trail.autodestruct = false;
-            trail.emitting = true;
-            trail.shadowCastingMode = ShadowCastingMode.Off;
-            trail.receiveShadows = false;
-            trail.generateLightingData = false;
-            trail.sharedMaterial = trailMaterial;
+            float speed = new SerializedObject(root.GetComponent<ShootScript>()).FindProperty("speed").floatValue;
+            float behind = -TravelSignAlongLocalX(speed);
 
-            // Camera, not Object. Object mode made HDRP reproject the trail's
-            // world-space mesh through the moving round's matrices, which smeared it
-            // into a dragonfly. The material is excluded from TAA and writes no
-            // vectors, so nothing reads this beyond keeping it out of the way.
-            trail.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
+            Mesh streak = BuildStreakMesh(
+                1f / rootScale, behind, behind > 0f ? StreakPathBehindPositiveX : StreakPathBehindNegativeX);
+
+            MeshFilter filter = root.GetComponent<MeshFilter>();
+            if (filter == null)
+            {
+                filter = root.AddComponent<MeshFilter>();
+            }
+
+            filter.sharedMesh = streak;
+
+            MeshRenderer renderer = root.GetComponent<MeshRenderer>();
+            if (renderer == null)
+            {
+                renderer = root.AddComponent<MeshRenderer>();
+            }
+
+            renderer.sharedMaterial = trailMaterial;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.lightProbeUsage = LightProbeUsage.Off;
+            renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+            // Object: the streak moves rigidly with its round, so the round's own
+            // previous matrix gives each vertex its true motion on screen.
+            renderer.motionVectorGenerationMode = MotionVectorGenerationMode.Object;
 
             PrefabUtility.SavePrefabAsset(root);
-            log.Append(path + ": trail " + (added ? "added" : "updated") + ".\n");
+            log.AppendFormat("{0}: streak behind {1}X{2}.\n",
+                path, behind > 0f ? "+" : "-", oldTrail != null ? ", TrailRenderer removed" : "");
+        }
+
+        /// <summary>
+        /// Which way along its own X a round with this speed travels, found by
+        /// running one step of exactly what ShootScript.Update does - face the
+        /// arena axis, orbit it - rather than by reasoning about handedness.
+        /// </summary>
+        private static float TravelSignAlongLocalX(float speed)
+        {
+            Vector3 position = new Vector3(0f, 0f, ArenaGeometry.OrbitRadius);
+            Quaternion facing = Quaternion.LookRotation(-position, Vector3.up);
+            Vector3 next = Quaternion.AngleAxis(Mathf.Sign(speed), Vector3.up) * position;
+            Vector3 localStep = Quaternion.Inverse(facing) * (next - position);
+            return Mathf.Sign(localStep.x);
+        }
+
+        /// <summary>
+        /// Two tapered quads crossed along the round's X, one spanning its height
+        /// and one its depth, from the centre back along <paramref name="behind"/>.
+        /// The camera looks at a round roughly down its depth axis, where the first
+        /// quad faces it; the second keeps the streak from vanishing edge-on when a
+        /// round is seen obliquely further round the ring.
+        ///
+        /// U runs 0 at the head to 1 at the tail and V across, as the shader expects.
+        /// The bounds are set symmetric about the centre on purpose: ShootScript
+        /// places the bullet light at the average of its renderers' bounds centres,
+        /// and a streak counted at its own middle would pull the light back off the
+        /// needle.
+        /// </summary>
+        private static Mesh BuildStreakMesh(float unitsPerWorld, float behind, string assetPath)
+        {
+            float tailX = behind * StreakLength;
+            float head = StreakHeadWidth * 0.5f;
+            float tail = StreakTailWidth * 0.5f;
+
+            var vertices = new[]
+            {
+                new Vector3(0f, -head, 0f), new Vector3(0f, head, 0f), new Vector3(tailX, -tail, 0f), new Vector3(tailX, tail, 0f),
+                new Vector3(0f, 0f, -head), new Vector3(0f, 0f, head), new Vector3(tailX, 0f, -tail), new Vector3(tailX, 0f, tail),
+            };
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] *= unitsPerWorld;
+            }
+
+            var uvs = new[]
+            {
+                new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 0f), new Vector2(1f, 1f),
+                new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 0f), new Vector2(1f, 1f),
+            };
+
+            int[] triangles = { 0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6 };
+
+            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(assetPath);
+            bool isNew = mesh == null;
+
+            if (isNew)
+            {
+                mesh = new Mesh();
+            }
+            else
+            {
+                mesh.Clear();
+            }
+
+            mesh.name = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+            mesh.vertices = vertices;
+            mesh.uv = uvs;
+            mesh.SetTriangles(triangles, 0, calculateBounds: false);
+            mesh.RecalculateNormals();
+            mesh.bounds = new Bounds(Vector3.zero, new Vector3(StreakLength * 2f, StreakHeadWidth, StreakHeadWidth) * unitsPerWorld);
+
+            if (isNew)
+            {
+                EnsureFolder(MeshFolder);
+                AssetDatabase.CreateAsset(mesh, assetPath);
+            }
+            else
+            {
+                EditorUtility.SetDirty(mesh);
+            }
+
+            return mesh;
         }
 
         private static void EnsureFolder(string folder)

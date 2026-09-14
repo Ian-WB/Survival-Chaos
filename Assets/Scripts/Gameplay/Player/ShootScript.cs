@@ -55,13 +55,6 @@ namespace SurvivalChaos
 
             for (int i = 0; i < parts.Length; i++)
             {
-                // A trail is drawn behind the round, not at it, and its bounds are
-                // whatever path it held last life - so it has no say in the centre.
-                if (parts[i] is TrailRenderer)
-                {
-                    continue;
-                }
-
                 Vector3 world = parts[i].localToWorldMatrix.MultiplyPoint3x4(parts[i].localBounds.center);
                 sum += Body.InverseTransformPoint(world);
                 counted++;
@@ -119,9 +112,6 @@ namespace SurvivalChaos
 
         private bool drawnCentreMeasured;
 
-        /// <summary>The round's trail, if its prefab has one. Only the player's do.</summary>
-        private TrailRenderer trail;
-
         /// <summary>
         /// The trigger this round hits with, swept between physics steps by
         /// <see cref="FixedUpdate"/>.
@@ -170,21 +160,12 @@ namespace SurvivalChaos
             if (Body == null)
             {
                 Body = transform;
-                trail = GetComponent<TrailRenderer>();
                 hitBox = GetComponent<BoxCollider>();
             }
 
             // A reused round must not sweep from where it died to where it has just
             // been fired, through everything in between.
             hasLastStep = false;
-
-            // ObjectPool places a round before enabling it, so clearing here drops
-            // the path from its last life without drawing a streak across the arena
-            // from where it died to where it has just been fired.
-            if (trail != null)
-            {
-                trail.Clear();
-            }
 
             // A deterministic starting point, not the final orientation: every
             // frame of Update ends by facing the arena axis, and FaceOrbitCentre
