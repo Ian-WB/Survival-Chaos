@@ -28,8 +28,65 @@ namespace SurvivalChaos
     // dynamic shadows, atlas size, request count, per-shadow resolution and
     // filtering. Every one of those is a field in the pipeline asset, and the
     // asset is no longer written from code - the stock HDRP tier decides them
-    // now. What survived is contact shadows, which is a volume override, and it
-    // rides the ordinary EffectQuality ladder like every other effect.
+    // now. Shadows came back as a row that writes none of them: see ShadowLadder.
+
+    /// <summary>
+    /// What the Shadows row sets at each rung.
+    ///
+    /// It reaches the scene's authored casters - the sun, the lava light that
+    /// casts, and the volumetric clouds - and nothing in the pipeline asset. The
+    /// lights take one of the tier's own resolution levels, so a tier still
+    /// decides what Low means on it; the clouds take a resolution directly,
+    /// because theirs is a volume parameter with no per-tier table behind it.
+    ///
+    /// Off, Low, Medium and High only. The row has no ray-traced form, and a
+    /// stored rung above High - a corrupt or foreign settings file - reads as
+    /// High rather than as whatever the ladder's arithmetic would make of it.
+    /// </summary>
+    public static class ShadowLadder
+    {
+        public const EffectQuality Highest = EffectQuality.High;
+
+        public static EffectQuality Clamp(EffectQuality quality)
+        {
+            if (quality < EffectQuality.Off)
+            {
+                return EffectQuality.Off;
+            }
+
+            return quality > Highest ? Highest : quality;
+        }
+
+        /// <summary>
+        /// The HDRP shadow resolution level, 0 to 2. Never 3: a point light draws
+        /// six faces, and six at the tier's Ultra level outgrow its punctual atlas.
+        /// </summary>
+        public static int LightLevel(EffectQuality quality)
+        {
+            return QualityLadder.ScalableLevel(Clamp(quality));
+        }
+
+        /// <summary>
+        /// The cloud shadow map's size, matching HDRP's CloudShadowResolution
+        /// values. Medium is the 256 the scene was authored with.
+        /// </summary>
+        public static int CloudResolution(EffectQuality quality)
+        {
+            switch (Clamp(quality))
+            {
+                case EffectQuality.Medium:
+                    return 256;
+
+                case EffectQuality.High:
+                    return 512;
+
+                // Off turns cloud shadows off rather than using this; Low is the
+                // cheapest thing to leave configured behind it.
+                default:
+                    return 128;
+            }
+        }
+    }
 
     /// <summary>
     /// Names and conversions for the quality ladders.

@@ -29,6 +29,11 @@ namespace SurvivalChaos
         DynamicResolution = 16,
         GlobalIllumination = 17,
 
+        // A new number rather than 18 or the old Shadow Quality row's key: this
+        // one sets the scene's own casters, not the pipeline asset, and a value
+        // saved by the row that used to live here must not be read as a rung.
+        Shadows = 22,
+
         // 15 was Sharpness, before it became a slider rather than a cycler. The
         // number stays retired rather than reused: a row serialised as 15 by an
         // older build would otherwise silently become whatever took its place.
@@ -392,6 +397,7 @@ namespace SurvivalChaos
                 // No ray-traced form, so these stop at High.
                 case GraphicsOptionKind.VolumetricFog:
                 case GraphicsOptionKind.MotionBlur:
+                case GraphicsOptionKind.Shadows:
                     return QualityLadder.ScreenSpaceCount;
 
                 case GraphicsOptionKind.Resolution: return director.Sizes.Count;
@@ -431,6 +437,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.GlobalIllumination: return (int)director.GlobalIlluminationQuality;
                 case GraphicsOptionKind.VolumetricFog: return (int)director.VolumetricFog;
                 case GraphicsOptionKind.MotionBlur: return (int)director.MotionBlurQuality;
+                case GraphicsOptionKind.Shadows: return (int)director.Shadows;
                 default: return 0;
             }
         }
@@ -453,6 +460,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.GlobalIllumination: director.GlobalIlluminationQuality = (EffectQuality)index; break;
                 case GraphicsOptionKind.VolumetricFog: director.VolumetricFog = (EffectQuality)index; break;
                 case GraphicsOptionKind.MotionBlur: director.MotionBlurQuality = (EffectQuality)index; break;
+                case GraphicsOptionKind.Shadows: director.Shadows = (EffectQuality)index; break;
             }
         }
 
@@ -518,6 +526,9 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.MotionBlur:
                     return QualityLadder.Describe(director.MotionBlurQuality);
 
+                case GraphicsOptionKind.Shadows:
+                    return QualityLadder.Describe(director.Shadows);
+
                 default: return "-";
             }
         }
@@ -554,6 +565,11 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Reflections when !director.RayTracingAvailable:
                 case GraphicsOptionKind.GlobalIllumination when !director.RayTracingAvailable:
                     return "Ray traced levels need a DXR GPU and a tier that compiled them";
+
+                // Off is the one rung that changes what the island looks like
+                // rather than how sharp it is, so it says what went.
+                case GraphicsOptionKind.Shadows when director.Shadows == EffectQuality.Off:
+                    return "The sun, the lava and the clouds cast no shadows";
 
                 case GraphicsOptionKind.FrameCap when director.VSync:
                     return "Ignored while VSync is on";

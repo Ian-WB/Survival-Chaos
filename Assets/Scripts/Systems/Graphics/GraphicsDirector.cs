@@ -84,6 +84,7 @@ namespace SurvivalChaos
         private MotionBlur motionBlur;
         private GlobalIllumination globalIllumination;
         private HDShadowSettings shadowSettings;
+        private VolumetricClouds clouds;
 
         // A Custom quality level used to live here, backed by a runtime clone of
         // whichever preset asset it rested on, rebuilt from the rows on a settle
@@ -621,6 +622,21 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// The scene's authored shadow casters: the sun, the lava light that
+        /// casts, and the volumetric clouds. Bullet lights are not among them -
+        /// BulletLightPool budgets those itself.
+        ///
+        /// Keyed ShadowQuality rather than Shadows, which is the retired six-rung
+        /// row's key: a value that row saved means something else entirely.
+        /// Clamped to High, since the row has no ray-traced form.
+        /// </summary>
+        public EffectQuality Shadows
+        {
+            get => ShadowLadder.Clamp(Effect("ShadowQuality", CurrentPreset.Shadows));
+            set => SetRow("ShadowQuality", (int)value);
+        }
+
+        /// <summary>
         /// What motion blur is set to when the player has never said.
         ///
         /// Medium rather than off: it is what most of the presets used to hand
@@ -815,19 +831,22 @@ namespace SurvivalChaos
             globalIllumination = overrides.profile.Add<GlobalIllumination>();
             shadowSettings = overrides.profile.Add<HDShadowSettings>();
 
+            // Only the shadow parameters are overridden on it; whether the
+            // clouds exist at all stays the scene's call, and the tier's.
+            clouds = overrides.profile.Add<VolumetricClouds>();
+
             // Set once rather than tiered, because this is a distance the arena
             // fixes rather than a quality knob to trade off.
             //
             // maxShadowDistance is chiefly the directional cascade split, and it
-            // is one here: of the scene's ten lights the only real shadow caster
-            // is the Directional Light, realtime with soft shadows. The seven
-            // lava lights are Mixed and shadowless, and the other two are the
-            // point-light templates cloned onto bullets. So this is the range the
-            // profile's four cascades are spread across, and the distance past
-            // which shadows stop.
+            // is one here: the scene's shadow casters are the Directional Light,
+            // realtime with soft shadows, Lava Light 2, the one lava light that
+            // casts, and the point-light template cloned onto the player's
+            // rounds. So this is the range the profile's four cascades are spread
+            // across, and the distance past which shadows stop.
             //
-            // 50 against an arena 27.44 units across with camera trailing at radius
-            // 23.72 (10 units behind the player lane at radius 13.72).
+            // 50 against an arena 37.44 units across at the lane, with the camera
+            // trailing at radius 23.72 (5 units behind the lane at radius 18.72).
             shadowSettings.maxShadowDistance.overrideState = true;
             shadowSettings.maxShadowDistance.value = 50f;
         }
@@ -1198,6 +1217,27 @@ namespace SurvivalChaos
             ApplyGlobalIllumination();
             ApplyFog();
             ApplyMotionBlur();
+            ApplyShadows();
+        }
+
+        /// <summary>
+        /// Clouds through the override volume, lights through the components that
+        /// mark them. Only the shadow half of the clouds is overridden, so a tier
+        /// that never compiled clouds is untouched and the scene still decides
+        /// whether there are any.
+        /// </summary>
+        private void ApplyShadows()
+        {
+            EffectQuality quality = Shadows;
+
+            clouds.shadows.overrideState = true;
+            clouds.shadows.value = QualityLadder.IsOn(quality);
+
+            clouds.shadowResolution.overrideState = true;
+            clouds.shadowResolution.value =
+                (VolumetricClouds.CloudShadowResolution)ShadowLadder.CloudResolution(quality);
+
+            ShadowQualityLight.ApplyAll(quality);
         }
 
         private void ApplyReflections()
@@ -1399,7 +1439,7 @@ namespace SurvivalChaos
         /// </summary>
         private static readonly string[] RowKeys =
         {
-            "SSR", "GI", "Fog"
+            "SSR", "GI", "Fog", "ShadowQuality"
 
             // MotionBlur is deliberately absent. It sits outside the tier
             // system, so picking a tier must not clear it - that is the whole

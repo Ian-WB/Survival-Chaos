@@ -30,12 +30,14 @@ namespace SurvivalChaos
             string name,
             EffectQuality reflections,
             EffectQuality globalIllumination,
-            EffectQuality volumetricFog)
+            EffectQuality volumetricFog,
+            EffectQuality shadows)
         {
             Name = name;
             Reflections = reflections;
             GlobalIllumination = globalIllumination;
             VolumetricFog = volumetricFog;
+            Shadows = shadows;
         }
 
         public string Name { get; }
@@ -45,6 +47,8 @@ namespace SurvivalChaos
         public EffectQuality GlobalIllumination { get; }
 
         public EffectQuality VolumetricFog { get; }
+
+        public EffectQuality Shadows { get; }
     }
 
     /// <summary>
@@ -111,6 +115,15 @@ namespace SurvivalChaos
     /// particular is the exact setting that produced the silhouettes described
     /// above.
     ///
+    /// **Shadows step Low, Low, Medium, High.** The row reaches the sun, the one
+    /// lava light that casts and the clouds, picking the tier's own resolution
+    /// levels for the lights, so Low on Low is still coarser than Low on High.
+    /// Medium and Low share a rung because the step that matters on Medium is the
+    /// one QualitySettings already takes - bullet-light shadows are off there -
+    /// and no tier defaults to Off, which would take the sun's shadow from a
+    /// fresh install. High reproduces what the scene was lit with before the row
+    /// existed, except that the sun moves up from level 0 to level 1.
+    ///
     /// **Motion blur is deliberately absent**, as it has been since it left the
     /// preset system. It is taste rather than fidelity, and a tier stamping over
     /// that choice every time quality changes would be the settings screen
@@ -134,14 +147,16 @@ namespace SurvivalChaos
                 name: "Low",
                 reflections: EffectQuality.Off,
                 globalIllumination: EffectQuality.Off,
-                volumetricFog: EffectQuality.Off),
+                volumetricFog: EffectQuality.Off,
+                shadows: EffectQuality.Low),
 
             // Unity's HDRP Balanced.
             new GraphicsPreset(
                 name: "Medium",
                 reflections: EffectQuality.Medium,
                 globalIllumination: EffectQuality.Off,
-                volumetricFog: EffectQuality.Low),
+                volumetricFog: EffectQuality.Low,
+                shadows: EffectQuality.Low),
 
             // A copy of High Fidelity with its budgets stepped down. First tier
             // to compile volumetric clouds, which is the visible difference from
@@ -150,17 +165,19 @@ namespace SurvivalChaos
                 name: "High",
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
-                volumetricFog: EffectQuality.Medium),
+                volumetricFog: EffectQuality.Medium,
+                shadows: EffectQuality.Medium),
 
-            // Unity's HDRP High Fidelity, retuned. Only the fog rung separates
-            // this row from High's - reflections are already on their last
-            // non-ray-traced step, and GI is off everywhere for the reason
+            // Unity's HDRP High Fidelity, retuned. The fog and shadow rungs
+            // separate this row from High's - reflections are already on their
+            // last non-ray-traced step, and GI is off everywhere for the reason
             // above. The tier earns its name in the asset, not here.
             new GraphicsPreset(
                 name: "Ultra",
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
-                volumetricFog: EffectQuality.High)
+                volumetricFog: EffectQuality.High,
+                shadows: EffectQuality.High)
         };
 
         /// <summary>

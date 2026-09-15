@@ -601,7 +601,7 @@ namespace SurvivalChaos.EditorTools
         /// Fills a panel with what is actually in the image, as opposed to how it
         /// gets drawn — that half now lives on the display screen.
         ///
-        /// Down to five rows from ten, and still two columns: the split is by what
+        /// Six rows, down from ten, and still two columns: the split is by what
         /// the setting spends money on, left for how light is computed and right
         /// for what gets layered over the image afterwards.
         ///
@@ -627,7 +627,11 @@ namespace SurvivalChaos.EditorTools
             {
                 (GraphicsOptionKind.Quality, "Quality"),
                 (GraphicsOptionKind.GlobalIllumination, "Global Illumination"),
-                (GraphicsOptionKind.Reflections, "Reflections")
+                (GraphicsOptionKind.Reflections, "Reflections"),
+                // The sun, the lava light that casts, and the clouds. It came back
+                // as a row that writes nothing in the pipeline asset, so unlike
+                // the Shadow Quality row described above no tier can gate it out.
+                (GraphicsOptionKind.Shadows, "Shadows")
             };
 
             (GraphicsOptionKind kind, string label)[] image =
