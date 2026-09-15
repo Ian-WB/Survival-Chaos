@@ -287,13 +287,13 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 272 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 297 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>272</b><span>commits</span></div>
+      <div class="stat"><b>297</b><span>commits</span></div>
       <div class="stat"><b>272</b><span>tests</span></div>
-      <div class="stat"><b>97</b><span>runtime scripts</span></div>
+      <div class="stat"><b>100</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
-      <div class="stat"><b>76</b><span>bugs fixed</span></div>
+      <div class="stat"><b>84</b><span>bugs fixed</span></div>
     </div>
   </header>
 
@@ -487,6 +487,22 @@
       title bar and the save path stop reading <code>DefaultCompany</code> and
       <code>Survival-Chaos-main</code>.</li>
       <li><strong>An editor the terminal can drive</strong> — Unity's CLI and the Pipeline package in place of the AI Assistant relay, which closed the write-compile-verify loop without touching the editor window.</li>
+      <li><strong>Air thick enough to carry the light</strong> &mdash; the fog given the density the lava
+      lights had been tuned for all along, the lava lights' shadows dropped to pay for a heavier bake, and the
+      island's lightmap split pointed at the half of it anyone actually looks at.</li>
+      <li><strong>Fog that holds still, on budgets it can afford</strong> &mdash; reprojection to stop the trees
+      crawling, and one ladder of 0.166, 0.25 and 0.333 on every tier in place of HDRP's template values.</li>
+      <li><strong>A ship that answers the keys</strong> &mdash; the input ramp twice as quick, and a dash that
+      climbs one boss bank at a time instead of most of the flight band.</li>
+      <li><strong>Half-size ships, and rounds to match</strong> &mdash; the player and the normal enemies
+      halved through their importers, then their rounds and the volley spacing after them.</li>
+      <li><strong>A lane that can be moved</strong> &mdash; the Player's radius offset moves the whole lane,
+      with every enemy, boss round and pickup following it.</li>
+      <li><strong>Every shot that should land, landing</strong> &mdash; enemies placed exactly on the lane,
+      hitboxes at the player's height, and a sweep that catches rounds skipping through a hitbox between
+      physics steps.</li>
+      <li><strong>An energy needle</strong> &mdash; the player's capsule rounds replaced by a shader-drawn
+      needle with a rigid streak behind it, built that way because the upscaler drags anything softer.</li>
     </ul>
   </section>
 
@@ -532,25 +548,37 @@
     <p>Start here. Almost everything else follows from it.</p>
     <div class="note">
       <div class="label">Every distance on this page is at the current scale</div>
-      <p>The world was scaled up by ten part-way through this project and scaled back down again on 9 September 2026, so it is <strong>1&times;</strong> once more &mdash; an orbit radius of 13.72, a 37-unit island, bullet lights of range 10. Most of the ten-times figures that used to need this warning have gone with it, and passages recounting a change from before the round trip are correct as written rather than ten times out. The one place the two still meet is the boss fight, where every number was first derived at 10&times; and is quoted here at 1&times;.</p>
+      <p>The world was scaled up by ten part-way through this project and scaled back down again on 9 September 2026, so it is <strong>1&times;</strong> once more &mdash; an orbit radius of 13.72 and a 37-unit island. Most of the ten-times figures that used to need this warning have gone with it, and passages recounting a change from before the round trip are correct as written rather than ten times out. The one place the two still meet is the boss fight, where every number was first derived at 10&times; and is quoted here at 1&times;.</p>
     </div>
-    <p>The island sits at the world origin. Everything that moves does so on a <strong>circle around the vertical axis</strong> through that origin. <code>ArenaGeometry.OrbitRadius</code> — currently <code>13.72</code> — is the radius of the lane enemies converge to and hold.</p>
+    <p>The island sits at the world origin. Everything that moves does so on a <strong>circle around the vertical axis</strong> through that origin. <code>ArenaGeometry.OrbitRadius</code> — <code>13.72</code> — is the authored radius of that circle. The lane enemies converge to and hold is <code>ArenaGeometry.LaneRadius</code>, which is that radius moved by the Player's offset: <strong>18.72</strong> today.</p>
 
     <h3>How things get onto the lane</h3>
-    <p><code>SnapToOrbit</code> runs at <code>Awake</code> and projects its object onto that circle, keeping its bearing and height and changing only its distance from the axis. The Player uses it with an offset of 0; the camera uses an offset so it trails at a fixed distance behind.</p>
-    <p>Enemies get there differently — <code>EnemyMovement</code> flies inward until it's within <code>OrbitRadius</code>, then switches to orbiting.</p>
+    <p><code>SnapToOrbit</code> runs at <code>Awake</code> and projects its object onto that circle, keeping its bearing and height and changing only its distance from the axis. The Player's copy is marked <strong>Defines Lane</strong>, so its offset moves the lane itself rather than moving the ship off it. Every other copy measures its offset from that moved lane, which is how the camera keeps trailing the same distance behind wherever the lane is put.</p>
+    <p>Enemies get there differently — <code>EnemyMovement</code> flies inward until it crosses <code>LaneRadius</code>, is placed exactly on the lane on the frame it crosses, then switches to orbiting.</p>
+
+    <h3>The lane moves with the Player</h3>
+    <p><code>LaneRadius</code> is <code>OrbitRadius</code> plus the radius offset on the one <code>SnapToOrbit</code> marked Defines Lane. At the Player's offset of 5 it is 18.72. <code>OrbitRadius</code> stays the authored constant for the tests and the editor tools, and everything that runs in the game reads the lane: enemy approach and chase, the boss's included, obstacles, boss rounds easing on, the lance, pickups, and the ship's own angular speed.</p>
+    <p>The offset used to move the ship alone. One was committed at 3 and held the player at 16.72, off a lane that every enemy and every boss round was hard-wired to &mdash; a ship nothing could reach and that could reach nothing, which looked perfectly normal from the camera. Changing the offset in play now re-snaps the ship and the camera at once, and enemies close on the new lane by themselves. The ceiling comes from the waves: they spawn 21.45 to 39.83 from the axis, so offsets up to about +7.7 keep every arrival outside the lane.</p>
+    <div class="note">
+      <div class="label">Figures measured at 13.72</div>
+      <p>Several passages below were measured with the lane at offset 0 &mdash; the boss's hittable band, the 27.44 diameter, the 86.2-unit ring. The arguments hold at any offset because everything reads the same radius; the lengths around the ring grow with it, and at 18.72 the ring is 117.6 around.</p>
+    </div>
+    <div class="warn">
+      <div class="label">One long frame could leave an enemy unkillable</div>
+      <p>Enemies used to approach until they crossed the lane and then orbit at whatever radius that step had ended on. One long frame carried them well past the line: an <code>Enemy 2</code> settled <strong>0.80 inside</strong> the 18.72 lane and stayed there for the rest of its life, radially out of the line of fire. The crossing frame now places an enemy exactly on the lane, a tolerance of 0.001 stops one sitting on the line from re-entering its approach every frame, and orbiting enemies ease back onto the lane at a response of 4 &mdash; which is also what lets them follow it outward when the offset changes in play. <code>ObstacleScript</code> takes the same clamp.</p>
+    </div>
 
     <h3>The part that surprises people</h3>
     <p>Movement around the circle is <strong>angular, not linear</strong>. <code>PlayerMovement</code> and <code>ShootScript</code> both call <code>RotateAround</code>, whose third argument is an <em>angle in degrees</em> — a quantity, not a rate. A speed has to be multiplied by <code>Time.deltaTime</code> before it can go in, which is what the last two factors on the second line are doing: <em>degrees per second</em> &times; <em>seconds</em> = <em>degrees</em>. This is the same units slip as the one in the box below, from the other direction, and it is worth saying the multiplication out loud every time:</p>
-<pre><code>float degreesPerSecond = orbitSpeed * Mathf.Rad2Deg / ArenaGeometry.OrbitRadius;
+<pre><code>float degreesPerSecond = orbitSpeed * Mathf.Rad2Deg / ArenaGeometry.LaneRadius;
 transform.RotateAround(pos, Vector3.up, -h * Time.deltaTime * degreesPerSecond);
 transform.LookAt(pos);</code></pre>
     <p>Projectiles orbit too — they don't travel in straight lines, they sweep around the arena at their own angular rate.</p>
     <div class="warn">
       <div class="label">The number the inspector was lying about</div>
       <p>The player's two speeds used to be authored in different units and shown side by side as though they were the same thing. <code>Speed</code> was <strong>32 degrees per second</strong> and <code>Up_Down_Speed</code> was <strong>5 world units per second</strong>, so 32 sat next to 5 looking six times larger while the ship was actually only about half again as quick sideways as it was vertically. There was no way to see that from the Inspector.</p>
-      <p>Both are units per second now, named Orbit Speed and Climb Speed, and the conversion to the angle <code>RotateAround</code> wants happens in code. Set equal at 70, the ship covers the same ground in both directions.</p>
-      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 100 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 29.23&nbsp;deg/s from the same authored number, which is what stops them drifting apart.</p>
+      <p>Both are units per second now, named Orbit Speed and Climb Speed, and the conversion to the angle <code>RotateAround</code> wants happens in code. Set equal at 7, the ship covers the same ground in both directions.</p>
+      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 5 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 21.42&nbsp;deg/s at today's lane from the same authored number, which is what stops them drifting apart.</p>
     </div>
     <div class="note">
       <div class="label">Why this matters practically</div>
@@ -601,6 +629,7 @@ transform.LookAt(pos);</code></pre>
     </div>
 
     <p><strong>A / D is throttle, not steering.</strong> The ship's nose already points along its direction of travel, so those keys accelerate it forward and backward along the lane. This tripped up the ship animation work and is worth remembering.</p>
+    <p><strong>On keys, the ramp is the whole of the ship's handling.</strong> <code>PlayerMovement</code> has no acceleration of its own &mdash; it sets speed straight from input every frame &mdash; so how the ship answers a key is decided entirely by the smoothing above. It had copied the Input Manager's defaults of 3: a third of a second to full speed and another to stop. Sensitivity and gravity are 6 now, halving both, and sticks are untouched because they never ramped.</p>
   </section>
 
   <section id="player">
@@ -610,10 +639,19 @@ transform.LookAt(pos);</code></pre>
     <p><code>PlayerMovement</code> orbits and looks at the centre; <code>ApplyBounds</code> clamps height. The Main Camera runs the <em>same</em> <code>PlayerMovement</code> component with the same speed — that's how it stays in sync, rather than following the player.</p>
 
     <h3>Shooting</h3>
-    <p><code>Player.Shoot()</code> is driven by <code>InvokeRepeating</code> at <code>spawnDelay</code> (0.5s). The pattern comes from a table of vertical offsets indexed by how many shot upgrades have been taken, measured in multiples of <code>shotSpacing</code> (4), and <code>rotate</code> — the flip state — decides which of the two projectile prefabs counts as forward. The stages run <strong>1 → 2 → 3 → 6</strong> bullets. There used to be a fifth, Back Shot, which fired five forward and four the other way round the ring; it was the one pick that changed what the gun does rather than how much of it there is, and it retired along with the backward table when the progression was stretched.</p>
+    <p><code>Player.Shoot()</code> is driven by <code>InvokeRepeating</code> at <code>spawnDelay</code> (0.5s). The pattern comes from a table of vertical offsets indexed by how many shot upgrades have been taken, measured in multiples of <code>shotSpacing</code> (0.2), and <code>rotate</code> — the flip state — decides which of the two projectile prefabs counts as forward. The stages run <strong>1 → 2 → 3 → 6</strong> bullets. There used to be a fifth, Back Shot, which fired five forward and four the other way round the ring; it was the one pick that changed what the gun does rather than how much of it there is, and it retired along with the backward table when the progression was stretched.</p>
+
+    <h3>The round</h3>
+    <p>The player's rounds were Unity's primitive capsule on a flat lime material, and read as a cheap solid object. Each is now a double-ended <strong>energy needle</strong>, 0.48 by 0.077 world units in 48 triangles, drawn by <code>PlayerRound.shadergraph</code>: one inline function folds the length coordinate so both tips are identical, puts a mint core where the surface faces the camera, cools the tips, and runs a faint outward pulse. Being symmetric, one material serves both directions of travel. Behind it sits a rigid streak 1.2 units long &mdash; two crossed tapered quads on the round's own root &mdash; for reasons written up under <a href="#render">Rendering</a>. <code>PlayerRoundBuilder</code> regenerates the mesh, both materials and both prefabs in place, so their GUIDs survive a rebuild.</p>
+    <div class="warn">
+      <div class="label">A still player could miss a still enemy the last round had just hit</div>
+      <p>Rounds move by setting their transform in <code>Update</code>, and physics only tests the positions it finds at each 50&nbsp;Hz step. At 150&deg; a second on the 18.72 lane a round covers <strong>0.98 units</strong> between steps, while a hit needs a sample inside a window of box width plus round length: 0.69 for <code>Enemy</code> and <code>Enemy 2</code>, 0.86 for <code>Enemy 1</code>, 0.89 for <code>Enemy 3</code>. Whether a round landed depended on where along the ring the target happened to sit.</p>
+      <p><code>ShootScript</code> now sweeps each round's box in <code>FixedUpdate</code> along the stretch it moved since the previous step. Anything it overlaps at either end is left to the physics system; anything wholly in the gap gets the same <code>OnTriggerEnter</code> the engine would have sent, on both sides, so every receiver keeps its own rules and nothing is hit twice. Rounds ignore rounds, respect the layer matrix, and start a fresh sweep when reused from the pool. Measured with the waves stopped and a held target stepped through one physics gap in tenths: without the sweep <strong>45 to 99%</strong> of rounds hit depending on position; with it, 98% or more at every one.</p>
+    </div>
 
     <h3>The ship model</h3>
     <p><code>SpaceShipPitch</code> animates the visual only. It reads <code>Player.DirectionFlipped</code> rather than tracking its own copy — the two used to be toggled independently by the same key, which meant any frame where one saw the input and the other didn't left the model facing the wrong way permanently.</p>
+    <p>The ship and the four normal enemies are <strong>half size</strong> since 11 September, done the way the project scales models: through each FBX's importer. Two prefabs, <code>PlayerSpaceShip</code> and the base <code>Enemy</code>, were detached copies of their models storing their own node positions, so an importer change would have shrunk each part in place and left the layout behind; both were re-attached as nested model instances first. Their rounds followed on the root transform instead &mdash; the player's and <code>Enemy 1</code>'s are primitive capsules with no importer, and one enemy round's FBX is shared with the boss's &mdash; and <code>shotSpacing</code> halved with them so a volley keeps its proportions.</p>
     <p>Easing uses an exponential form that settles the same amount per unit of <em>time</em>, not per frame:</p>
 <pre><code>Mathf.Lerp(current, target, 1f - Mathf.Exp(-response * deltaTime))</code></pre>
     <p>The common shortcut — <code>Lerp(current, target, response * deltaTime)</code> — feels different at 30fps and 144fps. <code>ShipMotion</code> is separated out precisely so this can be tested.</p>
@@ -689,9 +727,13 @@ transform.LookAt(pos);</code></pre>
     </div>
     <p>The boss used to award <strong>2</strong> experience, less than a 1 HP Scout. That was preserved from the original through the migration on purpose, on the grounds that migration and rebalancing are different jobs, and it sat here as a recorded decision rather than a bug for a long while. It is <strong>50</strong> now. Being one field on an asset is what made that a decision rather than a task.</p>
 
+    <h3>Hittable at the player's height</h3>
+    <p>Once every enemy sat on the lane, the misses that were left were about height. <code>Enemy 1</code>'s model hung 0.524 above its own pivot &mdash; the height it chases to &mdash; so its body flew above the player's shots; the model, both gun pivots and the hitbox moved down together so it centres on the pivot. <code>Enemy</code> and <code>Enemy 2</code> hitboxes doubled in height to 0.48 around the same centre, taller than their models on purpose: that is the tolerance they had before the halving. And <code>Enemy 2</code> matched the player's height too slowly to use it &mdash; free-flying ones sat 0.4 to 1.9 off &mdash; so its height-chase speed went from 0.5 to 2, closing most of a gap in half a second instead of two. <code>Enemy 3</code> holds its spawn height by design and is unchanged.</p>
+    <p>Checked with a single shot and targets held on the lane: <code>Enemy 1</code> and <code>Enemy 2</code> die at the player's height and <code>Enemy 2</code> at +0.2, and both are missed at +0.4, which is exactly the hitbox's reach.</p>
+
     <h3>The floor moved, and four streams stayed where they were</h3>
     <p>The player's vertical band is a box in the scene. The heights enemies arrive at are numbers in a wave asset. Nothing connected the two, so when the band was raised — floor from 1.103 to 4.421, ceiling from 11.129 to 13.318 — the spawn heights did not move with it, and four of the twelve obstacle streams, authored at 2.9 and spawning over 1.8 to 3.7, ended up entirely beneath the floor.</p>
-    <p><strong>It only showed on one enemy, and that is what made it hard to see.</strong> Three of the four enemy prefabs carry <code>EnemyMovement</code>, which climbs towards the player once inside its 16.46 chase radius — so those spawn low, notice, and fix themselves within seconds. <code>Enemy 3</code> is the only one carrying <code>ObstacleScript</code>, and that script has no orbit branch and no chase branch at all: it flies inward in X and Z, reaches the orbit radius, and then holds its spawn height for the rest of its life. The ones that could recover did, and hid the ones that could not.</p>
+    <p><strong>It only showed on one enemy, and that is what made it hard to see.</strong> Three of the four enemy prefabs carry <code>EnemyMovement</code>, which climbs towards the player once inside its chase radius, a fixed multiple of the lane — so those spawn low, notice, and fix themselves within seconds. <code>Enemy 3</code> is the only one carrying <code>ObstacleScript</code>, and that script has no orbit branch and no chase branch at all: it flies inward in X and Z, reaches the orbit radius, and then holds its spawn height for the rest of its life. The ones that could recover did, and hid the ones that could not.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>What it cost</th><th class="num">Per run</th></tr></thead>
@@ -783,7 +825,7 @@ transform.LookAt(pos);</code></pre>
     <p>One pool for all three, so the bar moves throughout &mdash; including through a phase where the hull itself is taking nothing &mdash; and retuning an emplacement cannot quietly change what the boss is worth. <code>BossPhaseState</code> holds the order with no Unity object attached, because &ldquo;once, and never backwards&rdquo; is exactly the kind of rule that is impossible to check by playing: a phase that can be re-entered looks identical to one that cannot until the frame where two bullets arrive together.</p>
 
     <h3>Three emplacements, and why they are where they are</h3>
-    <p>Each sits at the centroid of its own bank's muzzle heights, averaged from the model at build time rather than typed in, so a pod cannot drift away from the guns it stands for. They land at world y <strong>53.8, 91.7 and 127.1</strong> against a playable band of 44.2 to 133.2 &mdash; floor, middle, ceiling.</p>
+    <p>Each sits at the centroid of its own bank's muzzle heights, averaged from the model at build time rather than typed in, so a pod cannot drift away from the guns it stands for. They land at world y <strong>5.38, 9.17 and 12.71</strong> against a playable band of 4.42 to 13.32 &mdash; floor, middle, ceiling.</p>
     <p>Player bullets fly at the player's own height and never change it, so killing a bank means flying at that bank's height, which is where its own fire is thickest. The risk and the reward both fall out of the rig rather than out of a difficulty number.</p>
     <p>They are mounted proud of the hull, which is not decoration: the hull is a trigger that eats bullets, so a target inside it could never be hit at all. Wrecking one silences its bank for the rest of the two long acts &mdash; the Scuttle brings every muzzle back, wrecked banks included &mdash; so the order the player kills them in is a difficulty dial they set themselves.</p>
 
@@ -832,7 +874,7 @@ transform.LookAt(pos);</code></pre>
     <div class="warn">
       <div class="label">The lane a shot is born on is the lane it dies on</div>
       <p>A projectile here orbits with <code>RotateAround</code> about the vertical axis, which preserves its distance from that axis <em>exactly, and for its whole life</em>. So a shot fired from a barrel that is not on the player's lane never reaches it and never can, however long it flies.</p>
-      <p>The player is pinned to radius <strong>13.7200</strong>. With their own hitbox and the shot's &mdash; radial half-extents of 0.231 and 0.098 &mdash; a shot can only ever touch them if it was born between <strong>13.39 and 14.05</strong>. The boss's muzzles are spread across the width of a ship 3 units deep and sit anywhere from 13.16 to 15.02.</p>
+      <p>The player is pinned to the lane, which stood at <strong>13.7200</strong> when this was measured. With their own hitbox and the shot's &mdash; radial half-extents of 0.231 and 0.098 &mdash; a shot can only ever touch them if it was born between <strong>13.39 and 14.05</strong>. Halving the ship on 11 September narrowed that to about 0.21 either side of the lane. The boss's muzzles are spread across the width of a ship 3 units deep and sit anywhere from 13.16 to 15.02.</p>
       <div class="scroll">
         <table>
           <thead><tr><th>Bank</th><th class="num">Muzzles</th><th class="num">Able to hit</th></tr></thead>
@@ -847,7 +889,7 @@ transform.LookAt(pos);</code></pre>
       <p>So a curtain of twelve arrived as a wall of three, the rake's staircase had four of its sixteen steps, and the lance &mdash; a charge, a telegraph, then a dense stream &mdash; was firing one muzzle in four. The fight's own vocabulary was describing something the player never actually faced, and had been since the boss existed.</p>
     </div>
     <p><strong>The muzzles do not move, because that is the one thing the rig must not do.</strong> Moving the barrels onto the lane would buy this back by giving up the thing the rig was built to protect. So the shot leaves the barrel and then eases onto the lane, through the same frame-rate-independent easing every ship in the arena already uses on its way to the ring. Radius only &mdash; bearing and height stay the shot's own business, because a shot that closed on the player's altitude too would be a homing missile rather than a bullet in a lane.</p>
-    <p>It is off unless something asks for it: <code>laneResponse</code> defaults to zero, meaning &ldquo;keep the distance you were fired at&rdquo;, so the player's own rounds are unchanged by construction rather than by anybody remembering to leave them alone. A response of 5 puts the worst-placed muzzle's shot inside the band in <strong>0.275&nbsp;s</strong>, by which time it has travelled about 22&deg; of arc and is clear of a hull 7.1 units wide &mdash; fast enough to be dangerous while it still matters, slow enough to read as a shot curving in rather than as a muzzle in the wrong place.</p>
+    <p>It is off unless something asks for it: <code>laneResponse</code> defaults to zero, meaning &ldquo;keep the distance you were fired at&rdquo;, so the player's own rounds are unchanged by construction rather than by anybody remembering to leave them alone. A response of 5 puts the worst-placed muzzle's shot inside the band in <strong>0.275&nbsp;s</strong> &mdash; about 0.36&nbsp;s since the narrower band, with a response of about 6.6 as the one that would restore it &mdash; by which time it has travelled about 22&deg; of arc and is clear of a hull 7.1 units wide &mdash; fast enough to be dangerous while it still matters, slow enough to read as a shot curving in rather than as a muzzle in the wrong place.</p>
     <p>Measured with the boss isolated as the only thing firing, shots in the player's lane went from about a quarter to <strong>87&ndash;100%</strong>. What it costs: a player standing still at the keel bank's own height &mdash; the height the design sends them to &mdash; now loses the whole bar in <strong>36.5 seconds</strong>, against roughly four times that before. A pod is 80 hit points, so it can still be taken, but not while parked.</p>
 
     <div class="warn">
@@ -1144,6 +1186,14 @@ emission  = hot * glow * veins;</code></pre>
       <p>HDRP works in real units. Emission is in <strong>nits</strong>, exposure in <strong>EV100</strong>. At EV 10 mid-grey sits near 128 nits, so lava glowing at <code>1.5</code> is invisible while <code>1000</code> is correct — real lava is roughly 1500–3000 cd/m². Values that look absurd next to URP's unitless multipliers are often simply right.</p>
     </div>
     <p>Emissive surfaces <em>cannot cast shadows</em> — shadows are rendered from a light's point of view, and an emissive material isn't a light. The lava's glow on surrounding rock comes from real area lights placed on the emitting surface.</p>
+    <p>Those lights cast <strong>no shadows</strong> now. Seven of them throwing hard shadows through a lava pool were paying for shadow maps the emissive surface underneath was already accounting for, and the realtime directional light is the only authored light left casting one &mdash; which also makes <code>maxShadowDistance</code> the range its four cascades are spread across, not merely a fade-out distance.</p>
+
+    <h3>The island bake</h3>
+    <p>What the shadows freed went into the bake: lightmap resolution 50, the scenery FBX unwrapping its secondary UVs at the same density it is packed at, and samples up to 128 direct, 2048 indirect and 1024 environment. Seventy-three prefab instances carried every static flag except <em>Contribute GI</em> &mdash; batched, occluding and reflection-probe static, and invisible to the probe volume &mdash; and the probe volume grew when they were let in.</p>
+    <div class="note">
+      <div class="label">The split sharpened the 9% nobody looks at</div>
+      <p>The island is split into a cone and a base so each half can ask for its own lightmap density. It was first set with the cone at 145 texels a unit and the base at 46, baked exactly as asked, and looked identical to no split at all &mdash; because the base is 2,487 of the island's 2,746 square units, and 46 against a global 50 made the half anyone sees <em>coarser</em>. The cone asks for 90 and the base for 65 now. That fits the cone into a 2048 lightmap instead of a second 4096, drops the island's atlas budget from 33.6M texels to 21.0M, and brought a build from 1,113&nbsp;MB to 921.</p>
+    </div>
 
     <h3>Bullet lights, and one shadow per volley</h3>
     <p>With maximum skills the player has ~36 bullets alive; the boss adds ~174. A light each is impossible — every shadow-casting point light renders the scene six times into a cubemap. <code>BulletLightPool</code> keeps a fixed set of lights that follow the bullets nearest the camera, and only a few of those cast shadows. It clones a template light you configure in the Inspector, so it carries no HDRP dependency and would work unchanged on URP. The scene runs <strong>two</strong> of it &mdash; 36 lights on the player's fire, 32 on the boss's &mdash; because the two want different colours and very different shadow budgets.</p>
@@ -1179,7 +1229,7 @@ emission  = hot * glow * veins;</code></pre>
       draws once, through each renderer's own matrix rather than from <code>Renderer.bounds</code>, whose
       world-space box moves as the object turns.</p>
     </div>
-    <p><strong>Which few was the expensive question, and distance was the wrong answer.</strong> A volley is not a loose group that drifts apart. <code>FireLine</code> stacks its bullets up the pivot, and every one of them orbits the same centre at the same angular speed at its own fixed height — so at full Shot Upgrade the six bullets are a <em>rigid column about two units tall</em> for the whole of their flight, offsets of 0.5, 1.5 and 2.5 either way against a <code>shotSpacing</code> of 0.4. Each carries a light of range 10. Six lights of range ten strung up two units cover very nearly the same ground.</p>
+    <p><strong>Which few was the expensive question, and distance was the wrong answer.</strong> A volley is not a loose group that drifts apart. <code>FireLine</code> stacks its bullets up the pivot, and every one of them orbits the same centre at the same angular speed at its own fixed height — so at full Shot Upgrade the six bullets are a <em>rigid column about one unit tall</em> for the whole of their flight, offsets of 0.5, 1.5 and 2.5 either way against a <code>shotSpacing</code> of 0.2. Each carries a light of range 3.5 &mdash; green to match the needle, intensity 16, volumetric dimmer 0.4 &mdash; and six lights of that range strung up one unit cover very nearly the same ground.</p>
     <p>Picking casters by distance chose exactly those six, because the bullets nearest the camera are overwhelmingly the newest volley. So the shadow cost <em>scaled with Shot Upgrade</em>: the pick that makes the gun feel good was the pick that made the frame expensive. Casters are now chosen one per volley, nearest first.</p>
     <div class="scroll">
       <table>
@@ -1227,10 +1277,40 @@ emission  = hot * glow * veins;</code></pre>
       just been written.</p>
     </div>
 
+    <h3>Under FSR, anything fast and transparent has to be rigid</h3>
+    <p>The game's settings run <strong>FSR</strong> as the upscaler, with camera anti-aliasing off. The player's rounds briefly carried a <code>TrailRenderer</code>, and it drifted apart from its needle whenever the camera climbed or fell. Two fixes aimed at the wrong pass: excluding the trail from TAA and temporal upscalers, which HDRP does hand to FSR and which changed nothing; and writing motion vectors from the <code>TrailRenderer</code>, which was worse &mdash; a trail builds its mesh in world space on a moving object, its vectors came out wrong, and the round smeared into something like a dragonfly.</p>
+    <div class="warn">
+      <div class="label">Judge a temporal artefact in motion, with the upscaler that ships</div>
+      <p>What found it was capturing <em>mid-climb</em> with each effect toggled on the camera alone: FSR on, short tilted trails; FSR off, straight ones, with motion blur on or off. The needle beside it was clean in every capture because it is rigid and writes its own motion vectors. So the streak is built the same way &mdash; a mesh on the round's root, a transparent graph that writes motion vectors, the renderer in Object mode &mdash; and FSR, TAA and motion blur reproject it like any other rigid object. Its bounds are symmetric about the centre so the bullet light stays on the needle.</p>
+    </div>
+
     <h3>Exposure, and one lever for fog</h3>
     <p>Exposure is fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
-    <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. Those are back on their defaults, leaving <code>meanFreePath</code>, brought from 300 to 50, as the single control over how thick the air is.</p>
+    <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. Those are back on their defaults, leaving <code>meanFreePath</code> as the single control over how thick the air is. It is <strong>20</strong> today, with the froxel depth at 60 and the maximum fog distance at 64 &mdash; the island's far edge is about 45 units out. The base height of 0 and maximum height of 50 look like ten-times leftovers and are not: across the flight band they give a density falling from 0.54 of maximum to 0.16, so a low pass over the lava is markedly thicker than a high one.</p>
     <p>On the top tier — the one called Ultra since the split — probe volumes moved from L1 to L2 spherical harmonics, the cookie atlas to 4096, the area shadow atlas from 4096 to 8192, and area shadow filtering up a step. The lighter High inserted beneath it kept Medium's probe volumes and took 2048 instead. Sky reflection was left at 2048 on both. Two lights stopped culling shadow casters against the view frustum, so geometry outside the frame keeps throwing shadows into it.</p>
+
+    <div class="warn">
+      <div class="label">A density stated in a commit message never reached the file</div>
+      <p>A change meant to take <code>meanFreePath</code> from 1000 to 150 said so in its message and wrote 1500. The fog got thinner instead of nearly seven times denser, and in the same commit the lava lights' volumetric dimmer came down from 7 to 1 on the grounds that the fog was now dense enough to carry the glow by itself. It never was. For six days everything downstream was tuned against a haze. At 20 the dimmer of 1 is correct and the lights needed nothing; the skybox still survives, and enemies measured slightly <em>more</em> legible against the denser air, 30% of their pixels under 0.10 Weber contrast against 39% before.</p>
+    </div>
+
+    <h3>Fog that holds still</h3>
+    <p>Trees flickered with volumetric fog on Medium or below. The scene's profile never set denoising, which in HDRP 17 means Gaussian alone &mdash; and that also means no jitter and no temporal blend, so every fog cell samples one fixed point on screen and the sun's soft shadows through bare branches crawl through those points as the camera orbits. Denoising is <strong>Both</strong> now, which adds reprojection: jittered samples blended over about seven frames, for roughly 50&nbsp;MB of history at 1080p and next to no frame time at these budgets.</p>
+    <p>The cost was the budgets, which were HDRP's template values, and the cell count climbs steeply with them. Measured at 1080p on an RX 6700 XT with the gameplay camera orbiting, fog over volumetrics off:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Fog budget</th><th class="num">Frame time</th></tr></thead>
+        <tbody>
+          <tr><td class="num"><strong>0.166</strong></td><td class="num">3.1 ms</td></tr>
+          <tr><td class="num"><strong>0.25</strong></td><td class="num">4.2 ms</td></tr>
+          <tr><td class="num"><strong>0.333</strong></td><td class="num">6.8 ms</td></tr>
+          <tr><td class="num">0.5</td><td class="num">10.8 ms</td></tr>
+          <tr><td class="num">0.666</td><td class="num">15.8 ms</td></tr>
+          <tr><td class="num">0.75</td><td class="num">18.5 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>All three volumetric tiers share one ladder now, <strong>0.166 / 0.25 / 0.333</strong>, so the settings row means the same thing on every tier, and the presets' default fog went from 3.1, 10.8 and 18.5&nbsp;ms to about 3.2, 4.9 and 6.7 with reprojection on. Reprojection's known weak spot is where anisotropy meets several lights in one cell &mdash; which is the lava &mdash; and fast bullet glows can trail, so both are the first thing to look at if the fog misbehaves in a run.</p>
 
   </section>
 
@@ -1580,6 +1660,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         </tbody>
       </table>
     </div>
+    <p>The fog row's Low, Medium and High are the same three budgets on every tier that has fog &mdash; 0.166, 0.25 and 0.333 &mdash; for the reasons under <a href="#render">Rendering</a>.</p>
 
     <div class="warn">
       <div class="label">A row dies with its flag</div>
@@ -1698,9 +1779,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>What drives the editor</h3>
-    <p>The project carries <code>com.unity.pipeline</code>, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
+    <p>The project carries <code>com.unity.pipeline</code>, at 0.7.0-exp.1, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
     <p>The difference that mattered was recompilation. The old relay would not trigger a domain reload, because the reload severed its own connection, so every new script needed the editor window focused by hand before it existed. The pipeline drops its connection mid-reload and reconnects on the far side, which closes the loop: write a script, compile it, attach it, and confirm the type is live in the loaded domain without touching the editor.</p>
     <p>It also made the captions visible for the first time. Capturing the game view with the composited backbuffer includes Screen Space Overlay canvases, which is where they live — before that they had been diagnosed by reading vertex counts, because the relay's camera capture rendered through a camera and missed overlay UI entirely.</p>
+    <p>The package moves with the CLI rather than on its own schedule. The CLI updated itself to 1.0.0-beta.8 and refused to talk to 0.5 at all &mdash; every command failed as <em>too old to parse command lines</em> &mdash; so it went to 0.6, which also takes array arguments as JSON; and to 0.7 when the Unity plugin for Claude Code arrived with it. It is editor-side only and ships in no build.</p>
+    <div class="warn">
+      <div class="label">A script that opens a prefab stage can take the GPU down</div>
+      <p><code>PrefabUtility.LoadPrefabContents</code> called from a script stalled the editor for 41 seconds and ended in a D3D12 device reset that closed it. Simple prefab edits go through a <code>SerializedObject</code> on the asset itself and are saved there, and adding or removing a component on an asset's root works the same way &mdash; which is how <code>PlayerRoundBuilder</code> is written.</p>
+    </div>
     <div class="warn">
       <div class="label">A package that edits your player settings</div>
       <p><code>BasePipelineServer.Start()</code> sets <code>Application.runInBackground = true</code> every time it starts — every editor launch, every domain reload — so the editor keeps pumping its update loop while unfocused and can go on answering commands. In the editor that assignment writes through to PlayerSettings, so setting it back by hand lasts exactly until the next launch.</p>
@@ -1721,8 +1807,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <div class="note">
       <div class="label">Two things the upgrade settled</div>
-      <p><code>com.unity.pipeline</code> was the real risk in moving. It is experimental, it declares <code>&quot;unity&quot;: &quot;6000.0&quot;</code>, and it is what the terminal drives the editor through &mdash; so losing it would have cost the whole loop described above. It came through unchanged.</p>
-      <p>And the fault where a Player build nulled all six probe-volume references in <code>Game Baking Set.asset</code> <strong>did not reproduce</strong>. A confirmed clean build &mdash; the editor log says <em>&ldquo;Rebuilding Data files because BuildOptions.CleanBuildCache is set&rdquo;</em> &mdash; left the asset untouched, its modification time still predating the build, and the references at six resolved and none null, through that build and an editor restart afterwards. Two explanations died there: that Editor builds broke it while CLI builds did not, which was a false correlation drawn from three samples in which the CLI build had merely been incremental; and that clean builds were the trigger. The streaming conversion demonstrably ran, since <code>APVStreamingAssets</code> shipped into the player, so &ldquo;the conversion ran&rdquo; was never sufficient to cause the rewrite. Worth checking after a build for a while yet before trusting it.</p>
+      <p><code>com.unity.pipeline</code> was the real risk in moving. It is experimental, it declares <code>&quot;unity&quot;: &quot;6000.0&quot;</code>, and it is what the terminal drives the editor through &mdash; so losing it would have cost the whole loop described above. It came through unchanged, and has moved twice since, both times for the CLI's sake.</p>
+      <p>And the fault where a Player build nulled all six probe-volume references in <code>Game Baking Set.asset</code> <strong>did not reproduce</strong>. A confirmed clean build &mdash; the editor log says <em>&ldquo;Rebuilding Data files because BuildOptions.CleanBuildCache is set&rdquo;</em> &mdash; left the asset untouched, its modification time still predating the build, and the references at six resolved and none null, through that build and an editor restart afterwards. Two explanations died there: that Editor builds broke it while CLI builds did not, which was a false correlation drawn from three samples in which the CLI build had merely been incremental; and that clean builds were the trigger. The streaming conversion demonstrably ran, since <code>APVStreamingAssets</code> shipped into the player, so &ldquo;the conversion ran&rdquo; was never sufficient to cause the rewrite. <strong>It came back on 13 September.</strong> A clean-cache build on the Checked variant nulled all six again, so the idea that 6.6 had fixed it died too, and the trigger is still unknown. Every build is followed by the same repair and count: restore the asset from git, force-import it so the editor lets go of the nulled copy it holds in memory, and expect six references resolved and none null.</p>
     </div>
   </section>
 
@@ -1806,6 +1892,15 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Three rounds were spent on silent music. The scene files were read from disk while the editor held unsaved changes, and the conclusion drawn from them — "the clip is definitively not assigned" — described a state that no longer existed and contradicted what was visible in the Inspector. The asterisk in the window title was the tell, and it was there the whole time. When a tool and a person disagree about what is on screen, the person is looking at the live thing.</p>
     <p>It recurred while building the Display screen: the pipeline asset was read from disk and reported an upscaler priority order that had already been changed in the Inspector. The reliable answer is to ask the editor itself — running a few lines of C# inside it returns <code>SystemInfo</code>, live asset state and detection flags as they actually are. That is also how the graphics card was identified and how the <a href="#settings">shadow crash</a> was pinned to a specific quality tier, in minutes rather than by inference.</p>
 
+    <h3>A number in a message is not a number in the file</h3>
+    <p>The fog's density was stated correctly in a commit message and wrong in the asset, and six days of lighting work trusted the message. A message describes intent; the asset is what renders. When a later decision leans on a value from history &mdash; &ldquo;the fog is dense now, so the lights can come down&rdquo; &mdash; read the value back out of the file before building on it.</p>
+
+    <h3>Physics sees steps, not paths</h3>
+    <p>A round that moves a unit between physics steps can pass straight through a hitbox two thirds of a unit wide, and it will do so for some positions and not others &mdash; which reads as randomness, or as a target that is slightly off its lane, rather than as a sampling gap. Tests of it are just as easy to spoil: a player ramming the target, a target phase-locked to the step, waves spawning into the measurement. Hold everything still, step the target through one gap, and count.</p>
+
+    <h3>Test a render the way it ships</h3>
+    <p>Two fixes for the drifting trail were aimed at TAA, which this game does not use; its settings run FSR. The artefact only appeared with the camera moving, so still captures showed nothing either way. Check which upscaler, anti-aliasing and motion blur the player's settings actually select, and capture mid-motion with one of them toggled at a time.</p>
+
     <h3>Preserve behaviour, flag the judgement</h3>
     <p>The boss's 2 EXP, the laser's fire rate, the 301-second cutoff, the <code>"SexTUPLO Shot!"</code> banner — all preserved exactly, all surfaced as things to decide. Three of those four have since been decided, which is the point: they were reachable as one field each when the moment came. Migration and rebalancing are different jobs, and mixing them makes both harder to review.</p>
   </section>
@@ -1826,23 +1921,24 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       island one can be lost. An emissive tint would fix it and would also be the first thing in the arena that
       glows because it is dangerous rather than because it is hot &mdash; a call about the art direction rather
       than about the mechanic, so it has deliberately not been made.</li>
-      <li><strong>Whether the red pods read against orange lava.</strong> They were green until the
-      boss's output was brought into one warm family, and the note written at the time flagged the cost: a red
-      target on an orange ship lit by orange lava is a harder read than a green one was. A later pass reached
-      the same diagnosis independently and moved every hostile thing to pink with green pods; that was reverted
-      for washing a third of the island green, which rejects the execution rather than the diagnosis. The small
-      version is to keep the red and drop the pod lights from 9000 lumens, so the target reads without the
-      arena changing colour.</li>
-      <li><strong>The lance is a drawn beam now, and has not been played.</strong> It used to be forty
-      rounds out of four prow muzzles, and the whole argument was about separating them. The arithmetic
-      ended that argument rather than settling it, and it is a units lesson worth keeping: the round's
-      <em>speed</em> of 80 is degrees a second, not units a second, so converting through the ring first
-      &mdash; 86.2 units around, 19.16&nbsp;units a second &mdash; puts rounds leaving 0.06&nbsp;s apart
-      <strong>1.15 units apart while each is 1.286 units long</strong>. They overlapped by 0.14 units
-      before they had gone anywhere. It was already one solid line, drawn as forty objects, forty
-      colliders and forty lights. So it is a single 12.8-unit arc bent along the ring now, and what is
-      open is whether that reads as a beam in play rather than whether the rounds can be told
-      apart.</li>
+      <li><strong>The camera and the lane are still being framed.</strong> Field of view and camera
+      offset have moved several times since the ships were halved, and sit at 80 and 5 with the Player's lane
+      offset at 5. The offset is a real design dial now rather than a way to strand the ship; waves spawn from
+      21.45 out, so anything up to about +7.7 keeps every arrival outside the lane.</li>
+      <li><strong>The lance reads; it should read as energy.</strong> Seen in the boss fight on
+      10 September it was unmistakable &mdash; a solid, hard-edged bar, nothing like a smear &mdash; which
+      answers the legibility question the beam was built around. What it reads as is a plank, because
+      <code>BossLanceBeam</code> borrows the plain round's single material and stretches one bullet's flat
+      emission over 12.8 units. The arithmetic that retired the forty-round stream is still the lesson worth
+      keeping: the round's <em>speed</em> of 80 is degrees a second, so rounds leaving 0.06&nbsp;s apart were
+      1.15 units apart while each was 1.286 long, and had overlapped before they went anywhere.</li>
+      <li><strong>Boss rounds may reach the player too late now.</strong> The half-size ship narrowed
+      the band a boss round can touch from about 0.33 either side of the lane to 0.21, so the outermost gun's
+      round takes about 0.36&nbsp;s to become dangerous instead of 0.275. If the fight feels soft with god
+      mode off, <code>RoundLaneResponse</code> at 6.6 restores the old timing; only a run says whether it is
+      needed.</li>
+      <li><strong>The pods passed.</strong> Whether red emplacements read against orange lava was open
+      for a week; in the 11 September playtest they were always found, so they stay as they are.</li>
       <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>
       <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s. The ceiling is the same for a player who takes all four, but taking one or two ends a run lower than the old single pick did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
       <li><strong>Ray-traced reflections are validated; the rest of the rungs are not.</strong> RT Reflections was selected in a build on DXR hardware and visibly changed the image — which is precisely the bar ray-traced <em>shadows</em> failed. That row shipped allocating a screen-space buffer no light wrote to, invisible in the editor and haze in a build, and was removed outright. RT global illumination is reachable and deliberately unused for the reasons above; no tier selects a ray-traced rung by default, and compiling ray tracing into three of the four tiers makes every build larger.</li>
@@ -1859,9 +1955,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       lighting is slow, so the settings were halved — 2048 lightmaps, two bounces, half the
       samples. Once the quota argument above went away they went the other way instead: <strong>4096</strong>
       lightmaps, <strong>uncompressed</strong>, bake resolution 50, four bounces, and the light-probe sample
-      multiplier back to 8. Sample counts are the one thing still at the reduced figures (32 direct, 512
-      indirect, 256 environment), which is the obvious next thing to raise if a bake still looks noisy. The
-      current output is <strong>68&nbsp;MB</strong> on disk and costs nothing to keep.</li>
+      multiplier back to 8. The sample counts
+      followed on 10 September, to 128 direct, 2048 indirect and 1024 environment, paid for by taking the
+      lava lights' shadows away. The output costs disk and bake time, not quota.</li>
     </ul>
     <p>The <strong>bullet hell</strong> direction was explored and shelved. The profile can afford it — 1500 simultaneous bullets measured at 0.056 ms, around 0.3% of a frame — and the design work is recorded in the history, but the decision was to improve what exists rather than add a mode. It is available to pick up rather than abandoned.</p>
 
@@ -1902,7 +1998,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 272 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 297 commits
   </footer>
 
 </div>
