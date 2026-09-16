@@ -202,9 +202,20 @@ namespace SurvivalChaos
                 return;
             }
 
-            // Wraps rather than clamping: with three or four entries, running into
-            // an invisible end is more annoying than looping.
-            int next = (Index(director) + direction + count) % count;
+            // Wraps rather than clamping: with three or four entries, running
+            // into an invisible end is more annoying than looping.
+            //
+            // Shadows is the exception. Its Off rung is not the quiet one the
+            // others have - it takes the sun, the lava light and the clouds out
+            // together, and the island loses the contrast that reads as depth -
+            // and every tier defaults at or one below High, which wrapping puts
+            // a single press away from it. Three presses is the right price for
+            // a rung a player has to mean.
+            int raw = Index(director) + direction;
+            int next = kind == GraphicsOptionKind.Shadows
+                ? Mathf.Clamp(raw, 0, count - 1)
+                : (raw + count) % count;
+
             Apply(director, next);
         }
 

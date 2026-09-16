@@ -25,6 +25,19 @@ namespace SurvivalChaos
     /// outgrow the punctual atlas on every tier. Off stops the light casting at
     /// all. Whether it cast soft or hard is captured once, so leaving Off restores
     /// what the scene authored rather than a guess.
+    ///
+    /// **Off moves a line in the scene file, and that line is not a setting.**
+    /// Lava Light 2 caches its shadows - shadowUpdateMode OnEnable - and HDRP
+    /// only keeps a light in the cached atlas while it still casts:
+    ///
+    ///     wantsShadowCache = wantsShadowCache &amp;&amp; (legacyLight.shadows != LightShadows.None);
+    ///
+    /// so Off evicts it, and eviction writes m_UseViewFrustumForShadowCasterCull
+    /// back to true on the legacy Light. Exercising this row in the Editor will
+    /// keep showing that line as a scene diff on the lava light; it is HDRP's
+    /// bookkeeping and can be discarded. The same line on the Directional Light
+    /// is a real authored value, because an EveryFrame light never enters the
+    /// cached atlas and nothing overwrites it there.
     /// </summary>
     [AddComponentMenu("Survival Chaos/Shadow Quality Light")]
     [RequireComponent(typeof(Light))]

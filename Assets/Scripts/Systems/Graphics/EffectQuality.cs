@@ -69,6 +69,19 @@ namespace SurvivalChaos
         /// <summary>
         /// The cloud shadow map's size, matching HDRP's CloudShadowResolution
         /// values. Medium is the 256 the scene was authored with.
+        ///
+        /// Measured, and the rungs do not show. Holding the lights still and
+        /// moving only this, 128 against 512 changed 5.0% of the frame by under
+        /// 8 of 255 on every pixel it touched - and two captures taken at the
+        /// same 512 changed 4.5% of it by the same amount, because the clouds
+        /// reproject across frames. The step is quieter than the renderer's own
+        /// noise, at this camera, on this tier, in a night scene.
+        ///
+        /// Kept rather than collapsed to one number, because that is one set of
+        /// conditions and a rung costing a smaller map is not a rung costing
+        /// anything. What it is not is a reason to reach for this row: the
+        /// on/off is the part of the clouds that reads. CloudShadowDistance has
+        /// the arithmetic for why the map is coarse to begin with.
         /// </summary>
         public static int CloudResolution(EffectQuality quality)
         {
@@ -86,6 +99,29 @@ namespace SurvivalChaos
                     return 128;
             }
         }
+
+        /// <summary>
+        /// How far from the camera cloud shadows are computed, in units.
+        ///
+        /// Not a box size, which is what the name suggests and what this was
+        /// first written against. HDRP takes the camera frustum's four far
+        /// corners, shortens each to at most this distance, and fits the shadow
+        /// map to the light-space bounds of what is left - so the number caps
+        /// the frustum rather than describing the region.
+        ///
+        /// Against this camera - 80 degree field of view, far plane 1000 - the
+        /// stock 8000 never binds on anything: the region comes out 2983 units
+        /// on its long axis, which puts one texel of a 512 map across 5.8 units
+        /// of an island that is 37 units wide. The whole arena lands in about
+        /// six texels, and in under two at 128.
+        ///
+        /// 1000 is HDRP's own floor for the parameter and the most this row can
+        /// do about it. It binds on the far corners and brings the long axis to
+        /// 1965, a third off the texel size for no cost. The real ceiling is the
+        /// camera's far plane, which is a rendering decision rather than a
+        /// quality one, so it is recorded here and left alone.
+        /// </summary>
+        public const float CloudShadowDistance = 1000f;
     }
 
     /// <summary>

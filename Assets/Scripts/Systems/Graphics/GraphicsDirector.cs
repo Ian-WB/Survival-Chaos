@@ -1237,6 +1237,12 @@ namespace SurvivalChaos
             clouds.shadowResolution.value =
                 (VolumetricClouds.CloudShadowResolution)ShadowLadder.CloudResolution(quality);
 
+            // Overridden with the resolution rather than left to the scene,
+            // because the two only mean anything together: the resolution is a
+            // texel count and this is what those texels are spread across.
+            clouds.shadowDistance.overrideState = true;
+            clouds.shadowDistance.value = ShadowLadder.CloudShadowDistance;
+
             ShadowQualityLight.ApplyAll(quality);
         }
 
