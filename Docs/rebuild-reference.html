@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 300 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 303 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>300</b><span>commits</span></div>
-      <div class="stat"><b>277</b><span>tests</span></div>
-      <div class="stat"><b>101</b><span>runtime scripts</span></div>
+      <div class="stat"><b>303</b><span>commits</span></div>
+      <div class="stat"><b>283</b><span>tests</span></div>
+      <div class="stat"><b>103</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>84</b><span>bugs fixed</span></div>
     </div>
@@ -936,6 +936,7 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
     <h3>Naming what is on offer</h3>
     <p>Three coloured shapes are not a choice. The pickups were told apart by tint alone, on the reasoning recorded in <code>SkillDefinition</code>: there is no room for a label on an object the size of a bullet, and no time to read one while dodging. That holds for the health drop, which is only ever something to go and get. It does not hold for an offer, where deliberating <em>is</em> the point.</p>
     <p><code>Pickup</code> still does not know what it grants. <code>Configure</code> takes a finished caption the same way it already took a finished colour, so one prefab serves every skill and the health drop alike.</p>
+    <p>Collecting one now spawns a burst, which it never had: <code>PickupSpawner.collectEffect</code> was marked optional and left empty from the day the field was added, so taking a pickup produced nothing at all. It is the pack's <code>EnergyExplosion</code>, chosen against the alternative for being <strong>cyan</strong> &mdash; every other bright thing in this arena is lava-warm, and the HUD is already cyan, so a reward reads as a reward rather than as something detonating. It fires one burst at <code>t&nbsp;=&nbsp;0</code> across four sub-systems, the longest of which lives two seconds, and retires itself at 2.42 &mdash; which is the check worth doing on any pooled one-shot, because a retire shorter than the effect cuts it off mid-flight.</p>
     <p>The banner text and the pickup text are separate fields, because they are read at different moments. <em>&ldquo;Attack Speed Increased!&rdquo;</em> is written to fire after the fact, and reads oddly floating above something nobody has touched yet:</p>
     <div class="scroll">
       <table>
@@ -1189,6 +1190,11 @@ emission  = hot * glow * veins;</code></pre>
     </div>
     <p>Emissive surfaces <em>cannot cast shadows</em> — shadows are rendered from a light's point of view, and an emissive material isn't a light. The lava's glow on surrounding rock comes from real area lights placed on the emitting surface.</p>
     <p>Those lights cast <strong>no shadows</strong> now. Seven of them throwing hard shadows through a lava pool were paying for shadow maps the emissive surface underneath was already accounting for, and five of the six still cast nothing. <code>Lava Light 2</code> is the exception &mdash; it casts again, and it is the light the Shadows row reaches alongside the sun. <code>maxShadowDistance</code> is still the range the directional light's four cascades are spread across rather than merely a fade-out distance.</p>
+    <div class="warn">
+      <div class="label">Those lights are at eight per cent of the brightness they were asked for</div>
+      <p>Every Lava Light in the scene carries <strong>238.732</strong> lumens, which is 3000 &divide; 4&pi; to three decimals. <code>LavaLightPlacer</code> set them through <code>HDAdditionalLightData.SetIntensity</code>, deprecated since 2023.3, which converts out of whatever unit the light is <em>currently</em> in &mdash; and a <code>Light</code> component added four lines earlier has not run its own initialisation, so it is still in a point light's default candela and the call quietly divides by 4&pi;. Asking for 9000 stores 716.2.</p>
+      <p>So the field said 3000 and the lights got eight per cent of it, and the arena's lighting was then tuned by eye around the wrong number. The tooltip asserted the opposite &mdash; that writing <code>Light.intensity</code> directly came out &ldquo;roughly a hundred times too bright&rdquo; &mdash; which was true of an older HDRP and is now backwards: <code>Light.lightUnit</code> and <code>Light.intensity</code> store exactly what they are given. The placer sets those, and its default became 238.7 so that re-running it reproduces the arena that exists rather than one ten times brighter. <code>BuildBossRig</code> had already found this and written a comment around it; the placer was still walking into it.</p>
+    </div>
 
     <h3>Shadows are a row, and the clouds only get half of it</h3>
     <p>One setting, Off to High, over what the scene authors rather than anything in the pipeline asset: the sun, <code>Lava Light 2</code> and the volumetric clouds. The two lights carry a marker component rather than being found by a search, because the one set the row must not reach is the bullet lights &mdash; those have the one-per-volley budget measured below, and a row raising every point light's resolution would spend six faces a light on shots the pool had deliberately kept cheap.</p>
@@ -1828,7 +1834,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>277 tests across 25 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>283 tests across 26 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -1854,6 +1860,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
           <tr><td><code>ArenaLaneTests</code></td><td class="num">6</td><td>a shot eases onto the player's lane without overshooting, and gets there before it has missed its chance</td></tr>
           <tr><td><code>BossSheddingTests</code></td><td class="num">6</td><td>wreckage is fed evenly to all three heights whatever order the pods died in</td></tr>
+          <tr><td><code>FireflyFieldTests</code></td><td class="num">6</td><td>that a firefly is placed inside the tree it belongs to, on a footprint that is not round, and that the birth rate cannot divide by zero</td></tr>
           <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
           <tr><td><code>ShadowLadderTests</code></td><td class="num">5</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, and that no tier defaults to Off</td></tr>
@@ -1881,7 +1888,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 277 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 283 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -1919,6 +1926,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <h3>Measure a change against a control, not against zero</h3>
     <p>A cloud-shadow ladder of 128, 256 and 512 looked live: stepping it moved about 5% of the frame. So does changing nothing. Two captures taken at the <em>same</em> setting differ by 4.5% of the frame, because volumetric clouds reproject and a still image of them is never quite still. Without that second capture the ladder would have shipped as a choice the player could make and never see. Anything measured on a temporally accumulated renderer wants an A/A before its A/B, or the noise floor gets read as the signal.</p>
 
+    <h3>A deprecated call can be wrong, not merely old</h3>
+    <p>Three <code>CS0618</code> warnings sat in the editor tools, and the reflex is to read those as tidying &mdash; the same call with a new name. One of them was not. <code>SetIntensity</code> was deprecated precisely because it converts out of the light's current unit, which is a footgun on a freshly created light, and it had been silently dividing every lava light by 4&pi; since the tool was written. Fixing the warning fixed a live bug that nothing else would ever have surfaced.</p>
+    <p>Two things hid it. A plain recompile reports <em>no scripts needed recompilation</em> and prints nothing, so the project reads as warning-free; only a clean rebuild lists them. And the console spans play sessions, so an entry sitting in it may be from an hour ago or from last week &mdash; two warnings chased on this project turned out to be neither live nor reproducible, and the time went on proving that rather than on the three that were. <strong>Check a console entry's timestamp before believing it, and force a clean rebuild before believing there are none.</strong></p>
+
     <h3>Preserve behaviour, flag the judgement</h3>
     <p>The boss's 2 EXP, the laser's fire rate, the 301-second cutoff, the <code>"SexTUPLO Shot!"</code> banner — all preserved exactly, all surfaced as things to decide. Three of those four have since been decided, which is the point: they were reachable as one field each when the moment came. Migration and rebalancing are different jobs, and mixing them makes both harder to review.</p>
   </section>
@@ -1938,6 +1949,16 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       frozen at <code>timeScale</code> 0, which is what made the captures comparable and also means the sun
       and the lava light at 2048 have never been timed in a run. If High costs frames on the tier a player is
       actually on, the tier defaults are the dial &mdash; they sit at Low, Low, Medium and High.</li>
+      <li><strong>The fireflies are built and archived, pending a decision.</strong> One particle
+      system placing every birth by hand across the seventy-three <code>arvore</code> meshes on the island,
+      so the swarm sits in the canopies rather than over the lava. Two measurements came out of it and both
+      generalise. <em>Brightness and colour trade off directly:</em> at an HDR start colour of
+      (3.5,&nbsp;5.5,&nbsp;0.8) the lit pixels measure hue 51&ndash;60 at saturation 0.44, and one step up at
+      (5.5,&nbsp;7.5,&nbsp;1.2) saturation collapses to <strong>0.04</strong> and they read white &mdash; so
+      presence past that point has to be bought with size rather than intensity. And <em>what held them in
+      the trees was the noise strength, not the placement:</em> at the strength they started with they sat
+      2.06 units from the nearest tree with 11% within a unit of any tree, against 0.57 and 90% once it came
+      down. They live at <code>Prefabs/VFX/Fireflies.prefab</code> and are in no build.</li>
       <li><strong>The wreckage reads only as a silhouette.</strong> The plates carry the boss's own hull
       material, which is nearly black; against the sky or the lava they are unmistakable, and against the dark
       island one can be lost. An emissive tint would fix it and would also be the first thing in the arena that
@@ -2021,7 +2042,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 300 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 303 commits
   </footer>
 
 </div>

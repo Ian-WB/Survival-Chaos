@@ -19141,7 +19141,7 @@ MonoBehaviour:
   healthLifetime: 20
   healthColor: {r: 0.3, g: 3, b: 0.90000004, a: 1}
   skillSelect: {fileID: 919132148744893763}
-  collectEffect: {fileID: 0}
+  collectEffect: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
 --- !u!4 &1185721726
 Transform:
   m_ObjectHideFlags: 0
