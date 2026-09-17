@@ -794,16 +794,17 @@ namespace SurvivalChaos.EditorTools
             // SetIntensity converts out of whatever unit the light is currently
             // in, and a light component added a few lines above has not run its
             // own initialisation yet - so it is still in the point light's default
-            // candela and the call quietly divides by 4*pi. Measured: asking for
-            // 9000 through SetIntensity stored 716.2, which is 9000/4*pi exactly,
-            // and the inspector then reads 716 lumens rather than the wrong-unit
-            // 9000 that would at least have been visible.
+            // candela and the call quietly divides by 4*pi. Measured again on
+            // 6.6: asking for 9000 through SetIntensity stores 716.2, which is
+            // 9000/4*pi exactly, and the inspector then reads 716 lumens rather
+            // than the wrong-unit 9000 that would at least have been visible.
             //
-            // Assigning HDAdditionalLightData.intensity is not the mistake
-            // LavaLightPlacer warns about; that one is Light.intensity, which
-            // bypasses HDRP's unit handling entirely.
-            data.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
-            data.intensity = PodLightLumens;
+            // These are Light's own properties now. HDAdditionalLightData.lightUnit
+            // and .intensity were deprecated in 2023.3 and forward to these, which
+            // is why the same two lines through the light read identically - 9000
+            // in and 9000 stored, measured both ways.
+            lamp.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
+            lamp.intensity = PodLightLumens;
             data.EnableShadows(false);
 
             // The arena's fog is dense enough to carry a glow now, so the pod

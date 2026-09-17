@@ -16200,7 +16200,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.TreeFireflies
   scenery: {fileID: 206122948}
   treeNamePrefix: arvore
-  firefliesPerTree: 4
+  firefliesPerTree: 2
 --- !u!199 &995960560
 ParticleSystemRenderer:
   serializedVersion: 7

@@ -48,11 +48,17 @@ namespace SurvivalChaos.EditorTools
         [SerializeField]
         private int lightCount= 14;
 
-        [Tooltip("Lumens per light. Set through HDRP's own converter, so this really is lumens - " +
-                 "assigning Light.intensity directly writes a raw internal value instead and comes " +
-                 "out roughly a hundred times too bright.")]
+        [Tooltip("Lumens per light, and really lumens: the light is given this value directly. " +
+                 "It used to pass through SetIntensity, which divided it by 4*pi on the way in, " +
+                 "so anything authored before that was fixed sits about 12.6x lower than it reads.")]
         [SerializeField]
-        private float intensity= 2500f;
+        // 3000/4*pi, which is what every Lava Light in the scene carries. The
+        // value is inherited from the division SetIntensity used to do rather
+        // than chosen, and it is kept because the arena's look was tuned with
+        // the lights at it - re-placing them should give back the scene that
+        // exists, not a scene 10.5x brighter that happens to use rounder
+        // numbers. Raise it deliberately now that the field means lumens.
+        private float intensity= 238.7f;
 
         [Tooltip("Colour of the emitted light. Keep it redder than the lava surface - bounced light reads warmer.")]
         [SerializeField]
@@ -240,11 +246,22 @@ namespace SurvivalChaos.EditorTools
                 data = go.AddComponent<HDAdditionalLightData>();
             }
 
-            // Go through HDRP's converter. Writing Light.intensity directly
-            // skips the unit conversion and lands a raw value in the pipeline,
-            // which is why this tool used to blow the scene out at its own
-            // default.
-            data.SetIntensity(intensity, UnityEngine.Rendering.LightUnit.Lumen);
+            // The unit first, then the value. This used to go through
+            // HDAdditionalLightData.SetIntensity, which is deprecated from
+            // 2023.3 and, on a Light component added four lines above, was
+            // quietly wrong: SetIntensity converts out of whatever unit the
+            // light is currently in, that light has not run its own
+            // initialisation yet, so it is still in a point light's default
+            // candela and the call divides by 4*pi. Measured on 6.6, asking for
+            // 9000 stored 716.2.
+            //
+            // Every Lava Light in the scene carries 238.732, which is 3000/4*pi
+            // to three decimals - placed back when this field read 3000 and
+            // scaled down by that division without anything saying so. Setting
+            // Light.lightUnit and Light.intensity stores what it is given, so
+            // the number in the inspector is now the number the light gets.
+            light.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
+            light.intensity = intensity;
 
             // A point light with a real emitter radius falls off over a shell
             // rather than from a singularity, so the near rock stops having a
