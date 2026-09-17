@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done": {"code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true}, "updated": "8 September 2026"}</script>
+<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true}, "updated": "16 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,17 +327,18 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-lightfixes",
-    title: "Play the light-fixes build",
-    effort: "one run, ~10 minutes",
-    lede: "<code>Builds/26_0908-0930_lightfixes/</code> is the first build carrying all four of the last day’s changes, and <strong>none of them has been played</strong>: the armoured act cut from 450 to 300, the boss’s bullet lights moved onto its rounds instead of sitting 2.66 units under them, the lance’s four prow muzzles staggered so they stop firing as one, and the light ceiling raised so they stop vanishing at close range. Four changes, one run — and four other things on this list are answered just by looking while you are already in there.",
+    id: "play-shadows",
+    title: "Play the 16 September build with god mode off",
+    effort: "one run, ~20 min",
+    lede: "Built on 16 September as <code>Builds/26_0916-1349_shadows</code> from commit <code>1f83958</code>, debug menu in. It supersedes the 14 September build, which was never played, so <strong>everything that was in that one is in this one</strong> — plus two things of its own.</p><p><strong>Shadows are a setting.</strong> A row on the Graphics screen, Off to High, reaching the sun, the lava light that casts and the clouds. Off is not the quiet rung it sounds like: with nothing occluding the lava light the whole island reads flat and washed out.</p><p><strong>The lightmaps are compressed.</strong> You rebaked at High Quality compression, which took the build from about 857 MB to 684. If it costs anything it shows as banding on large smooth gradients.</p><p><strong>Scale.</strong> The player and the normal enemies are half size, and now their rounds are too, with volleys packed at half the spacing. Your radius offset of 5 moves the whole lane to 18.72: enemies, boss, pickups and camera go with it.</p><p><strong>Hits.</strong> Three separate reasons a round could miss are fixed: enemies that settled off the lane, Enemy 1 and Enemy 2 sitting above or below your line of fire, and rounds skipping straight through hitboxes between physics steps, which a held-target test put at about one round in three. With the sweep in, 98% or more connect.</p><p><strong>The rounds.</strong> An energy needle with a rigid streak behind it. The streak is geometry that moves with its round, because every trail built from past positions drifted under FSR, which is what your settings run.</p><p>God mode stayed on in the last playtest, so whether the boss is a threat and whether the fight is the right length are both still open. This run is the one that answers them.",
     watch: [
-      "Does the fight still run long, now the armoured act is a third shorter? That act was half the whole health bar, which is why the cut landed there alone and nothing else moved.",
-      "Are the boss’s rounds lit at the round rather than under it — and do the lights stay put as bullets pass each other, instead of hopping between them?",
-      "Does the lance read as four muzzles now, or still as one smear? That decides the lance item below.",
-      "Can you find the red pods against the orange lava? That answers the pod item below, which has been open since they turned red.",
-      "Does Enemy 3 disappear against the dark island? That answers the silhouette item below.",
-      "Anything odd late in the run — enemies dying to one hit, an enemy setting off the wrong way round the ring, Enemy_1 firing faster than it should. That is the pooling soak, for free."
+      "Turn god mode off. Does the boss feel like a threat now, and does the fight still feel the right length?",
+      "Step the Shadows row from Off to High. Watch the sun’s shadow edges and whether the island keeps its depth. High puts the sun and the lava light at 2048, so if it costs frames the tier defaults are the thing to move.",
+      "Look for banding on the flat terrain and the ruin walls — that would be the new lightmap compression. Mottling on the ruins is not: that predates the light changes and is expected.",
+      "Watch the boss rounds against the smaller ship. If they reach your height too late to matter, RoundLaneResponse 6.6 restores the old timing.",
+      "Climb, dive and dash while firing. The streaks should stay straight behind their needles; anything tilted or ghosted is worth a screenshot.",
+      "Shoot Enemy 1s and Enemy 2s at your own height. Rounds should land every time now, so a clean miss on a still target means something is still wrong.",
+      "Keep judging the camera: field of view 80 and camera offset 5 are what this build carries."
     ]
   };
 
@@ -364,6 +365,17 @@
             "Done, twice. The 7 September run reported both acts as easy, which is what the retune answered; the 8 September build was played to check the pause, debug and ending fixes.",
             "A third run on 8 September said it felt good but ran long. That is what cut the armoured act from 450 to 300 and the boss from 900 to 750 — that act alone was half the whole bar, and the only one that made you fly between three heights, so it owned a disproportionate share of the clock.",
             "Everything the fight is tuned to now came out of those runs rather than out of a probe with the ship parked."
+          ]
+        },
+        {
+          id: "play-islandsplit",
+          title: "Build the current state and play it",
+          effort: "a build + one run, ~25 minutes",
+          why: [
+            "Done on 11 September, on <code>Builds/26_0911-1350_fogbake_cheats</code>: commit <code>29c9df5</code> with the debug menu in, skipped to the boss, god mode on. You answered through a page rather than out loud: <a href='https://claude.ai/code/artifact/55981164-2b84-46de-ad57-cb81e40d86c0'>Fogbake Playtest</a>.",
+            "<strong>Settled, with nothing to do:</strong> the island split stays, since you could not tell the difference and it costs nothing. The fight is the right length, so the health numbers stay. And you always found the pods. The pod and lance decisions below both close on this run.",
+            "<strong>Turned into work,</strong> each its own item: the fog flicker and cost (now at the top), the lance as energy, clearer warnings on the boss’s attacks, the Armoured act’s fire taking different routes, the ship’s handling, the dash, a thruster effect for the ship, and a proposal to shrink the player and small enemies by a quarter.",
+            "One caveat runs through all of it: <strong>god mode was on</strong>. A fight you never have to dodge is a fight you finish faster, so ‘right length’ is a floor rather than a measurement, and a boss that cannot hurt you is scenery almost by definition. Both of those answers want one run without it before much is built on them."
           ]
         },
         {
@@ -398,25 +410,61 @@
           effort: "2 min to decide",
           why: [
             "The pods were green until 5 September, and the comment written when they turned red flagged the cost at the time: a red pod against orange lava is a harder read than a green one was, and this would be the first thing to question if the armoured phase turned out to be hard to aim at.",
-            "On 8 September a second pass reached the same diagnosis from scratch and moved every hostile thing off orange — pink fire, green pods. You reverted it, and its version did wash a third of the island green. But that rejects the execution, not the diagnosis. If you were hunting for pods, there is a much smaller version: keep the red and drop <code>PodLightLumens</code> from 9000, so the target reads without the arena changing colour."
+            "On 8 September a second pass reached the same diagnosis from scratch and moved every hostile thing off orange — pink fire, green pods. You reverted it, and its version did wash a third of the island green. But that rejects the execution, not the diagnosis.",
+            "The lever this item used to name has moved. <code>PodLightLumens</code> was 9000 and is now 90, because every light divided by a hundred when the world divided by ten — and the pod lights’ <code>range</code> came down from 60 to 6 on top of that, since range is the one light property that does not ride the boss transform. So the pods are already dimmer and tighter than the ones you were judging. Whether they read is a fresh look now, not the old one.",
+            "Inspected on 10 September, in the editor rather than in play. Beside the dark hull they are conspicuous — and shape and placement are doing more of that work than colour is. But their cores measured bright yellow-orange with red halos, which is most of the lava’s own range.",
+            "Then seen in the boss fight the same day, and <strong>the cause is not what either previous attempt assumed</strong>. Brightness was never the problem — the pods are among the brightest things on screen. Nor is hue: their emissive measures <code>(1.00, 0.04, 0.02)</code>, near-pure red, and <em>more</em> saturated than the boss’s own rounds at <code>(1.00, 0.23, 0.01)</code>. What fails is intensity. The cores blow out to white-yellow in the tonemapper, which is exactly what the lava fountain blows out to, so hue survives only in the halo and a pod crossing the lava stops being separable from it.",
+            "So the lever is exposure or emissive intensity, not colour — a different fix from both the red and the green, and one that leaves the palette alone.",
+            "<strong>Closed by the 11 September playtest: you always found them.</strong> So the brightness cut this item was building toward is not needed, and the pods stay exactly as they are. If a later run loses them over the lava, the cause and the lever are both written above."
           ]
         },
         {
           id: "lance-legibility",
-          title: "Decide whether the lance stream can be told apart",
+          title: "Decide whether the lance beam reads",
           effort: "2 min to decide",
           why: [
-            "The lance throws forty rounds over 0.6s from four prow muzzles sitting 0.53 to 2.37 units apart. Each round is 12.86 units long and travels at 80, so consecutive shots leave 0.16s apart and far closer together than their own length — they overlap by construction, which is why it looked like the bullets were glued to each other.",
-            "Staggering the muzzles by 0.02s unstacked the four that were firing as one, and that was the half of the problem timing could reach. Nothing about cadence can separate the stream itself: at that length and that speed the rounds cannot help but touch. If it still reads as one smear, the fix is a shorter round — and that changes how the weapon looks, so it is your call rather than mine."
+            "The forty rounds are gone. They could not be separated by construction: each round was longer than the gap between consecutive shots, so they overlapped whatever the cadence did, and staggering the four prow muzzles only reached the half of the problem timing could touch.",
+            "What replaced them is one drawn arc — a single beam with a leading end and a tail 12.8 units behind it, which is exactly the ground the stream used to cover. Chording it straight would have put it 1.58 units off the true arc at this radius, so it is bent along the ring.",
+            "Inspected on 10 September against both the sky and a darker background: one continuous orange arc with a defined core and edges, clearly distinct from the separate rounds near it. That is the design question answered — it is a beam, not a smear.",
+            "Seen firing on 10 September, in the boss fight, for the first time in any build. <strong>It reads.</strong> A solid, hard-edged bright bar, unmistakable at a glance and nothing like a smear. The legibility question this item was built around is answered.",
+            "What is left is taste rather than legibility: it reads as a solid plank more than as energy — uniform fill, hard edges, no falloff along its length. That may be exactly right for a siege weapon, which is why it is still your call and not mine.",
+            "<strong>Decided on 11 September: energy.</strong> The work is its own item now, ‘Make the lance read as energy’."
+          ]
+        },
+        {
+          id: "scale-down",
+          title: "Decide whether to shrink the player and small enemies by a quarter",
+          effort: "5 min to decide",
+          why: [
+            "From your playtest note: the arena and the boss feel small, so maybe cut the player and the small enemies by 25%. It goes after the same feeling the 10× world was chasing, by the cheap route. The world keeps every number it has and simply gets bigger around the things you watch.",
+            "What it costs, before you pick. Hitboxes shrink with the models unless they are kept on purpose, so a smaller ship dodges more easily and smaller enemies are harder to hit. That makes it a difficulty change as well as a look. It also shrinks the ship against the 8.9-unit flight band, which should make the band feel taller, possibly the best part of it.",
+            "Cheap to try either way. Model scale lives in the importer now, so it is one number per model plus a decision about colliders. It wants a build to judge rather than a still.",
+            "<strong>Decided and done on 11 September, at half rather than a quarter.</strong> The player and the four normal enemies are 0.5; the boss, the bullets and the arena are untouched. Done through the importers: Scale Factor ×0.5 on the five ship models, each of which has exactly one user.",
+            "Two prefabs were detached copies of their models, the trap that once collapsed the arena into a heap: <code>PlayerSpaceShip</code> and the base <code>Enemy</code>. Both were re-attached first, with the base enemy’s hand edits carried across as overrides (a flipped spike, a hidden one, a slight stretch). A snapshot proved nothing moved. Then everything the prefabs author themselves was halved: hitboxes, gun pivots, and where each model sits under its root. A second snapshot proved every mesh, hitbox and pivot came out at exactly half.",
+            "<strong>Hitboxes shrank with the ships,</strong> so this is a difficulty change as well as a look. You are harder to hit, and the enemies are harder to hit too. Against the boss, the band where a round can touch you narrowed from about ±0.33 to ±0.21, so a round from its outermost gun takes about 0.36 s to become dangerous instead of 0.275. The boss’s own numbers are unchanged. <code>RoundLaneResponse</code> 6.6 would restore the old timing if the fight goes soft.",
+            "On 14 September the rounds followed the ships to half size, and the player’s radius offset became an offset for the whole lane. Both are their own items."
           ]
         },
         {
           id: "enemy3-silhouette",
-          title: "Decide how to make Enemy 3 readable",
+          title: "Decide how to lift enemy contrast against the island",
           effort: "2 min to decide",
           why: [
-            "Its body is <code>(0.00, 0.03, 0.00)</code> — near black. Against the dark island it is a silhouette, which is the one enemy that genuinely disappears.",
-            "The magenta accent was tried and you rejected it for killing the original look, so this needs your call rather than another attempt: lift the base value slightly, add one bright plate as an accent, or a rim-fresnel shader that keeps every colour as it is and only lights the edges. Leaving it is also an answer."
+            "This item was about Enemy 3 alone. The measurement says that was the wrong target.",
+            "Measured on 10 September by rendering each frame twice — once with a type hidden — and diffing, which yields the object’s exact pixels and the true background behind them. Two earlier attempts that sampled a patch against a ring of background pixels gave <em>opposite</em> answers depending on the ring radius, and were thrown out rather than reported.",
+            "<strong>Enemy 3 and Enemy 2 measure the same.</strong> Weber contrast 0.072 against 0.070. Mean absolute contrast 0.228 against 0.206. 42% of Enemy 3’s footprint under 0.10 contrast against 41% of Enemy 2’s. Enemy 3 is not the outlier — every enemy sits at roughly the same low contrast, with about two fifths of its area effectively invisible against whatever is behind it.",
+            "Which is why the magenta accent was wrong twice over: aimed at one enemy when the problem is general, and changing hue when the shortfall is luminance. The levers that reach all of them at once are a rim light, a shared floor on base value, or an outline. Which one is your call — the last attempt was rejected on look, and that judgement still stands.",
+            "One thing that is <em>not</em> causing it: the new fog. At the denser setting 30% of enemy pixels fall under 0.10 contrast, against 39% at the old one. Denser fog helps slightly, by lifting the distant background away from dark foreground shapes."
+          ]
+        },
+        {
+          id: "camera-framing",
+          title: "Settle the camera angle, distance and lane offset",
+          effort: "a few runs",
+          why: [
+            "You are tuning this by hand, and the numbers have moved several times since the ships were halved: field of view 65 → 75 → 70 → 80, camera offset 10 → 5 → 6 → 5, and the player’s offset 2 → 5.",
+            "The player’s radius offset now moves the whole lane, so it is a real design dial rather than a way to strand the ship. Waves spawn from 21.45 out, so offsets up to about +7.7 keep every arrival outside the lane. At +5 the boss’s emplacements sit about 0.17 inside it, well within their hitboxes.",
+            "Tick this once the view feels right. Nothing else waits on it."
           ]
         }
       ]
@@ -427,12 +475,207 @@
       note: "Just say go",
       items: [
         {
+          id: "fog-tiers",
+          title: "Steady the fog and cut its tiers to budgets it can afford",
+          effort: "one run, ~15 min",
+          why: [
+            "Built on 11 September as <code>Builds/26_0911-1509_fogtiers</code>. Denoising became <code>Both</code>, which adds reprojection, so the fog’s samples jitter and blend instead of sitting still on screen while the sun’s shadows crawl through the bare trees. Every volumetric tier shares one budget ladder, 0.166, 0.25 and 0.333, which took Ultra’s default fog from about 18.5 ms to about 6.7 on your RX 6700 XT.",
+            "<strong>Judged on 14 September: the flicker looks fixed.</strong> You asked for an Ultra fog tier above High, then cancelled it before anything was built."
+          ]
+        },
+        {
+          id: "shadows-row",
+          title: "Add a Shadows setting to the Graphics screen",
+          effort: "3 h",
+          why: [
+            "Done on 16 September. A row from Off to High on the Graphics screen of both menus, reaching the scene’s own casters — the sun, the one lava light that casts, and the volumetric clouds — and nothing in the pipeline asset.",
+            "The lights take one of the tier’s own shadow resolution levels, so a tier still decides what Low means on it: on Ultra that is 512, 1024 and 2048. Never the tier’s top level, because a point light draws six faces and six at 4096 outgrow an 8192 atlas. Off stops the light casting and remembers whether it cast hard or soft, so coming back up restores what the scene authored rather than a guess.",
+            "It reaches the two named lights through a marker component rather than by finding every shadowed light, because the one set it must not touch is the bullet lights — <code>BulletLightPool</code> budgets those itself, one volley’s worth.",
+            "<strong>Off is the loudest rung, not the quietest.</strong> Seen in play: with nothing occluding the lava light, the tree line, the far plateau and the ruins are all lit, and the island loses the contrast that reads as depth. It is a contrast change more than an edge-sharpness one. Tier defaults are Low, Low, Medium and High, and Off is three presses from the default rather than one — this row clamps at its ends where every other row wraps.",
+            "<strong>The clouds only got an on/off, and that was measured rather than assumed.</strong> A 128/256/512 ladder was built first, then tested by holding the lights still and moving only the cloud resolution: 128 against 512 changed 5.0% of the frame by under 8 of 255 everywhere it touched. The control — two captures at the same 512 — changed 4.5% of it, because the clouds reproject across frames. The whole ladder sat under the renderer’s own noise, so it was collapsed to the 256 the scene was authored with."
+          ]
+        },
+        {
+          id: "player-round-look",
+          title: "Redesign the player’s rounds",
+          effort: "a spec + ~3 h",
+          why: [
+            "The rounds were Unity’s primitive capsule on a flat lime material, and they read as cheap. ChatGPT wrote two specs from one brief; the medium-effort one, a double-ended energy needle, won on the numbers, because its hot core stays several pixels wide at gameplay distance where the other’s was one to three.",
+            "Built from a hand-written shader graph, <code>PlayerRound.shadergraph</code>, and a generated mesh, both made by <code>PlayerRoundBuilder</code>. It started at the spec’s 0.32 by 0.048, which read too small in play, and is now 0.48 by 0.077. The bullet lights came back up to intensity 16, range 3.5 and fog dimmer 0.4 after the spec’s values left the shots no presence in the fog. Shadows stay on two volleys.",
+            "A trail followed, and took three tries. A TrailRenderer drifted off its needle whenever the camera climbed or fell. Excluding it from TAA changed nothing, and giving it motion vectors turned the round into a dragonfly. Capturing mid-climb with each effect switched off in turn found the real cause: <strong>your settings run FSR</strong>, and FSR moved the trail’s pixels by the motion of the island behind it. What works is a rigid streak, two crossed quads 1.2 units long that move with the round and write their own motion vectors, exactly as the needle does, and the needle was clean in every capture."
+          ]
+        },
+        {
+          id: "round-scale",
+          title: "Halve the rounds to match the half-size ships",
+          effort: "20 min",
+          why: [
+            "The ships were halved on 11 September but their rounds were not, so every shot read oversized against the ship that fired it. The player’s rounds and the normal enemies’ went to half on 14 September, and so did the gap between rounds in a volley, 0.4 to 0.2, so the smaller enemies cannot slip between them.",
+            "All of it on the root transform rather than the importer: the player’s rounds are Unity’s capsule, and the enemy shot model is shared with the boss’s rounds, which had to keep their size."
+          ]
+        },
+        {
+          id: "lane-offset",
+          title: "Make the player’s radius offset move the whole lane",
+          effort: "1 h",
+          why: [
+            "The offset used to move the ship alone, off the 13.72 lane everything else was hard-wired to, which left a ship nothing could hit and that could hit nothing. Now it moves <code>ArenaGeometry.LaneRadius</code>, and the enemies, the boss with its rounds and lance, the pickups and the ship’s speed all follow. The camera’s own offset counts from the moved lane.",
+            "Checked in play at offset 5: the ship, every orbiting enemy and all 24 boss rounds sampled sat at 18.72, and the boss hull at 18.70. Changing the offset during play re-snaps the ship and camera at once."
+          ]
+        },
+        {
+          id: "enemy-landing",
+          title: "Land enemies exactly on the lane",
+          effort: "30 min",
+          why: [
+            "An enemy approached until it crossed the lane and then orbited at whatever radius that step ended on. One long frame carried an Enemy 2 0.80 inside the lane, where it stayed for the rest of its life, twice its own hitbox’s reach from your rounds.",
+            "Enemies and obstacles now land on the lane on the frame they cross it, and orbiting enemies ease back onto it, which also lets them follow the lane outward during play."
+          ]
+        },
+        {
+          id: "hit-tunnelling",
+          title: "Stop rounds skipping through hitboxes",
+          effort: "1 h + a test",
+          why: [
+            "You saw a still round miss a still enemy that the round before had hit. Rounds move every frame, but hits are checked 50 times a second, and at the 18.72 lane a round covers 0.98 units between checks, more than the halved enemies’ hit windows of 0.69 to 0.89.",
+            "Each round now sweeps its hitbox along the stretch it moved since the last check, and gives anything it passed straight through the same hit the physics system would have. Measured with the waves stopped and a held target stepped through one gap in tenths: <strong>45 to 99% of rounds hit without the sweep, 98% or more with it.</strong> Hostile fire gets the same fix."
+          ]
+        },
+        {
+          id: "enemy-height-hits",
+          title: "Make enemies hittable at your own height",
+          effort: "30 min",
+          why: [
+            "With the radius fixed, the misses left were height. Enemy 1’s model hung 0.52 above its own pivot, which is the height it chases, so its body sat above your line of fire; its model, guns and hitbox moved down together. Enemy and Enemy 2 had hitboxes only 0.24 tall after the halving and matched your height slowly, so the lag carried them over or under a single shot.",
+            "Your call was both fixes: their hitboxes doubled to 0.48, taller than the models on purpose, and Enemy 2’s height chase became four times faster. A held-target test killed Enemy 1 and Enemy 2 at your height and Enemy 2 at +0.2, and missed both at +0.4."
+          ]
+        },
+        {
+          id: "dash-feel",
+          title: "Shorten the dash’s climb and put its ready signal on the ship",
+          effort: "30 min + a run",
+          why: [
+            "The playtest said the dash is hard to read and ‘travels too much space’. Both check out. A dash is 0.22 s at 5× a 7 u/s ship, so <strong>7.7 units</strong>. Straight up or down that is <strong>87% of the 8.9-unit flight band</strong>: one dash crosses nearly every height you can fly at. Move Speed picks multiply it too, so it grows over a run.",
+            "<strong>The sideways half cannot come down.</strong> <code>PlayerDash</code> is sized to carry you through the ram, the one attack whose only counter is dashing through it: 7.45 units of invincible travel against a hull 7.05 units wide. That is a 0.4-unit margin, and any cut to <code>duration</code> or <code>speedMultiplier</code> leaves you stopping inside the boss.",
+            "So the lever is the vertical half on its own. <code>PlayerMovement</code> applies the dash to both axes with one scale, so this means giving the climb its own, smaller multiplier. Check it against the lance’s height tolerance, since a vertical dash is how you leave a beam’s height. One question for you: was it the climb that felt too far, or the sideways burst?",
+            "The ready signal is the same problem as the thrusters below. <code>DashBar</code> is a HUD bar, away from where your eyes are, and its 1 s cooldown is gone before a glance at the corner lands. A flare on the ship that relights when the dash is back puts it where you are already looking, so this item and that one share their last step.",
+            "<strong>The climb is built</strong> (commit <code>6d74aac</code>). It has its own multiplier now, 2.9, so a vertical dash covers about 4.47 units: one of the boss\u2019s three bank heights to the next, which sit about 4.45 apart. The ring distance stays 7.7 for the ram, and the lance only ever needed half a unit. The ready signal on the ship is still open and rides with the thrusters.",
+            "<strong>Judged on 14 September:</strong> the shorter climb looks okay, and you expect visual feedback on the ship to do most of what is left, so the ready signal carries on in the thrusters item."
+          ]
+        },
+        {
+          id: "ship-handling",
+          title: "Make the ship answer the controls faster",
+          effort: "15 min + a run",
+          why: [
+            "You picked sluggish, and the answer said ‘make it accelerate harder’. That was wrong: <strong>the ship has no acceleration</strong>. <code>PlayerMovement</code> sets its speed straight from input × 7 u/s every frame. So sluggish is one of two things, and which depends on how you played.",
+            "<strong>On keyboard the input ramps.</strong> <code>InputSystemGameInput</code> copies the old Input Manager’s defaults, so a key takes a third of a second to reach full speed and another third to stop after you let go. Raising both from 3 to 6 halves that. A pad’s stick skips the ramp entirely.",
+            "<strong>On either, top speed is 7 u/s</strong>, a 12.3 s lap of the 86-unit ring. If it felt slow on a pad, top speed is the lever: <code>orbitSpeed</code> and <code>climbSpeed</code>, changed on the ship and the camera together, because they keep formation only by carrying the same numbers.",
+            "One thing I need from you: keyboard or pad?",
+            "<strong>Keyboard, and built</strong> (commit <code>6d74aac</code>): the ramp went from 3 to 6, a sixth of a second to full speed and a sixth to stop. Top speed is untouched. Both 11 September builds carry it, <code>26_0911-1434_feel</code> and the fog build, so one run judges it.",
+            "<strong>Judged on 14 September: it looks okay.</strong> Top speed stays where it is."
+          ]
+        },
+        {
+          id: "lane-tests",
+          title: "Bring ArenaLaneTests down to the 1\u00d7 world",
+          effort: "15 min",
+          why: [
+            "Two EditMode tests have failed since 9 September, and not because of the game. <code>ArenaLaneTests</code> still hard-codes positions from the 10\u00d7 world: a start at 131.6, a bound of 148, a quarter-second threshold of 3.29, all against an <code>OrbitRadius</code> that is 13.72 now. 270 of 272 pass; these two fail on their own numbers.",
+            "The fix is to derive them from <code>ArenaGeometry.OrbitRadius</code> rather than divide them by ten, so the next change of scale cannot break them the same way.",
+            "Done on 11 September: <strong>272 of 272 pass.</strong> Every position is now a distance from <code>OrbitRadius</code>, taken from what <code>BuildBossRig</code> measured on the rig: the outermost muzzle 1.30 outside the lane, the innermost 0.56 inside, a hittable band 0.33 either side. One test was also misnamed. It claimed a quarter second but ran eighteen frames, 0.3 s, and at a true quarter second the worst muzzle’s shot is not yet in the band, since the rig’s own figure is 0.275. It says three tenths now. Later the same day the player was halved, which narrowed the band to 0.21 and the time to about 0.36 s, so it checks four tenths."
+          ]
+        },
+        {
+          id: "ship-thrusters",
+          title: "Give the ship thrusters that show what it is doing",
+          effort: "1–2 h",
+          why: [
+            "From your playtest note: the ship needs something on it that shows when it is accelerating, going backwards or dashing, like small rocket flares. Nothing does that now. There is no thruster, exhaust or trail anywhere in the code; the ship only leans, through <code>SpaceShipPitch</code>.",
+            "The inputs already exist. <code>PlayerMovement.EffectiveHorizontal</code> and <code>EffectiveVertical</code> give the steering actually being applied, dash heading included, and <code>PlayerDash.ReadyFraction</code> gives the cooldown. What is missing is the art: small emissive flares in the player’s own colour, so they can never be mistaken for hostile fire, which is all warm now.",
+            "It pays twice. The dash-ready signal belongs here too, so this carries the last step of the dash item.",
+            "On 14 September you said visual feedback will do most of the work for the handling and the dash, which makes this the next thing that changes how the ship feels."
+          ]
+        },
+        {
+          id: "lance-energy",
+          title: "Make the lance read as energy",
+          effort: "1 h",
+          why: [
+            "Your call on 11 September. It reads as a plank because it borrows the plain round’s material: <code>BossLanceBeam</code> copies <code>tiro1</code>’s single material onto its own mesh, so it gets one bullet’s flat emission stretched over 12.8 units.",
+            "Energy wants a material of its own: a fade toward the tail, a hotter core along the centre line, and a slow pulse running tip to tail. The mesh is built in code, so it can carry UVs along its length to drive all three. The hitbox stays where it is. This changes how it looks, not where it hurts."
+          ]
+        },
+        {
+          id: "boss-tells",
+          title: "Give the boss’s ordinary volleys a warning",
+          effort: "1–2 h",
+          why: [
+            "The playtest said the boss reads as scenery, not a threat, and the answer you picked says what to do: clearer warnings before it hits, not more damage. A boss feels dangerous when you can see it coming and have to answer it.",
+            "The charges already warn you. The emplacement swells for 1.2 s before a lance or a ram, and the hull flashes before the ram. But that telegraph setting covers only the Lance and the Ram. The ordinary volleys, which are most of the Armoured act, arrive unannounced. A muzzle glow that builds before a volley would make each bank’s fire something you react to rather than something you fly through.",
+            "The routes item below reworks the same fire, so the two belong in one pass. And god mode was on for this answer, which weakens it: one run without it first."
+          ]
+        },
+        {
+          id: "boss-routes",
+          title: "Send the Armoured act’s fire along different routes",
+          effort: "1–2 h",
+          why: [
+            "Your note: the discs and bullets merge into one lane, and they should each take a different route. That is exactly what the code does. Every boss round eases onto the ring (<code>RoundLaneResponse</code> 5, so even the worst-placed of the 32 muzzles is in the band after 0.275 s), then holds the height it was fired at for the rest of its flight. A bank’s fire settles into flat horizontal streams.",
+            "You only ever fly on the ring, so ‘different routes’ here means different paths through height and direction: rounds that climb or dive as they travel, pairs that cross, some that come the other way round.",
+            "One constraint to keep. Armoured is a fight about height: each emplacement sits at its bank’s height, and killing it means flying there. Routes that sweep across every height would erase that, so the ones worth trying weave within each bank’s own height rather than leaving it."
+          ]
+        },
+        {
+          id: "fog-scale",
+          title: "Bring the fog down to the 1× world",
+          effort: "10 min + a look",
+          why: [
+            "Done on 10 September — and the diagnosis this item was carrying was wrong, so it is worth saying what actually happened. The numbers <em>had</em> come down with the world; the 9 September rescale re-authored them rather than dividing them. And <code>baseHeight</code> 0 against <code>maximumHeight</code> 50 turned out to be well chosen: 0 sits on the island’s ground plane, and across the flight band from 4.42 to 13.32 the density falls from 0.54 of maximum to 0.16. That is a real gradient, not the flat ramp this item claimed.",
+            "What was actually wrong was density, and it traces to a single digit. The 4 September fog rebuild set out to take <code>meanFreePath</code> from 1000 to 150 — its own commit message says so, and explains why — and what landed in the file was 1500. The fog got <em>thinner</em> instead of 6.7× denser. Nothing downstream knew: the same commit dropped the seven lava lights’ <code>volumetricDimmer</code> from 7 to 1 on the stated grounds that the fog was now 6.7× denser and would carry the glow by itself. It never was. They have been under-glowing ever since.",
+            "<code>meanFreePath</code> is now 15 — which is 100 ÷ 6.67, so it finally delivers the density the lava lights were already retuned against, and they need no change of their own. <code>depthExtent</code> 100 → 60, because the froxel slices were spread over more than twice the distance anything occupies; the far edge of the island is about 45 units out. <code>maxFogDistance</code> 5000 → 64, which stops mattering when fog is thin and decides how much skybox survives when it is not.",
+            "Verified the same day, in edit mode and then in play. <strong>The skybox survives it</strong> — cloud structure and stars stay legible at every altitude, and the lava now underlights the cloud base, which it was not doing before. The glow arrived right rather than too strong: there is a warm plume standing in the air above the cone, which is the volumetric behaviour the seven lava lights have been tuned for since 4 September without ever receiving it.",
+            "The altitude gradient came out stronger than intended, and in a good way: a low pass near the lava is thick warm murk, a high pass is near-clear with a horizon. That falls out of <code>baseHeight</code> and <code>maximumHeight</code> untouched. And it costs nothing in legibility — measured against the old density, 30% of enemy pixels fall under 0.10 contrast now against 39% before.",
+            "That last call went to you, and you took it: <strong><code>meanFreePath</code> is 20</strong>, not the 15 I left. It is the better number. At 15 the low pass was soup — island barely readable, sky detail gone; at 20 the ruins read on both sides, the silhouette stays clean, the stars and cloud structure come back at every altitude, and the plume above the cone survives. <code>depthExtent</code> 60 and <code>maxFogDistance</code> 64 were kept, and <code>altitudeRange</code> went 5000 → 6000 alongside.",
+            "So the fog was settled apart from how it feels in motion, and the 11 September run answered that: the density is right, the quality tiers are not. That became ‘Steady the fog and cut its tiers to budgets it can afford’, and on 14 September you judged the flicker fixed."
+          ]
+        },
+        {
+          id: "placer-divergence",
+          title: "Decide whether LavaLightPlacer is still the source of truth",
+          effort: "10 min",
+          why: [
+            "The tool and the scene have drifted apart, and nothing in either says so. Every lava light in the scene carries <code>shapeRadius</code> 5. <code>LavaLightPlacer</code> has clamped that to 0.2–1.5 since 10 September, when the clamp came down with the world — and the placer has never been run since, so the clamp has never actually been exercised.",
+            "It is not only the radius. The placer lays down <strong>fourteen</strong> point lights; the scene now has <strong>six</strong>, hand-tuned, one of them removed by you during the rebake. Running the tool today would discard that set and rebuild the lava lighting from scratch, which is a much bigger action than its menu item suggests.",
+            "Two honest ways out: mark the placer as superseded in its own doc comment so nobody reaches for it expecting a tweak, or treat it as the source of truth, bring its constants in line with the six lights that survived, and re-run it deliberately. Either is fine. Leaving it silent is the one option that eventually costs someone an afternoon."
+          ]
+        },
+        {
+          id: "spawn-direction",
+          title: "Catch enemy spawn direction at the instant it spawns",
+          effort: "20 min",
+          why: [
+            "The one pooling defect the soak could not reach. <code>EnemyMovement</code> restores <code>authoredDirection</code> in <code>OnEnable</code>, and that is the fix; what is unverified is that the restore actually holds, because the chase overwrites direction from bearings on the very next frame. Polling from outside can never see the difference.",
+            "It wants one temporary line recording <code>leftOrRight</code> inside <code>OnEnable</code> against the prefab’s authored value, a few minutes of run, and then taking the line back out. Small, and it closes the last third of a question the rest of which is now answered."
+          ]
+        },
+        {
+          id: "shot-bloom",
+          title: "Check whether enemy shots read against the lava",
+          effort: "20 min",
+          why: [
+            "A low-confidence observation from the 10 September run, written down so it is not lost. By render diff, an enemy projectile’s visible footprint is <strong>91% bloom halo</strong>, and that halo averages the same luminance as the background behind it. The solid core is the other 9% and peaks at 3.65× background — bright, but small.",
+            "Against the lava that is the pod problem in miniature: a warm glow on a warm glowing background. One frame and a handful of bullets is nowhere near enough to call it, which is why this is a measurement to repeat rather than a finding to act on. If it holds it lands next to the pod fix, because it has the same cause.",
+            "The pods passed in play on 11 September, which makes this less likely to matter. It is the same cause, and the bigger target turned out fine."
+          ]
+        },
+        {
           id: "cloud-bank",
           title: "Switch the cloud bank back on",
           effort: "15 min",
           why: [
             "Done. It was off with <code>m_IsActive: 0</code> because a bake needed it out of the way, and it never went back on — so the sparsity work you tuned wasn’t being rendered by anything.",
-            "It came back at 600×220×600 rather than the 2000 it had drifted to, tiling 2×1×2, against a mask rebaked at 128³ so the features are smaller than the tile. The first attempt at 6×2×6 had a pattern you could read."
+            "It came back at 600×220×600 rather than the 2000 it had drifted to, tiling 2×1×2, against a mask rebaked at 128³ so the features are smaller than the tile. The first attempt at 6×2×6 had a pattern you could read. Those figures are pre-rescale; the bank divided with the world like everything else."
           ]
         },
         {
@@ -440,8 +683,26 @@
           title: "Try the cloud bank with the drift switched off",
           effort: "5 min",
           why: [
-            "<code>ArenaCloudBank.driftSpeed</code> is 8, down from 25, because the texture sliding was the thing you could see. Slower is quieter, but it is the same tell.",
+            "<code>ArenaCloudBank.driftSpeed</code> is 2.5 — it was 25, came down to 8 because the texture sliding was the thing you could see, and then divided again with the world. Slower is quieter, but it is the same tell.",
             "At 0 the banks hold still and all the parallax comes from your own orbit instead — which is motion the player is causing rather than motion happening to them. Untried; it is one field."
+          ]
+        },
+        {
+          id: "readme",
+          title: "Write the README",
+          effort: "20 min",
+          why: [
+            "<code>README.md</code> is sixteen bytes: the repository name and nothing else. It is the first and often only thing anyone opening the project sees.",
+            "Everything a reader would want already exists and none of it is linked from the front door — the rebuild reference, the agent guide, the boss dossier, the graphics and audio notes. This is mostly a matter of pointing at what is already written, plus the two things nowhere records: what the game is, and that it was a five-person 2023 jam project rebuilt solo."
+          ]
+        },
+        {
+          id: "codex-doc",
+          title: "Clear the last 10× figures out of the Codex lessons page",
+          effort: "10 min",
+          why: [
+            "<code>Docs/rebuild-lessons-codex.html</code> still teaches <code>OrbitRadius</code> as 137.2 in two places, and its bearing calculator computes from that same literal in the script — so the page hands the reader a linear speed ten times the game’s.",
+            "Every other document was converted when the world came back to 1×. This one was written by the other agent, which said it would fix its own page, so it may already be handled — it wants confirming, or doing."
           ]
         },
         {
@@ -492,8 +753,9 @@
           title: "Set the Managed Code Variant back to Release",
           effort: "1 min",
           why: [
-            "Done, and done again on 6 September: it goes to <strong>Checked</strong> for the length of a debug build and straight back to <strong>Release</strong> afterwards, so the repo never sits in the state that ships a menu handing out levels and invulnerability.",
-            "Unity 6.6 moved this off the Development Build checkbox and onto a dropdown in Player Settings, so ticking that box no longer brings the menu back. Ask for a debug build and I will flip it both ways around the build — the exe keeps its menu either way, since the setting only affects the next one."
+            "Done, and done again every time since: it goes to <strong>Checked</strong> for the length of a debug build and straight back to <strong>Release</strong> afterwards, so the repo never sits in the state that ships a menu handing out levels and invulnerability. It went both ways again on 10 September for the cheat build sitting beside the one at the top of this list.",
+            "Unity 6.6 moved this off the Development Build checkbox and onto a dropdown in Player Settings, so ticking that box no longer brings the menu back. Ask for a debug build and I will flip it both ways around the build — the exe keeps its menu either way, since the setting only affects the next one.",
+            "<strong>From 11 September it runs the other way round.</strong> You asked for every build to carry the debug menu unless you say otherwise, so Checked is the default and Release is the build you ask for by name. The committed setting still stays Release and is flipped around each build, so the repo itself never holds the menu."
           ]
         }
       ]
@@ -504,11 +766,20 @@
       note: "Blocked until something is played or built",
       items: [
         {
+          id: "round-timing",
+          title: "Check whether boss rounds reach you too late",
+          effort: "one run",
+          why: [
+            "The half-size ship narrowed the band where a boss round can touch you from about ±0.33 to ±0.21, so a round from the boss’s outermost gun now takes about 0.36 s to become dangerous instead of 0.275.",
+            "If the fight feels soft in a run with god mode off, <code>RoundLaneResponse</code> 6.6 restores the old timing. It is one number, but only a run says whether it is needed."
+          ]
+        },
+        {
           id: "shadow-spike",
           title: "Attribute the 8.4 ms shadow spike",
           effort: "one build + a capture",
           why: [
-            "Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls.",
+            "Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. The seven lava lights lost their shadows entirely on 10 September, which takes more out of the same budget.",
             "But that measurement is submitted work from a paused editor frame with GPU timing unavailable. It proves the mechanism was large; it doesn’t prove it was the spike. A capture from a real run closes it."
           ]
         },
@@ -517,9 +788,10 @@
           title: "Soak-test enemy pooling",
           effort: "a few minutes of play",
           why: [
-            "Pooling defects can’t appear until the warmup is exhausted and instances start recycling, which takes minutes.",
-            "Three things to watch for: enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and Enemy_1 firing faster the longer a run goes on.",
-            "It costs nothing extra to do it in the light-fixes build — it is the same run as the one at the top of this list."
+            "Done on 10 September, by instrumented run rather than by eye: eleven minutes of play with the player invulnerable, sampling every active enemy every ten seconds. The population grew from 15 to 77 and the pool was thoroughly exercised — <strong>82 distinct instances, 52 of them reused after despawn, 87 observed recycles</strong>. Far past the warmup, which is the only condition under which any of these defects can appear at all.",
+            "<strong>Enemies dying to one bullet: absent.</strong> Not one recycled instance came back below full health, across all 87 recycles. Seven observations caught enemies sitting at partial health, so damage accumulates and sticks the way it should.",
+            "<strong>Enemy_1 firing faster late in a run: absent.</strong> Over eighty seconds with 13 to 16 shooters, projectiles per shooter stayed flat and if anything trended down, and every shooter carried a pending invoke at every sample.",
+            "<strong>The third was not tested, and this method cannot test it.</strong> An enemy setting off the wrong way round the ring is a property of the instant it spawns, and the chase recomputes direction from bearings on every frame after — so a sample taken seconds later shows the chase, not the spawn. That is now its own item below, rather than being quietly counted as passed."
           ]
         }
       ]
@@ -527,6 +799,11 @@
   ];
 
   var PARKED = [
+    ["Cloud shadow resolution as a quality rung", "Built on 16 September as 128/256/512, measured, and collapsed the same day. Against a control of two captures at one setting, every step of the ladder moved less of the frame than the clouds’ own reprojection does between frames. The Shadows row decides whether the clouds cast; their sharpness stays at the scene’s 256."],
+    ["A fog Ultra tier above High", "Asked for on 14 September once the flicker was fixed, then cancelled before anything was built. The row stops at High, which is budget 0.333."],
+    ["A TrailRenderer behind the rounds", "Tried on 14 September and replaced the same day. Under FSR, any trail built from past positions drifts off its round when the camera moves, whatever its material does, so the rounds carry a rigid streak instead."],
+    ["The pale facets on the cone are not a bake artifact", "Chased on 10 September and dropped. The rock shows grey, desaturated faces next to deep red ones, and it looks like lightmap patchwork — it is not. The island is lit almost entirely by warm lava lights that are Mixed and therefore baked, so a face angled away from the lava receives only the cool sky ambient and reads grey. That is correct shading on flat-shaded low-poly rock. Two false starts are worth remembering: detaching the lightmap to test it proves nothing, because that removes nearly all the light on that rock at once; and comparing screenshots across the rebake proves nothing either, because the fog changed in the same step. Holding fog constant at 15 and re-rendering, the rebake made that flank about 10% darker and marginally less saturated, with 17% of pixels moving more than 12/255 — consistent with one fewer lava light, and nothing else. The facets were always there; the thinner fog stopped veiling them."],
+    ["The world at ten times its size", "Tried on a branch, taken all the way to playable, and reversed on 9 September. It is not coming back: the scale bought nothing the importer could not, and the price was every number in the project and its documentation being wrong at once. What survives it is one piece of knowledge — a collider radius under a scaled root is a local number and rides the transform, a light range is handed to HDRP in world units and does not."],
     ["The boss HUD, the camera pull-back and the pink palette", "A readability pass on 8 September added a HUD naming the phase and the three targets, pulled the camera back during the fight, rewrote the dash tutorial and moved all hostile fire to pink with green pods. Reverted the same day; the four correctness fixes underneath it were kept. Only the colour half is still an open question — see “Decide whether the red pods actually read in play” above."],
     ["The wreckage plates stay dark", "Asked on 7 September and answered: no glow for now. They carry the boss’s hull material, which is nearly black, so one can vanish against the dark island — worth revisiting if the boss run shows it happening, but it is a deliberate no rather than an open question."],
     ["Overlapping offers stack their captions", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned."],

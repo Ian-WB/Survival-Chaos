@@ -31,19 +31,20 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void CloudResolution_DoublesWithEachRung()
+        public void CloudResolution_IsTheSizeTheSceneWasAuthoredWith()
         {
-            Assert.AreEqual(128, ShadowLadder.CloudResolution(EffectQuality.Low));
-            Assert.AreEqual(256, ShadowLadder.CloudResolution(EffectQuality.Medium));
-            Assert.AreEqual(512, ShadowLadder.CloudResolution(EffectQuality.High));
+            // Scene Volume Profile carries 256. This was a 128/256/512 ladder
+            // until the steps measured under the renderer's own frame noise, so
+            // the row leaves the clouds' sharpness where the scene put it.
+            Assert.AreEqual(256, ShadowLadder.CloudResolution);
         }
 
         [Test]
-        public void CloudResolution_Medium_IsWhatTheSceneWasAuthoredWith()
+        public void CloudResolution_IsOneOfHdrpsCloudShadowResolutions()
         {
-            // Scene Volume Profile carries 256, so Medium changes nothing about
-            // the clouds.
-            Assert.AreEqual(256, ShadowLadder.CloudResolution(EffectQuality.Medium));
+            // GraphicsDirector casts this straight to CloudShadowResolution, and
+            // a value that is not one of them would cast without complaint.
+            Assert.Contains(ShadowLadder.CloudResolution, new[] { 64, 128, 256, 512, 1024 });
         }
 
         [Test]

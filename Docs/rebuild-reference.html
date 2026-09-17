@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 297 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 300 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>297</b><span>commits</span></div>
-      <div class="stat"><b>272</b><span>tests</span></div>
-      <div class="stat"><b>100</b><span>runtime scripts</span></div>
+      <div class="stat"><b>300</b><span>commits</span></div>
+      <div class="stat"><b>277</b><span>tests</span></div>
+      <div class="stat"><b>101</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>84</b><span>bugs fixed</span></div>
     </div>
@@ -503,6 +503,8 @@
       physics steps.</li>
       <li><strong>An energy needle</strong> &mdash; the player's capsule rounds replaced by a shader-drawn
       needle with a rigid streak behind it, built that way because the upscaler drags anything softer.</li>
+      <li><strong>Shadows as a setting</strong> &mdash; one row from Off to High over the sun, the lava light
+      that casts and the clouds, with the tier still deciding what each rung is worth.</li>
     </ul>
   </section>
 
@@ -1186,7 +1188,17 @@ emission  = hot * glow * veins;</code></pre>
       <p>HDRP works in real units. Emission is in <strong>nits</strong>, exposure in <strong>EV100</strong>. At EV 10 mid-grey sits near 128 nits, so lava glowing at <code>1.5</code> is invisible while <code>1000</code> is correct — real lava is roughly 1500–3000 cd/m². Values that look absurd next to URP's unitless multipliers are often simply right.</p>
     </div>
     <p>Emissive surfaces <em>cannot cast shadows</em> — shadows are rendered from a light's point of view, and an emissive material isn't a light. The lava's glow on surrounding rock comes from real area lights placed on the emitting surface.</p>
-    <p>Those lights cast <strong>no shadows</strong> now. Seven of them throwing hard shadows through a lava pool were paying for shadow maps the emissive surface underneath was already accounting for, and the realtime directional light is the only authored light left casting one &mdash; which also makes <code>maxShadowDistance</code> the range its four cascades are spread across, not merely a fade-out distance.</p>
+    <p>Those lights cast <strong>no shadows</strong> now. Seven of them throwing hard shadows through a lava pool were paying for shadow maps the emissive surface underneath was already accounting for, and five of the six still cast nothing. <code>Lava Light 2</code> is the exception &mdash; it casts again, and it is the light the Shadows row reaches alongside the sun. <code>maxShadowDistance</code> is still the range the directional light's four cascades are spread across rather than merely a fade-out distance.</p>
+
+    <h3>Shadows are a row, and the clouds only get half of it</h3>
+    <p>One setting, Off to High, over what the scene authors rather than anything in the pipeline asset: the sun, <code>Lava Light 2</code> and the volumetric clouds. The two lights carry a marker component rather than being found by a search, because the one set the row must not reach is the bullet lights &mdash; those have the one-per-volley budget measured below, and a row raising every point light's resolution would spend six faces a light on shots the pool had deliberately kept cheap.</p>
+    <p>Each rung picks one of the tier's own shadow resolution levels, so the tier still decides what Low is worth: 512, 1024 and 2048 on Ultra. The tier's top level is never asked for, because a point light draws six faces and six at 4096 outgrow an 8192 atlas. Off stops a light casting and remembers whether it cast hard or soft, so coming back up restores what the scene authored rather than a guess.</p>
+    <div class="warn">
+      <div class="label">Off is the loud rung, and the cloud ladder measured as nothing</div>
+      <p>Off does not merely remove edges. With nothing occluding the lava light, the tree line, the far plateau and the ruins are all lit and the island reads flat &mdash; a contrast change rather than a sharpness one. That is why no tier defaults to it, and why this row clamps at its ends where every other row wraps: Off is three presses from the default instead of one.</p>
+      <p>The clouds were given a 128/256/512 ladder and then measured out of one. Holding the lights still and moving only the cloud resolution, 128 against 512 changed 5.0% of the frame by under 8 of 255 on every pixel it touched. <strong>The control changed 4.5% of it</strong> &mdash; two captures at the same 512, differing only because volumetric clouds reproject across frames. The ladder sat under the renderer's own noise, so it is one fixed 256, the value the scene was authored with, and the row decides only whether the clouds cast at all.</p>
+      <p>Resolution was never what made that map coarse. HDRP shortens the camera frustum's four far corners to <code>shadowDistance</code> and fits the shadow map to the light-space bounds of what is left, so the number caps the frustum rather than describing a region. Against an 80&deg; field of view and a far plane of 1000 the stock 8000 never binds at all: the region comes out 2983 units on its long axis, for an island 37 wide. It is 1000 now, HDRP's own floor for the parameter, which brings that to 1965. The real ceiling is the camera's far plane, which is a rendering decision rather than a quality one.</p>
+    </div>
 
     <h3>The island bake</h3>
     <p>What the shadows freed went into the bake: lightmap resolution 50, the scenery FBX unwrapping its secondary UVs at the same density it is packed at, and samples up to 128 direct, 2048 indirect and 1024 environment. Seventy-three prefab instances carried every static flag except <em>Contribute GI</em> &mdash; batched, occluding and reflection-probe static, and invisible to the probe volume &mdash; and the probe volume grew when they were let in.</p>
@@ -1287,7 +1299,7 @@ emission  = hot * glow * veins;</code></pre>
     <h3>Exposure, and one lever for fog</h3>
     <p>Exposure is fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
     <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. Those are back on their defaults, leaving <code>meanFreePath</code> as the single control over how thick the air is. It is <strong>20</strong> today, with the froxel depth at 60 and the maximum fog distance at 64 &mdash; the island's far edge is about 45 units out. The base height of 0 and maximum height of 50 look like ten-times leftovers and are not: across the flight band they give a density falling from 0.54 of maximum to 0.16, so a low pass over the lava is markedly thicker than a high one.</p>
-    <p>On the top tier — the one called Ultra since the split — probe volumes moved from L1 to L2 spherical harmonics, the cookie atlas to 4096, the area shadow atlas from 4096 to 8192, and area shadow filtering up a step. The lighter High inserted beneath it kept Medium's probe volumes and took 2048 instead. Sky reflection was left at 2048 on both. Two lights stopped culling shadow casters against the view frustum, so geometry outside the frame keeps throwing shadows into it.</p>
+    <p>On the top tier — the one called Ultra since the split — probe volumes moved from L1 to L2 spherical harmonics, the cookie atlas to 4096, the area shadow atlas from 4096 to 8192, and area shadow filtering up a step. The lighter High inserted beneath it kept Medium's probe volumes and took 2048 instead. Sky reflection was left at 2048 on both. One light stops culling shadow casters against the view frustum, so geometry outside the frame keeps throwing shadows into it &mdash; and the scene file shows that flag off on two, which is a trap rather than a second decision. HDRP writes <code>useViewFrustumForShadowCasterCull</code> itself, clearing it when a light enters the cached shadow atlas and setting it when the light is evicted. So on a cached light such as <code>Lava Light 2</code> the serialized value is the renderer's bookkeeping and moves on its own &mdash; the Shadows row's Off rung evicts it every time. On the directional light, which updates every frame and never enters that atlas, nothing overwrites it and it is authored. Same field, two meanings, and only <code>shadowUpdateMode</code> tells them apart.</p>
 
     <div class="warn">
       <div class="label">A density stated in a commit message never reached the file</div>
@@ -1656,10 +1668,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td>Reflections</td><td>Off · Low · Medium · High · RT ×3</td><td>gated off</td><td>Medium</td><td>High</td></tr>
           <tr><td>Global Illumination</td><td>Off · Low · Medium · High · RT ×3</td><td>gated off</td><td><strong>Off</strong></td><td><strong>Off</strong></td></tr>
           <tr><td>Volumetric Fog</td><td>Off · Low · Medium · High</td><td>gated off</td><td>Low</td><td>Medium</td></tr>
+          <tr><td>Shadows</td><td>Off · Low · Medium · High</td><td>Low</td><td>Low</td><td>Medium</td></tr>
           <tr><td>Motion Blur</td><td>Off · Low · Medium · High</td><td colspan="3">Medium — outside the tier system entirely</td></tr>
         </tbody>
       </table>
     </div>
+    <p>Shadows is the one row on that table with no <em>gated off</em> in it: every tier can cast, and Ultra defaults a rung higher again, to High. It is also the only row that stops at its ends instead of wrapping, for the reason under <a href="#render">Rendering</a> &mdash; Off is the loudest thing the Graphics screen can do, and wrapping put it one press from where every tier starts.</p>
     <p>The fog row's Low, Medium and High are the same three budgets on every tier that has fog &mdash; 0.166, 0.25 and 0.333 &mdash; for the reasons under <a href="#render">Rendering</a>.</p>
 
     <div class="warn">
@@ -1690,7 +1704,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         <thead><tr><th>Screen</th><th>Answers</th><th>Holds</th></tr></thead>
         <tbody>
           <tr><td><strong>Display</strong></td><td>how the image is produced and presented</td><td>resolution, window mode, VSync, frame cap, upscaling, upscale quality, render scale, anti-aliasing</td></tr>
-          <tr><td><strong>Graphics</strong></td><td>what is in the image</td><td>quality tier, global illumination, reflections, volumetric fog, motion blur</td></tr>
+          <tr><td><strong>Graphics</strong></td><td>what is in the image</td><td>quality tier, global illumination, reflections, shadows, volumetric fog, motion blur</td></tr>
         </tbody>
       </table>
     </div>
@@ -1814,7 +1828,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>272 tests across 24 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>277 tests across 25 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -1842,6 +1856,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>BossSheddingTests</code></td><td class="num">6</td><td>wreckage is fed evenly to all three heights whatever order the pods died in</td></tr>
           <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
+          <tr><td><code>ShadowLadderTests</code></td><td class="num">5</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, and that no tier defaults to Off</td></tr>
           <tr><td><code>ExpTests</code></td><td class="num">4</td><td>the experience contract</td></tr>
         </tbody>
       </table>
@@ -1866,7 +1881,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 272 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 277 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -1901,6 +1916,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <h3>Test a render the way it ships</h3>
     <p>Two fixes for the drifting trail were aimed at TAA, which this game does not use; its settings run FSR. The artefact only appeared with the camera moving, so still captures showed nothing either way. Check which upscaler, anti-aliasing and motion blur the player's settings actually select, and capture mid-motion with one of them toggled at a time.</p>
 
+    <h3>Measure a change against a control, not against zero</h3>
+    <p>A cloud-shadow ladder of 128, 256 and 512 looked live: stepping it moved about 5% of the frame. So does changing nothing. Two captures taken at the <em>same</em> setting differ by 4.5% of the frame, because volumetric clouds reproject and a still image of them is never quite still. Without that second capture the ladder would have shipped as a choice the player could make and never see. Anything measured on a temporally accumulated renderer wants an A/A before its A/B, or the noise floor gets read as the signal.</p>
+
     <h3>Preserve behaviour, flag the judgement</h3>
     <p>The boss's 2 EXP, the laser's fire rate, the 301-second cutoff, the <code>"SexTUPLO Shot!"</code> banner — all preserved exactly, all surfaced as things to decide. Three of those four have since been decided, which is the point: they were reachable as one field each when the moment came. Migration and rebalancing are different jobs, and mixing them makes both harder to review.</p>
   </section>
@@ -1916,6 +1934,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <h4>Open on the current front</h4>
     <ul>
       <li><strong>The shadow work is cut; the millisecond is still unattributed.</strong> Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. What remains is the confirmation: that measurement is submitted work from a paused editor frame with GPU timing unavailable, so it proves the mechanism was large without proving it was the 8.4&nbsp;ms spike. A capture from a real run closes it.</li>
+      <li><strong>What the Shadows row costs is unmeasured.</strong> Its rungs were stepped in a frame
+      frozen at <code>timeScale</code> 0, which is what made the captures comparable and also means the sun
+      and the lava light at 2048 have never been timed in a run. If High costs frames on the tier a player is
+      actually on, the tier defaults are the dial &mdash; they sit at Low, Low, Medium and High.</li>
       <li><strong>The wreckage reads only as a silhouette.</strong> The plates carry the boss's own hull
       material, which is nearly black; against the sky or the lava they are unmistakable, and against the dark
       island one can be lost. An emissive tint would fix it and would also be the first thing in the arena that
@@ -1954,10 +1976,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <li><strong>The bake was turned down, then turned back up past where it started.</strong> Iterating on
       lighting is slow, so the settings were halved — 2048 lightmaps, two bounces, half the
       samples. Once the quota argument above went away they went the other way instead: <strong>4096</strong>
-      lightmaps, <strong>uncompressed</strong>, bake resolution 50, four bounces, and the light-probe sample
+      lightmaps, compressed at <strong>High Quality</strong>, bake resolution 50, four bounces, and the light-probe sample
       multiplier back to 8. The sample counts
       followed on 10 September, to 128 direct, 2048 indirect and 1024 environment, paid for by taking the
-      lava lights' shadows away. The output costs disk and bake time, not quota.</li>
+      lava lights' shadows away. The output costs disk and bake time, not quota. Compression came last, on 16 September: the lightmaps
+      had been uncompressed until then, and High Quality took a build from about 857&nbsp;MB to 684.</li>
     </ul>
     <p>The <strong>bullet hell</strong> direction was explored and shelved. The profile can afford it — 1500 simultaneous bullets measured at 0.056 ms, around 0.3% of a frame — and the design work is recorded in the history, but the decision was to improve what exists rather than add a mode. It is available to pick up rather than abandoned.</p>
 
@@ -1998,7 +2021,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 297 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.0f1) · HDRP 17.6 · branch <code>main</code> · 300 commits
   </footer>
 
 </div>

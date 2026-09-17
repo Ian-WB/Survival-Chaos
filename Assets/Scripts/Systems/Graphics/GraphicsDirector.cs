@@ -1230,16 +1230,16 @@ namespace SurvivalChaos
         {
             EffectQuality quality = Shadows;
 
+            // The rung decides only whether the clouds cast. Their sharpness is
+            // two constants, because every step of the ladder it used to be
+            // measured under the renderer's own noise - see ShadowLadder.
             clouds.shadows.overrideState = true;
             clouds.shadows.value = QualityLadder.IsOn(quality);
 
             clouds.shadowResolution.overrideState = true;
             clouds.shadowResolution.value =
-                (VolumetricClouds.CloudShadowResolution)ShadowLadder.CloudResolution(quality);
+                (VolumetricClouds.CloudShadowResolution)ShadowLadder.CloudResolution;
 
-            // Overridden with the resolution rather than left to the scene,
-            // because the two only mean anything together: the resolution is a
-            // texel count and this is what those texels are spread across.
             clouds.shadowDistance.overrideState = true;
             clouds.shadowDistance.value = ShadowLadder.CloudShadowDistance;
 

@@ -36,8 +36,8 @@ namespace SurvivalChaos
     /// It reaches the scene's authored casters - the sun, the lava light that
     /// casts, and the volumetric clouds - and nothing in the pipeline asset. The
     /// lights take one of the tier's own resolution levels, so a tier still
-    /// decides what Low means on it; the clouds take a resolution directly,
-    /// because theirs is a volume parameter with no per-tier table behind it.
+    /// decides what Low means on it; the clouds take only whether they cast,
+    /// their sharpness having measured the same at every rung.
     ///
     /// Off, Low, Medium and High only. The row has no ray-traced form, and a
     /// stored rung above High - a corrupt or foreign settings file - reads as
@@ -67,38 +67,23 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// The cloud shadow map's size, matching HDRP's CloudShadowResolution
-        /// values. Medium is the 256 the scene was authored with.
+        /// The cloud shadow map's size, matching one of HDRP's
+        /// CloudShadowResolution values. Fixed, not laddered.
         ///
-        /// Measured, and the rungs do not show. Holding the lights still and
-        /// moving only this, 128 against 512 changed 5.0% of the frame by under
-        /// 8 of 255 on every pixel it touched - and two captures taken at the
-        /// same 512 changed 4.5% of it by the same amount, because the clouds
-        /// reproject across frames. The step is quieter than the renderer's own
-        /// noise, at this camera, on this tier, in a night scene.
+        /// It was a rung - 128, 256, 512 - until the steps were measured and
+        /// none of them showed. Holding the lights still and moving only this,
+        /// 128 against 512 changed 5.0% of the frame by under 8 of 255 on every
+        /// pixel it touched; two captures taken at the same 512 changed 4.5% of
+        /// it by the same amount, because the clouds reproject across frames.
+        /// The whole ladder sat under the renderer's own frame-to-frame noise,
+        /// which made it a choice the row could not deliver on.
         ///
-        /// Kept rather than collapsed to one number, because that is one set of
-        /// conditions and a rung costing a smaller map is not a rung costing
-        /// anything. What it is not is a reason to reach for this row: the
-        /// on/off is the part of the clouds that reads. CloudShadowDistance has
-        /// the arithmetic for why the map is coarse to begin with.
+        /// 256 is what the Scene Volume Profile was authored with, so the row
+        /// leaves the clouds' sharpness exactly where the scene put it and
+        /// decides only whether they cast - the part that does read. See
+        /// CloudShadowDistance for what these texels are spread across.
         /// </summary>
-        public static int CloudResolution(EffectQuality quality)
-        {
-            switch (Clamp(quality))
-            {
-                case EffectQuality.Medium:
-                    return 256;
-
-                case EffectQuality.High:
-                    return 512;
-
-                // Off turns cloud shadows off rather than using this; Low is the
-                // cheapest thing to leave configured behind it.
-                default:
-                    return 128;
-            }
-        }
+        public const int CloudResolution = 256;
 
         /// <summary>
         /// How far from the camera cloud shadows are computed, in units.
@@ -115,11 +100,16 @@ namespace SurvivalChaos
         /// of an island that is 37 units wide. The whole arena lands in about
         /// six texels, and in under two at 128.
         ///
-        /// 1000 is HDRP's own floor for the parameter and the most this row can
-        /// do about it. It binds on the far corners and brings the long axis to
-        /// 1965, a third off the texel size for no cost. The real ceiling is the
-        /// camera's far plane, which is a rendering decision rather than a
-        /// quality one, so it is recorded here and left alone.
+        /// 1000 is HDRP's own floor for the parameter. It binds on the far
+        /// corners and brings the long axis to 1965, which puts the one 256 map
+        /// at 7.7 units a texel instead of 11.7.
+        ///
+        /// Both of those sit inside the range that measured as invisible - see
+        /// CloudResolution - so this is tidiness rather than a visible gain. It
+        /// aims the map at the arena instead of at three kilometres of empty
+        /// sea, and costs nothing to do. The real ceiling is the camera's far
+        /// plane, a rendering decision rather than a quality one, so it is
+        /// recorded here and left alone.
         /// </summary>
         public const float CloudShadowDistance = 1000f;
     }
