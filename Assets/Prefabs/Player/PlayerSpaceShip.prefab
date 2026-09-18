@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4150755058347126941}
+  - component: {fileID: -8593387318748680303}
   m_Layer: 0
   m_Name: PlayerSpaceShip
   m_TagString: Untagged
@@ -32,6 +33,41 @@ Transform:
   - {fileID: 7486385747209365116}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &-8593387318748680303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3661885094213184039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 612dc2cb9cdc8974d99d1e1364f0f3e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.ShipThrusters
+  plumeMesh: {fileID: 4300000, guid: 66a43c8127ed24e478d7893d14706523, type: 2}
+  glowMesh: {fileID: 4300000, guid: ec6402b5b5329564fb98c7cabefabc23, type: 2}
+  flareMaterial: {fileID: 2100000, guid: eed287ed2770d224e9f6df9283febd4a, type: 2}
+  mainOffset: {x: -0.20831044, y: 0.038565267, z: 0}
+  mainLength: 0.26
+  mainWidth: 0.075
+  mainBrightness: 6
+  retroOffsets:
+  - {x: 0.095055684, y: -0.09079614, z: 0.03060497}
+  - {x: 0.09505568, y: -0.091259114, z: -0.030386928}
+  retroLength: 0.1
+  retroWidth: 0.03
+  retroBrightness: 4
+  dashFloor: 0.7
+  dashBoost: 2
+  readyOffset: {x: -0.035708144, y: 0.1479577, z: 0}
+  readySize: 0.042
+  readyBrightness: 2.5
+  readyCarry: 0.25
+  popSeconds: 0.25
+  popStrength: 1.5
+  riseResponse: 26
+  fallResponse: 9
 --- !u!1001 &6948567490738471319
 PrefabInstance:
   m_ObjectHideFlags: 0
