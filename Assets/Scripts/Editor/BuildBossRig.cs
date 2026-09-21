@@ -1239,13 +1239,15 @@ namespace SurvivalChaos.EditorTools
                 Muzzles = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
                 InitialDelay = 0.5f,
 
-                // One torpedo every 5 seconds, at the player's call on 21 September
-                // 2026. The crown had been a rake of sixteen every 2.4s; with each
-                // round homing that was a wall of hunters, and a single torpedo is
-                // something to watch coming and shake off. SingleShot takes the
-                // sixteen muzzles in turn in the staircase's order, so a full pass
-                // up the crown is 80 seconds and the next comes back down.
-                Interval = 5f,
+                // One torpedo a second, at the player's call on 21 September 2026 -
+                // first 5s, then brought down to 1. The crown had been a rake of
+                // sixteen every 2.4s; with each round homing that was a wall of
+                // hunters, and a single torpedo is something to watch coming and
+                // shake off. SingleShot takes the sixteen muzzles in turn in the
+                // staircase's order, so a full pass up the crown is 16 seconds and
+                // the next comes back down. The half-second glow fits inside the
+                // second, so the cadence is the interval and not the warning.
+                Interval = 1f,
                 SingleShot = true,
 
                 // Unchanged, deliberately. The step is how fast the rake crosses

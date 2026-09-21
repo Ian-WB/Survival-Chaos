@@ -853,7 +853,7 @@ MonoBehaviour:
     projectileWhenLeft: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
     projectileWhenRight: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
     initialDelay: 0.5
-    interval: 5
+    interval: 1
     stepSeconds: 0.12
     singleShot: 1
     openRows: 1
