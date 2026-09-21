@@ -320,9 +320,8 @@
           <span class="em">A shot fired off that lane misses forever.</span> The muzzles span
           <span class="mono">17.92</span> to <span class="mono">19.54</span> across a hull 3 units
           deep, so this is the fact that decides how much of the boss&rsquo;s fire is real. Easing a
-          round onto the lane over its first moments recovered three quarters of it on 1 September;
-          since 21 September the discs and bullets carry that easing at 0 again, and only the
-          torpedoes, which close on the lane themselves, reach it. See <em>Still open</em>.
+          round onto the lane over its first moments recovered three quarters of it on 1 September.
+          The torpedoes need none of it; they close on the lane themselves.
         </p>
       </div>
       <div class="card">
@@ -873,7 +872,7 @@
     </div>
 
     <div class="card">
-      <h3>Three quarters of the boss&rsquo;s fire could not reach the player &mdash; <span class="em">fixed, then undone</span></h3>
+      <h3>Three quarters of the boss&rsquo;s fire could not reach the player &mdash; <span class="em">fixed, twice</span></h3>
       <p class="dim">
         A shot keeps the radius it was born at, forever. On the lane as it was on 1 September the
         muzzles were spread across a hull 3 units deep and sat from <span class="mono">13.16</span>
@@ -889,8 +888,17 @@
         the barrel and then eases onto the lane, radius only, through the same easing every ship
         already uses on its way to the ring. It is off unless asked for, so the player&rsquo;s own
         rounds are untouched by construction. Measured after: <span class="em">87&ndash;100%</span>
-        of boss fire in the lane, against about a quarter before. Since 21 September the discs and
-        four of the bullet prefabs carry that easing at 0 again &mdash; see <em>Still open</em>.
+        of boss fire in the lane, against about a quarter before.
+      </p>
+      <p class="dim">
+        On 21 September the easing went to 0 on both disc prefabs and on the four bullet prefabs the
+        boss fires, and nothing in the code asked for it. On the 18.72 lane a disc, 0.1 thick, has to
+        be born within <span class="mono">0.17</span> of the lane to touch the player, and no keel
+        muzzle is &mdash; so for one build, <span class="mono">26_0921-1625_camera</span>,
+        <span class="em">the curtain could not hit anyone</span>, and most of the Scuttle&rsquo;s
+        rounds missed the same way. It went back to 5 the same afternoon. Nothing had noticed: no test
+        read the value off the prefabs, and a curtain that cannot hit still looks like a curtain. One
+        does now, off every round the boss fires, and fails naming any that is not at 5.
       </p>
     </div>
 
@@ -1060,21 +1068,9 @@
           20 hull went in 67&thinsp;s &mdash; and most of those hits came from torpedoes over
           4&thinsp;s old, coming round again. Since then the interval is 3&thinsp;s, the cruise 7.5
           rather than 8, and the torpedo half the size; the smaller box makes it an eighth-of-a-unit
-          intercept, easier to slip. That shape is in <span class="mono">26_0921-1625_camera</span>
+          intercept, easier to slip. That shape is in <span class="mono">26_0921-1643_laneeasing</span>
           and has not been played. If the old hunters feel cheap, the fuel is the dial: 6&thinsp;s
           would keep the second pass and lose most of the circling.
-        </p>
-      </div>
-      <div class="card">
-        <h3>Whether the discs and bullets should reach the lane</h3>
-        <p class="dim">
-          The easing that brought boss rounds onto the player&rsquo;s lane was set to 0 on the discs
-          and on four of the bullet prefabs in the 21 September commits. Nothing in the code asked for
-          it, so it reads as an Inspector change &mdash; and it undoes the fix above: no keel muzzle is
-          within 0.17 of the lane, so <span class="em">in that build the curtain&rsquo;s discs cannot
-          hit the player</span>, and most of the Scuttle&rsquo;s rounds cannot either. The torpedoes are
-          unaffected; they close on the lane themselves. If it was meant to keep the discs and bullets
-          in lanes of their own, the throw already does that by height.
         </p>
       </div>
       <div class="card">
