@@ -1114,9 +1114,9 @@ namespace SurvivalChaos
         /// which is where a lance should look like it comes from.
         ///
         /// The round prefab is still read even though nothing spawns it any more:
-        /// it is where the beam takes its material and its direction from, so the
-        /// weapon keeps the art it had and left and right stay encoded in exactly
-        /// one place instead of two.
+        /// it is where the beam takes its materials and its direction from, so
+        /// the weapon's art lives in one place and left and right stay encoded in
+        /// exactly one place instead of two.
         /// </summary>
         private void FireLanceBeam(BossAttack attack)
         {
@@ -1162,7 +1162,9 @@ namespace SurvivalChaos
                 lanceBeam = BossLanceBeam.Create(round, template, beamLights);
             }
 
-            lanceBeam.Fire(sum / found, centre);
+            // Attached to the boss so it stays on the prow while it is on, and to
+            // the prow's emplacement so shooting that out puts the beam out too.
+            lanceBeam.Fire(sum / found, centre, transform, attack.WeakPoint);
             PlayVolleySound();
         }
 

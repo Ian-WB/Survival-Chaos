@@ -137,8 +137,10 @@ namespace SurvivalChaos
         /// Degrees a second around the arena axis, sign included - which is where
         /// this attack's left and right have always been encoded. Read by
         /// <see cref="BossLanceBeam"/>, which stands in for a stream of these and
-        /// inherits its direction and its pace from the round it replaces rather
-        /// than carrying a second copy of them.
+        /// inherits its direction from the round it replaces rather than carrying
+        /// a second copy of it. Only the sign, since 21 September 2026: the beam
+        /// was thrown along the ring at this pace until it became a laser that
+        /// reaches its full length at once.
         /// </summary>
         public float Speed => speed;
 

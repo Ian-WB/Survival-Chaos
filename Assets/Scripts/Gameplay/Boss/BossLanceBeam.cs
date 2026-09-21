@@ -3,8 +3,8 @@ using UnityEngine;
 namespace SurvivalChaos
 {
     /// <summary>
-    /// The prow lance, drawn as one continuous beam along the ring rather than as
-    /// a stream of projectiles.
+    /// The prow lance: a laser fired along the ring from the prow, rather than a
+    /// stream of projectiles.
     ///
     /// It was forty rounds until 8 September, and the measurement that ended that
     /// is worth keeping: the ring is 86.2 units around and a lance round crossed it
@@ -17,7 +17,19 @@ namespace SurvivalChaos
     ///
     /// Welding them into four 3.3-unit rounds was tried first and rejected on
     /// sight: at that length they read as sticks flying in formation, not as a
-    /// beam. So this draws the arc itself.
+    /// beam. So it became one arc - and from 8 to 21 September 2026 that arc was
+    /// a 12.8-unit square tube thrown along the ring, which in play read as a
+    /// bent log rather than a laser. The throw was as much of that as the shape:
+    /// a chunk that leaves the prow and slides away is a projectile, whatever it
+    /// is drawn with. A laser stays attached to what fired it.
+    ///
+    /// So the beam now flashes out from the prow to its full reach, holds, and
+    /// goes out, drawn as a thin hot core inside a soft glow with no hard edge
+    /// anywhere. That changed how it is dodged, on purpose. The thrown beam could
+    /// be watched coming; this one arrives almost at once, so the charge before it
+    /// is the whole warning - which is what the charge was sized for. Its 1.2s is
+    /// one full crossing of the band at the player's climb rate (see
+    /// BossEmitter.RunLance).
     ///
     /// It carries no collider. The arena is a ring, so every position in it is
     /// really a bearing, a radius and a height, and asking whether the player is
@@ -31,31 +43,34 @@ namespace SurvivalChaos
     public sealed class BossLanceBeam : MonoBehaviour
     {
         /// <summary>
-        /// How far the beam reaches behind its own head, in units of arc.
+        /// How far round the ring the beam reaches from the prow, in degrees.
         ///
-        /// 12.8 is not a taste: it is what the forty-round stream covered - 0.6s of
-        /// firing at 19.16 units a second plus the length of the last round - so
-        /// the beam threatens exactly the span the rounds did. The attack is not
-        /// bigger than it was, only continuous.
+        /// The thrown beam's head covered 160 degrees in its two seconds at 80 a
+        /// second, so the laser threatens the stretch of ring the old beam passed
+        /// over. Held under 360 so the hit test never has to reason about a beam
+        /// that overlaps itself.
         /// </summary>
-        private const float BeamLength = 12.8f;
+        private const float ReachDegrees = 160f;
 
         /// <summary>
-        /// Cross-section, matching the round it replaces so the art still reads as
-        /// the same weapon. The rounds measured 0.200 by 0.200.
+        /// Seconds for the beam to flash out from the prow to its full reach:
+        /// quick enough to read as a laser firing rather than as something
+        /// travelling, slow enough to see which way round the ring it went.
         /// </summary>
-        private const float Thickness = 0.2f;
+        private const float ExtendSeconds = 0.15f;
 
         /// <summary>
-        /// Segments along the arc. The mesh is rebuilt every frame, so this is a
-        /// per-frame cost - but at 24 it is 392 vertices, which is less than the
-        /// single round this replaced forty of.
-        ///
-        /// It is also what keeps the beam on the lane. A straight mesh across the
-        /// whole 12.8 units would sit 1.58 units off the true arc at this radius;
-        /// broken into 24 it is under a twentieth of a unit.
+        /// Seconds it holds at full reach. With the extend before it, a player
+        /// caught in it takes four hits at the far end and five by the prow; a
+        /// full pass of the thrown beam cost about four.
         /// </summary>
-        private const int Segments = 24;
+        private const float HoldSeconds = 0.5f;
+
+        /// <summary>
+        /// Seconds it takes to go out, thinning to nothing. It hurts no one
+        /// while it does: the moment it starts to thin, it is off.
+        /// </summary>
+        private const float FadeSeconds = 0.15f;
 
         /// <summary>
         /// Seconds of contact per point of damage.
@@ -63,45 +78,87 @@ namespace SurvivalChaos
         /// The old lance had no rate at all: it was one point per round that
         /// touched you, so standing in it was up to forty against twenty health -
         /// death twice over - and clipping its edge was one. A beam wants the
-        /// opposite shape, where brushing it is cheap and staying in it is fatal,
-        /// and that is a rate rather than a count. At 0.15 a full pass costs about
-        /// four, and refusing to move costs everything.
+        /// opposite shape, where brushing it is cheap and staying in it is costly,
+        /// and that is a rate rather than a count.
         /// </summary>
         private const float DamageInterval = 0.15f;
 
         /// <summary>
-        /// How long the beam lives after the head leaves the prow.
-        ///
-        /// Held under the point where the head laps the tail: at 80 degrees a
-        /// second, two seconds is 160 degrees of a 360 degree ring, so the arc
-        /// test below never has to reason about a beam that overlaps itself.
+        /// The width the hit test uses, which the drawn beam does not have: its
+        /// core is thinner and its glow wider and soft, and the glow's visible
+        /// edge lands about where this does. 0.2 is the cross-section of the
+        /// rounds the beam replaced.
         /// </summary>
-        private const float Life = 2f;
+        private const float HitWidth = 0.2f;
+
+        /// <summary>The white-hot line down the middle.</summary>
+        private const float CoreWidth = 0.06f;
+
+        /// <summary>The halo around it, fading to nothing at this width.</summary>
+        private const float GlowWidth = 0.5f;
+
+        /// <summary>
+        /// How much wider than it settles the beam is the instant it fires, and
+        /// how long it takes to settle. The punch is what makes it read as
+        /// fired rather than switched on. It changes nothing the hit test reads.
+        /// </summary>
+        private const float FirePunch = 1.6f;
+        private const float PunchSeconds = 0.2f;
+
+        /// <summary>
+        /// The last stretch of the beam, in units, over which it narrows to a
+        /// point, so its far end reads as a tip rather than as a cut.
+        /// </summary>
+        private const float TipTaper = 0.6f;
+
+        /// <summary>
+        /// Segments along the arc. The mesh is rebuilt every frame the beam is
+        /// on, so this is a per-frame cost, but at 64 it is 260 vertices.
+        ///
+        /// It is also what keeps the beam on the lane and round rather than
+        /// polygonal. At 2.5 degrees a segment the chord sags under a
+        /// two-hundredth of a unit off the true arc, well inside the core's own
+        /// width.
+        /// </summary>
+        private const int Segments = 64;
 
         private MeshFilter filter;
         private MeshRenderer body;
         private Mesh mesh;
 
+        // Two ribbons along the same spine, the core over submesh 0 and the glow
+        // over submesh 1, each two vertices a cut. UV x is the distance out from
+        // the prow in units and y runs across the ribbon, 0 to 1.
         private Vector3[] vertices;
+        private Vector2[] uvs;
+
         private Light[] lights;
         private Transform[] lightPivots;
+        private float[] lightIntensities;
 
         private Transform centre;
+        private Transform anchor;
+        private Vector3 anchorOffset;
+        private bool anchored;
+        private BossWeakPoint emplacement;
+        private Camera viewer;
         private Player target;
         private Collider targetBody;
 
         private float radius;
         private float height;
         private float startAngle;
-        private float degreesPerSecond;
+        private float direction = 1f;
 
         private float elapsed;
+        private float fadeStart;
         private float contactTimer;
         private bool firing;
+        private bool fading;
 
         /// <summary>
         /// Builds the beam object, taking its look from the round it replaces so
-        /// the weapon still reads as the same weapon, and its direction from that
+        /// the weapon's art lives in one place, and its direction from that
         /// round's own speed - which is where left and right have always been
         /// encoded on this attack.
         /// </summary>
@@ -113,7 +170,7 @@ namespace SurvivalChaos
             // way: the arc below is computed in world space and written straight
             // into the mesh, so any transform on the host would be applied to it a
             // second time. It is deliberately not parented to the boss for the same
-            // reason - the boss moves, and the beam it has already fired does not.
+            // reason; it follows the boss itself, in Follow.
             host.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
 
             BossLanceBeam beam = host.AddComponent<BossLanceBeam>();
@@ -135,8 +192,13 @@ namespace SurvivalChaos
             {
                 // In children, not on the root. The round is a pivot with the art
                 // parented under it - measured, not assumed: the root carries the
-                // ShootScript and the collider, and tiro1 carries the one material
-                // over one submesh, which is exactly the shape this mesh is.
+                // ShootScript and the collider, and tiro1 the art.
+                //
+                // Its two materials are this beam's two ribbons, in submesh order:
+                // BossLance.mat for the core and BossLanceGlow.mat for the glow,
+                // both put there by BossLanceBuilder. Both shaders read the UVs
+                // Rebuild writes, so on the round's own model they would draw
+                // nonsense, which matters to nothing because nothing spawns it.
                 Renderer art = roundPrefab.GetComponentInChildren<Renderer>(includeInactive: true);
 
                 if (art != null)
@@ -146,9 +208,9 @@ namespace SurvivalChaos
 
                 ShootScript round = roundPrefab.GetComponentInChildren<ShootScript>(includeInactive: true);
 
-                if (round != null)
+                if (round != null && round.Speed != 0f)
                 {
-                    degreesPerSecond = round.Speed;
+                    direction = Mathf.Sign(round.Speed);
                 }
             }
 
@@ -164,39 +226,48 @@ namespace SurvivalChaos
         /// <summary>
         /// Vertices and triangles are laid out once and only the positions move
         /// afterwards. The arc always uses the same number of segments however
-        /// short it is, so the counts never change and the index buffer is written
-        /// exactly once in the life of the fight.
+        /// short it is, so the counts never change and the index buffers are
+        /// written exactly once in the life of the fight.
         /// </summary>
         private void BuildTopology()
         {
-            // Four faces per segment, four corners each, plus two end caps.
-            int quads = Segments * 4 + 2;
-            vertices = new Vector3[quads * 4];
-
-            var triangles = new int[quads * 6];
-
-            for (int q = 0; q < quads; q++)
-            {
-                int v = q * 4;
-                int t = q * 6;
-
-                // Wound the opposite way round from the obvious 0-1-2 / 0-2-3.
-                // Worked through by hand for every face: with the corners ordered
-                // outer-top, outer-bottom, inner-bottom, inner-top and the arc
-                // walked in the direction of increasing bearing, the naive winding
-                // points all six faces inward, and a beam you can only see from
-                // inside is a beam nobody sees.
-                triangles[t] = v;
-                triangles[t + 1] = v + 2;
-                triangles[t + 2] = v + 1;
-                triangles[t + 3] = v;
-                triangles[t + 4] = v + 3;
-                triangles[t + 5] = v + 2;
-            }
+            int perRibbon = (Segments + 1) * 2;
+            vertices = new Vector3[perRibbon * 2];
+            uvs = new Vector2[vertices.Length];
 
             mesh.Clear();
             mesh.vertices = vertices;
-            mesh.triangles = triangles;
+            mesh.uv = uvs;
+            mesh.subMeshCount = 2;
+            mesh.SetTriangles(RibbonTriangles(0), 0, calculateBounds: false);
+            mesh.SetTriangles(RibbonTriangles(perRibbon), 1, calculateBounds: false);
+        }
+
+        /// <summary>
+        /// Each cut's two vertices are the ribbon's two edges: the spine minus
+        /// and plus an offset along cross(along, to camera). Wound minus, plus,
+        /// next minus. Worked through with the triple product, that order puts
+        /// every face's normal toward the camera, which is the side an opaque,
+        /// single-sided core is drawn from.
+        /// </summary>
+        private static int[] RibbonTriangles(int first)
+        {
+            var triangles = new int[Segments * 6];
+
+            for (int i = 0; i < Segments; i++)
+            {
+                int minus = first + i * 2;
+                int t = i * 6;
+
+                triangles[t] = minus;
+                triangles[t + 1] = minus + 1;
+                triangles[t + 2] = minus + 2;
+                triangles[t + 3] = minus + 1;
+                triangles[t + 4] = minus + 3;
+                triangles[t + 5] = minus + 2;
+            }
+
+            return triangles;
         }
 
         private void BuildLights(Light template, int count)
@@ -208,6 +279,7 @@ namespace SurvivalChaos
 
             lights = new Light[count];
             lightPivots = new Transform[count];
+            lightIntensities = new float[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -224,17 +296,23 @@ namespace SurvivalChaos
 
                 lights[i] = copy;
                 lightPivots[i] = copy.transform;
+                lightIntensities[i] = copy.intensity;
             }
         }
 
         /// <summary>
-        /// Starts a pass from a point on the prow. The beam is placed on the orbit
-        /// lane rather than at the muzzle's own radius, because that is where the
-        /// rounds ended up anyway - laneResponse pulled every one of them onto it
-        /// within about a fifth of a second, which is the behaviour this inherits
-        /// rather than reproduces.
+        /// Fires from a point on the prow, onto the orbit lane rather than at the
+        /// muzzle's own radius, because that is where the rounds always ended up -
+        /// laneResponse pulled every one of them onto it within about a fifth of a
+        /// second.
+        ///
+        /// The owner is what the beam stays attached to while it is on, and the
+        /// emplacement is the prow's weak point: shoot it out while the beam is
+        /// firing and the beam goes out with it, as the charge already does.
+        /// Either may be null, and a beam with no owner simply stays where it was
+        /// fired.
         /// </summary>
-        public void Fire(Vector3 origin, Transform arenaCentre)
+        public void Fire(Vector3 origin, Transform arenaCentre, Transform owner, BossWeakPoint mounting)
         {
             centre = arenaCentre;
 
@@ -242,6 +320,11 @@ namespace SurvivalChaos
             {
                 return;
             }
+
+            anchor = owner;
+            anchored = owner != null;
+            anchorOffset = anchored ? owner.InverseTransformPoint(origin) : origin;
+            emplacement = mounting;
 
             Vector3 offset = origin - centre.position;
             offset.y = 0f;
@@ -252,6 +335,7 @@ namespace SurvivalChaos
 
             elapsed = 0f;
             contactTimer = 0f;
+            fading = false;
             firing = true;
 
             gameObject.SetActive(true);
@@ -267,7 +351,19 @@ namespace SurvivalChaos
 
             elapsed += Time.deltaTime;
 
-            if (elapsed >= Life)
+            if (!fading)
+            {
+                bool ownerGone = anchored && anchor == null;
+                bool mountingGone = emplacement != null && emplacement.Destroyed;
+
+                if (ownerGone || mountingGone || elapsed >= ExtendSeconds + HoldSeconds)
+                {
+                    fading = true;
+                    fadeStart = elapsed;
+                }
+            }
+
+            if (fading && elapsed - fadeStart >= FadeSeconds)
             {
                 firing = false;
                 gameObject.SetActive(false);
@@ -277,32 +373,49 @@ namespace SurvivalChaos
             Step(Time.deltaTime);
         }
 
-        /// <summary>
-        /// The head runs from the prow at the round's own speed and the tail
-        /// follows one beam-length behind it, so the beam grows out of the muzzle
-        /// and then slides along the ring at full length. That is the same shape
-        /// the stream had - a leading round and a last round 12.8 units back - with
-        /// the gap between them filled in rather than implied.
-        /// </summary>
         private void Step(float deltaTime)
         {
-            float speed = Mathf.Abs(degreesPerSecond);
-            float grow = speed > 0f ? BeamLength / (radius * Mathf.Deg2Rad * speed) : 0f;
+            Follow();
 
-            float headTravel = speed * elapsed;
-            float tailTravel = speed * Mathf.Max(0f, elapsed - grow);
+            // Once it starts to go out it stops growing, so a beam cut short
+            // mid-extend thins out where it got to rather than finishing first.
+            float grown = fading ? fadeStart : elapsed;
+            float travel = ReachDegrees * Mathf.Clamp01(grown / ExtendSeconds);
 
-            float direction = Mathf.Sign(degreesPerSecond);
-            float head = startAngle + direction * headTravel;
-            float tail = startAngle + direction * tailTravel;
+            float thin = fading ? 1f - Mathf.Clamp01((elapsed - fadeStart) / FadeSeconds) : 1f;
+            float punch = Mathf.Lerp(FirePunch, 1f, Mathf.Clamp01(elapsed / PunchSeconds));
 
-            // Always walked in the direction of increasing bearing, whichever way
-            // the beam is actually travelling. The winding in BuildTopology is
-            // fixed, so building a right-to-left pass back to front would turn
-            // every face inside out - and the boss fires this attack both ways.
-            Rebuild(Mathf.Min(tail, head), Mathf.Max(tail, head));
-            PlaceLights(tail, head);
-            ApplyDamage(tailTravel, headTravel, deltaTime);
+            Rebuild(travel, thin * punch);
+            PlaceLights(travel, thin);
+
+            if (fading)
+            {
+                contactTimer = 0f;
+                return;
+            }
+
+            ApplyDamage(travel, deltaTime);
+        }
+
+        /// <summary>
+        /// Keeps the beam's root on the prow as the boss moves round the ring.
+        ///
+        /// The bearing follows; the height does not. EnemyMovement chases the
+        /// player's height once the boss is close, so a beam that followed the
+        /// prow up and down would follow the player through the one thing the
+        /// charge gave them time to do - leave its height. The boss moves slowly
+        /// enough that the root stays on the prow for the half second this is on.
+        /// </summary>
+        private void Follow()
+        {
+            if (!anchored || anchor == null)
+            {
+                return;
+            }
+
+            Vector3 offset = anchor.TransformPoint(anchorOffset) - centre.position;
+            offset.y = 0f;
+            startAngle = BearingOf(offset);
         }
 
         /// <summary>
@@ -342,79 +455,71 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Writes the four faces of a square tube along the arc, plus a cap at each
-        /// end. Corners are ordered outer-top, outer-bottom, inner-bottom,
-        /// inner-top, and each face is emitted with its own vertices so the normals
-        /// come out per-face rather than smoothed across the tube's edges - which
-        /// is what keeps a low-poly beam looking faceted rather than inflated.
+        /// Writes both ribbons along the arc from the prow out to
+        /// <paramref name="travel"/> degrees, each turned to face the camera.
+        ///
+        /// Facing the camera is what makes a flat strip read as a round beam,
+        /// and it is why this is no longer a tube: a square cross-section shows
+        /// its faces and its edges, and a laser has neither.
         /// </summary>
-        private void Rebuild(float from, float to)
+        private void Rebuild(float travel, float widthScale)
         {
-            float half = Thickness * 0.5f;
-            int at = 0;
-
-            Vector3 previousOuterTop = Vector3.zero;
-            Vector3 previousOuterBottom = Vector3.zero;
-            Vector3 previousInnerBottom = Vector3.zero;
-            Vector3 previousInnerTop = Vector3.zero;
-
-            Vector3 firstOuterTop = Vector3.zero;
-            Vector3 firstOuterBottom = Vector3.zero;
-            Vector3 firstInnerBottom = Vector3.zero;
-            Vector3 firstInnerTop = Vector3.zero;
+            Vector3 eye = ResolveViewer();
+            int glowFirst = (Segments + 1) * 2;
+            float unitsPerDegree = radius * Mathf.Deg2Rad;
+            float length = travel * unitsPerDegree;
 
             for (int i = 0; i <= Segments; i++)
             {
                 float t = i / (float)Segments;
-                float angle = Mathf.Lerp(from, to, t);
-
-                Vector3 radial = RadialAt(angle);
+                float angle = startAngle + direction * travel * t;
                 Vector3 spine = PointAt(angle);
 
-                Vector3 outerTop = spine + radial * half + Vector3.up * half;
-                Vector3 outerBottom = spine + radial * half - Vector3.up * half;
-                Vector3 innerBottom = spine - radial * half - Vector3.up * half;
-                Vector3 innerTop = spine - radial * half + Vector3.up * half;
+                // The way the cuts run, which is what the winding in
+                // RibbonTriangles was worked out against.
+                Vector3 along = RadialAt(angle + 90f) * direction;
+                Vector3 across = Vector3.Cross(along, eye - spine);
 
-                if (i == 0)
-                {
-                    firstOuterTop = outerTop;
-                    firstOuterBottom = outerBottom;
-                    firstInnerBottom = innerBottom;
-                    firstInnerTop = innerTop;
-                }
-                else
-                {
-                    at = Quad(at, previousOuterTop, previousOuterBottom, outerBottom, outerTop);
-                    at = Quad(at, previousInnerBottom, previousInnerTop, innerTop, innerBottom);
-                    at = Quad(at, previousInnerTop, previousOuterTop, outerTop, innerTop);
-                    at = Quad(at, previousOuterBottom, previousInnerBottom, innerBottom, outerBottom);
-                }
+                across = across.sqrMagnitude > 1e-8f ? across.normalized : Vector3.up;
 
-                previousOuterTop = outerTop;
-                previousOuterBottom = outerBottom;
-                previousInnerBottom = innerBottom;
-                previousInnerTop = innerTop;
+                float fromProw = length * t;
+                float tip = Mathf.Sqrt(Mathf.Clamp01((length - fromProw) / TipTaper));
+                float scale = widthScale * tip * 0.5f;
+
+                Ribbon(i * 2, spine, across * (CoreWidth * scale), fromProw);
+                Ribbon(glowFirst + i * 2, spine, across * (GlowWidth * scale), fromProw);
             }
 
-            at = Quad(at, firstInnerTop, firstInnerBottom, firstOuterBottom, firstOuterTop);
-            Quad(at, previousOuterTop, previousOuterBottom, previousInnerBottom, previousInnerTop);
-
             mesh.vertices = vertices;
+            mesh.uv = uvs;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
         }
 
-        private int Quad(int at, Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        private void Ribbon(int at, Vector3 spine, Vector3 halfWidth, float distance)
         {
-            vertices[at] = a;
-            vertices[at + 1] = b;
-            vertices[at + 2] = c;
-            vertices[at + 3] = d;
-            return at + 4;
+            vertices[at] = spine - halfWidth;
+            vertices[at + 1] = spine + halfWidth;
+            uvs[at] = new Vector2(distance, 0f);
+            uvs[at + 1] = new Vector2(distance, 1f);
         }
 
-        private void PlaceLights(float tail, float head)
+        /// <summary>
+        /// Where the ribbons face. The game has one camera, and it is found
+        /// rather than handed in because the boss does not know it either. With
+        /// none, the ribbons lie flat, as if seen from level.
+        /// </summary>
+        private Vector3 ResolveViewer()
+        {
+            if (viewer == null)
+            {
+                viewer = Camera.main;
+            }
+
+            return viewer != null ? viewer.transform.position : PointAt(startAngle) + Vector3.up;
+        }
+
+        private void PlaceLights(float travel, float brightness)
         {
             if (lightPivots == null)
             {
@@ -424,23 +529,24 @@ namespace SurvivalChaos
             for (int i = 0; i < lightPivots.Length; i++)
             {
                 // Spread across the middle of the arc rather than out to its ends,
-                // so a light never sits exactly on the head where half its range is
-                // spent lighting the empty ring in front of the beam.
+                // so a light never sits exactly on the tip where half its range is
+                // spent lighting the empty ring beyond the beam.
                 float t = (i + 0.5f) / lightPivots.Length;
-                lightPivots[i].position = PointAt(Mathf.Lerp(tail, head, t));
+                lightPivots[i].position = PointAt(startAngle + direction * travel * t);
+                lights[i].intensity = lightIntensities[i] * brightness;
             }
         }
 
         /// <summary>
         /// The whole hit test, in the arena's own terms. The player is inside the
-        /// beam when its bearing has been passed by the head and not yet by the
-        /// tail, and when it is on the beam's lane and at its height.
+        /// beam when its bearing lies between the prow and the tip, and when it is
+        /// on the beam's lane and at its height.
         ///
-        /// Travel is measured forward from the muzzle in the direction the beam is
-        /// going, so both ends are positive numbers growing from zero and the wrap
-        /// at 360 is handled once, by Repeat, rather than at every comparison.
+        /// Travel is measured forward from the prow in the direction the beam
+        /// runs, so the wrap at 360 is handled once, by Repeat, rather than at
+        /// every comparison.
         /// </summary>
-        private void ApplyDamage(float tailTravel, float headTravel, float deltaTime)
+        private void ApplyDamage(float travel, float deltaTime)
         {
             if (!ResolveTarget())
             {
@@ -452,10 +558,9 @@ namespace SurvivalChaos
             offset.y = 0f;
 
             float bearing = BearingOf(offset);
-            float travelled = Mathf.Repeat(Mathf.Sign(degreesPerSecond) * (bearing - startAngle), 360f);
+            float travelled = Mathf.Repeat(direction * (bearing - startAngle), 360f);
 
-            bool inside = travelled >= tailTravel
-                && travelled <= headTravel
+            bool inside = travelled <= travel
                 && Mathf.Abs(offset.magnitude - radius) <= LaneTolerance()
                 && Mathf.Abs(above) <= HeightTolerance();
 
@@ -502,7 +607,7 @@ namespace SurvivalChaos
 
         /// <summary>
         /// Half the beam plus half the ship. The rounds hit through a collider
-        /// overlap, so a beam that only counted its own two units would be harder
+        /// overlap, so a beam that only counted its own width would be harder
         /// to be hit by than the stream it replaced - the ship would have to be
         /// centred on the lane rather than touching it.
         /// </summary>
@@ -512,13 +617,13 @@ namespace SurvivalChaos
                 ? Mathf.Max(targetBody.bounds.extents.x, targetBody.bounds.extents.z)
                 : 0f;
 
-            return Thickness * 0.5f + ship;
+            return HitWidth * 0.5f + ship;
         }
 
         private float HeightTolerance()
         {
             float ship = targetBody != null ? targetBody.bounds.extents.y : 0f;
-            return Thickness * 0.5f + ship;
+            return HitWidth * 0.5f + ship;
         }
     }
 }
