@@ -792,6 +792,8 @@ MonoBehaviour:
   tellMesh: {fileID: 4300000, guid: 9abf9d684526f7244bbb4cba229ef1b4, type: 2}
   tellMaterial: {fileID: 2100000, guid: 39dc5dc915cac634e8d378f456dd6e1f, type: 2}
   tellBrightness: 3
+  exhaustMesh: {fileID: 4300000, guid: 66a43c8127ed24e478d7893d14706523, type: 2}
+  exhaustMaterial: {fileID: 2100000, guid: 39dc5dc915cac634e8d378f456dd6e1f, type: 2}
   attacks:
   - label: Keel - Curtain
     pattern: 1
@@ -827,12 +829,13 @@ MonoBehaviour:
     throwSpeed: 4
     homeSeconds: 0
     homePerception: 1.6
-    homeSpeed: 8
+    homeSpeed: 7.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3
     homeTurnRate: 90
     homeCoastSeconds: 2
+    homeScale: 0.5
   - label: Crown - Rake
     pattern: 2
     phases: 1
@@ -857,7 +860,7 @@ MonoBehaviour:
     projectileWhenLeft: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
     projectileWhenRight: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
     initialDelay: 0.5
-    interval: 2
+    interval: 3
     stepSeconds: 0.12
     singleShot: 1
     openRows: 1
@@ -871,12 +874,13 @@ MonoBehaviour:
     throwSpeed: 0
     homeSeconds: 10
     homePerception: 1.6
-    homeSpeed: 8
+    homeSpeed: 7.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3
     homeTurnRate: 90
     homeCoastSeconds: 2
+    homeScale: 0.5
   - label: Prow - Lance
     pattern: 3
     phases: 1
@@ -903,12 +907,13 @@ MonoBehaviour:
     throwSpeed: 0
     homeSeconds: 0
     homePerception: 1.6
-    homeSpeed: 8
+    homeSpeed: 7.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3
     homeTurnRate: 90
     homeCoastSeconds: 2
+    homeScale: 0.5
   - label: Hull - Ram
     pattern: 4
     phases: 2
@@ -931,12 +936,13 @@ MonoBehaviour:
     throwSpeed: 0
     homeSeconds: 0
     homePerception: 1.6
-    homeSpeed: 8
+    homeSpeed: 7.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3
     homeTurnRate: 90
     homeCoastSeconds: 2
+    homeScale: 0.5
   - label: Hull - Wreckage
     pattern: 5
     phases: 2
@@ -959,12 +965,13 @@ MonoBehaviour:
     throwSpeed: 0
     homeSeconds: 0
     homePerception: 1.6
-    homeSpeed: 8
+    homeSpeed: 7.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3
     homeTurnRate: 90
     homeCoastSeconds: 2
+    homeScale: 0.5
   - label: Scuttle
     pattern: 0
     phases: 4
@@ -1019,12 +1026,13 @@ MonoBehaviour:
     throwSpeed: 0
     homeSeconds: 0
     homePerception: 1.6
-    homeSpeed: 8
+    homeSpeed: 7.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3
     homeTurnRate: 90
     homeCoastSeconds: 2
+    homeScale: 0.5
 --- !u!1 &2761499119940645981
 GameObject:
   m_ObjectHideFlags: 0

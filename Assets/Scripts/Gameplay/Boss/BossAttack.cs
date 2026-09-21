@@ -148,7 +148,7 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Units a second a torpedo cruises at once its motor is up to speed. The player " +
                  "flies at 7 each way, so above 7 it gains on you and below it you can outrun it.")]
-        private float homeSpeed = 8f;
+        private float homeSpeed = 7.5f;
 
         [SerializeField]
         [Tooltip("Units a second a torpedo leaves the muzzle at, before it spins up to cruise.")]
@@ -170,6 +170,11 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Seconds a torpedo flies straight on after its fuel runs out, before it is gone.")]
         private float homeCoastSeconds = 2f;
+
+        [SerializeField]
+        [Tooltip("A torpedo's size, times the round's prefab - hit box and all, so what can hit " +
+                 "you is what you can see.")]
+        private float homeScale = 0.5f;
 
         /// <summary>Inspector-only name. Nothing reads this at runtime.</summary>
         public string Label => label;
@@ -241,6 +246,9 @@ namespace SurvivalChaos
 
         /// <summary>Seconds a torpedo flies on after its fuel is spent.</summary>
         public float HomeCoastSeconds => Mathf.Max(0f, homeCoastSeconds);
+
+        /// <summary>A torpedo's size as a multiple of its prefab's.</summary>
+        public float HomeScale => homeScale > 0f ? homeScale : 1f;
 
         /// <summary>How this attack's torpedoes fly - see <see cref="TorpedoSteer"/>.</summary>
         public TorpedoHandling Torpedo => new TorpedoHandling

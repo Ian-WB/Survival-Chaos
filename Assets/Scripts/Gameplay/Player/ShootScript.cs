@@ -183,6 +183,24 @@ namespace SurvivalChaos
         /// </summary>
         public bool IsTorpedo => torpedoing;
 
+        /// <summary>How hard a torpedo's motor is burning, 0 to 1; 0 for any other round.</summary>
+        public float Thrust => torpedoing ? TorpedoSteer.Thrust(torpedoHandling, torpedo.Age) : 0f;
+
+        /// <summary>
+        /// Whether this round's nose is modelled on its local -X, which is true
+        /// of the ones fired with a positive orbit speed - see
+        /// <see cref="TorpedoSteer.Roll"/>.
+        /// </summary>
+        public bool NoseOnNegativeX => speed >= 0f;
+
+        /// <summary>
+        /// The prefab's own scale, taken on the first spawn and put back on
+        /// every one after it, because a torpedo is fired smaller than the plain
+        /// round the same prefab also is.
+        /// </summary>
+        private Vector3 authoredScale;
+        private bool authoredScaleKnown;
+
         /// <summary>
         /// How fast a torpedo closes on the lane the player flies in, as well as
         /// on the player's height and place round the ring. The crown's muzzles
@@ -200,9 +218,12 @@ namespace SurvivalChaos
         /// and it has seen the player where they are at the moment of firing.
         /// Its life is set here too: a torpedo is slower than the round it
         /// replaces and needs longer than the prefab allows, so it lives for its
-        /// fuel plus <paramref name="coast"/> seconds.
+        /// fuel plus <paramref name="coast"/> seconds. And its size:
+        /// <paramref name="scale"/> times the prefab's, hit box and all, so what
+        /// can hit you is what you can see.
         /// </summary>
-        public void Home(Transform target, in TorpedoHandling handling, float coast, float floor, float ceiling)
+        public void Home(Transform target, in TorpedoHandling handling, float coast, float scale,
+                         float floor, float ceiling)
         {
             throwSpeed = 0f;
             throwFloor = floor;
@@ -217,6 +238,11 @@ namespace SurvivalChaos
             torpedoTarget = target;
             torpedoTargetBox = target.GetComponent<BoxCollider>();
             torpedoHandling = handling;
+
+            if (scale > 0f)
+            {
+                transform.localScale = authoredScale * scale;
+            }
 
             Vector2 start = new Vector2(0f, transform.position.y);
             torpedo = Torpedo.Launch(start, speed >= 0f ? 0f : 180f, FlatTarget(start, AimPoint()));
@@ -302,6 +328,16 @@ namespace SurvivalChaos
             {
                 Body = transform;
                 hitBox = GetComponent<BoxCollider>();
+            }
+
+            if (authoredScaleKnown)
+            {
+                transform.localScale = authoredScale;
+            }
+            else
+            {
+                authoredScale = transform.localScale;
+                authoredScaleKnown = true;
             }
 
             // A reused round must not sweep from where it died to where it has just

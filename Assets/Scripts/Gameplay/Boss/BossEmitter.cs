@@ -90,6 +90,17 @@ namespace SurvivalChaos
                  "and stops reading as the colour of the fire it announces.")]
         private float tellBrightness = 3f;
 
+        [Header("Torpedo exhaust")]
+        [SerializeField]
+        [Tooltip("The plume out of a torpedo's tail: the ship's own thruster plume, a unit long " +
+                 "along +X. Set by Survival Chaos/Apply Boss Tells and Routes.")]
+        private Mesh exhaustMesh;
+
+        [SerializeField]
+        [Tooltip("Material for the torpedo plume: the thruster shader in hostile orange, the same " +
+                 "as the muzzle glows, so the boss's fire is one colour.")]
+        private Material exhaustMaterial;
+
         [SerializeField]
         private List<BossAttack> attacks = new List<BossAttack>();
 
@@ -672,7 +683,14 @@ namespace SurvivalChaos
             {
                 if (quarry != null)
                 {
-                    shot.Home(quarry, attack.Torpedo, attack.HomeCoastSeconds, floor, ceiling);
+                    shot.Home(quarry, attack.Torpedo, attack.HomeCoastSeconds, attack.HomeScale, floor, ceiling);
+
+                    if (!round.TryGetComponent(out TorpedoExhaust exhaust))
+                    {
+                        exhaust = round.AddComponent<TorpedoExhaust>();
+                    }
+
+                    exhaust.Ignite(exhaustMesh, exhaustMaterial);
                 }
 
                 return;

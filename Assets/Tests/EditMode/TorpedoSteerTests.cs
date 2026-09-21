@@ -24,12 +24,12 @@ namespace SurvivalChaos.Tests
         private const float OldRoundSpeed = 26.1f;
 
         /// <summary>
-        /// Half the heights of the player's hit box (0.16) and a torpedo's
-        /// (0.18) together, and half their lengths along the ring (0.33 and
-        /// 1.04): a hit is the two boxes overlapping, centre to centre.
+        /// Half the heights of the player's hit box (0.16) and a half-size
+        /// torpedo's (0.09) together, and half their lengths along the ring
+        /// (0.33 and 0.52): a hit is the two boxes overlapping, centre to centre.
         /// </summary>
-        private const float HitHeight = 0.17f;
-        private const float HitLength = 0.685f;
+        private const float HitHeight = 0.125f;
+        private const float HitLength = 0.425f;
 
         private const float Frame = 1f / 60f;
 
@@ -37,7 +37,7 @@ namespace SurvivalChaos.Tests
         private static readonly TorpedoHandling Crown = new TorpedoHandling
         {
             LaunchSpeed = 3f,
-            CruiseSpeed = 8f,
+            CruiseSpeed = 7.5f,
             SpinUp = 0.6f,
             ArmSeconds = 0.3f,
             TurnRate = 90f,
@@ -128,11 +128,11 @@ namespace SurvivalChaos.Tests
 
         /// <summary>Moving too soon gives it time to follow you in, up or down.</summary>
         [Test]
-        public void HitsAPlayerWhoDodgesASecondEarly()
+        public void HitsAPlayerWhoDodgesTooEarly()
         {
             float arrival = Arrival();
-            Assert.IsTrue(Hits(MovingBy(2f, arrival - 1f), arrival + 0.6f), "up");
-            Assert.IsTrue(Hits(MovingBy(-2f, arrival - 1f), arrival + 0.6f), "down");
+            Assert.IsTrue(Hits(MovingBy(2f, arrival - 1.5f), arrival + 0.6f), "up");
+            Assert.IsTrue(Hits(MovingBy(-2f, arrival - 1.5f), arrival + 0.6f), "down");
         }
 
         /// <summary>
@@ -208,14 +208,37 @@ namespace SurvivalChaos.Tests
             Assert.IsTrue(turnedBack, "it should come about and head back at the player");
         }
 
-        /// <summary>Slower than the round it replaced, and it can be outrun.</summary>
+        /// <summary>
+        /// Far slower than the round it replaced, and only a touch faster than
+        /// the player: one fleeing flat out along the ring is gained on, slowly,
+        /// and not caught from 20 away before the fuel runs out.
+        /// </summary>
         [Test]
-        public void IsSlowerThanTheOldRound_AndAPlayerFleeingCanOutrunIt()
+        public void IsOnlyATouchFasterThanThePlayer()
         {
             Assert.Less(Crown.CruiseSpeed, OldRoundSpeed);
+            Assert.Greater(Crown.CruiseSpeed, PlayerSpeed);
+            Assert.Less(Crown.CruiseSpeed, PlayerSpeed * 1.15f);
 
             Mover fleeing = time => new Vector2(20f + PlayerSpeed * time, 8f);
             Assert.Greater(Closest(fleeing, Crown.Fuel, out _), 5f);
+        }
+
+        [Test]
+        public void Thrust_LightsLowAtLaunch_BurnsFullAtCruise_AndGoesOutWithTheFuel()
+        {
+            Assert.AreEqual(TorpedoSteer.LaunchBurn, TorpedoSteer.Thrust(Crown, 0f), 1e-4f);
+            Assert.AreEqual(1f, TorpedoSteer.Thrust(Crown, Crown.SpinUp), 1e-4f);
+            Assert.AreEqual(1f, TorpedoSteer.Thrust(Crown, Crown.Fuel - 0.01f), 1e-4f);
+            Assert.AreEqual(0f, TorpedoSteer.Thrust(Crown, Crown.Fuel), 1e-4f);
+
+            float previous = 0f;
+            for (float age = 0f; age <= Crown.SpinUp; age += 0.05f)
+            {
+                float burn = TorpedoSteer.Thrust(Crown, age);
+                Assert.GreaterOrEqual(burn, previous);
+                previous = burn;
+            }
         }
 
         [Test]

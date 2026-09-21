@@ -73,8 +73,8 @@ namespace SurvivalChaos
     /// your height. It has a heading and a speed. It leaves the muzzle slowly
     /// and straight, spins up to cruise, and turns toward the player no faster
     /// than a fixed turn rate, so it swings through wide curves rather than
-    /// correcting on the spot. At 8 units a second and 90 degrees a second its
-    /// turning circle is about 10 units across, more than the band's height,
+    /// correcting on the spot. At 7.5 units a second and 90 degrees a second
+    /// its turning circle is about 10 units across, more than the band's height,
     /// so one that has to turn round near an edge pulls out tight along it.
     /// One that misses swings round and comes back at you while its fuel
     /// lasts - though with the player inside its turning circle it tends to
@@ -84,12 +84,12 @@ namespace SurvivalChaos
     /// dodged, only outrun. It keeps its own idea of where the player is - the
     /// ghost - which catches up with the real position over a fraction of a
     /// second, and it steers at the ghost. A player who holds still gets hit,
-    /// and so does one who makes an ordinary dodge a second or more early,
-    /// because it has time to follow. A player who moves a unit or more in
-    /// the last half second leaves it heading for where they were, and too
-    /// committed to the turn to follow. The hit boxes make it an intercept:
-    /// the player's is 0.16 tall, so a torpedo a fifth of a unit high passes
-    /// over.
+    /// and so does one who makes an ordinary dodge a second and a half or more
+    /// early, because it has time to follow. A player who moves a unit or more
+    /// in the last second or so leaves it heading for where they were, and too
+    /// committed to the turn to follow. The hit boxes make it an intercept: the
+    /// player's is 0.16 tall and a half-size torpedo's 0.09, so one an eighth
+    /// of a unit high passes over.
     ///
     /// Everything else in the band bounces off the floor and ceiling, which
     /// the player's centre is clamped to. A torpedo does not bounce, because
@@ -103,8 +103,8 @@ namespace SurvivalChaos
     {
         /// <summary>
         /// How much tighter than it steers a torpedo pulls out before an edge.
-        /// Tight enough to leave it most of the band to chase in - at 8 units a
-        /// second it pulls out of a vertical climb in 1.7 - and loose enough
+        /// Tight enough to leave it most of the band to chase in - at 7.5 units
+        /// a second it pulls out of a vertical climb in 1.6 - and loose enough
         /// that the pull-out still reads as a turn.
         /// </summary>
         public const float EdgeTurnScale = 3f;
@@ -237,6 +237,33 @@ namespace SurvivalChaos
             }
 
             return Mathf.Round(halfTurns) * 180f;
+        }
+
+        /// <summary>
+        /// How hard the motor burns out of the muzzle, as a share of full: enough
+        /// to show the torpedo is under power from the first frame.
+        /// </summary>
+        public const float LaunchBurn = 0.35f;
+
+        /// <summary>
+        /// How hard the motor is burning at <paramref name="age"/>, 0 to 1, for
+        /// <see cref="TorpedoExhaust"/>: <see cref="LaunchBurn"/> out of the
+        /// muzzle, rising with the speed to full at cruise, and out the moment
+        /// the fuel is - the coast is unpowered, and looks it.
+        /// </summary>
+        public static float Thrust(in TorpedoHandling handling, float age)
+        {
+            if (age >= handling.Fuel)
+            {
+                return 0f;
+            }
+
+            if (handling.SpinUp <= 0f || age >= handling.SpinUp)
+            {
+                return 1f;
+            }
+
+            return Mathf.Lerp(LaunchBurn, 1f, Mathf.SmoothStep(0f, 1f, Mathf.Max(0f, age) / handling.SpinUp));
         }
 
         /// <summary>Whether a torpedo this old steers: armed, and not out of fuel.</summary>
