@@ -151,6 +151,33 @@ namespace SurvivalChaos
         private float laneResponse;
 
         /// <summary>
+        /// The weave this round flies, set by whatever fired it and cleared on
+        /// every spawn - see <see cref="RoundRoute"/>. Zero amplitude is a round
+        /// that holds its height, which is every round the player fires.
+        /// </summary>
+        private float routeAmplitude;
+        private float routePeriod;
+        private float routePhase;
+        private float routeHeight;
+        private float routeStart;
+
+        /// <summary>
+        /// Sends this round along a weave about the height it is at now.
+        ///
+        /// Called straight after the spawn, so "now" is the muzzle. Timed on
+        /// scaled time, so a paused game holds every round where it is on its
+        /// route rather than letting it jump ahead on resume.
+        /// </summary>
+        public void SetRoute(float amplitude, float period, float phase)
+        {
+            routeAmplitude = amplitude;
+            routePeriod = period;
+            routePhase = phase;
+            routeHeight = transform.position.y;
+            routeStart = Time.time;
+        }
+
+        /// <summary>
         /// Runs on every spawn, including reuse from the pool. This was Start(),
         /// which only ever runs on an object's first life - a reused bullet would
         /// have kept whatever rotation it died with.
@@ -166,6 +193,9 @@ namespace SurvivalChaos
             // A reused round must not sweep from where it died to where it has just
             // been fired, through everything in between.
             hasLastStep = false;
+
+            // A reused round must not keep the weave of the volley it died in.
+            routeAmplitude = 0f;
 
             // A deterministic starting point, not the final orientation: every
             // frame of Update ends by facing the arena axis, and FaceOrbitCentre
@@ -369,7 +399,17 @@ namespace SurvivalChaos
             }
 
             // Before the orbit, so the LookAt at the end faces from where this
-            // ends up rather than from where it started the frame.
+            // ends up rather than from where it started the frame. The route
+            // sets height and the lane sets distance from the axis, so neither
+            // undoes the other.
+            if (routeAmplitude != 0f)
+            {
+                Vector3 routed = transform.position;
+                routed.y = routeHeight + RoundRoute.Offset(
+                    routeAmplitude, routePeriod, routePhase, Time.time - routeStart);
+                transform.position = routed;
+            }
+
             if (laneResponse > 0f)
             {
                 transform.position = ArenaGeometry.EaseOntoOrbit(

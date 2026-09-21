@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos.EditorTools
 {
@@ -39,6 +40,21 @@ namespace SurvivalChaos.EditorTools
         private const string BlastPath = "Assets/Prefabs/VFX/Extracted/EnergyExplosion.prefab";
 
         private const string WreckagePath = "Assets/Prefabs/Boss/BossWreckage.prefab";
+
+        /// <summary>
+        /// The muzzle glows borrow the ship's flare shader, and a glow mesh shaped
+        /// like the dash-ready light's with one difference - see BuildTellMesh.
+        /// </summary>
+        private const string TellShaderPath = "Assets/Art/Shaders/ShipThruster.shadergraph";
+        private const string TellMeshPath = "Assets/Art/Models/VFX/BossTellGlow.asset";
+        private const string TellMaterialPath = "Assets/Art/Materials/VFX/BossMuzzleTell.mat";
+
+        /// <summary>
+        /// The hue of the boss's own rounds, whose emission runs 3.0 : 0.7 : 0.02
+        /// - so a glow on a muzzle is read as the fire it is about to become, and
+        /// never as the player's green.
+        /// </summary>
+        private static readonly Vector3 TellColour = new Vector3(1.0f, 0.3f, 0.03f);
 
         /// <summary>
         /// The keel's rounds, one per direction of travel like the rest.
@@ -1085,6 +1101,27 @@ namespace SurvivalChaos.EditorTools
             /// </summary>
             public float MuzzleStagger;
             public float RamSpeedScale = 3f;
+
+            /// <summary>
+            /// Seconds the muzzles glow before a Curtain or a Sequence fires. Zero
+            /// for the lance and the ram, which carry their own charge.
+            /// </summary>
+            public float TellSeconds;
+
+            /// <summary>World units across each muzzle's glow at full.</summary>
+            public float TellSize = 0.5f;
+
+            /// <summary>
+            /// The weave each round flies about its firing height, and whether
+            /// neighbouring rows cross. Zero amplitude holds height, which is what
+            /// every round did before 21 September 2026.
+            /// </summary>
+            public float RouteAmplitude;
+            public float RoutePeriod = 1.5f;
+            public bool RouteCrossing;
+
+            /// <summary>Fire the other way round the ring from the boss's travel.</summary>
+            public bool ReverseRoute;
         }
 
         /// <summary>
@@ -1142,6 +1179,24 @@ namespace SurvivalChaos.EditorTools
                 // trade the one thing the curtain teaches for difficulty that
                 // Interval provides more honestly.
                 OpenRows = 1,
+
+                // The rows that are about to fire glow, and the dark one is the
+                // gap, so the gap is on the hull before the wall leaves. Half a
+                // second of warning against 3.4 of cadence, taken out of the
+                // quiet between walls rather than added to it.
+                TellSeconds = 0.6f,
+
+                // The keel's rows are 1.2 apart, so its glows can be big enough
+                // to hold their own beside the pods - which are what the eye is
+                // drawn to on this hull - without two rows running together.
+                TellSize = 0.9f,
+
+                // The whole wall weaves as one, so the gap stays a gap and has to
+                // be tracked rather than parked in. 0.4 either way against rows
+                // 1.2 apart: the wall moves by a third of a row, and never leaves
+                // the keel's own heights for the middle of the band.
+                RouteAmplitude = 0.4f,
+                RoutePeriod = 1.5f,
             },
             new Volley
             {
@@ -1163,6 +1218,31 @@ namespace SurvivalChaos.EditorTools
                 // wall. Interval is the honest place to add pressure; this is the
                 // attack's identity.
                 StepSeconds = 0.12f,
+
+                // Lights the bank in the order it will fire, so which end the
+                // staircase starts from is readable before it does.
+                TellSeconds = 0.5f,
+
+                // The crown's rows are 0.40 to 0.52 apart, so its glows cannot be:
+                // wider than the gap and four rows merge into one blob, and the
+                // sweep that shows the staircase's direction is gone.
+                TellSize = 0.42f,
+
+                // Pairs of rows that cross. The crown's four rows sit 0.40, 0.46
+                // and 0.52 apart, so 0.3 either way takes each lower row of a
+                // pair past its partner and back, and nothing leaves the crown's
+                // 1.4 units of height.
+                RouteAmplitude = 0.3f,
+                RoutePeriod = 1.2f,
+                RouteCrossing = true,
+
+                // The other way round the ring from the discs. This is the
+                // playtest's note in one line: two banks going the same way at
+                // the same speed are one lane, however far apart they are in
+                // height. It is also the first of these to walk back if the
+                // fight stops being readable - a rake from ahead is one the
+                // glow on the hull no longer points at.
+                ReverseRoute = true,
             },
             new Volley
             {
@@ -1367,9 +1447,202 @@ namespace SurvivalChaos.EditorTools
                 entry.FindPropertyRelative("burstInterval").floatValue = volley.BurstInterval;
                 entry.FindPropertyRelative("muzzleStagger").floatValue = volley.MuzzleStagger;
                 entry.FindPropertyRelative("ramSpeedScale").floatValue = volley.RamSpeedScale;
+
+                WriteTellAndRoute(entry, volley);
             }
 
+            WriteTellAssets(so);
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void WriteTellAndRoute(SerializedProperty entry, Volley volley)
+        {
+            entry.FindPropertyRelative("tellSeconds").floatValue = volley.TellSeconds;
+            entry.FindPropertyRelative("tellSize").floatValue = volley.TellSize;
+            entry.FindPropertyRelative("routeAmplitude").floatValue = volley.RouteAmplitude;
+            entry.FindPropertyRelative("routePeriod").floatValue = volley.RoutePeriod;
+            entry.FindPropertyRelative("routeCrossing").boolValue = volley.RouteCrossing;
+            entry.FindPropertyRelative("reverseRoute").boolValue = volley.ReverseRoute;
+        }
+
+        private static void WriteTellAssets(SerializedObject emitter)
+        {
+            emitter.FindProperty("tellMesh").objectReferenceValue = BuildTellMesh();
+            emitter.FindProperty("tellMaterial").objectReferenceValue = BuildTellMaterial();
+        }
+
+        /// <summary>
+        /// Writes only the tells and the routes onto the boss, from <see cref="Fight"/>.
+        ///
+        /// The full rebuild above opens the prefab with LoadPrefabContents, and
+        /// that is the call that stalled the editor long enough for the GPU
+        /// driver to reset it. These are plain fields on a component that
+        /// already exists, so they go through a SerializedObject on the asset
+        /// itself - and the values stay in the one table, so a full rebuild later
+        /// writes the same numbers.
+        /// </summary>
+        [MenuItem("Survival Chaos/Apply Boss Tells and Routes", priority = 56)]
+        public static void ApplyTellsAndRoutesFromMenu()
+        {
+            Debug.Log(ApplyTellsAndRoutes());
+        }
+
+        public static string ApplyTellsAndRoutes()
+        {
+            GameObject boss = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            BossEmitter emitter = boss != null ? boss.GetComponentInChildren<BossEmitter>(true) : null;
+
+            if (emitter == null)
+            {
+                return "No BossEmitter in " + PrefabPath + ". Nothing was changed.";
+            }
+
+            var so = new SerializedObject(emitter);
+            SerializedProperty attacks = so.FindProperty("attacks");
+            var log = new System.Text.StringBuilder();
+
+            for (int i = 0; i < attacks.arraySize; i++)
+            {
+                SerializedProperty entry = attacks.GetArrayElementAtIndex(i);
+                string label = entry.FindPropertyRelative("label").stringValue;
+                Volley volley = System.Array.Find(Fight, v => v.Label == label);
+
+                if (volley == null)
+                {
+                    log.AppendLine(label + ": not in the Fight table, left alone.");
+                    continue;
+                }
+
+                WriteTellAndRoute(entry, volley);
+                log.AppendLine(label + ": tell " + volley.TellSeconds + "s at " + volley.TellSize
+                               + ", weave " + volley.RouteAmplitude
+                               + (volley.RouteCrossing ? " crossing" : "")
+                               + (volley.ReverseRoute ? ", reversed" : ""));
+            }
+
+            WriteTellAssets(so);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            EditorUtility.SetDirty(emitter);
+            AssetDatabase.SaveAssets();
+
+            return log.ToString();
+        }
+
+        /// <summary>
+        /// The muzzle glow's mesh: three fans a unit across, like the dash-ready
+        /// light's, with U running 0 at the centre to 1 at the rim.
+        ///
+        /// What differs is V at the centre. The flare shader pushes a surface
+        /// toward white where V sits at the middle of its ribbon, which is what
+        /// gives the ready light its hot centre, and put here that made every
+        /// muzzle glow a white four-point sparkle - seen in play on 21 September
+        /// 2026 it read as the sparks off the hull, not as the boss's fire about
+        /// to leave. Centred at 0.35 instead, the core is a fifth white at most
+        /// and the glow reads as the orange the rounds are.
+        /// </summary>
+        private static Mesh BuildTellMesh()
+        {
+            const int sides = 12;
+            const float centreV = 0.35f;
+
+            var vertices = new List<Vector3>();
+            var uvs = new List<Vector2>();
+            var triangles = new List<int>();
+
+            for (int plane = 0; plane < 3; plane++)
+            {
+                int centre = vertices.Count;
+                vertices.Add(Vector3.zero);
+                uvs.Add(new Vector2(0f, centreV));
+
+                for (int i = 0; i < sides; i++)
+                {
+                    float angle = i / (float)sides * Mathf.PI * 2f;
+                    float a = Mathf.Cos(angle) * 0.5f;
+                    float b = Mathf.Sin(angle) * 0.5f;
+
+                    vertices.Add(plane == 0 ? new Vector3(a, b, 0f)
+                        : plane == 1 ? new Vector3(a, 0f, b)
+                        : new Vector3(0f, a, b));
+
+                    uvs.Add(new Vector2(1f, 0f));
+                }
+
+                for (int i = 0; i < sides; i++)
+                {
+                    triangles.Add(centre);
+                    triangles.Add(centre + 1 + i);
+                    triangles.Add(centre + 1 + (i + 1) % sides);
+                }
+            }
+
+            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(TellMeshPath);
+            bool isNew = mesh == null;
+
+            if (isNew)
+            {
+                mesh = new Mesh();
+            }
+            else
+            {
+                mesh.Clear();
+            }
+
+            mesh.name = "BossTellGlow";
+            mesh.SetVertices(vertices);
+            mesh.SetUVs(0, uvs);
+            mesh.SetTriangles(triangles, 0, calculateBounds: false);
+            mesh.RecalculateNormals();
+            mesh.bounds = new Bounds(Vector3.zero, Vector3.one);
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(mesh, TellMeshPath);
+            }
+            else
+            {
+                EditorUtility.SetDirty(mesh);
+            }
+
+            return mesh;
+        }
+
+        /// <summary>
+        /// The muzzle glow's material, made the way the ship's flares make
+        /// theirs - see ShipThrusterBuilder - with only the colour changed.
+        /// Re-running updates it in place, so its GUID survives.
+        /// </summary>
+        private static Material BuildTellMaterial()
+        {
+            Shader shader = Load<Shader>(TellShaderPath);
+
+            if (shader == null)
+            {
+                return null;
+            }
+
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(TellMaterialPath);
+
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, TellMaterialPath);
+            }
+            else
+            {
+                material.shader = shader;
+            }
+
+            material.SetVector("_FlameColor", TellColour);
+            material.SetFloat("_FlameIntensity", 1f);
+            material.SetFloat("_DoubleSidedEnable", 1f);
+            material.SetFloat("_TransparentWritingMotionVec", 1f);
+            material.SetFloat("_ExcludeFromTUAndAA", 0f);
+
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
         }
 
         /// <summary>

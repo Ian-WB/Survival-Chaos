@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace SurvivalChaos
@@ -73,6 +74,22 @@ namespace SurvivalChaos
                  "to notice that it did - every attack restarts its cadence from here.")]
         private float phaseChangeSilence = 2f;
 
+        [Header("Muzzle tells")]
+        [SerializeField]
+        [Tooltip("The glow shown on a muzzle before it fires. Built by Survival Chaos/Apply Boss " +
+                 "Tells and Routes: the ship's dash-ready glow, with its white-hot centre taken out.")]
+        private Mesh tellMesh;
+
+        [SerializeField]
+        [Tooltip("Material for the muzzle glows: the thruster shader in hostile orange.")]
+        private Material tellMaterial;
+
+        [SerializeField]
+        [Tooltip("Brightness of a muzzle glow at the moment its volley fires. Kept low for the " +
+                 "reason the boss pods taught: pushed hard, the core blows out to a white ball " +
+                 "and stops reading as the colour of the fire it announces.")]
+        private float tellBrightness = 3f;
+
         [SerializeField]
         private List<BossAttack> attacks = new List<BossAttack>();
 
@@ -132,6 +149,21 @@ namespace SurvivalChaos
         /// </summary>
         private BossLanceBeam lanceBeam;
 
+        /// <summary>
+        /// One glow per muzzle, for the attacks that announce their volleys;
+        /// null for the ones that do not. Built once, on the muzzles themselves,
+        /// so they ride the mirroring rig with the guns. Switched off whenever
+        /// they are not lit, which is nearly always.
+        /// </summary>
+        private Renderer[][] tells;
+        private MaterialPropertyBlock tellBlock;
+
+        /// <summary>
+        /// The property the thruster shader takes its brightness from, the same
+        /// one <see cref="ShipThrusters"/> drives.
+        /// </summary>
+        private static readonly int FlameIntensityId = Shader.PropertyToID("_FlameIntensity");
+
         private Transform arenaCentre;
         private bool warnedAboutCentre;
 
@@ -188,6 +220,7 @@ namespace SurvivalChaos
             if (Active == this) { Active = null; }
             ReleaseMovement();
             ClearTelegraphs();
+            ClearTells();
         }
 
         /// <summary>
@@ -208,6 +241,164 @@ namespace SurvivalChaos
         {
             Bar();
             WarmProjectilePools();
+            BuildTells();
+        }
+
+        /// <summary>
+        /// Puts a glow on every muzzle of every attack that announces itself.
+        ///
+        /// At runtime rather than in the prefab for the reason the ship's flares
+        /// are: the safe way to edit a prefab from a script can add a component
+        /// but not a child, and the other way is the one that took the GPU down.
+        /// The boss is pooled and its muzzles come back with it, so this runs
+        /// once for every life it will have.
+        /// </summary>
+        private void BuildTells()
+        {
+            tells = new Renderer[attacks.Count][];
+            tellBlock = new MaterialPropertyBlock();
+
+            bool wanted = false;
+
+            for (int i = 0; i < attacks.Count; i++)
+            {
+                wanted |= attacks[i].TellSeconds > 0f && Tells(attacks[i].Pattern);
+            }
+
+            if (!wanted)
+            {
+                return;
+            }
+
+            // Said out loud because the failure is quiet: the volleys still fire
+            // on time, just unannounced, which is exactly how they looked before.
+            if (tellMesh == null || tellMaterial == null)
+            {
+                Debug.LogWarning(
+                    "BossEmitter has attacks with a tell but no glow to show it, so they will fire " +
+                    "unannounced. Run Survival Chaos/Apply Boss Tells and Routes.", this);
+                return;
+            }
+
+            for (int i = 0; i < attacks.Count; i++)
+            {
+                BossAttack attack = attacks[i];
+
+                if (attack.TellSeconds <= 0f || !Tells(attack.Pattern) || attack.Pivots == null)
+                {
+                    continue;
+                }
+
+                tells[i] = new Renderer[attack.Pivots.Length];
+
+                for (int m = 0; m < attack.Pivots.Length; m++)
+                {
+                    if (attack.Pivots[m] != null)
+                    {
+                        tells[i][m] = BuildTell(attack.Pivots[m]);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// The patterns this glow is for. The lance and the ram have their own
+        /// charge, and a glow on top of it would be a second warning saying the
+        /// same thing less well.
+        /// </summary>
+        private static bool Tells(BossFirePattern pattern)
+        {
+            return pattern == BossFirePattern.Curtain || pattern == BossFirePattern.Sequence;
+        }
+
+        private Renderer BuildTell(Transform muzzle)
+        {
+            var go = new GameObject("Muzzle Tell");
+            go.transform.SetParent(muzzle, false);
+
+            go.AddComponent<MeshFilter>().sharedMesh = tellMesh;
+
+            MeshRenderer glow = go.AddComponent<MeshRenderer>();
+            glow.sharedMaterial = tellMaterial;
+            glow.shadowCastingMode = ShadowCastingMode.Off;
+            glow.receiveShadows = false;
+            glow.lightProbeUsage = LightProbeUsage.Off;
+            glow.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+            // Object, for the reason the ship's flares give: the glow moves
+            // rigidly with the boss, and anything that does not write its own
+            // motion vectors gets dragged across the screen under FSR.
+            glow.motionVectorGenerationMode = MotionVectorGenerationMode.Object;
+            glow.enabled = false;
+
+            return glow;
+        }
+
+        /// <summary>
+        /// Lights one muzzle's glow, 0 dark and 1 at the moment it fires. Size
+        /// and brightness both follow, so the warning grows as well as heats.
+        /// </summary>
+        private void SetTell(int attack, int muzzle, float level)
+        {
+            Renderer glow = tells != null && tells[attack] != null ? tells[attack][muzzle] : null;
+
+            if (glow == null)
+            {
+                return;
+            }
+
+            bool lit = level > 0.002f;
+            glow.enabled = lit;
+
+            if (!lit)
+            {
+                return;
+            }
+
+            // In the muzzle's space, so divide its scale back out: the glow is a
+            // world size, and the rig's scale is not a statement about it.
+            float scale = Mathf.Abs(glow.transform.parent.lossyScale.x);
+            float size = attacks[attack].TellSize;
+            glow.transform.localScale = Vector3.one * (size * level / Mathf.Max(scale, 0.0001f));
+
+            glow.GetPropertyBlock(tellBlock);
+            tellBlock.SetFloat(FlameIntensityId, tellBrightness * level);
+            glow.SetPropertyBlock(tellBlock);
+        }
+
+        /// <summary>Puts out every glow of one attack, or of all of them.</summary>
+        private void ClearTells(int attack = -1)
+        {
+            if (tells == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < tells.Length; i++)
+            {
+                if (tells[i] == null || (attack >= 0 && i != attack))
+                {
+                    continue;
+                }
+
+                foreach (Renderer glow in tells[i])
+                {
+                    if (glow != null)
+                    {
+                        glow.enabled = false;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the emplacement feeding an attack has been shot off. Asked
+        /// through a warning as well as before it, for the reason the lance
+        /// gives: a warning for a shot that is never coming is a lie.
+        /// </summary>
+        private static bool Silenced(BossAttack attack)
+        {
+            return attack.WeakPoint != null && attack.WeakPoint.Destroyed;
         }
 
         /// <summary>
@@ -348,7 +539,15 @@ namespace SurvivalChaos
             switch (attack.Pattern)
             {
                 case BossFirePattern.Curtain:
-                    FireCurtain(attack, index, volley);
+                    if (attack.TellSeconds > 0f)
+                    {
+                        StartCoroutine(RunCurtain(attack, index, volley));
+                    }
+                    else
+                    {
+                        FireCurtain(attack, index, volley);
+                    }
+
                     break;
 
                 case BossFirePattern.Sequence:
@@ -399,7 +598,7 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity);
+                SendAlongRoute(attack, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), muzzleRows[i]);
                 fired = true;
             }
 
@@ -407,6 +606,23 @@ namespace SurvivalChaos
             {
                 PlayVolleySound();
             }
+        }
+
+        /// <summary>
+        /// Gives a round its attack's weave, from the row it left.
+        ///
+        /// Asked per round rather than per volley because crossing rows take
+        /// opposite phases, and the row is only known per muzzle.
+        /// </summary>
+        private static void SendAlongRoute(BossAttack attack, GameObject round, int row)
+        {
+            if (!attack.HasRoute || round == null || !round.TryGetComponent(out ShootScript shot))
+            {
+                return;
+            }
+
+            shot.SetRoute(attack.RouteAmplitude, attack.RoutePeriod,
+                RoundRoute.PhaseForRow(row, attack.RouteCrossing));
         }
 
         /// <summary>
@@ -458,7 +674,7 @@ namespace SurvivalChaos
                     yield return gap;
                 }
 
-                ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity);
+                SendAlongRoute(attack, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), muzzleRows[i]);
 
                 if (!fired)
                 {
@@ -479,7 +695,7 @@ namespace SurvivalChaos
         private void FireCurtain(BossAttack attack, int index, int volley)
         {
             int count = rowCounts[index];
-            GameObject projectile = attack.ProjectileFor(TravellingLeft);
+            GameObject projectile = attack.RoundFor(TravellingLeft);
 
             for (int row = 0; row < count; row++)
             {
@@ -490,6 +706,49 @@ namespace SurvivalChaos
 
                 FireMuzzles(attack, projectile, rows[index], row);
             }
+        }
+
+        /// <summary>
+        /// A curtain, announced: the rows that are about to fire glow first, and
+        /// the one that stays dark is the gap.
+        ///
+        /// Running for the length of the warning, like the lance's charge, so a
+        /// change of act stops it through the same path and a second curtain
+        /// cannot start over the top of one still warning.
+        /// </summary>
+        private IEnumerator RunCurtain(BossAttack attack, int index, int volley)
+        {
+            running[index] = true;
+
+            int count = rowCounts[index];
+            int[] muzzleRows = rows[index];
+            float tell = attack.TellSeconds;
+
+            for (float elapsed = 0f; elapsed < tell; elapsed += Time.deltaTime)
+            {
+                if (Silenced(attack))
+                {
+                    break;
+                }
+
+                float level = VolleyTell.Together(elapsed / tell);
+
+                for (int m = 0; m < muzzleRows.Length; m++)
+                {
+                    SetTell(index, m, MuzzleRows.IsGap(muzzleRows[m], volley, count, attack.OpenRows) ? 0f : level);
+                }
+
+                yield return null;
+            }
+
+            ClearTells(index);
+
+            if (!Silenced(attack))
+            {
+                FireCurtain(attack, index, volley);
+            }
+
+            running[index] = false;
         }
 
         /// <summary>
@@ -506,13 +765,50 @@ namespace SurvivalChaos
         {
             running[index] = true;
 
-            GameObject projectile = attack.ProjectileFor(TravellingLeft);
+            GameObject projectile = attack.RoundFor(TravellingLeft);
             int count = rowCounts[index];
-            bool upward = (volley & 1) == 0;
+            int[] muzzleRows = rows[index];
+            bool upward = VolleyTell.Upward(volley);
+            float tell = attack.TellSeconds;
+
+            // The warning lights the bank in the order the rake will fire it,
+            // so where it starts and which way it climbs are both on the hull
+            // before the first row leaves.
+            for (float elapsed = 0f; elapsed < tell; elapsed += Time.deltaTime)
+            {
+                if (Silenced(attack))
+                {
+                    ClearTells(index);
+                    running[index] = false;
+                    yield break;
+                }
+
+                float progress = elapsed / tell;
+
+                for (int m = 0; m < muzzleRows.Length; m++)
+                {
+                    int order = VolleyTell.FiringOrder(muzzleRows[m], count, upward);
+                    SetTell(index, m, VolleyTell.InOrder(progress, order, count));
+                }
+
+                yield return null;
+            }
 
             for (int step = 0; step < count; step++)
             {
-                FireMuzzles(attack, projectile, rows[index], upward ? step : count - 1 - step);
+                int row = VolleyTell.FiringOrder(step, count, upward);
+
+                // Each row's glow goes out as it fires, so what is still lit is
+                // what is still to come.
+                for (int m = 0; m < muzzleRows.Length; m++)
+                {
+                    if (muzzleRows[m] == row)
+                    {
+                        SetTell(index, m, 0f);
+                    }
+                }
+
+                FireMuzzles(attack, projectile, muzzleRows, row);
 
                 if (step + 1 < count)
                 {
@@ -520,6 +816,7 @@ namespace SurvivalChaos
                 }
             }
 
+            ClearTells(index);
             running[index] = false;
         }
 
@@ -950,6 +1247,7 @@ namespace SurvivalChaos
             StopAllCoroutines();
             ReleaseMovement();
             ClearTelegraphs();
+            ClearTells();
 
             for (int i = 0; i < running.Length; i++)
             {

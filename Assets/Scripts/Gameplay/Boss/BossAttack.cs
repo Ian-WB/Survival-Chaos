@@ -104,6 +104,43 @@ namespace SurvivalChaos
                  "It has to beat the player's own orbit speed or running away wins.")]
         private float ramSpeedScale = 3f;
 
+        [Header("Tell")]
+        [SerializeField]
+        [Tooltip("Seconds the muzzles glow before a Curtain or a Sequence fires. Only the muzzles " +
+                 "that are about to fire light, so a curtain shows its gap and a rake shows which " +
+                 "way it will climb. 0 fires unannounced. The Lance and the Ram warn through their " +
+                 "own charge instead and ignore this.")]
+        private float tellSeconds;
+
+        [SerializeField]
+        [Tooltip("World units across each muzzle's glow at the moment it fires. Per attack, because " +
+                 "it has to fit between the bank's rows: a glow wider than the gap between two rows " +
+                 "merges them, and a rake whose rows have merged no longer shows which way it climbs.")]
+        private float tellSize = 0.5f;
+
+        [Header("Route")]
+        [SerializeField]
+        [Tooltip("How far above and below its firing height each round weaves, in world units. " +
+                 "Keep it inside the bank's own rows: the armoured act is about which height the " +
+                 "fire comes from, and a weave wider than the bank erases that.")]
+        private float routeAmplitude;
+
+        [SerializeField]
+        [Tooltip("Seconds for one full weave, up and back down.")]
+        private float routePeriod = 1.5f;
+
+        [SerializeField]
+        [Tooltip("Alternate rows weave in opposite directions, so neighbouring rows close, cross " +
+                 "and open again. Off, the whole volley weaves as one shape - which is what a " +
+                 "curtain wants, since its gap has to stay a gap.")]
+        private bool routeCrossing;
+
+        [SerializeField]
+        [Tooltip("Fire the other way round the ring from the way the boss is travelling. Two banks " +
+                 "going the same way at the same speed read as one lane; one of them reversed is " +
+                 "two routes that visibly cross.")]
+        private bool reverseRoute;
+
         /// <summary>Inspector-only name. Nothing reads this at runtime.</summary>
         public string Label => label;
 
@@ -153,6 +190,37 @@ namespace SurvivalChaos
 
         /// <summary>How much faster the boss travels during a Ram.</summary>
         public float RamSpeedScale => Mathf.Max(1f, ramSpeedScale);
+
+        /// <summary>Seconds the muzzles glow before a Curtain or Sequence fires.</summary>
+        public float TellSeconds => Mathf.Max(0f, tellSeconds);
+
+        /// <summary>World units across each muzzle's glow at full.</summary>
+        public float TellSize => Mathf.Max(0f, tellSize);
+
+        /// <summary>Whether rounds from this attack weave at all.</summary>
+        public bool HasRoute => routeAmplitude != 0f && routePeriod > 0f;
+
+        /// <summary>How far each round weaves either side of its firing height.</summary>
+        public float RouteAmplitude => routeAmplitude;
+
+        /// <summary>Seconds for one full weave.</summary>
+        public float RoutePeriod => routePeriod;
+
+        /// <summary>Whether alternate rows weave in opposite directions.</summary>
+        public bool RouteCrossing => routeCrossing;
+
+        /// <summary>
+        /// The round a volley of this attack fires, which way round the ring
+        /// included.
+        ///
+        /// Separate from <see cref="ProjectileFor"/> because the lance reads
+        /// that one for its direction, and reversing a volley's route is not a
+        /// statement about which way the lance should sweep.
+        /// </summary>
+        public GameObject RoundFor(bool travellingLeft)
+        {
+            return ProjectileFor(reverseRoute ? !travellingLeft : travellingLeft);
+        }
 
         /// <summary>
         /// The emplacement that has to survive for this attack to fire, or null

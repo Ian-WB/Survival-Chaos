@@ -789,6 +789,9 @@ MonoBehaviour:
   hullSpark: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   scuttleThreshold: 90
   phaseChangeSilence: 2
+  tellMesh: {fileID: 4300000, guid: 9abf9d684526f7244bbb4cba229ef1b4, type: 2}
+  tellMaterial: {fileID: 2100000, guid: 39dc5dc915cac634e8d378f456dd6e1f, type: 2}
+  tellBrightness: 3
   attacks:
   - label: Keel - Curtain
     pattern: 1
@@ -818,6 +821,12 @@ MonoBehaviour:
     burstInterval: 0.06
     muzzleStagger: 0
     ramSpeedScale: 3
+    tellSeconds: 0.6
+    tellSize: 0.9
+    routeAmplitude: 0.4
+    routePeriod: 1.5
+    routeCrossing: 0
+    reverseRoute: 0
   - label: Crown - Rake
     pattern: 2
     phases: 1
@@ -850,6 +859,12 @@ MonoBehaviour:
     burstInterval: 0.06
     muzzleStagger: 0
     ramSpeedScale: 3
+    tellSeconds: 0.5
+    tellSize: 0.42
+    routeAmplitude: 0.3
+    routePeriod: 1.2
+    routeCrossing: 1
+    reverseRoute: 1
   - label: Prow - Lance
     pattern: 3
     phases: 1
@@ -870,6 +885,12 @@ MonoBehaviour:
     burstInterval: 0.06
     muzzleStagger: 0
     ramSpeedScale: 3
+    tellSeconds: 0
+    tellSize: 0.5
+    routeAmplitude: 0
+    routePeriod: 1.5
+    routeCrossing: 0
+    reverseRoute: 0
   - label: Hull - Ram
     pattern: 4
     phases: 2
@@ -886,6 +907,12 @@ MonoBehaviour:
     burstInterval: 0.06
     muzzleStagger: 0
     ramSpeedScale: 3
+    tellSeconds: 0
+    tellSize: 0.5
+    routeAmplitude: 0
+    routePeriod: 1.5
+    routeCrossing: 0
+    reverseRoute: 0
   - label: Hull - Wreckage
     pattern: 5
     phases: 2
@@ -902,6 +929,12 @@ MonoBehaviour:
     burstInterval: 0.06
     muzzleStagger: 0
     ramSpeedScale: 3
+    tellSeconds: 0
+    tellSize: 0.5
+    routeAmplitude: 0
+    routePeriod: 1.5
+    routeCrossing: 0
+    reverseRoute: 0
   - label: Scuttle
     pattern: 0
     phases: 4
@@ -950,6 +983,12 @@ MonoBehaviour:
     burstInterval: 0.06
     muzzleStagger: 0
     ramSpeedScale: 3
+    tellSeconds: 0
+    tellSize: 0.5
+    routeAmplitude: 0
+    routePeriod: 1.5
+    routeCrossing: 0
+    reverseRoute: 0
 --- !u!1 &2761499119940645981
 GameObject:
   m_ObjectHideFlags: 0
