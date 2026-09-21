@@ -287,13 +287,13 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 308 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 316 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>308</b><span>commits</span></div>
-      <div class="stat"><b>299</b><span>tests</span></div>
-      <div class="stat"><b>105</b><span>runtime scripts</span></div>
+      <div class="stat"><b>316</b><span>commits</span></div>
+      <div class="stat"><b>365</b><span>tests</span></div>
+      <div class="stat"><b>111</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
-      <div class="stat"><b>84</b><span>bugs fixed</span></div>
+      <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
   </header>
 
@@ -509,6 +509,15 @@
       their importers, hitboxes with them, leaving the player and the boss where they were.</li>
       <li><strong>Thrusters, and the dash signal off the HUD</strong> &mdash; a plume, two retros and a
       ready light on the hull, so the ship finally shows what it is doing without being looked away from.</li>
+      <li><strong>A warning before every volley</strong> &mdash; the muzzles about to fire glow first, so the
+      curtain&rsquo;s gap and the next torpedo&rsquo;s tube can be read before anything leaves.</li>
+      <li><strong>Discs thrown off the band&rsquo;s edges</strong> &mdash; each keel disc climbs or dives and
+      bounces off the floor and ceiling, on a fan that is the same every curtain, released one at a time.</li>
+      <li><strong>Torpedoes</strong> &mdash; the crown&rsquo;s rake replaced by one steering torpedo every three
+      seconds, with a motor, a turning circle, a lagging idea of where you are, and a plume that goes out with
+      its fuel.</li>
+      <li><strong>Seven cameras on the debug menu</strong> &mdash; the close wide lens against further back and
+      tighter, so the choice can be made by playing rather than by argument.</li>
     </ul>
   </section>
 
@@ -643,6 +652,15 @@ transform.LookAt(pos);</code></pre>
 
     <h3>Movement</h3>
     <p><code>PlayerMovement</code> orbits and looks at the centre; <code>ApplyBounds</code> clamps height. The Main Camera runs the <em>same</em> <code>PlayerMovement</code> component with the same speed — that's how it stays in sync, rather than following the player.</p>
+
+    <h3>Seven cameras, to settle the lens by playing</h3>
+    <p>The camera sits 5 outside the lane at a vertical field of view of 75&deg;, level with the ship. At the ship&rsquo;s distance that frames <strong>7.7 units</strong> of a band 8.9 tall, so the band never fits the screen at once, and the camera climbs with the ship &mdash; at the ceiling, everything below about 9.5 is off screen. And the lens is wide enough to matter: something ten units round the ring is half as far again from the camera as the ship, so it is drawn two thirds its size, and its height above or below the ship reads two thirds of what it is. Nearly every boss attack is dodged by reading heights.</p>
+    <p>Whether to pull back and tighten is a feel question, so it is settled by playing. F8 then 9 cycles <code>CameraFraming.Presets</code>: the classic lens, the same 7.7 framed from 9 and from 14 out &mdash; so comparing those three compares the lens and nothing else &mdash; and four that frame the whole band plus a margin, 10.2 units, from 7, 10, 14 and 20 out at 72&deg;, 54&deg;, 40&deg; and 29&deg;. The whole-band ones hold the band&rsquo;s middle rather than climbing with the ship: a fixed screen the ship moves around, as a side-scrolling shooter has. From 14 out the thing ten units round the ring is a fifth further than the ship.</p>
+    <p><code>CameraPresetSwitcher</code> is added to the camera the first time the menu asks. It moves the camera out through its own <code>SnapToOrbit</code>, which gained <code>SetRadiusOffset</code> and refuses it on the lane&rsquo;s definer; sets the field of view; and puts the height back in <code>LateUpdate</code>, after <code>PlayerMovement</code> and <code>ApplyBounds</code> have moved it. Round the ring it keeps station as it always has, because the orbit speed converts through the lane&rsquo;s radius rather than the camera&rsquo;s. Nothing is saved, so every run starts on the classic camera, and the audio listener stays where it is &mdash; four sounds are partly positional, so they are a little quieter from further back.</p>
+    <div class="note">
+      <div class="label">What the stills showed</div>
+      <p>The same frozen boss moment, all seven. The tight lenses do what the arithmetic says &mdash; the ship stays the size it was, the torpedoes grow and the far island comes forward &mdash; and they also lose what sits beside the ship on the ring: at 31&deg; the boss eleven units away slid off the left edge. The whole-band presets bring it back at 40&deg;. The close camera keeps the most scale and drama, which is what it is for.</p>
+    </div>
 
     <h3>Shooting</h3>
     <p><code>Player.Shoot()</code> is driven by <code>InvokeRepeating</code> at <code>spawnDelay</code> (0.5s). The pattern comes from a table of vertical offsets indexed by how many shot upgrades have been taken, measured in multiples of <code>shotSpacing</code> (0.2), and <code>rotate</code> — the flip state — decides which of the two projectile prefabs counts as forward. The stages run <strong>1 → 2 → 3 → 6</strong> bullets. There used to be a fifth, Back Shot, which fired five forward and four the other way round the ring; it was the one pick that changed what the gun does rather than how much of it there is, and it retired along with the backward table when the progression was stretched.</p>
@@ -857,15 +875,15 @@ transform.LookAt(pos);</code></pre>
       <table>
         <thead><tr><th>Pattern</th><th>Bank</th><th class="num">Every</th><th>What it does</th></tr></thead>
         <tbody>
-          <tr><td>Curtain</td><td>Keel &middot; 12</td><td class="num">3.4s</td><td>walls off the keel with a gap that steps up one row per volley and wraps &mdash; learnable rather than random. Throws <strong>discs</strong> rather than darts, because the keel fires from slots rather than barrels</td></tr>
-          <tr><td>Rake</td><td>Crown &middot; 16</td><td class="num">2.4s</td><td>fires row by row, alternating direction, so a slab becomes a staircase</td></tr>
+          <tr><td>Curtain</td><td>Keel &middot; 12</td><td class="num">8s</td><td>every row but one, the gap stepping up a row per volley and wrapping &mdash; learnable rather than random. Throws <strong>discs</strong>, a disc every 2&nbsp;s, each climbing or diving and bouncing off the floor and ceiling</td></tr>
+          <tr><td>Torpedo</td><td>Crown &middot; 16</td><td class="num">3s</td><td>one steering torpedo at a time, the muzzles taken in the order the old rake fired them; it was a staircase of sixteen until 21 September</td></tr>
           <tr><td>Lance</td><td>Prow &middot; 1 arc</td><td class="num">2.6s</td><td>charges for one full crossing of the band, then draws a beam along the ring; owns the middle, which nothing else reaches</td></tr>
           <tr><td>Ram</td><td>&mdash;</td><td class="num">4.5s</td><td>the ship itself at three times cruise; countered by the dash and only by the dash</td></tr>
           <tr><td>Wreckage</td><td>&mdash;</td><td class="num">0.7s</td><td>a plate of the boss's own hull, torn off a wrecked emplacement and left in the lane</td></tr>
         </tbody>
       </table>
     </div>
-    <p>The rows a curtain and a rake work in are read off the muzzle heights rather than authored, because the second copy of a fact is the one that goes stale. Cadences are set against a lap rather than against each other: a boss bullet goes round the ring in 4.5 seconds, and the curtain's 3.4 is <em>under</em> that &mdash; so the next wall leaves while the last is still a quarter of the ring from home, and there are stretches with two on the ring at once at different gap rows.</p>
+    <p>The rows a curtain and the crown work in are read off the muzzle heights rather than authored, because the second copy of a fact is the one that goes stale. Cadences were set against a lap rather than against each other &mdash; a boss bullet goes round the ring in 4.5 seconds &mdash; and the curtain ran at 3.4, under it, until the playtests of 21 September: its interval is 8 now and its discs leave 2&nbsp;s apart, both set by hand in the Inspector, so a curtain takes 14&nbsp;s to empty and the attack has become a steady drip rather than a wall.</p>
     <div class="warn">
       <div class="label">The curtain had never actually been a wall</div>
       <p>The keel's rows are 1.265 units apart and the darts it fired were 0.176 tall, so there were 1.09-unit
@@ -875,6 +893,31 @@ transform.LookAt(pos);</code></pre>
       &mdash; passable, and only through the row that is meant to be open. The diameter is a difficulty dial
       rather than a look, and it is the first thing to lower if the curtain reads as unfair rather than as
       tight.</p>
+    </div>
+
+    <h3>Every volley is announced</h3>
+    <p>The lance always had its swell and the ram its flash. The curtain and the crown, which are most of the armoured act, arrived unannounced, and the answer the playtest picked for a boss that read as scenery was clearer warnings rather than more damage. So a muzzle glows before it fires, in the thruster shader and the boss&rsquo;s orange, brightness set per renderer through a property block. <code>VolleyTell</code> holds the arithmetic with no Unity object attached: the curtain lights every slot that will throw for 0.6&nbsp;s and leaves its gap row dark, so the gap is readable before the wall leaves, and each glow goes out as its own disc does; the crown lights only the one muzzle about to fire. The glow builds as <em>t&sup2;</em>, slow and then fast, so it reads as a charge rather than a lamp on a dimmer, and it is sized per bank &mdash; 0.9 on the keel, 0.42 on the crown, whose rows are 0.4 to 0.52 apart.</p>
+    <div class="warn">
+      <div class="label">The guns had been firing from mid-air</div>
+      <p>Lighting the muzzles showed them hanging in space. The keel&rsquo;s and crown&rsquo;s 28 had come over from <code>BossScript</code> a full unit in front of the hull, 0.98 to 1.45, so every round had appeared out of thin air beside the ship &mdash; invisible while nothing drew the muzzle. They sit 0.05 in front of their slots now, measured with a ray against the hull mesh rather than by opening the prefab, and a second pass moves nothing.</p>
+    </div>
+
+    <h3>The discs are thrown</h3>
+    <p>The playtest note of 21 September was that the discs and the bullets ran round the ring in one lane. Each disc climbs or dives now and turns back off the floor and ceiling of the band the ship is clamped to, so hugging an edge is no escape. <code>RoundRoute</code> works the height out from the time since the throw &mdash; a triangle wave over the band &mdash; rather than stepping it, so a long frame cannot carry a disc through an edge and the path is the same at any frame rate. A disc born under the floor, as the keel&rsquo;s lowest slots are, flies straight until it enters and is always thrown upward.</p>
+    <p>A row is thrown as a fan, steep up to steep down at 4, 1.33, &minus;1.33 and &minus;4 units a second &mdash; about 17&deg; at the steep ends against a disc going round at 40&deg; a second, 13 units a second at the lane, so it crosses the band in about 2.2&nbsp;s and bounces four times a lap. The fan was mirrored on alternate curtains at first and is fixed now, at the player&rsquo;s call, so each slot&rsquo;s disc takes the same path every time and can be learned.</p>
+    <div class="note">
+      <div class="label">Two discs left as one, twice</div>
+      <p>The keel&rsquo;s slots come in pairs 0.27 apart against a disc 0.7 across, so a pair released together left as one double disc; and a row thrown at one angle still left as one stack of four, because the four shared a height. Both were seen in play. The fan fixed the second, and releasing a disc at a time fixed the first &mdash; each glow going out as its own disc leaves.</p>
+    </div>
+
+    <h3>The crown fires torpedoes</h3>
+    <p>The rake became one round at a time, and then a round that hunts. <code>TorpedoSteer</code> is the flight model, with no Unity object in it: a torpedo lives in the ring laid out flat &mdash; distance round the ring against height &mdash; with a heading and a speed. It leaves the muzzle at 3 units a second, runs straight for 0.3&nbsp;s, spins up over 0.6&nbsp;s to 7.5, a touch over the player&rsquo;s 7, and turns at no more than 90&deg; a second: a turning circle about ten units across. It steers for 10&nbsp;s, coasts for 2 and is gone; the crown fires one every 3&nbsp;s, so about four are in the air. <code>ShootScript</code> flies it on the ring, closes it onto the lane, and rolls it so the nose follows the heading for both of the crown&rsquo;s rounds, which are modelled facing opposite ways.</p>
+    <p>The dodge is a delay. The torpedo keeps its own idea of where the player is, which catches up over about 0.6&nbsp;s, and it steers at that. Hold still and it hits; dodge a couple of units a second and a half early and it follows you in; move a unit or more in the last second or so and it passes where you were; run to an edge and it follows you there. A miss comes round again while it has fuel &mdash; though with the player inside its turning circle it tends to circle past rather than connect, which is what homing missiles do.</p>
+    <p>The band is shallower than the turning circle, so the edges needed rules of their own. A torpedo pulls out before an edge at three times its steering turn and arrives running along it &mdash; before that, a twentieth of all torpedo frames had the nose more than 20&deg; off the way it was going, scraping the ceiling. Coming about for a player behind it, it commits to one way round, carrying on if it is already climbing or diving and going toward the roomier edge if it is level, and it turns the other way if the committed loop stops fitting. Without the commitment it dithered: each few degrees of climb took room from above, which made down look better, which took room from below.</p>
+    <p>It is drawn half the size of the round it was, hit box and all, and <code>TorpedoExhaust</code> burns the ship&rsquo;s own thruster plume out of its tail in the muzzle glows&rsquo; orange &mdash; low out of the muzzle, full at cruise, and out the moment the fuel is, so a spent torpedo looks spent. It finds the tail from the visible art rather than a written offset, for the same reason the roll does. Played against on 21 September: at one a second 13 of 18 hit and the hull went in 46&nbsp;s; at one every two with a 12&nbsp;s life, 11 of 33 in 67&nbsp;s, most of them from torpedoes over four seconds old, coming round again.</p>
+    <div class="warn">
+      <div class="label">A hit measured by distance was a miss by the boxes</div>
+      <p>The first steering torpedoes flew their pivot into the player&rsquo;s and every one that reached a still player was counted as a hit. The dart&rsquo;s box hangs 0.27 above its pivot with the art, and the player&rsquo;s box is 0.16 tall, so they passed clean over. A torpedo aims its box at the player&rsquo;s box now, measured every frame because the box swings with the roll. And enemy rounds fly on through the player rather than stopping, which is harmless for a round that never comes back and a double hit waiting for one that does, so a torpedo that hits goes off.</p>
     </div>
     <div class="note">
       <div class="label">The boss stopped climbing to meet the player</div>
@@ -913,6 +956,10 @@ transform.LookAt(pos);</code></pre>
     <p><strong>The muzzles do not move, because that is the one thing the rig must not do.</strong> Moving the barrels onto the lane would buy this back by giving up the thing the rig was built to protect. So the shot leaves the barrel and then eases onto the lane, through the same frame-rate-independent easing every ship in the arena already uses on its way to the ring. Radius only &mdash; bearing and height stay the shot's own business, because a shot that closed on the player's altitude too would be a homing missile rather than a bullet in a lane.</p>
     <p>It is off unless something asks for it: <code>laneResponse</code> defaults to zero, meaning &ldquo;keep the distance you were fired at&rdquo;, so the player's own rounds are unchanged by construction rather than by anybody remembering to leave them alone. A response of 5 puts the worst-placed muzzle's shot inside the band in <strong>0.275&nbsp;s</strong> &mdash; about 0.36&nbsp;s since the narrower band, with a response of about 6.6 as the one that would restore it &mdash; by which time it has travelled about 22&deg; of arc and is clear of a hull 7.1 units wide &mdash; fast enough to be dangerous while it still matters, slow enough to read as a shot curving in rather than as a muzzle in the wrong place.</p>
     <p>Measured with the boss isolated as the only thing firing, shots in the player's lane went from about a quarter to <strong>87&ndash;100%</strong>. What it costs: a player standing still at the keel bank's own height &mdash; the height the design sends them to &mdash; now loses the whole bar in <strong>36.5 seconds</strong>, against roughly four times that before. A pod is 80 hit points, so it can still be taken, but not while parked.</p>
+    <div class="warn">
+      <div class="label">Undone on 21 September, and not by the code</div>
+      <p>The day&rsquo;s commits set <code>laneResponse</code> to 0 on both disc prefabs and on four of the six bullet prefabs. Nothing in the code writes 0 &mdash; <code>BuildBossRig</code> writes 5 &mdash; so it reads as an Inspector change. On today&rsquo;s 18.72 lane the muzzles span 17.92 to 19.54, and a disc, 0.1 thick, has to be born within 0.17 of the lane to touch the player: <strong>no keel muzzle is</strong>, so the curtain&rsquo;s discs cannot hit, and most of the Scuttle&rsquo;s bullets cannot either. The torpedoes are untouched &mdash; they close on the lane themselves. It is a question for the owner rather than a fix to make, because it may have been meant to keep the discs out of the bullets&rsquo; lane, which the throw now does by height.</p>
+    </div>
 
     <div class="warn">
       <div class="label">The emplacements were swapping lanes with the heading</div>
@@ -1835,13 +1882,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>The engine version, and what 6.6 moved</h3>
-    <p>The project runs on <strong>Unity 6.6 (6000.6.1f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.2f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
     <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
     <div class="note">
       <div class="label">The 6.6.1 patch moved nothing this project can see</div>
       <p>6000.6.0f1 to 6000.6.1f1 on 17 September, and the thing worth recording is the absence of consequences. A <em>clean</em> script rebuild &mdash; not a plain recompile, which answers <em>no scripts needed recompilation</em> and prints nothing at all &mdash; came back with zero errors and zero warnings, and all 283 tests passed. 6.6.1 does retire more API, notably <code>FindObjectsSortMode</code> and <code>GetInstanceID</code> in favour of <code>GetEntityId</code>, but nothing in the runtime scripts uses those overloads.</p>
       <p>The lighting was rebaked on it, and <strong>it reproduced what was already there</strong>: the lightmap came back 707 bytes different out of 62&nbsp;MB, and the adaptive probe volume data regenerated byte-identical, so <code>Game Baking Set.asset</code> had no content change to show for it. That is the useful finding &mdash; a patch bump of this engine does not move this scene&rsquo;s lighting, so a later build that looks different is a different cause.</p>
       <p>One new build warning, and it is not this project&rsquo;s: a TextMeshPro shader still uses <code>#pragma enable_d3d11_debug_symbols</code>, which 6.6.1 deprecates. It belongs to the package and goes when the package does.</p>
+      <p>6000.6.2f1 followed on 21 September, and the one new thing it does is churn: a build re-saves the Game scene with garbage in six lights&rsquo; <code>m_BoundingSphereOverride</code>, a field their <code>m_UseBoundingSphereOverride</code> of 0 leaves unused. It is uninitialised memory rather than an edit, so it is reverted with the rest of what a build leaves behind.</p>
     </div>
     <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
 
@@ -1861,14 +1909,17 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>299 tests across 27 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>365 tests across 31 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
         <tbody>
           <tr><td><code>DisplayOptionsTests</code></td><td class="num">29</td><td>resolution filtering, the inverted vendor quality enums, and the frame cap that must not land on the refresh rate</td></tr>
+          <tr><td><code>TorpedoSteerTests</code></td><td class="num">22</td><td>that a torpedo hits a still player and misses a late dodge by the real hit boxes, turns no faster than it may, never snaps its heading, and arrives at an edge running along it</td></tr>
           <tr><td><code>MuzzleRowsTests</code></td><td class="num">20</td><td>grouping a bank of muzzles into the rows the artist modelled, pinned against the real heights off the boss</td></tr>
+          <tr><td><code>RoundRouteTests</code></td><td class="num">19</td><td>a thrown disc turning back off the band&rsquo;s edges at any frame rate, and each slot of a row thrown its own way</td></tr>
           <tr><td><code>SkillPoolTests</code></td><td class="num">17</td><td>both original skill bugs, and that an offer is not a pick</td></tr>
+          <tr><td><code>VolleyTellTests</code></td><td class="num">17</td><td>that a muzzle&rsquo;s glow lights in the order it fires, and that one-at-a-time firing takes each muzzle once a pass</td></tr>
           <tr><td><code>DashCycleTests</code></td><td class="num">16</td><td>the burst, the cooldown, and that invincibility ends with the travel rather than with the cycle</td></tr>
           <tr><td><code>HealthStateTests</code></td><td class="num">16</td><td>a kill is reported exactly once</td></tr>
           <tr><td><code>ObjectPoolTests</code></td><td class="num">16</td><td>reuse never hands out a live instance twice</td></tr>
@@ -1883,6 +1934,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>SpawnBandTests</code></td><td class="num">9</td><td>spawn heights against the band the player can fly in</td></tr>
           <tr><td><code>SpawnMathTests</code></td><td class="num">9</td><td>the spawn curve at shipped values</td></tr>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
+          <tr><td><code>CameraFramingTests</code></td><td class="num">8</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
           <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
           <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
@@ -1916,7 +1968,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 299 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code> and <code>TorpedoSteer</code> — none of them are MonoBehaviours. That's what made 365 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -1992,10 +2044,17 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       island one can be lost. An emissive tint would fix it and would also be the first thing in the arena that
       glows because it is dangerous rather than because it is hot &mdash; a call about the art direction rather
       than about the mechanic, so it has deliberately not been made.</li>
-      <li><strong>The camera and the lane are still being framed.</strong> Field of view and camera
-      offset have moved several times since the ships were halved, and sit at 75 and 5 with the Player's lane
-      offset at 5. The offset is a real design dial now rather than a way to strand the ship; waves spawn from
-      21.45 out, so anything up to about +7.7 keeps every arrival outside the lane.</li>
+      <li><strong>The camera is a choice between seven presets now.</strong> The classic 75&deg; from 5 out, the
+      same framing from 9 and 14, and the whole band from 7, 10, 14 and 20 &mdash; cycled with F8 then 9 in the
+      <code>26_0921-1625_camera</code> build. One is picked by playing and becomes the default; if it is a far
+      one, the audio listener moves to the ship. The Player's lane offset stays at 5; waves spawn from 21.45 out,
+      so anything up to about +7.7 keeps every arrival outside the lane.</li>
+      <li><strong>Whether the discs and bullets should reach the lane again.</strong> Their easing is at 0 since
+      21 September, so the curtain&rsquo;s discs cannot hit the player &mdash; see the boss section. One number on
+      eight prefabs, if it was not meant.</li>
+      <li><strong>The torpedoes at one every three seconds have not been played.</strong> At two with a 12&nbsp;s
+      life, most hits came from torpedoes over four seconds old coming round again. If that feels cheap the fuel
+      is the dial &mdash; six seconds would keep the second pass and lose most of the circling.</li>
       <li><strong>The lance reads; it should read as energy.</strong> Seen in the boss fight on
       10 September it was unmistakable &mdash; a solid, hard-edged bar, nothing like a smear &mdash; which
       answers the legibility question the beam was built around. What it reads as is a plank, because
@@ -2007,7 +2066,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       the band a boss round can touch from about 0.33 either side of the lane to 0.21, so the outermost gun's
       round takes about 0.36&nbsp;s to become dangerous instead of 0.275. If the fight feels soft with god
       mode off, <code>RoundLaneResponse</code> at 6.6 restores the old timing; only a run says whether it is
-      needed.</li>
+      needed &mdash; and it is moot while the easing above is at 0.</li>
       <li><strong>The pods passed.</strong> Whether red emplacements read against orange lava was open
       for a week; in the 11 September playtest they were always found, so they stay as they are.</li>
       <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>
@@ -2070,7 +2129,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.1f1) · HDRP 17.6 · branch <code>main</code> · 308 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 316 commits
   </footer>
 
 </div>

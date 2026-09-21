@@ -299,25 +299,30 @@
       <div class="card">
         <h3>You cannot outrun a bullet</h3>
         <p class="dim">
-          Boss projectiles orbit at <span class="mono">80&deg;/s</span>; the player at
-          <span class="mono">29.2&deg;/s</span>. A shot laps the world in 4.5&thinsp;s, the player
-          in 12.3&thinsp;s. <span class="em">Everything the boss fires comes back around and hits
-          you in the back.</span> Resogun calls this the Cylinder Wrap and treats it as a design
-          rule. Here it was already true by accident, and the cadences below are set against it.
+          Boss bullets orbit at <span class="mono">80&deg;/s</span> and its discs at
+          <span class="mono">40&deg;/s</span>; the player at <span class="mono">21.4&deg;/s</span>.
+          A bullet laps the world in 4.5&thinsp;s and a disc in 9, the player in 16.8&thinsp;s.
+          <span class="em">Everything the boss fires comes back around and hits you in the
+          back.</span> Resogun calls this the Cylinder Wrap and treats it as a design rule. Here it
+          was already true by accident, and the cadences below are set against it. The torpedoes are
+          the exception that proves it: at <span class="mono">7.5</span> units a second they are
+          barely faster than you, and they come back on purpose.
         </p>
       </div>
       <div class="card">
         <h3>A shot never changes lane</h3>
         <p class="dim">
           Projectiles orbit with <code>RotateAround</code>, which preserves the distance from the
-          axis they were born at &mdash; exactly, and for their whole life. It is the birth radius
-          that is negotiable, not the lane: a boss round eases onto the player&rsquo;s radius over its
-          first moments and is then fixed there forever, which is how three quarters of the fire was
-          recovered further down. The player is pinned to
-          <span class="mono">13.7200</span>, and with both hitboxes a shot can only touch them if it
-          was born between <span class="mono">13.39</span> and <span class="mono">14.05</span>.
-          <span class="em">A shot fired off that lane misses forever.</span> This is the fact that
-          had been quietly costing the boss three quarters of its fire.
+          axis they were born at &mdash; exactly, and for their whole life. The player is pinned to
+          the lane at <span class="mono">18.72</span>, and with both hitboxes a bullet can only touch
+          them if it was born within about <span class="mono">0.2</span> of it, and a disc, which is
+          0.1 thick, within <span class="mono">0.17</span>.
+          <span class="em">A shot fired off that lane misses forever.</span> The muzzles span
+          <span class="mono">17.92</span> to <span class="mono">19.54</span> across a hull 3 units
+          deep, so this is the fact that decides how much of the boss&rsquo;s fire is real. Easing a
+          round onto the lane over its first moments recovered three quarters of it on 1 September;
+          since 21 September the discs and bullets carry that easing at 0 again, and only the
+          torpedoes, which close on the lane themselves, reach it. See <em>Still open</em>.
         </p>
       </div>
       <div class="card">
@@ -339,16 +344,18 @@
           <tr><th>Quantity</th><th>Value</th><th>Reads as</th></tr>
         </thead>
         <tbody>
-          <tr><td>Orbit radius</td><td class="num">13.72</td><td class="dim">the ring everything shares</td></tr>
+          <tr><td>Lane radius</td><td class="num">18.72</td><td class="dim">the ring everything shares &mdash; the arena&rsquo;s 13.72, moved out 5 by the player&rsquo;s offset on 14 September</td></tr>
           <tr><td>Playable band</td><td class="num">y 4.42 &rarr; 13.32</td><td class="dim">8.90 units tall</td></tr>
-          <tr><td>Player orbit</td><td class="num">29.2&deg;/s</td><td class="dim">12.3 s per lap</td></tr>
+          <tr><td>Player orbit</td><td class="num">21.4&deg;/s</td><td class="dim">7 u/s, 16.8 s per lap</td></tr>
           <tr><td>Player climb</td><td class="num">7 u/s</td><td class="dim">1.27 s floor to ceiling</td></tr>
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
-          <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">4.5 s per lap</td></tr>
-          <tr><td>Boss orbit</td><td class="num">15&deg;/s</td><td class="dim">24 s per lap &mdash; you lap it every 25 s</td></tr>
+          <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">26.1 u/s at the lane, 4.5 s per lap</td></tr>
+          <tr><td>Keel discs</td><td class="num">40&deg;/s</td><td class="dim">13.1 u/s, 9 s per lap</td></tr>
+          <tr><td>Crown torpedoes</td><td class="num">7.5 u/s</td><td class="dim">a touch over the player&rsquo;s 7; turn at 90&deg;/s</td></tr>
+          <tr><td>Boss orbit</td><td class="num">15&deg;/s</td><td class="dim">24 s per lap &mdash; you lap it every 56 s</td></tr>
           <tr><td>Boss health</td><td class="num">600</td><td class="dim">1 damage per bullet</td></tr>
-          <tr><td>Hittable lane</td><td class="num">13.39 &rarr; 14.05</td><td class="dim">where a shot has to be born to reach the player at all</td></tr>
-          <tr><td>Muzzle spread</td><td class="num">13.16 &rarr; 15.02</td><td class="dim">across a hull 3 units deep &mdash; wider than the lane</td></tr>
+          <tr><td>Hittable lane</td><td class="num">18.52 &rarr; 18.92</td><td class="dim">where a bullet has to be born to reach the player at all; a disc, 18.55 &rarr; 18.89</td></tr>
+          <tr><td>Muzzle spread</td><td class="num">17.92 &rarr; 19.54</td><td class="dim">across a hull 3 units deep &mdash; four times wider than the lane</td></tr>
         </tbody>
       </table>
     </div>
@@ -505,21 +512,43 @@
           decoration: the hull is a trigger that eats bullets, so a target inside it could never be
           hit at all.
         </p>
+        <p class="dim">
+          <span class="em">Every volley is announced now.</span> The lance always had its swell, and
+          the ram its flash; the curtain and the crown, which are most of the act, arrived
+          unannounced &mdash; and the playtest&rsquo;s answer to a boss that read as scenery was
+          clearer warnings rather than more damage. So a muzzle glows before it fires, in the
+          thruster shader and the boss&rsquo;s orange: the curtain lights every slot that will throw
+          for <span class="mono">0.6&thinsp;s</span> and leaves its gap row dark, so the gap is visible
+          before the wall leaves, and each glow goes out as its own disc does; the crown lights only
+          the one muzzle about to fire, for <span class="mono">0.5&thinsp;s</span>. The glows are
+          sized per bank &mdash; <span class="mono">0.9</span> across on the keel,
+          <span class="mono">0.42</span> on the crown, whose rows are 0.4 to 0.52 apart and would run
+          into one blob any wider.
+        </p>
 
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-keel">Keel</span><strong>Curtain</strong>
-            <span class="timing">12 muzzles &middot; one row open &middot; discs &middot; cycle 3.4 s</span>
+            <span class="timing">12 muzzles &middot; one row open &middot; discs &middot; a disc every 2 s &middot; interval 8 s</span>
           </div>
           <p class="dim">
-            All twelve keel muzzles except one row, so the wall has exactly one gap in it. The
+            All twelve keel muzzles except one row, so each curtain has exactly one gap in it. The
             open row steps up one each volley and wraps, which makes it learnable rather than
             random. The rows are read off the muzzle heights rather than authored, because the
-            second copy of a fact is the one that goes stale. At 3.4&thinsp;s the cycle is now
-            <em>under</em> the 4.5&thinsp;s a shot takes to wrap, so the next wall leaves while the
-            last is still a quarter of the ring from home: there are stretches with two curtains on
-            the ring at once, at different gap rows. This is the Cylinder Wrap turned into a
-            mechanic.
+            second copy of a fact is the one that goes stale.
+          </p>
+          <p class="dim">
+            <span class="em">It is thrown now, and it leaves a disc at a time.</span> The playtest
+            note of 21 September was that the discs and the bullets ran round the ring in one lane.
+            Each disc climbs or dives as it travels and comes off the floor and ceiling of the band
+            the way a ball comes off a wall &mdash; the band the player&rsquo;s own centre is clamped
+            to, so hugging an edge is no escape. A row fans out steep up to steep down, at
+            <span class="mono">4, 1.33, &minus;1.33, &minus;4</span> units a second, the same every
+            curtain so each slot&rsquo;s disc takes the same path and can be learned; a disc from a
+            slot under the floor is always thrown up into the band. The eight discs leave
+            <span class="mono">2&thinsp;s</span> apart &mdash; set by hand in the Inspector, as was the
+            8&thinsp;s interval &mdash; so a curtain takes 14&thinsp;s to empty, longer than its
+            interval, and the attack has become a steady drip of discs rather than a wall.
           </p>
           <p class="dim">
             <span class="em">It had never actually been a wall.</span> The keel&rsquo;s rows are
@@ -536,14 +565,35 @@
 
         <div class="attack">
           <div class="attack-head">
-            <span class="tag t-crown">Crown</span><strong>Rake</strong>
-            <span class="timing">16 muzzles &middot; 0.12 s per row &middot; cycle 2.4 s</span>
+            <span class="tag t-crown">Crown</span><strong>Torpedoes</strong>
+            <span class="timing">one every 3 s &middot; 7.5 u/s &middot; turn 90&deg;/s &middot; 10 s fuel</span>
           </div>
           <p class="dim">
-            The same 16 muzzles, fired row by row instead of all at once, with the direction
-            alternating each volley. A slab becomes a climbing staircase you dive under, or a
-            descending one you climb over. This is the real fix for a volley reading as one solid
-            mass &mdash; not a size change, a timing change.
+            It was a rake &mdash; sixteen muzzles fired row by row, a staircase to dive under or climb
+            over &mdash; and it ran beside the discs in the same lane. On 21 September it became one
+            torpedo at a time: the sixteen muzzles taken in turn in the staircase&rsquo;s old order, up
+            the rows one pass and down the next, so a full pass is 48&thinsp;s.
+          </p>
+          <p class="dim">
+            <span class="em">It flies like a torpedo, not a bullet with a lean.</span> It leaves the
+            muzzle at 3 units a second, runs straight for 0.3&thinsp;s, spins up over 0.6&thinsp;s to
+            7.5 &mdash; a touch over the player&rsquo;s 7 &mdash; and turns at no more than 90&deg; a
+            second, a turning circle about ten units across. That is wider than the band, so it pulls
+            out before the floor or ceiling at a tighter turn and arrives running along the edge; and
+            coming about for a player behind it, it commits to over the top or underneath rather than
+            dithering. It steers for 10&thinsp;s and coasts for 2, half the size of the round it
+            replaced, hit box and all, with the ship&rsquo;s own thruster plume out of its tail that
+            burns low out of the muzzle, full at cruise, and <span class="em">goes out with the
+            fuel</span>, so a spent torpedo looks spent. A torpedo that hits goes off.
+          </p>
+          <p class="dim">
+            The dodge is a delay. Its idea of where the player is catches up over about 0.6&thinsp;s,
+            and a hit is an intercept &mdash; the player&rsquo;s box is 0.16 tall and a torpedo&rsquo;s
+            0.09. Hold still and it hits; dodge a couple of units a second and a half early and it
+            follows you in; move a unit or more in the last second or so and it passes where you were,
+            by 0.2 to 1; run to the floor or ceiling and it follows you there. One that misses swings
+            round and comes back while its fuel lasts, though with the player inside its turning circle
+            it tends to circle past rather than connect.
           </p>
         </div>
 
@@ -617,7 +667,7 @@
             The hull flashes &mdash; by this act there are no emplacements left to light up
             &mdash; then it triples its orbit speed to
             <span class="mono">45&deg;/s</span> and sweeps around the ring at you. That is faster
-            than the player&rsquo;s 29.2&deg;/s, so running the same way loses. The hull spans the
+            than the player&rsquo;s 21.4&deg;/s, so running the same way loses. The hull spans the
             whole band so climbing loses too. <span class="em">The counter is to dash straight
             through it</span> &mdash; Doomsphere&rsquo;s bull-fight, played as Resogun plays it.
             The dash is built: 0.22&thinsp;s of invincibility covering 7.45 world units against a
@@ -650,7 +700,7 @@
             not, which is what makes them read as debris rather than as another attacker &mdash; and
             it means the boss, cruising at 15&deg;/s while it sheds, leaves a wake of its own hull and
             eventually comes back round into it. Life over cadence is the tuning: 11&thinsp;s against
-            0.7 holds about sixteen plates, five at any one height, which against a 12.3&thinsp;s lap
+            0.7 holds about sixteen plates, five at any one height, which against a 16.8&thinsp;s lap
             is a forced move every two and a half seconds or so. It was 16 over 1.8 &mdash; about
             nine plates &mdash; but that density only exists in a steady state that takes a whole
             plate lifetime to build, and the act used to be over before it arrived, so the number it
@@ -742,9 +792,9 @@
           Three weak points means three opening moves, and the order is the difficulty dial the
           player sets themselves. Kill the <span class="tag t-prow">Prow</span> first and you remove
           the only attack that punishes standing still &mdash; the safe opening. Kill the
-          <span class="tag t-crown">Crown</span> first and you own the top of the band for the rest
-          of the phase. Kill the <span class="tag t-keel">Keel</span> first and the curtains stop,
-          but you spend the whole fight under the rake.
+          <span class="tag t-crown">Crown</span> first and nothing hunts you for the rest of the
+          phase. Kill the <span class="tag t-keel">Keel</span> first and the discs stop, but you
+          spend the whole fight dodging torpedoes.
         </p>
       </div>
       <div class="card">
@@ -802,7 +852,7 @@
 
   <section>
     <div class="eyebrow">Found while measuring</div>
-    <h2>Seven things the build turned up</h2>
+    <h2>Ten things the build turned up</h2>
     <p class="lede">
       Every one of them was invisible from the outside, and none would have been found by playing.
     </p>
@@ -823,11 +873,12 @@
     </div>
 
     <div class="card">
-      <h3>Three quarters of the boss&rsquo;s fire could not reach the player &mdash; <span class="em">fixed</span></h3>
+      <h3>Three quarters of the boss&rsquo;s fire could not reach the player &mdash; <span class="em">fixed, then undone</span></h3>
       <p class="dim">
-        A shot keeps the radius it was born at, forever. The muzzles are spread across a hull 3
-        units deep and sit from <span class="mono">13.16</span> to <span class="mono">15.02</span>,
-        against a hittable lane of <span class="mono">13.39&ndash;14.05</span>. Only
+        A shot keeps the radius it was born at, forever. On the lane as it was on 1 September the
+        muzzles were spread across a hull 3 units deep and sat from <span class="mono">13.16</span>
+        to <span class="mono">15.02</span>, against a hittable lane of
+        <span class="mono">13.39&ndash;14.05</span>. Only
         <span class="em">8 of the 32</span> were inside it &mdash; keel 3 of 12, prow 1 of 4, crown 4
         of 16 &mdash; so a curtain of twelve arrived as a wall of three, the rake had four of its
         sixteen steps, and the lance fired one muzzle in four. The fight&rsquo;s own vocabulary was
@@ -838,7 +889,8 @@
         the barrel and then eases onto the lane, radius only, through the same easing every ship
         already uses on its way to the ring. It is off unless asked for, so the player&rsquo;s own
         rounds are untouched by construction. Measured after: <span class="em">87&ndash;100%</span>
-        of boss fire in the lane, against about a quarter before.
+        of boss fire in the lane, against about a quarter before. Since 21 September the discs and
+        four of the bullet prefabs carry that easing at 0 again &mdash; see <em>Still open</em>.
       </p>
     </div>
 
@@ -894,6 +946,44 @@
         tuned against the one case where the two coincide. The colliders were correct throughout,
         which is why nothing about it read as a hitbox problem. Each projectile measures the centre
         of what it actually draws now, once, and the error is <span class="mono">0.000</span>.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>The guns fired from mid-air &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        The keel&rsquo;s and crown&rsquo;s 28 muzzles came over from the old boss script a full unit
+        in front of the hull &mdash; <span class="mono">0.98</span> to <span class="mono">1.45</span>
+        &mdash; so every disc and round appeared out of thin air beside the ship rather than leaving
+        it. That was invisible while nothing lit the muzzles; the moment they glowed, the glows hung
+        in space. They sit <span class="mono">0.05</span> in front of their slots now, measured off
+        the hull mesh with a ray test rather than by opening the prefab, and a second pass moves
+        nothing.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Two discs left as one &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        The keel&rsquo;s slots come in pairs <span class="mono">0.27</span> apart against a disc
+        <span class="mono">0.7</span> across, so a pair released together left as one double disc,
+        and a row thrown at one angle still left as one stack of four, because they shared a height
+        and eased onto one lane. Seen in play both times. The curtain releases a disc at a time now,
+        and each slot of a row is thrown at its own angle.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Torpedoes passed over the player they hit &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        The first steering torpedoes flew their pivot into the player&rsquo;s, and every one that
+        reached a still player in play counted as a hit by distance. By the boxes it was a miss:
+        the dart&rsquo;s box hangs <span class="mono">0.27</span> above its pivot with the art, and the
+        player&rsquo;s is <span class="mono">0.16</span> tall, so it passed clean over. A torpedo aims
+        its box at the player&rsquo;s box now, measured every frame because the box swings with the
+        roll &mdash; and 29 of 41 met a still player&rsquo;s box in the check that followed. Enemy
+        rounds also fly on through the player rather than stopping, which is harmless for a round
+        that never comes back and was a double hit waiting for one that does; a torpedo goes off.
       </p>
     </div>
 
@@ -963,15 +1053,38 @@
         </p>
       </div>
       <div class="card">
-        <h3>Played once, at this shape</h3>
+        <h3>The torpedoes at one every 3 seconds</h3>
         <p class="dim">
-          The fight has now been played rather than only probed, and the verdict moved the numbers on
-          this page: both acts read easy, then &mdash; at three times the health with every interval
-          tightened &mdash; good but a bit long. What has <em>not</em> been played is the shape after
-          that cut, or with discs closing the curtain, or with the lance drawn as one beam rather
-          than fired as forty rounds. The first two are a single serialized field each, which is the
-          whole reason they were built that way; the beam is the one change here that is a new
-          object rather than a new number, and so the one most worth watching.
+          Played against on 21 September, twice. At one a second, 13 of 18 hit and the hull was
+          gone in 46&thinsp;s. At one every 2&thinsp;s with a 12&thinsp;s life, 11 of 33 hit and 14 of
+          20 hull went in 67&thinsp;s &mdash; and most of those hits came from torpedoes over
+          4&thinsp;s old, coming round again. Since then the interval is 3&thinsp;s, the cruise 7.5
+          rather than 8, and the torpedo half the size; the smaller box makes it an eighth-of-a-unit
+          intercept, easier to slip. That shape is in <span class="mono">26_0921-1625_camera</span>
+          and has not been played. If the old hunters feel cheap, the fuel is the dial: 6&thinsp;s
+          would keep the second pass and lose most of the circling.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Whether the discs and bullets should reach the lane</h3>
+        <p class="dim">
+          The easing that brought boss rounds onto the player&rsquo;s lane was set to 0 on the discs
+          and on four of the bullet prefabs in the 21 September commits. Nothing in the code asked for
+          it, so it reads as an Inspector change &mdash; and it undoes the fix above: no keel muzzle is
+          within 0.17 of the lane, so <span class="em">in that build the curtain&rsquo;s discs cannot
+          hit the player</span>, and most of the Scuttle&rsquo;s rounds cannot either. The torpedoes are
+          unaffected; they close on the lane themselves. If it was meant to keep the discs and bullets
+          in lanes of their own, the throw already does that by height.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Which camera the fight is read through</h3>
+        <p class="dim">
+          Nearly every attack here is dodged by reading heights, and the close camera draws something
+          ten units round the ring two thirds its size, heights included, and never shows the whole
+          band at once. The build carries seven camera presets on the debug menu (F8, then 9): the
+          classic 5 out at 75&deg;, the same framing from 9 and 14 out, and the whole band from 7,
+          10, 14 and 20 out. Undecided until played.
         </p>
       </div>
     </div>

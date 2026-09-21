@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true}, "updated": "18 September 2026"}</script>
+<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true}, "updated": "21 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,24 +327,19 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-0918",
-    title: "Play the 18 September build with god mode off",
-    effort: "one run, ~20 min",
-    lede: "Built on 18 September as <code>Builds/26_0918-1120_thrusters</code>, debug menu in, from the tree that commit <code>febf761</code> records three minutes later — so it carries everything in that commit, whatever the two clocks look like side by side. It supersedes the 17 September build, so <strong>everything that was in that one is in this one</strong>.</p><p><strong>The ship has thrusters.</strong> A plume out of the rocket at the tail when you hold the throttle forward, two short jets under the nose when you hold it back, and both flaring through a dash. Nothing on the ship showed any of that before — it leaned, and that was all.</p><p><strong>The dash’s ready signal is on the ship now.</strong> A green bead on the spine that goes out the instant you spend a dash, fills dimly through the cooldown, and flashes when it comes back. The bar in the corner stays, but a 0.22 second commitment is decided while looking at the boss, and this is meant to be readable without looking away.</p><p><strong>The normal enemies are a quarter bigger.</strong> All four, hitboxes included, so they are easier to hit as well as easier to see. The player, the boss and every round are untouched — so this is the first build where the enemies are not the same size as your own ship.</p><p><strong>Shadows are a setting.</strong> A row on the Graphics screen, Off to High, reaching the sun, the lava light that casts and the clouds. Off is not the quiet rung it sounds like: with nothing occluding the lava light the whole island reads flat and washed out.</p><p><strong>The lightmaps are compressed.</strong> You rebaked at High Quality compression, which took the build from about 857 MB to 684. If it costs anything it shows as banding on large smooth gradients.</p><p><strong>Pickups pop now.</strong> Collecting one spawns a cyan energy burst. That field had been empty since pickups were added, so this is the first build in which taking one does anything at all visually — the 13:14 build this item used to name was made fourteen minutes before the effect was committed and does not have it.</p><p><strong>Scale.</strong> The player and the normal enemies are half size, and so are their rounds, with volleys packed at half the spacing. Your radius offset of 5 moves the whole lane to 18.72: enemies, boss, pickups and camera go with it.</p><p><strong>Hits.</strong> Three separate reasons a round could miss are fixed: enemies that settled off the lane, Enemy 1 and Enemy 2 sitting above or below your line of fire, and rounds skipping straight through hitboxes between physics steps, which a held-target test put at about one round in three. With the sweep in, 98% or more connect.</p><p><strong>New engine, same lighting.</strong> Unity went to 6000.6.1f1 and the lighting was rebaked on it. The rebake reproduced what was already there almost exactly — the lightmap came back 707 bytes different out of 62 MB, and the probe volume data byte-identical — so if the island reads differently from this morning, that is the pickup burst and the Shadows row rather than the bake. The project compiles clean on the new version and all 299 tests pass.</p><p><strong>Not in it: the fireflies.</strong> They were built, measured and archived to a prefab on 17 September while you decide, so the island looks as it did on 16 September apart from the pickup burst.</p><p>God mode stayed on in the last playtest, so whether the boss is a threat and whether the fight is the right length are both still open. This run is the one that answers them.",
+    id: "play-0921",
+    title: "Play the 21 September build: torpedoes, thrown discs and seven cameras",
+    effort: "one run, ~25 min",
+    lede: "Built on 21 September as <code>Builds/26_0921-1625_camera</code>, debug menu in, from commit <code>fece0a0</code> a minute and a half before it \u2014 so it carries everything committed today. It supersedes the 18 September build, so <strong>everything that was in that one is in this one</strong>, now on Unity 6000.6.2f1.</p><p><strong>The crown fires torpedoes.</strong> One every 3 seconds instead of a rake of sixteen. Each leaves the muzzle slowly, spins up to 7.5 units a second \u2014 a touch over your 7 \u2014 and turns at no more than 90\u00b0 a second, so it swings wide rather than snapping onto you. Its idea of where you are lags about 0.6 s: hold still and it hits, dodge early and it follows you in, move a unit or more in the last second and it passes where you were. One that misses comes round again while its 10 s of fuel lasts. They are half size, with an orange plume out of the tail that goes out when the fuel does, and one that hits you goes off.</p><p><strong>The keel\u2019s curtain is thrown.</strong> Each disc climbs or dives and bounces off the floor and ceiling, a row fanned from steep up to steep down, the same path every curtain so it can be learned. They leave one at a time, 2 s apart, on the 8 s interval you set.</p><p><strong>The boss warns you.</strong> A muzzle glows orange before it fires: the curtain lights every slot that will throw and leaves its gap row dark, and the crown lights only the muzzle about to fire.</p><p><strong>Seven cameras.</strong> F8, then 9, cycles them in play: the classic 75\u00b0 from 5 out, the same framing from 9 and from 14 out, and the whole band from 7, 10, 14 and 20 out, holding the band\u2019s middle instead of following you up and down. Every run starts on the classic one.</p><p><strong>One thing in it is probably a mistake: the discs cannot hit you.</strong> The easing that brings boss rounds onto your lane is at 0 on the discs and on four of the bullet prefabs in today\u2019s commits, and no keel muzzle is within 0.17 of the lane. The torpedoes are unaffected. If that was not on purpose it is one number to put back \u2014 see the item under Needs you.",
     watch: [
-      "Turn god mode off. Does the boss feel like a threat now, and does the fight still feel the right length?",
-      "Step the Shadows row from Off to High. Watch the sun\u2019s shadow edges and whether the island keeps its depth. High puts the sun and the lava light at 2048, so if it costs frames the tier defaults are the thing to move.",
-      "Collect a pickup and watch the burst. It is cyan against an orange arena on purpose, so it should read as a reward rather than as something detonating.",
-      "Look for banding on the flat terrain and the ruin walls \u2014 that would be the lightmap compression. Mottling on the ruins is not: that predates the light changes and is expected.",
-      "Watch the boss rounds against the smaller ship. If they reach your height too late to matter, RoundLaneResponse 6.6 restores the old timing.",
-      "Climb, dive and dash while firing. The streaks should stay straight behind their needles; anything tilted or ghosted is worth a screenshot.",
-      "Shoot Enemy 1s and Enemy 2s at your own height. Rounds should land every time now, so a clean miss on a still target means something is still wrong.",
-      "The lighting was rebaked on the new Unity and should look exactly as it did this morning. If anything in the island\u2019s lighting has shifted, that is worth a screenshot \u2014 it would mean the patch moved something I measured as unmoved.",
-      "Hold a direction and then let go. The plume should catch at once and die back slowly \u2014 that asymmetry is most of what reads as an engine rather than a lamp on a dimmer.",
-      "Dash along the ring, then dash straight up. The first should burn the tail only, the second both ends. Anything firing out of the nose while you accelerate forward is a bug I thought I had fixed.",
-      "Watch the green bead on the spine when you dash. It is about five pixels, so if you cannot catch it mid-fight say so and it gets bigger \u2014 that is the whole point of it being there.",
-      "The bigger enemies should be easier to hit. If they now feel like free kills rather than targets, the 25% comes back down.",
-      "Keep judging the camera: field of view 75 and camera offset 5 are what this build carries. You moved it from 80 while the thrusters were being built."
+      "Turn god mode off. Does the boss feel like a threat now, and is the fight the right length? This is still the run that answers both.",
+      "Let one torpedo come at you while you hold still, then dodge one early and one at the last moment. The late dodge should leave it passing where you were.",
+      "Dive to the floor with a torpedo on your tail. It should follow you down and run along the floor into you \u2014 hugging an edge is not meant to be a way out.",
+      "Watch a torpedo that has missed. Does coming round again feel fair, or do hits from one fired ten seconds ago feel cheap? If cheap, the fuel comes down from 10 s.",
+      "Watch the plume. It should burn low out of the muzzle, full at speed, and go out when the torpedo is spent \u2014 a spent one should look spent.",
+      "Look for the curtain\u2019s gap row in the glow before its discs leave.",
+      "If a disc ever hits you, say so \u2014 in this build it should not be able to.",
+      "Cycle the cameras during the boss fight and tell me which one reads heights best, by name. It becomes the default."
     ]
   };
 
@@ -466,12 +461,25 @@
         },
         {
           id: "camera-framing",
-          title: "Settle the camera angle, distance and lane offset",
-          effort: "a few runs",
+          title: "Settle the camera: pick one of the seven presets",
+          effort: "one run",
           why: [
+            "<strong>On 21 September this became a choice between presets.</strong> The build carries seven, cycled with F8 then 9: the classic 75° from 5 out, the same framing from 9 and from 14 out, and four that fit the whole band from 7, 10, 14 and 20 out and hold its middle instead of following you up and down. Pick one by name and it becomes the default.",
+            "The trade is perspective, and it matters because nearly every boss attack is dodged by reading heights. Close and wide, something ten units round the ring is drawn two thirds its size, heights included, and the band never fits the screen at once. From 14 out it is five sixths, and the whole-band presets show all of it. The cost is the ring’s curve, the boss’s looming, and sight of things beside you along the ring: at the tightest lens the boss 11 units away is off the edge of the screen.",
+            "Four sounds are partly positional — the lance and ram charges, the boss’s shot and an enemy dying — so from further back they are a little quieter. If a far preset wins, the audio listener moves to the ship.",
             "You are tuning this by hand, and the numbers have moved several times since the ships were halved: field of view 65 → 75 → 70 → 80 → 75, camera offset 10 → 5 → 6 → 5, and the player’s offset 2 → 5. The 18 September build is the first to carry 75.",
             "The player’s radius offset now moves the whole lane, so it is a real design dial rather than a way to strand the ship. Waves spawn from 21.45 out, so offsets up to about +7.7 keep every arrival outside the lane. At +5 the boss’s emplacements sit about 0.17 inside it, well within their hitboxes.",
             "Tick this once the view feels right. Nothing else waits on it."
+          ]
+        },
+        {
+          id: "lane-easing",
+          title: "Decide whether discs and bullets should close on your lane",
+          effort: "2 min to decide",
+          why: [
+            "Found while updating these pages on 21 September. The boss’s rounds are born across a hull 3 units deep, 17.9 to 19.5 from the axis against your lane at 18.72, and a round keeps its birth radius forever unless something eases it in. That easing, <code>laneResponse</code> 5 on the round prefabs, is what took the boss from a quarter of its fire reaching you to nearly all of it on 1 September.",
+            "Today’s commits set it to 0 on both disc prefabs and on four of the six bullet prefabs. Nothing in the code does that, so it reads as an Inspector change. What it does: a disc is 0.1 thick and has to start within 0.17 of your lane to touch you, and no keel muzzle is that close — so <strong>the curtain’s discs cannot hit you</strong>, and most of the Scuttle’s bullets cannot either. The torpedoes are unaffected; they close on the lane themselves.",
+            "If it was on purpose, to keep the discs and bullets out of one lane, the throw already separates them by height, and the price is that they became scenery. If not, it is one number on eight prefabs to put back."
           ]
         },
         {
@@ -634,7 +642,9 @@
           why: [
             "The playtest said the boss reads as scenery, not a threat, and the answer you picked says what to do: clearer warnings before it hits, not more damage. A boss feels dangerous when you can see it coming and have to answer it.",
             "The charges already warn you. The emplacement swells for 1.2 s before a lance or a ram, and the hull flashes before the ram. But that telegraph setting covers only the Lance and the Ram. The ordinary volleys, which are most of the Armoured act, arrive unannounced. A muzzle glow that builds before a volley would make each bank’s fire something you react to rather than something you fly through.",
-            "The routes item below reworks the same fire, so the two belong in one pass. And god mode was on for this answer, which weakens it: one run without it first."
+            "The routes item below reworks the same fire, so the two belong in one pass. And god mode was on for this answer, which weakens it: one run without it first.",
+            "<strong>Done on 21 September</strong> (commit <code>df41878</code>, tuned after). A muzzle about to fire glows in the thruster shader, in the boss’s orange. The curtain lights every slot that will throw for 0.6 s and leaves its gap row dark, so the gap is visible before the wall leaves, and each glow goes out as its own disc does. The crown lights only the one muzzle about to fire, for 0.5 s. The glows are sized per bank, 0.9 on the keel and 0.42 on the crown, whose rows are too close together for more.",
+            "Building them found the keel and crown muzzles hanging a full unit in front of the hull — 0.98 to 1.45 — so every round had been appearing out of thin air beside the ship. They sit 0.05 in front of it now, measured off the hull mesh."
           ]
         },
         {
@@ -644,7 +654,9 @@
           why: [
             "Your note: the discs and bullets merge into one lane, and they should each take a different route. That is exactly what the code does. Every boss round eases onto the ring (<code>RoundLaneResponse</code> 5, so even the worst-placed of the 32 muzzles is in the band after 0.275 s), then holds the height it was fired at for the rest of its flight. A bank’s fire settles into flat horizontal streams.",
             "You only ever fly on the ring, so ‘different routes’ here means different paths through height and direction: rounds that climb or dive as they travel, pairs that cross, some that come the other way round.",
-            "One constraint to keep. Armoured is a fight about height: each emplacement sits at its bank’s height, and killing it means flying there. Routes that sweep across every height would erase that, so the ones worth trying weave within each bank’s own height rather than leaving it."
+            "One constraint to keep. Armoured is a fight about height: each emplacement sits at its bank’s height, and killing it means flying there. Routes that sweep across every height would erase that, so the ones worth trying weave within each bank’s own height rather than leaving it.",
+            "<strong>Done on 21 September, and it went further than routes.</strong> The keel’s discs are thrown, at your call: each climbs or dives and bounces off the floor and ceiling of your band, a row fanned at 4, 1.33, −1.33 and −4 units a second, the same every curtain so each slot’s path can be learned. Released together a pair of slots left as one double disc, so they leave one at a time, 2 s apart. The constraint above went with it: the discs cross the whole band on purpose now.",
+            "The crown stopped being a rake. It fires one torpedo every 3 s that steers after you with a lag, and turned out to want everything a game torpedo has — a motor that spins up, a turning circle, a pull-out before the floor and ceiling, a plume, and going off on impact. Played against three times the same day; the numbers it settled on are in the item at the top."
           ]
         },
         {
@@ -794,7 +806,8 @@
           effort: "one run",
           why: [
             "The half-size ship narrowed the band where a boss round can touch you from about ±0.33 to ±0.21, so a round from the boss’s outermost gun now takes about 0.36 s to become dangerous instead of 0.275.",
-            "If the fight feels soft in a run with god mode off, <code>RoundLaneResponse</code> 6.6 restores the old timing. It is one number, but only a run says whether it is needed."
+            "If the fight feels soft in a run with god mode off, <code>RoundLaneResponse</code> 6.6 restores the old timing. It is one number, but only a run says whether it is needed.",
+            "Moot for now: since 21 September the discs and most bullets are not eased onto the lane at all. See ‘Decide whether discs and bullets should close on your lane’."
           ]
         },
         {
