@@ -110,6 +110,22 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Sets how far outside the lane this sits, and moves it there now - for
+        /// the camera presets. Refused on the lane's own definer, because there
+        /// the offset moves the lane under everything flying in it.
+        /// </summary>
+        public void SetRadiusOffset(float offset)
+        {
+            if (definesLane)
+            {
+                return;
+            }
+
+            radiusOffset = offset;
+            Snap();
+        }
+
         [ContextMenu("Snap Now")]
         public void Snap()
         {

@@ -39,7 +39,8 @@ namespace SurvivalChaos
         /// </summary>
         private const float RefreshInterval = 1f;
 
-        private const float BaseWidth = 300f;
+        /// <summary>Wide enough for the longest camera preset's name on its button.</summary>
+        private const float BaseWidth = 340f;
         private const float BaseRow = 24f;
         private const float BaseGap = 6f;
 
@@ -137,6 +138,7 @@ namespace SurvivalChaos
                 case 6: ToggleInvulnerable(); break;
                 case 7: ClearArena(); break;
                 case 8: StepTimeScale(); break;
+                case 9: CameraPresetSwitcher.Cycle(); break;
             }
         }
 
@@ -257,11 +259,11 @@ namespace SurvivalChaos
             statusContent.text = status.ToString();
             float statusHeight = labelStyle.CalcHeight(statusContent, width);
 
-            // Thirteen buttons, separators, title and status block.
+            // Fourteen buttons, separators, title and status block.
             float height = pad * 2f
                            + row + gap
                            + statusHeight + gap
-                           + row * 13f + gap * 12f
+                           + row * 14f + gap * 13f
                            + gap * 3f;
 
             Rect panel = new Rect(Screen.width - width - pad * 2f - pad, pad, width + pad * 2f, height);
@@ -301,6 +303,13 @@ namespace SurvivalChaos
             if (PauseMenu.GameIsPaused) { timeLabel += " (paused)"; }
             if (RunOutcome.RunEnded) { timeLabel += " (ended)"; }
             if (Draw(x, ref y, width, row, gap, timeLabel, running)) { StepTimeScale(); }
+
+            // Asked for on 21 September 2026 to compare the camera close and wide
+            // with the camera further back and tighter - see CameraFraming.
+            if (Draw(x, ref y, width, row, gap, "9  Camera: " + CameraPresetSwitcher.Current.Name, true))
+            {
+                CameraPresetSwitcher.Cycle();
+            }
             if (Draw(x, ref y, width, row, gap, "Generate offer (no level)", skills != null && running)) { skills.PickSkill(); }
             if (Draw(x, ref y, width, row, gap, "Kill enemies + reward XP", running)) { ClearArena(reward: true); }
             BossEmitter boss = BossEmitter.Active;

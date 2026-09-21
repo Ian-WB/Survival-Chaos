@@ -171,7 +171,7 @@ namespace SurvivalChaos
         /// <summary>
         /// The digit keys are indexed off digit1Key rather than named one by
         /// one. The Key enum orders them consecutively, which is what makes the
-        /// arithmetic safe, and it keeps this from being eight near-identical
+        /// arithmetic safe, and it keeps this from being nine near-identical
         /// lines that a typo could hide in.
         /// </summary>
         public int DebugShortcutPressed
@@ -184,7 +184,7 @@ namespace SurvivalChaos
                     return 0;
                 }
 
-                for (int i = 1; i <= 8; i++)
+                for (int i = 1; i <= 9; i++)
                 {
                     if (keyboard[Key.Digit1 + (i - 1)].wasPressedThisFrame)
                     {
