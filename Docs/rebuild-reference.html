@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 304 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 308 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>304</b><span>commits</span></div>
-      <div class="stat"><b>283</b><span>tests</span></div>
-      <div class="stat"><b>103</b><span>runtime scripts</span></div>
+      <div class="stat"><b>308</b><span>commits</span></div>
+      <div class="stat"><b>299</b><span>tests</span></div>
+      <div class="stat"><b>105</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>84</b><span>bugs fixed</span></div>
     </div>
@@ -505,6 +505,10 @@
       needle with a rigid streak behind it, built that way because the upscaler drags anything softer.</li>
       <li><strong>Shadows as a setting</strong> &mdash; one row from Off to High over the sun, the lava light
       that casts and the clouds, with the tier still deciding what each rung is worth.</li>
+      <li><strong>Enemies a quarter bigger</strong> &mdash; the four normal ones back up &times;1.25 through
+      their importers, hitboxes with them, leaving the player and the boss where they were.</li>
+      <li><strong>Thrusters, and the dash signal off the HUD</strong> &mdash; a plume, two retros and a
+      ready light on the hull, so the ship finally shows what it is doing without being looked away from.</li>
     </ul>
   </section>
 
@@ -654,6 +658,22 @@ transform.LookAt(pos);</code></pre>
     <h3>The ship model</h3>
     <p><code>SpaceShipPitch</code> animates the visual only. It reads <code>Player.DirectionFlipped</code> rather than tracking its own copy — the two used to be toggled independently by the same key, which meant any frame where one saw the input and the other didn't left the model facing the wrong way permanently.</p>
     <p>The ship and the four normal enemies are <strong>half size</strong> since 11 September, done the way the project scales models: through each FBX's importer. Two prefabs, <code>PlayerSpaceShip</code> and the base <code>Enemy</code>, were detached copies of their models storing their own node positions, so an importer change would have shrunk each part in place and left the layout behind; both were re-attached as nested model instances first. Their rounds followed on the root transform instead &mdash; the player's and <code>Enemy 1</code>'s are primitive capsules with no importer, and one enemy round's FBX is shared with the boss's &mdash; and <code>shotSpacing</code> halved with them so a volley keeps its proportions.</p>
+    <p>The four enemies went back up <strong>&times;1.25</strong> on 18 September, by the same two halves and with the player and the boss untouched, so they are no longer the same size as the ship. Their hitboxes scaled with them &mdash; including the deliberate height tolerance on <code>Enemy</code> and <code>Enemy 2</code>, which makes them more forgiving rather than less.</p>
+
+    <h3>Thrusters, and the dash&rsquo;s ready light</h3>
+    <p>Nothing on the ship showed what it was doing. It leaned, through <code>SpaceShipPitch</code>, and that was all &mdash; a cue it shares with the idle drift it also performs standing still. <code>ShipThrusters</code> adds four flares: a main plume out of the rocket at the tail on forward throttle, 0.26 world units against a ship 0.345 long; two retros under the nose at 0.10 on reverse; and a ready light on the spine. A dash doubles whichever end is doing the work, and puts a floor under both when the burst is straight up or down, where neither throttle axis is pushed.</p>
+    <p>It shows <em>throttle</em> rather than acceleration, because <code>PlayerMovement</code> has none to show &mdash; the same finding the input section records. The arithmetic is split out into <code>ThrusterResponse</code> with no Unity object attached, which is what makes the one question a visual cannot answer testable: the ship turns end for end at the player&rsquo;s command and the input keeps its sign through that, so &ldquo;which nozzle burns&rdquo; is right one way round and backwards the other.</p>
+    <div class="note">
+      <div class="label">The ready light is the dash&rsquo;s signal, moved to where the eyes are</div>
+      <p><code>DashBar</code> answers a real question in the wrong place. A 0.22&nbsp;second commitment is decided while looking at the boss, and a glance at the corner costs more than the window is long. The light goes out the instant a dash is spent, fills dimly through the cooldown and flashes when it comes back.</p>
+      <p>It sits on top of the hull rather than on a side, because the flip turns the model end for end and would carry a side-mounted light to the far face. And it ignores the throttle, which the plume cannot: a signal drowned by a burning engine is a signal only readable when you are not moving.</p>
+    </div>
+    <div class="warn">
+      <div class="label">Two things only a look in play found, and one of them is written on this page</div>
+      <p>The ready light came out as a hard white ball floating over the hull &mdash; a star, or a pickup, rather than a lamp. Its mesh held V at the middle of the ribbon, which put every pixel on the shader&rsquo;s core colour, and at that brightness it blew out to white in the tonemapper. <strong>That is the boss pods&rsquo; problem exactly</strong>, diagnosed at length elsewhere in this project and walked into anyway. V runs outward now, so the light has a hot centre falling to the player&rsquo;s green at its rim.</p>
+      <p>And a dash along the ring fired the retros as well as the engine, which put a green spike out of the nose that read as a weapon rather than as thrust. The dash&rsquo;s floor fades out as the burst turns against a nozzle now, so a ring dash burns one end of the ship and a vertical one burns both.</p>
+    </div>
+    <p>The flares are rigid meshes rather than particles, on a copy of the round&rsquo;s streak shader, for the reason set out under <a href="#render">Rendering</a>: under FSR anything that does not write its own motion vectors gets dragged across the screen by whatever is behind it. They are also built at runtime from offsets on the component rather than parented in the prefab, because <code>Player</code> instantiates the ship model at Start &mdash; there is no edit-time hierarchy to place them against, and nothing to look at if there were. <code>ShipThrusterBuilder</code> measures those offsets off the model itself: the back face of the rocket, the front faces of the two blocks under the nose, and clear of the top of the whole model.</p>
     <p>Easing uses an exponential form that settles the same amount per unit of <em>time</em>, not per frame:</p>
 <pre><code>Mathf.Lerp(current, target, 1f - Mathf.Exp(-response * deltaTime))</code></pre>
     <p>The common shortcut — <code>Lerp(current, target, response * deltaTime)</code> — feels different at 30fps and 144fps. <code>ShipMotion</code> is separated out precisely so this can be tested.</p>
@@ -1806,6 +1826,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <div class="warn">
       <div class="label">A script that opens a prefab stage can take the GPU down</div>
       <p><code>PrefabUtility.LoadPrefabContents</code> called from a script stalled the editor for 41 seconds and ended in a D3D12 device reset that closed it. Simple prefab edits go through a <code>SerializedObject</code> on the asset itself and are saved there, and adding or removing a component on an asset's root works the same way &mdash; which is how <code>PlayerRoundBuilder</code> is written.</p>
+      <p>What that path cannot do is add a <em>child</em>: Unity refuses to reparent a transform into a prefab asset outright. So <code>ShipThrusterBuilder</code> writes offsets onto a component and has it build its own children at runtime, which costs nothing here because the ship model only exists at runtime anyway. Reaching for the prefab stage is the answer that looks obvious and is the one that took the GPU down.</p>
     </div>
     <div class="warn">
       <div class="label">A package that edits your player settings</div>
@@ -1840,7 +1861,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>283 tests across 26 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>299 tests across 27 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -1851,6 +1872,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>DashCycleTests</code></td><td class="num">16</td><td>the burst, the cooldown, and that invincibility ends with the travel rather than with the cycle</td></tr>
           <tr><td><code>HealthStateTests</code></td><td class="num">16</td><td>a kill is reported exactly once</td></tr>
           <tr><td><code>ObjectPoolTests</code></td><td class="num">16</td><td>reuse never hands out a live instance twice</td></tr>
+          <tr><td><code>ThrusterResponseTests</code></td><td class="num">16</td><td>which of the ship&rsquo;s nozzles burns, either way round the flip &mdash; the one question about a thruster that looking at it cannot answer</td></tr>
           <tr><td><code>BossPhaseStateTests</code></td><td class="num">15</td><td>the fight's three acts happen once each and never go backwards</td></tr>
           <tr><td><code>DynamicResolutionControllerTests</code></td><td class="num">13</td><td>drops fast, climbs slowly, and never hunts</td></tr>
           <tr><td><code>ShipMotionTests</code></td><td class="num">12</td><td>easing, including frame-rate independence</td></tr>
@@ -1894,7 +1916,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 283 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code> and <code>DisplayOptions</code> — none of them are MonoBehaviours. That's what made 299 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -1971,7 +1993,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       glows because it is dangerous rather than because it is hot &mdash; a call about the art direction rather
       than about the mechanic, so it has deliberately not been made.</li>
       <li><strong>The camera and the lane are still being framed.</strong> Field of view and camera
-      offset have moved several times since the ships were halved, and sit at 80 and 5 with the Player's lane
+      offset have moved several times since the ships were halved, and sit at 75 and 5 with the Player's lane
       offset at 5. The offset is a real design dial now rather than a way to strand the ship; waves spawn from
       21.45 out, so anything up to about +7.7 keeps every arrival outside the lane.</li>
       <li><strong>The lance reads; it should read as energy.</strong> Seen in the boss fight on
@@ -2048,7 +2070,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.1f1) · HDRP 17.6 · branch <code>main</code> · 304 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.1f1) · HDRP 17.6 · branch <code>main</code> · 308 commits
   </footer>
 
 </div>
