@@ -134,25 +134,42 @@ namespace SurvivalChaos
 
         [Header("Torpedo")]
         [SerializeField]
-        [Tooltip("Seconds each round steers after the player's height before it gives up and flies " +
-                 "straight. 0 makes plain rounds. A torpedo that never gave up would keep lapping " +
-                 "the ring and hunting for the rest of the act.")]
+        [Tooltip("Seconds from launch each round steers after the player - its fuel - before it " +
+                 "flies straight. 0 makes plain rounds. A torpedo that never ran dry would hunt " +
+                 "for the rest of the act.")]
         private float homeSeconds;
 
         [SerializeField]
-        [Tooltip("How quickly a torpedo's idea of the player's height catches up with the real one, " +
-                 "per second. This is the delay: lower is slower to notice a change of height, " +
-                 "so easier to shake off.")]
-        private float homePerception = 2.5f;
+        [Tooltip("How quickly a torpedo's idea of where the player is catches up with the real " +
+                 "one, per second. This is the delay: lower is slower to notice a dodge, so easier " +
+                 "to shake off.")]
+        private float homePerception = 1.6f;
 
         [SerializeField]
-        [Tooltip("How hard a torpedo turns toward where it thinks the player is, per second.")]
-        private float homeSteer = 3f;
+        [Tooltip("Units a second a torpedo cruises at once its motor is up to speed. The player " +
+                 "flies at 7 each way, so above 7 it gains on you and below it you can outrun it.")]
+        private float homeSpeed = 8f;
 
         [SerializeField]
-        [Tooltip("The fastest a torpedo may climb or dive, in units a second. Keep it well under the " +
-                 "player's climb, or it can only be outrun and never dodged.")]
-        private float homeMaxClimb = 3.5f;
+        [Tooltip("Units a second a torpedo leaves the muzzle at, before it spins up to cruise.")]
+        private float homeLaunchSpeed = 3f;
+
+        [SerializeField]
+        [Tooltip("Seconds from launch to cruise speed.")]
+        private float homeSpinUp = 0.6f;
+
+        [SerializeField]
+        [Tooltip("Seconds a torpedo runs straight out of the muzzle before it starts to steer.")]
+        private float homeArmSeconds = 0.3f;
+
+        [SerializeField]
+        [Tooltip("The fastest a torpedo turns, in degrees a second. Its turning circle is its " +
+                 "speed over this: lower swings wider and overshoots more, so is easier to dodge.")]
+        private float homeTurnRate = 90f;
+
+        [SerializeField]
+        [Tooltip("Seconds a torpedo flies straight on after its fuel runs out, before it is gone.")]
+        private float homeCoastSeconds = 2f;
 
         /// <summary>Inspector-only name. Nothing reads this at runtime.</summary>
         public string Label => label;
@@ -219,17 +236,23 @@ namespace SurvivalChaos
         /// </summary>
         public float ThrowSpeed => Mathf.Abs(throwSpeed);
 
-        /// <summary>Seconds each round homes for. Zero is a plain round.</summary>
+        /// <summary>Seconds each round steers for as a torpedo. Zero is a plain round.</summary>
         public float HomeSeconds => Mathf.Max(0f, homeSeconds);
 
-        /// <summary>How quickly a torpedo notices a change of height, per second.</summary>
-        public float HomePerception => Mathf.Max(0f, homePerception);
+        /// <summary>Seconds a torpedo flies on after its fuel is spent.</summary>
+        public float HomeCoastSeconds => Mathf.Max(0f, homeCoastSeconds);
 
-        /// <summary>How hard a torpedo turns toward its belief, per second.</summary>
-        public float HomeSteer => Mathf.Max(0f, homeSteer);
-
-        /// <summary>The fastest a torpedo climbs or dives, units a second.</summary>
-        public float HomeMaxClimb => Mathf.Max(0f, homeMaxClimb);
+        /// <summary>How this attack's torpedoes fly - see <see cref="TorpedoSteer"/>.</summary>
+        public TorpedoHandling Torpedo => new TorpedoHandling
+        {
+            LaunchSpeed = Mathf.Max(0f, homeLaunchSpeed),
+            CruiseSpeed = Mathf.Max(0f, homeSpeed),
+            SpinUp = Mathf.Max(0f, homeSpinUp),
+            ArmSeconds = Mathf.Max(0f, homeArmSeconds),
+            TurnRate = Mathf.Max(0f, homeTurnRate),
+            Perception = Mathf.Max(0f, homePerception),
+            Fuel = HomeSeconds,
+        };
 
         /// <summary>
         /// The emplacement that has to survive for this attack to fire, or null

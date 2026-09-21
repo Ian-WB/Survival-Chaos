@@ -167,6 +167,15 @@ namespace SurvivalChaos
             if (other.CompareTag("enemy_Shoot"))
             {
                 TakeHit(spawnHitEffect: true);
+
+                // A torpedo goes off when it hits. Plain rounds fly on through,
+                // which is harmless for a round that never comes back; a torpedo
+                // turns round, and one left flying would hit again on its next
+                // pass.
+                if (other.TryGetComponent(out ShootScript round) && round.IsTorpedo)
+                {
+                    ObjectPool.Despawn(other.gameObject);
+                }
             }
             else if (other.CompareTag("Enemy"))
             {

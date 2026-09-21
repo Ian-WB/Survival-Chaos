@@ -672,8 +672,7 @@ namespace SurvivalChaos
             {
                 if (quarry != null)
                 {
-                    shot.Home(quarry, attack.HomeSeconds, attack.HomePerception, attack.HomeSteer,
-                        attack.HomeMaxClimb, floor, ceiling);
+                    shot.Home(quarry, attack.Torpedo, attack.HomeCoastSeconds, floor, ceiling);
                 }
 
                 return;

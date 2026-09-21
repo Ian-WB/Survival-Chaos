@@ -162,6 +162,118 @@ namespace SurvivalChaos
         private float throwCeiling;
 
         /// <summary>
+        /// Whether this round is a torpedo - see <see cref="TorpedoSteer"/>. A
+        /// torpedo flies on its own heading and speed instead of orbiting at
+        /// <see cref="speed"/>, and stays one after its fuel is spent. Cleared on
+        /// every spawn.
+        /// </summary>
+        private bool torpedoing;
+        private Torpedo torpedo;
+        private TorpedoHandling torpedoHandling;
+
+        /// <summary>What the torpedo is chasing. It flies on at its last belief if this dies.</summary>
+        private Transform torpedoTarget;
+
+        /// <summary>The target's hit box, which is what the torpedo has to meet.</summary>
+        private BoxCollider torpedoTargetBox;
+
+        /// <summary>
+        /// Whether this round is a torpedo, for the player: a torpedo goes off
+        /// when it hits, where a plain round flies on through.
+        /// </summary>
+        public bool IsTorpedo => torpedoing;
+
+        /// <summary>
+        /// How fast a torpedo closes on the lane the player flies in, as well as
+        /// on the player's height and place round the ring. The crown's muzzles
+        /// sit across the hull's depth, and a torpedo that stayed at its muzzle's
+        /// distance from the axis would pass in front of or behind the player it
+        /// had flown straight at.
+        /// </summary>
+        private const float TorpedoLaneResponse = 4f;
+
+        /// <summary>
+        /// Makes this round a torpedo that hunts <paramref name="target"/> inside
+        /// the band given, flying as <paramref name="handling"/> says.
+        ///
+        /// It leaves along the ring the way this round was always going to fly,
+        /// and it has seen the player where they are at the moment of firing.
+        /// Its life is set here too: a torpedo is slower than the round it
+        /// replaces and needs longer than the prefab allows, so it lives for its
+        /// fuel plus <paramref name="coast"/> seconds.
+        /// </summary>
+        public void Home(Transform target, in TorpedoHandling handling, float coast, float floor, float ceiling)
+        {
+            throwSpeed = 0f;
+            throwFloor = floor;
+            throwCeiling = ceiling;
+
+            if (center == null || target == null)
+            {
+                return;
+            }
+
+            torpedoing = true;
+            torpedoTarget = target;
+            torpedoTargetBox = target.GetComponent<BoxCollider>();
+            torpedoHandling = handling;
+
+            Vector2 start = new Vector2(0f, transform.position.y);
+            torpedo = Torpedo.Launch(start, speed >= 0f ? 0f : 180f, FlatTarget(start, AimPoint()));
+
+            if (TryGetComponent(out DestroyAfterTime life))
+            {
+                life.RetireIn(Mathf.Max(0f, handling.Fuel) + Mathf.Max(0f, coast));
+            }
+        }
+
+        /// <summary>
+        /// Where this round's pivot has to be for its hit box to sit on the
+        /// target's.
+        ///
+        /// Not the target's position. The dart's box hangs 0.27 above its pivot
+        /// with the art, and the player's is 0.16 tall, so a torpedo that flew its
+        /// pivot into the player's passed clean over them - which is how every
+        /// torpedo that reached a still player in play on 21 September 2026
+        /// missed. Measured each frame, because the box swings with the roll.
+        /// </summary>
+        private Vector3 AimPoint()
+        {
+            Vector3 aim = torpedoTargetBox != null
+                ? torpedoTargetBox.transform.TransformPoint(torpedoTargetBox.center)
+                : torpedoTarget.position;
+
+            if (hitBox != null)
+            {
+                aim -= transform.TransformPoint(hitBox.center) - transform.position;
+            }
+
+            return aim;
+        }
+
+        /// <summary>
+        /// Where <paramref name="world"/> is in the torpedo's flat ring, from a
+        /// torpedo at <paramref name="from"/>: the short way round the ring, at
+        /// the lane's radius, so going round the ring in either direction is
+        /// covered.
+        /// </summary>
+        private Vector2 FlatTarget(Vector2 from, Vector3 world)
+        {
+            float arc = Mathf.DeltaAngle(AngleAround(transform.position), AngleAround(world));
+            return new Vector2(from.x + arc * Mathf.Deg2Rad * ArenaGeometry.LaneRadius, world.y);
+        }
+
+        /// <summary>
+        /// Degrees round the arena axis, increasing the way a positive
+        /// RotateAround carries a round.
+        /// </summary>
+        private float AngleAround(Vector3 world)
+        {
+            Vector3 offset = world - center.position;
+            return Mathf.Atan2(offset.x, offset.z) * Mathf.Rad2Deg;
+        }
+
+        /// <summary>
         /// Throws this round up or down at <paramref name="verticalSpeed"/>
         /// from the height it is at now, bouncing between the two limits.
         ///
@@ -169,52 +281,9 @@ namespace SurvivalChaos
         /// scaled time, so a paused game holds every round where it is on its
         /// path rather than letting it jump ahead on resume.
         /// </summary>
-        /// <summary>
-        /// What this round is homing on, when it is a torpedo - see
-        /// <see cref="TorpedoSteer"/>. Null for every other round, and cleared on
-        /// every spawn.
-        /// </summary>
-        private Transform homeTarget;
-        private float homeUntil;
-        private float homeGhost;
-        private float homePerception;
-        private float homeSteer;
-        private float homeMaxClimb;
-
-        /// <summary>
-        /// The vertical speed the torpedo flew at last frame, so its nose can
-        /// point where it is going. Zero once it gives up the chase, which levels
-        /// it off.
-        /// </summary>
-        private float homeClimb;
-
-        /// <summary>
-        /// Makes this round a torpedo that steers after <paramref name="target"/>'s
-        /// height for <paramref name="seconds"/>, through the lag TorpedoSteer
-        /// describes, and inside the band given.
-        ///
-        /// It starts out believing the target is at its own height, which is what
-        /// makes the first few tenths of a second a straight run out of the
-        /// muzzle rather than a snap toward the player.
-        /// </summary>
-        public void Home(Transform target, float seconds, float perception, float steer, float maxClimb,
-                         float floor, float ceiling)
-        {
-            homeTarget = target;
-            homeUntil = Time.time + Mathf.Max(0f, seconds);
-            homeGhost = transform.position.y;
-            homePerception = perception;
-            homeSteer = steer;
-            homeMaxClimb = maxClimb;
-            homeClimb = 0f;
-            throwFloor = floor;
-            throwCeiling = ceiling;
-            throwSpeed = 0f;
-        }
-
         public void Throw(float verticalSpeed, float floor, float ceiling)
         {
-            homeTarget = null;
+            torpedoing = false;
             throwSpeed = verticalSpeed;
             throwHeight = transform.position.y;
             throwStart = Time.time;
@@ -242,8 +311,9 @@ namespace SurvivalChaos
             // A reused round must not keep the throw of the volley it died in,
             // nor go on hunting for the one before.
             throwSpeed = 0f;
-            homeTarget = null;
-            homeClimb = 0f;
+            torpedoing = false;
+            torpedoTarget = null;
+            torpedoTargetBox = null;
 
             // A deterministic starting point, not the final orientation: every
             // frame of Update ends by facing the arena axis, and FaceOrbitCentre
@@ -458,27 +528,10 @@ namespace SurvivalChaos
                 transform.position = thrown;
             }
 
-            if (homeTarget != null)
+            if (torpedoing)
             {
-                if (Time.time < homeUntil && homeTarget.gameObject.activeInHierarchy)
-                {
-                    Vector3 chasing = transform.position;
-                    float height = chasing.y;
-
-                    homeClimb = TorpedoSteer.Step(ref height, ref homeGhost, homeTarget.position.y,
-                        homePerception, homeSteer, homeMaxClimb, throwFloor, throwCeiling, Time.deltaTime);
-
-                    chasing.y = height;
-                    transform.position = chasing;
-                }
-                else
-                {
-                    // Given up: level off and fly on at the height it reached, so
-                    // a torpedo that missed is a round to avoid on its next lap
-                    // rather than one still hunting.
-                    homeTarget = null;
-                    homeClimb = 0f;
-                }
+                FlyTorpedo();
+                return;
             }
 
             if (laneResponse > 0f)
@@ -495,23 +548,44 @@ namespace SurvivalChaos
             pos.y = transform.position.y;
             transform.RotateAround(pos, Vector3.up, Time.deltaTime * speed);
             transform.LookAt(pos);
+        }
 
-            // A torpedo points its nose along its path. LookAt leaves the round
-            // level and facing the axis, with the ring running along its local X,
-            // so the climb is a turn about its own forward - positive noses up
-            // when it travels toward +X, and the other way when it travels back.
-            if (homeClimb != 0f)
+        /// <summary>
+        /// One frame of a torpedo: steered in the flat ring by TorpedoSteer, then
+        /// put back on the ring - round the axis by the distance it covered, at
+        /// the height it reached, closing on the lane - and pointed along its
+        /// heading.
+        /// </summary>
+        private void FlyTorpedo()
+        {
+            Vector2 before = torpedo.Position;
+
+            // A target that has gone - the player died - leaves the torpedo
+            // chasing its last belief, which is where it was going anyway.
+            Vector2 target = torpedoTarget != null && torpedoTarget.gameObject.activeInHierarchy
+                ? FlatTarget(before, AimPoint())
+                : torpedo.Ghost;
+
+            TorpedoSteer.Step(ref torpedo, target, torpedoHandling, throwFloor, throwCeiling, Time.deltaTime);
+
+            Vector3 axis = center.position;
+            axis.y = transform.position.y;
+
+            float lane = ArenaGeometry.LaneRadius;
+            if (lane > 0f)
             {
-                float radius = Vector2.Distance(
-                    new Vector2(transform.position.x, transform.position.z),
-                    new Vector2(pos.x, pos.z));
-                float alongRing = speed * Mathf.Deg2Rad * radius;
-                float pitch = TorpedoSteer.Pitch(homeClimb, alongRing);
-
-                // RotateAround turns positive degrees anticlockwise from above,
-                // which carries the round toward its own -X after LookAt.
-                transform.Rotate(0f, 0f, speed > 0f ? -pitch : pitch, Space.Self);
+                transform.RotateAround(axis, Vector3.up,
+                    (torpedo.Position.x - before.x) / lane * Mathf.Rad2Deg);
             }
+
+            Vector3 moved = transform.position;
+            moved.y = torpedo.Position.y;
+            transform.position = ArenaGeometry.EaseOntoOrbit(
+                moved, center.position, lane, TorpedoLaneResponse, Time.deltaTime);
+
+            axis.y = transform.position.y;
+            transform.LookAt(axis);
+            transform.Rotate(0f, 0f, TorpedoSteer.Roll(torpedo.Heading, speed >= 0f), Space.Self);
         }
 
         /// <summary>

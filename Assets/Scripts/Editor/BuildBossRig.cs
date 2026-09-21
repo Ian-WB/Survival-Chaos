@@ -1122,11 +1122,18 @@ namespace SurvivalChaos.EditorTools
             /// <summary>One muzzle per volley, the bank taken in turn.</summary>
             public bool SingleShot;
 
-            /// <summary>Seconds each round homes for as a torpedo. Zero is a plain round.</summary>
+            /// <summary>
+            /// Seconds each round steers for as a torpedo - its fuel. Zero is a
+            /// plain round. The rest is how it flies; see TorpedoSteer.
+            /// </summary>
             public float HomeSeconds;
-            public float HomePerception = 2.5f;
-            public float HomeSteer = 3f;
-            public float HomeMaxClimb = 3.5f;
+            public float HomePerception = 1.6f;
+            public float HomeSpeed = 8f;
+            public float HomeLaunchSpeed = 3f;
+            public float HomeSpinUp = 0.6f;
+            public float HomeArmSeconds = 0.3f;
+            public float HomeTurnRate = 90f;
+            public float HomeCoastSeconds = 2f;
         }
 
         /// <summary>
@@ -1224,10 +1231,11 @@ namespace SurvivalChaos.EditorTools
                 // leaves the prefab as it was found.
                 BurstInterval = 2f,
 
-                // 4 at the steep ends, about 12 degrees, against the player's
-                // climb of 7, so any disc can be outflown vertically; at that
-                // speed against 19 units a second round the ring it crosses the
-                // 8.9-unit band in about 2.2s - roughly two bounces a lap.
+                // 4 at the steep ends, about 17 degrees, against the player's
+                // climb of 7, so any disc can be outflown vertically. The discs
+                // go round at 40 degrees a second, 13 units a second at the
+                // lane, so one crosses the 8.9-unit band in about 2.2s - four
+                // bounces in the 9s a lap takes.
                 ThrowSpeed = 4f,
             },
             new Volley
@@ -1239,15 +1247,18 @@ namespace SurvivalChaos.EditorTools
                 Muzzles = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
                 InitialDelay = 0.5f,
 
-                // One torpedo a second, at the player's call on 21 September 2026 -
-                // first 5s, then brought down to 1. The crown had been a rake of
-                // sixteen every 2.4s; with each round homing that was a wall of
-                // hunters, and a single torpedo is something to watch coming and
-                // shake off. SingleShot takes the sixteen muzzles in turn in the
-                // staircase's order, so a full pass up the crown is 16 seconds and
-                // the next comes back down. The half-second glow fits inside the
-                // second, so the cadence is the interval and not the warning.
-                Interval = 1f,
+                // One torpedo every 2 seconds, at the player's call on 21 September
+                // 2026 - first 5s, then 1, then 2 once the torpedoes steered and
+                // had been played against: at one a second 13 of 18 hit and the
+                // hull was gone in 46s. The crown had been a rake of sixteen
+                // every 2.4s; with each round homing that was a wall of hunters,
+                // and a single torpedo is something to watch coming and shake
+                // off. SingleShot takes the sixteen muzzles in turn in the
+                // staircase's order, so a full pass up the crown is 32 seconds
+                // and the next comes back down. The half-second glow fits inside
+                // the interval, so the cadence is the interval and not the
+                // warning.
+                Interval = 2f,
                 SingleShot = true,
 
                 // Unchanged, deliberately. The step is how fast the rake crosses
@@ -1265,19 +1276,37 @@ namespace SurvivalChaos.EditorTools
                 // sweep that shows the staircase's direction is gone.
                 TellSize = 0.42f,
 
-                // Torpedoes. Each one steers after the player's height. Before,
-                // a row's four muzzles all eased onto one point of the lane and
-                // flew as a single stacked bullet.
-                // The delay is the point. A torpedo's idea of the player's height
-                // catches up over about 0.4s (perception 2.5), and it turns toward
-                // that no faster than 3.5 a second, half the player's climb of 7.
-                // Hold a height and it arrives; change height as it closes and it
-                // passes where you were. After 3s it gives up and flies straight,
-                // or every torpedo would hunt for the rest of the act.
-                HomeSeconds = 3f,
-                HomePerception = 2.5f,
-                HomeSteer = 3f,
-                HomeMaxClimb = 3.5f,
+                // Torpedoes that fly like game torpedoes, asked for on 21
+                // September 2026 after the first ones - which slid after the
+                // player's height at the old round's 80 degrees a second, 26
+                // units a second at the lane - read as bullets with a lean. These leave the muzzle at 3, run
+                // straight for 0.3s, spin up to 8 over 0.6s and turn at 90
+                // degrees a second: a turning circle about 10 units across,
+                // wider than the band, so one turning near an edge pulls out
+                // tight along it, and one that misses swings round and comes
+                // back at you while its fuel lasts.
+                //
+                // The delay is the dodge. A torpedo's idea of where the player
+                // is catches up over about 0.6s (perception 1.6). Worked through
+                // with the real hit boxes - the player's is 0.16 tall, so a hit
+                // is an intercept: hold still and it hits; dodge a couple of
+                // units a second or more early and it follows you in; move a
+                // unit or more in the last half second and it passes where you
+                // were; run to the floor or ceiling and it follows you there. A
+                // torpedo that hits goes off.
+                //
+                // 10s of fuel and 2s of coast, then it is gone - asked for the
+                // same day as the 2s interval, after 4.5s and 1s had torpedoes
+                // vanishing mid-chase. At one every 2s that is six in the air at
+                // once, and a missed torpedo has time to come round again.
+                HomeSeconds = 10f,
+                HomePerception = 1.6f,
+                HomeSpeed = 8f,
+                HomeLaunchSpeed = 3f,
+                HomeSpinUp = 0.6f,
+                HomeArmSeconds = 0.3f,
+                HomeTurnRate = 90f,
+                HomeCoastSeconds = 2f,
 
                 // Both banks go the same way round the ring: reversing the rake
                 // was tried on 21 September 2026 and was not what the note meant.
@@ -1510,8 +1539,12 @@ namespace SurvivalChaos.EditorTools
             }
             entry.FindPropertyRelative("homeSeconds").floatValue = volley.HomeSeconds;
             entry.FindPropertyRelative("homePerception").floatValue = volley.HomePerception;
-            entry.FindPropertyRelative("homeSteer").floatValue = volley.HomeSteer;
-            entry.FindPropertyRelative("homeMaxClimb").floatValue = volley.HomeMaxClimb;
+            entry.FindPropertyRelative("homeSpeed").floatValue = volley.HomeSpeed;
+            entry.FindPropertyRelative("homeLaunchSpeed").floatValue = volley.HomeLaunchSpeed;
+            entry.FindPropertyRelative("homeSpinUp").floatValue = volley.HomeSpinUp;
+            entry.FindPropertyRelative("homeArmSeconds").floatValue = volley.HomeArmSeconds;
+            entry.FindPropertyRelative("homeTurnRate").floatValue = volley.HomeTurnRate;
+            entry.FindPropertyRelative("homeCoastSeconds").floatValue = volley.HomeCoastSeconds;
         }
 
         private static void WriteTellAssets(SerializedObject emitter)
@@ -1568,7 +1601,10 @@ namespace SurvivalChaos.EditorTools
                 WriteTellAndRoute(entry, volley);
                 log.AppendLine(label + ": tell " + volley.TellSeconds + "s at " + volley.TellSize
                                + ", thrown at " + volley.ThrowSpeed + ", released " + volley.MuzzleStagger + "s apart"
-                               + (volley.HomeSeconds > 0f ? ", homing " + volley.HomeSeconds + "s" : "")
+                               + (volley.HomeSeconds > 0f
+                                   ? ", torpedo at " + volley.HomeSpeed + " turning " + volley.HomeTurnRate
+                                     + " deg/s for " + volley.HomeSeconds + "s"
+                                   : "")
                                + (volley.SingleShot ? ", one round every " + volley.Interval + "s" : ""));
             }
 

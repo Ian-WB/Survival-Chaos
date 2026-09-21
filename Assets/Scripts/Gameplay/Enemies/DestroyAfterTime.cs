@@ -34,6 +34,19 @@ namespace SurvivalChaos
             CancelInvoke(nameof(Retire));
         }
 
+        /// <summary>
+        /// Moves this life's end to <paramref name="seconds"/> from now, for
+        /// something that learns how long it should last only after it has
+        /// appeared - a boss torpedo, which is fired from the same prefab as a
+        /// round that lives far less long. The next spawn starts again from the
+        /// authored delay.
+        /// </summary>
+        public void RetireIn(float seconds)
+        {
+            CancelInvoke(nameof(Retire));
+            Invoke(nameof(Retire), Mathf.Max(0f, seconds));
+        }
+
         private void Retire()
         {
             ObjectPool.Despawn(gameObject);
