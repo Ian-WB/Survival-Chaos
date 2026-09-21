@@ -123,6 +123,13 @@ namespace SurvivalChaos
         private int[] rowCounts;
 
         /// <summary>
+        /// Each muzzle's place within its row, and how many share that row, for
+        /// the fan a thrown attack spreads a row into. Worked out with the rows.
+        /// </summary>
+        private int[][] slots;
+        private int[][] slotCounts;
+
+        /// <summary>
         /// Which emplacements are wrecked, reused between volleys.
         ///
         /// One array rather than one per shed, because the shedding attack fires
@@ -166,6 +173,17 @@ namespace SurvivalChaos
 
         private Transform arenaCentre;
         private bool warnedAboutCentre;
+
+        /// <summary>
+        /// The player's band, which thrown rounds bounce inside. Found on the
+        /// player's own ApplyBounds - the box that clamps the ship is the only
+        /// honest statement of where the floor and ceiling are.
+        /// </summary>
+        private ApplyBounds band;
+        private bool warnedAboutBand;
+
+        /// <summary>What the torpedoes home on. Found with the band.</summary>
+        private Transform quarry;
 
         private void Awake()
         {
@@ -474,11 +492,30 @@ namespace SurvivalChaos
         {
             rows = new int[attacks.Count][];
             rowCounts = new int[attacks.Count];
+            slots = new int[attacks.Count][];
+            slotCounts = new int[attacks.Count][];
 
             for (int i = 0; i < attacks.Count; i++)
             {
                 rows[i] = MuzzleRows.Assign(MuzzleRows.HeightsOf(attacks[i].Pivots));
                 rowCounts[i] = MuzzleRows.Count(rows[i]);
+
+                // In pivot order, which is fixed for the life of the rig, so the
+                // fan is the same shape from volley to volley and learnable.
+                int length = rows[i].Length;
+                slots[i] = new int[length];
+                slotCounts[i] = new int[length];
+                var seen = new int[rowCounts[i]];
+
+                for (int m = 0; m < length; m++)
+                {
+                    slots[i][m] = seen[rows[i][m]]++;
+                }
+
+                for (int m = 0; m < length; m++)
+                {
+                    slotCounts[i][m] = seen[rows[i][m]];
+                }
             }
         }
 
@@ -539,7 +576,7 @@ namespace SurvivalChaos
             switch (attack.Pattern)
             {
                 case BossFirePattern.Curtain:
-                    if (attack.TellSeconds > 0f)
+                    if (attack.TellSeconds > 0f || attack.MuzzleStagger > 0f)
                     {
                         StartCoroutine(RunCurtain(attack, index, volley));
                     }
@@ -551,7 +588,9 @@ namespace SurvivalChaos
                     break;
 
                 case BossFirePattern.Sequence:
-                    StartCoroutine(RunSequence(attack, index, volley));
+                    StartCoroutine(attack.SingleShot
+                        ? RunSingleShot(attack, index, volley)
+                        : RunSequence(attack, index, volley));
                     break;
 
                 case BossFirePattern.Lance:
@@ -567,7 +606,7 @@ namespace SurvivalChaos
                     break;
 
                 default:
-                    FireMuzzles(attack, attack.ProjectileFor(TravellingLeft), rows[index], -1);
+                    FireMuzzles(attack, index, attack.ProjectileFor(TravellingLeft), rows[index], -1, volley);
                     break;
             }
         }
@@ -580,7 +619,8 @@ namespace SurvivalChaos
         /// having two copies of.
         /// </summary>
         /// <param name="row">The row to fire, or -1 for every muzzle.</param>
-        private void FireMuzzles(BossAttack attack, GameObject projectile, int[] muzzleRows, int row)
+        /// <param name="volley">Which volley this is, for the way a thrown attack is thrown.</param>
+        private void FireMuzzles(BossAttack attack, int index, GameObject projectile, int[] muzzleRows, int row, int volley)
         {
             Transform[] pivots = attack.Pivots;
 
@@ -598,7 +638,7 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                SendAlongRoute(attack, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), muzzleRows[i]);
+                ThrowRound(attack, index, i, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), volley);
                 fired = true;
             }
 
@@ -609,20 +649,91 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Gives a round its attack's weave, from the row it left.
-        ///
-        /// Asked per round rather than per volley because crossing rows take
-        /// opposite phases, and the row is only known per muzzle.
+        /// Throws a round up or down, if its attack throws, to bounce inside the
+        /// player's band - each muzzle of a row at its own angle, so a row
+        /// leaves as a fan rather than as one stack. A muzzle under the floor is
+        /// thrown upward whatever its place in the fan, or its disc leaves the
+        /// fight.
         /// </summary>
-        private static void SendAlongRoute(BossAttack attack, GameObject round, int row)
+        private void ThrowRound(BossAttack attack, int index, int muzzle, GameObject round, int volley)
         {
-            if (!attack.HasRoute || round == null || !round.TryGetComponent(out ShootScript shot))
+            bool homes = attack.HomeSeconds > 0f;
+
+            if ((attack.ThrowSpeed <= 0f && !homes) || round == null || !round.TryGetComponent(out ShootScript shot))
             {
                 return;
             }
 
-            shot.SetRoute(attack.RouteAmplitude, attack.RoutePeriod,
-                RoundRoute.PhaseForRow(row, attack.RouteCrossing));
+            if (!TryGetBand(out float floor, out float ceiling))
+            {
+                return;
+            }
+
+            if (homes)
+            {
+                if (quarry != null)
+                {
+                    shot.Home(quarry, attack.HomeSeconds, attack.HomePerception, attack.HomeSteer,
+                        attack.HomeMaxClimb, floor, ceiling);
+                }
+
+                return;
+            }
+
+            float start = round.transform.position.y;
+            float fan = RoundRoute.FanSpeed(attack.ThrowSpeed, slots[index][muzzle], slotCounts[index][muzzle], volley);
+            float speed = RoundRoute.SpeedInto(start, fan, floor, ceiling);
+
+            // The middle of an odd fan is thrown flat, which is a disc that holds
+            // its height - still a route, not a mistake.
+            if (speed == 0f)
+            {
+                return;
+            }
+
+            shot.Throw(speed, floor, ceiling);
+        }
+
+        /// <summary>
+        /// The floor and ceiling of the player's band, off the ApplyBounds that
+        /// clamps the ship. Found once; a miss is said out loud, because the
+        /// failure is quiet - thrown volleys simply fly flat.
+        /// </summary>
+        private bool TryGetBand(out float floor, out float ceiling)
+        {
+            floor = 0f;
+            ceiling = 0f;
+
+            if (band == null)
+            {
+                Player player = FindAnyObjectByType<Player>();
+
+                if (player != null)
+                {
+                    quarry = player.transform;
+                    band = player.GetComponentInParent<ApplyBounds>();
+
+                    if (band == null)
+                    {
+                        band = player.GetComponentInChildren<ApplyBounds>();
+                    }
+                }
+            }
+
+            if (band != null && band.TryGetBand(out floor, out ceiling))
+            {
+                return true;
+            }
+
+            if (!warnedAboutBand)
+            {
+                warnedAboutBand = true;
+                Debug.LogWarning(
+                    "BossEmitter found no bounds on the player, so its thrown volleys have no floor " +
+                    "or ceiling to bounce off and will fly flat.", this);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -636,9 +747,10 @@ namespace SurvivalChaos
         /// time strings them along the flight path instead, which is the shape the
         /// attack is named for.
         ///
-        /// Only worth it where the muzzles are clustered. The curtain and the rake
-        /// leave their stagger at zero, because a wall that arrives in pieces is
-        /// not a wall.
+        /// Only worth it where the muzzles are clustered. The rake leaves its
+        /// stagger at zero. The curtain has one since 21 September 2026, released
+        /// through <see cref="RunCurtain"/> rather than here so each glow goes out
+        /// with its own disc.
         ///
         /// Nothing calls this at the moment. The lance was the one bank clustered
         /// enough to need it, and since 8 September the lance is a beam rather than
@@ -650,7 +762,7 @@ namespace SurvivalChaos
         /// each, for the same reason it always did.
         /// </summary>
         private IEnumerator FireMuzzlesStaggered(
-            BossAttack attack, GameObject projectile, int[] muzzleRows, int row)
+            BossAttack attack, int index, GameObject projectile, int[] muzzleRows, int row, int volley)
         {
             Transform[] pivots = attack.Pivots;
 
@@ -674,7 +786,7 @@ namespace SurvivalChaos
                     yield return gap;
                 }
 
-                SendAlongRoute(attack, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), muzzleRows[i]);
+                ThrowRound(attack, index, i, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), volley);
 
                 if (!fired)
                 {
@@ -695,7 +807,7 @@ namespace SurvivalChaos
         private void FireCurtain(BossAttack attack, int index, int volley)
         {
             int count = rowCounts[index];
-            GameObject projectile = attack.RoundFor(TravellingLeft);
+            GameObject projectile = attack.ProjectileFor(TravellingLeft);
 
             for (int row = 0; row < count; row++)
             {
@@ -704,17 +816,24 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                FireMuzzles(attack, projectile, rows[index], row);
+                FireMuzzles(attack, index, projectile, rows[index], row, volley);
             }
         }
 
         /// <summary>
-        /// A curtain, announced: the rows that are about to fire glow first, and
-        /// the one that stays dark is the gap.
+        /// A curtain, announced and then released a disc at a time: the rows
+        /// that are about to fire glow first, the one that stays dark is the gap,
+        /// and each slot's glow goes out as its own disc leaves.
         ///
-        /// Running for the length of the warning, like the lance's charge, so a
-        /// change of act stops it through the same path and a second curtain
-        /// cannot start over the top of one still warning.
+        /// One at a time because the keel's slots come in pairs 0.27 apart
+        /// against a disc 0.7 across, and released together a pair left as one
+        /// double disc - seen in play on 21 September 2026. In pivot order, which
+        /// runs down one slot panel and then down the other, so the release is a
+        /// shape that can be read rather than a scatter.
+        ///
+        /// Running as a coroutine, like the lance's charge, so a change of act
+        /// stops it through the same path and a second curtain cannot start over
+        /// the top of one still going.
         /// </summary>
         private IEnumerator RunCurtain(BossAttack attack, int index, int volley)
         {
@@ -741,11 +860,86 @@ namespace SurvivalChaos
                 yield return null;
             }
 
+            GameObject projectile = attack.ProjectileFor(TravellingLeft);
+            Transform[] pivots = attack.Pivots;
+            WaitForSeconds between = attack.MuzzleStagger > 0f ? new WaitForSeconds(attack.MuzzleStagger) : null;
+            bool fired = false;
+
+            for (int m = 0; projectile != null && pivots != null && m < pivots.Length; m++)
+            {
+                if (pivots[m] == null || MuzzleRows.IsGap(muzzleRows[m], volley, count, attack.OpenRows))
+                {
+                    continue;
+                }
+
+                if (fired && between != null)
+                {
+                    yield return between;
+                }
+
+                // Shot off part way through the release: the rest never leave.
+                if (Silenced(attack))
+                {
+                    break;
+                }
+
+                SetTell(index, m, 0f);
+                ThrowRound(attack, index, m, ObjectPool.Spawn(projectile, pivots[m].position, Quaternion.identity), volley);
+
+                if (!fired)
+                {
+                    fired = true;
+                    PlayVolleySound();
+                }
+            }
+
+            ClearTells(index);
+            running[index] = false;
+        }
+
+        /// <summary>
+        /// One round from one muzzle, announced by that muzzle's glow alone.
+        ///
+        /// The crown fires this way: a single torpedo every Interval, the bank
+        /// taken in turn in the staircase's order - see
+        /// <see cref="VolleyTell.SingleShotMuzzle"/>. One torpedo that homes is a
+        /// thing to watch and shake off; sixteen a second were a wall, and the
+        /// homing was lost in it.
+        /// </summary>
+        private IEnumerator RunSingleShot(BossAttack attack, int index, int volley)
+        {
+            running[index] = true;
+
+            int muzzle = VolleyTell.SingleShotMuzzle(rows[index], rowCounts[index], volley);
+            Transform[] pivots = attack.Pivots;
+            GameObject projectile = attack.ProjectileFor(TravellingLeft);
+
+            if (muzzle < 0 || pivots == null || pivots[muzzle] == null || projectile == null)
+            {
+                running[index] = false;
+                yield break;
+            }
+
+            float tell = attack.TellSeconds;
+
+            for (float elapsed = 0f; elapsed < tell; elapsed += Time.deltaTime)
+            {
+                if (Silenced(attack))
+                {
+                    break;
+                }
+
+                SetTell(index, muzzle, VolleyTell.Together(elapsed / tell));
+                yield return null;
+            }
+
             ClearTells(index);
 
             if (!Silenced(attack))
             {
-                FireCurtain(attack, index, volley);
+                ThrowRound(attack, index, muzzle,
+                    ObjectPool.Spawn(projectile, pivots[muzzle].position, Quaternion.identity), volley);
+                PlayVolleySound();
             }
 
             running[index] = false;
@@ -765,7 +959,7 @@ namespace SurvivalChaos
         {
             running[index] = true;
 
-            GameObject projectile = attack.RoundFor(TravellingLeft);
+            GameObject projectile = attack.ProjectileFor(TravellingLeft);
             int count = rowCounts[index];
             int[] muzzleRows = rows[index];
             bool upward = VolleyTell.Upward(volley);
@@ -808,7 +1002,7 @@ namespace SurvivalChaos
                     }
                 }
 
-                FireMuzzles(attack, projectile, muzzleRows, row);
+                FireMuzzles(attack, index, projectile, muzzleRows, row, volley);
 
                 if (step + 1 < count)
                 {

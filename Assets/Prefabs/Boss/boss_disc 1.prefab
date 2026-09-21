@@ -161,7 +161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  delay: 3
+  delay: 6
 --- !u!54 &-3492119111373275261
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -222,5 +222,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03a64cbc280cd0f418d140a7976d52a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 80
-  laneResponse: 5
+  speed: 40
+  laneResponse: 0

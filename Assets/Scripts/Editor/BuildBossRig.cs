@@ -366,6 +366,7 @@ namespace SurvivalChaos.EditorTools
                 BuildWreckage(HullSkin(root.transform));
 
                 WireAttacks(root, pivots, pods);
+                SnapDiscMuzzles(root.transform, pivots);
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log("BuildBossRig rebuilt " + PrefabPath + ": " + pivots.Length +
@@ -1112,16 +1113,20 @@ namespace SurvivalChaos.EditorTools
             public float TellSize = 0.5f;
 
             /// <summary>
-            /// The weave each round flies about its firing height, and whether
-            /// neighbouring rows cross. Zero amplitude holds height, which is what
-            /// every round did before 21 September 2026.
+            /// Units a second each round climbs or dives, bouncing off the band's
+            /// floor and ceiling. Zero holds the height it was fired at, which is
+            /// what every round did before 21 September 2026.
             /// </summary>
-            public float RouteAmplitude;
-            public float RoutePeriod = 1.5f;
-            public bool RouteCrossing;
+            public float ThrowSpeed;
 
-            /// <summary>Fire the other way round the ring from the boss's travel.</summary>
-            public bool ReverseRoute;
+            /// <summary>One muzzle per volley, the bank taken in turn.</summary>
+            public bool SingleShot;
+
+            /// <summary>Seconds each round homes for as a torpedo. Zero is a plain round.</summary>
+            public float HomeSeconds;
+            public float HomePerception = 2.5f;
+            public float HomeSteer = 3f;
+            public float HomeMaxClimb = 3.5f;
         }
 
         /// <summary>
@@ -1172,7 +1177,11 @@ namespace SurvivalChaos.EditorTools
                 // This is the one interval here that changes what the attack is
                 // rather than how often it happens, so it is the first to walk
                 // back if the curtain stops being readable.
-                Interval = 3.4f,
+                //
+                // Walked back to 8 by hand in the Inspector on 21 September 2026,
+                // after the discs were thrown and fanned. Kept here so a full
+                // rebuild does not undo it.
+                Interval = 8f,
 
                 // Still one row. This is the learnable part - two watched volleys
                 // tell you where the third gap will be - and widening it would
@@ -1191,12 +1200,35 @@ namespace SurvivalChaos.EditorTools
                 // drawn to on this hull - without two rows running together.
                 TellSize = 0.9f,
 
-                // The whole wall weaves as one, so the gap stays a gap and has to
-                // be tracked rather than parked in. 0.4 either way against rows
-                // 1.2 apart: the wall moves by a third of a row, and never leaves
-                // the keel's own heights for the middle of the band.
-                RouteAmplitude = 0.4f,
-                RoutePeriod = 1.5f,
+                // Thrown, and bouncing off the floor and ceiling of the band: the
+                // playtest's note was that discs and bullets merged into one lane,
+                // and the answer asked for was discs thrown in different
+                // directions that come off the game's bounds. Each row fans out,
+                // steep up to steep down, mirrored on alternate curtains. Thrown
+                // as one wall first, a row's four discs still left as one stack,
+                // because they share a height and ease onto one lane. The price is
+                // the curtain's gap, which now holds only at the moment of
+                // release before the fan spreads across it.
+                //
+                // One disc at a time. Released together, each pair of slots 0.27
+                // apart put out one double disc. Set to 2s by hand in the
+                // Inspector on 21 September 2026, from the 0.08 first tried: eight
+                // discs then take 14s to leave, which is longer than Interval, so
+                // the next curtain waits for the last disc - the running flag
+                // holds it - and the attack is a steady drip of discs rather than
+                // a wall.
+                MuzzleStagger = 2f,
+
+                // Not read by a curtain; only the lance used it. Set to 2 by hand
+                // alongside the stagger above, and mirrored here so a full rebuild
+                // leaves the prefab as it was found.
+                BurstInterval = 2f,
+
+                // 4 at the steep ends, about 12 degrees, against the player's
+                // climb of 7, so any disc can be outflown vertically; at that
+                // speed against 19 units a second round the ring it crosses the
+                // 8.9-unit band in about 2.2s - roughly two bounces a lap.
+                ThrowSpeed = 4f,
             },
             new Volley
             {
@@ -1207,11 +1239,14 @@ namespace SurvivalChaos.EditorTools
                 Muzzles = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
                 InitialDelay = 0.5f,
 
-                // Sixteen muzzles at 0.12 is a 1.9s sweep, so 4 left two full
-                // seconds of quiet after each one. 2.4 leaves half a second - the
-                // rake is very nearly continuous, and the player is now behind it
-                // rather than waiting for it.
-                Interval = 2.4f,
+                // One torpedo every 5 seconds, at the player's call on 21 September
+                // 2026. The crown had been a rake of sixteen every 2.4s; with each
+                // round homing that was a wall of hunters, and a single torpedo is
+                // something to watch coming and shake off. SingleShot takes the
+                // sixteen muzzles in turn in the staircase's order, so a full pass
+                // up the crown is 80 seconds and the next comes back down.
+                Interval = 5f,
+                SingleShot = true,
 
                 // Unchanged, deliberately. The step is how fast the rake crosses
                 // the band, and it is what makes the attack readable rather than a
@@ -1228,21 +1263,22 @@ namespace SurvivalChaos.EditorTools
                 // sweep that shows the staircase's direction is gone.
                 TellSize = 0.42f,
 
-                // Pairs of rows that cross. The crown's four rows sit 0.40, 0.46
-                // and 0.52 apart, so 0.3 either way takes each lower row of a
-                // pair past its partner and back, and nothing leaves the crown's
-                // 1.4 units of height.
-                RouteAmplitude = 0.3f,
-                RoutePeriod = 1.2f,
-                RouteCrossing = true,
+                // Torpedoes. Each one steers after the player's height. Before,
+                // a row's four muzzles all eased onto one point of the lane and
+                // flew as a single stacked bullet.
+                // The delay is the point. A torpedo's idea of the player's height
+                // catches up over about 0.4s (perception 2.5), and it turns toward
+                // that no faster than 3.5 a second, half the player's climb of 7.
+                // Hold a height and it arrives; change height as it closes and it
+                // passes where you were. After 3s it gives up and flies straight,
+                // or every torpedo would hunt for the rest of the act.
+                HomeSeconds = 3f,
+                HomePerception = 2.5f,
+                HomeSteer = 3f,
+                HomeMaxClimb = 3.5f,
 
-                // The other way round the ring from the discs. This is the
-                // playtest's note in one line: two banks going the same way at
-                // the same speed are one lane, however far apart they are in
-                // height. It is also the first of these to walk back if the
-                // fight stops being readable - a rake from ahead is one the
-                // glow on the hull no longer points at.
-                ReverseRoute = true,
+                // Both banks go the same way round the ring: reversing the rake
+                // was tried on 21 September 2026 and was not what the note meant.
             },
             new Volley
             {
@@ -1459,10 +1495,21 @@ namespace SurvivalChaos.EditorTools
         {
             entry.FindPropertyRelative("tellSeconds").floatValue = volley.TellSeconds;
             entry.FindPropertyRelative("tellSize").floatValue = volley.TellSize;
-            entry.FindPropertyRelative("routeAmplitude").floatValue = volley.RouteAmplitude;
-            entry.FindPropertyRelative("routePeriod").floatValue = volley.RoutePeriod;
-            entry.FindPropertyRelative("routeCrossing").boolValue = volley.RouteCrossing;
-            entry.FindPropertyRelative("reverseRoute").boolValue = volley.ReverseRoute;
+            entry.FindPropertyRelative("throwSpeed").floatValue = volley.ThrowSpeed;
+            entry.FindPropertyRelative("muzzleStagger").floatValue = volley.MuzzleStagger;
+            entry.FindPropertyRelative("singleShot").boolValue = volley.SingleShot;
+
+            // Only for a single-shot attack, where the interval is what the mode
+            // means. Every other interval is left as the prefab has it, because
+            // those get tuned by hand in the Inspector - the keel's was, to 8.
+            if (volley.SingleShot)
+            {
+                entry.FindPropertyRelative("interval").floatValue = volley.Interval;
+            }
+            entry.FindPropertyRelative("homeSeconds").floatValue = volley.HomeSeconds;
+            entry.FindPropertyRelative("homePerception").floatValue = volley.HomePerception;
+            entry.FindPropertyRelative("homeSteer").floatValue = volley.HomeSteer;
+            entry.FindPropertyRelative("homeMaxClimb").floatValue = volley.HomeMaxClimb;
         }
 
         private static void WriteTellAssets(SerializedObject emitter)
@@ -1497,6 +1544,9 @@ namespace SurvivalChaos.EditorTools
                 return "No BossEmitter in " + PrefabPath + ". Nothing was changed.";
             }
 
+            Transform[] pivots = CollectPivots(boss.transform);
+            string snapped = pivots != null ? SnapDiscMuzzles(boss.transform, pivots) : "No muzzles found to snap.";
+
             var so = new SerializedObject(emitter);
             SerializedProperty attacks = so.FindProperty("attacks");
             var log = new System.Text.StringBuilder();
@@ -1515,18 +1565,159 @@ namespace SurvivalChaos.EditorTools
 
                 WriteTellAndRoute(entry, volley);
                 log.AppendLine(label + ": tell " + volley.TellSeconds + "s at " + volley.TellSize
-                               + ", weave " + volley.RouteAmplitude
-                               + (volley.RouteCrossing ? " crossing" : "")
-                               + (volley.ReverseRoute ? ", reversed" : ""));
+                               + ", thrown at " + volley.ThrowSpeed + ", released " + volley.MuzzleStagger + "s apart"
+                               + (volley.HomeSeconds > 0f ? ", homing " + volley.HomeSeconds + "s" : "")
+                               + (volley.SingleShot ? ", one round every " + volley.Interval + "s" : ""));
             }
 
             WriteTellAssets(so);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorUtility.SetDirty(emitter);
+            PrefabUtility.SavePrefabAsset(boss);
             AssetDatabase.SaveAssets();
 
-            return log.ToString();
+            return log.ToString() + snapped;
+        }
+
+        /// <summary>
+        /// The muzzles moved onto the hull: the keel's twelve, which fire the
+        /// discs, and the crown's sixteen, which fire the torpedoes. The prow's
+        /// four feed the lance beam, which is drawn from their average and was
+        /// never the complaint.
+        /// </summary>
+        private static readonly int[] DiscMuzzles =
+        {
+            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        };
+
+        /// <summary>How far in front of the hull a muzzle sits once snapped.</summary>
+        private const float SlotClearance = 0.05f;
+
+        /// <summary>
+        /// Moves each disc muzzle back onto the slot it belongs to.
+        ///
+        /// The 32 pivots came over from BossScript where they were, and the
+        /// keel's had always sat a full unit out in front of the hull - measured
+        /// on 21 September 2026 at 0.98 to 1.45 clear of the slot panels they
+        /// line up with. So a disc appeared in mid-air beside the ship rather than
+        /// coming out of it. Each muzzle keeps its height and its place across the
+        /// panel, and only its distance from the face changes: a ray from well
+        /// outside the face, along the boss's -X, finds the slot, and the muzzle
+        /// is put just in front of it.
+        ///
+        /// Measured off the hull mesh itself rather than a collider, so it works
+        /// on the prefab asset without opening it. Re-running finds the same slot
+        /// and changes nothing.
+        /// </summary>
+        private static string SnapDiscMuzzles(Transform root, Transform[] pivots)
+        {
+            Transform hull = root.Find("NAVEBOSS/Cube");
+            MeshFilter filter = hull != null ? hull.GetComponent<MeshFilter>() : null;
+            Mesh mesh = filter != null ? filter.sharedMesh : null;
+
+            if (mesh == null)
+            {
+                return "No hull mesh at NAVEBOSS/Cube, so the disc muzzles were left where they were.";
+            }
+
+            Vector3[] vertices = mesh.vertices;
+            int[] triangles = mesh.triangles;
+            Matrix4x4 hullToRoot = root.worldToLocalMatrix * hull.localToWorldMatrix;
+
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = hullToRoot.MultiplyPoint3x4(vertices[i]);
+            }
+
+            var log = new System.Text.StringBuilder();
+            int moved = 0;
+
+            foreach (int index in DiscMuzzles)
+            {
+                Transform muzzle = index < pivots.Length ? pivots[index] : null;
+
+                if (muzzle == null)
+                {
+                    continue;
+                }
+
+                Vector3 local = root.InverseTransformPoint(muzzle.position);
+                Vector3 origin = new Vector3(local.x + 6f, local.y, local.z);
+
+                if (!FirstHit(origin, Vector3.left, vertices, triangles, out float distance))
+                {
+                    log.AppendLine(muzzle.name + ": no slot behind it, left where it was.");
+                    continue;
+                }
+
+                float face = origin.x - distance;
+                Vector3 snapped = new Vector3(face + SlotClearance, local.y, local.z);
+
+                if (Mathf.Abs(snapped.x - local.x) > 0.001f)
+                {
+                    muzzle.position = root.TransformPoint(snapped);
+                    EditorUtility.SetDirty(muzzle);
+                    moved++;
+                }
+
+                log.AppendLine(muzzle.name + ": slot at x " + face.ToString("F2") + ", was "
+                               + (local.x - face).ToString("F2") + " in front of it.");
+            }
+
+            return "Muzzles moved onto the hull: " + moved + "\n" + log;
+        }
+
+        /// <summary>
+        /// The nearest triangle a ray meets, by Moller-Trumbore. Both faces
+        /// count, since which way the model's triangles wind is not something
+        /// this should have to know.
+        /// </summary>
+        private static bool FirstHit(Vector3 origin, Vector3 direction, Vector3[] vertices, int[] triangles, out float nearest)
+        {
+            nearest = float.MaxValue;
+
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+            {
+                Vector3 a = vertices[triangles[t]];
+                Vector3 edge1 = vertices[triangles[t + 1]] - a;
+                Vector3 edge2 = vertices[triangles[t + 2]] - a;
+
+                Vector3 p = Vector3.Cross(direction, edge2);
+                float det = Vector3.Dot(edge1, p);
+
+                if (Mathf.Abs(det) < 1e-8f)
+                {
+                    continue;
+                }
+
+                float inverse = 1f / det;
+                Vector3 s = origin - a;
+                float u = Vector3.Dot(s, p) * inverse;
+
+                if (u < 0f || u > 1f)
+                {
+                    continue;
+                }
+
+                Vector3 q = Vector3.Cross(s, edge1);
+                float v = Vector3.Dot(direction, q) * inverse;
+
+                if (v < 0f || u + v > 1f)
+                {
+                    continue;
+                }
+
+                float distance = Vector3.Dot(edge2, q) * inverse;
+
+                if (distance > 0f && distance < nearest)
+                {
+                    nearest = distance;
+                }
+            }
+
+            return nearest < float.MaxValue;
         }
 
         /// <summary>

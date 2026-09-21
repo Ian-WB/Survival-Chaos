@@ -151,30 +151,75 @@ namespace SurvivalChaos
         private float laneResponse;
 
         /// <summary>
-        /// The weave this round flies, set by whatever fired it and cleared on
-        /// every spawn - see <see cref="RoundRoute"/>. Zero amplitude is a round
+        /// The throw this round was given, set by whatever fired it and cleared
+        /// on every spawn - see <see cref="RoundRoute"/>. Zero speed is a round
         /// that holds its height, which is every round the player fires.
         /// </summary>
-        private float routeAmplitude;
-        private float routePeriod;
-        private float routePhase;
-        private float routeHeight;
-        private float routeStart;
+        private float throwSpeed;
+        private float throwHeight;
+        private float throwStart;
+        private float throwFloor;
+        private float throwCeiling;
 
         /// <summary>
-        /// Sends this round along a weave about the height it is at now.
+        /// Throws this round up or down at <paramref name="verticalSpeed"/>
+        /// from the height it is at now, bouncing between the two limits.
         ///
         /// Called straight after the spawn, so "now" is the muzzle. Timed on
         /// scaled time, so a paused game holds every round where it is on its
-        /// route rather than letting it jump ahead on resume.
+        /// path rather than letting it jump ahead on resume.
         /// </summary>
-        public void SetRoute(float amplitude, float period, float phase)
+        /// <summary>
+        /// What this round is homing on, when it is a torpedo - see
+        /// <see cref="TorpedoSteer"/>. Null for every other round, and cleared on
+        /// every spawn.
+        /// </summary>
+        private Transform homeTarget;
+        private float homeUntil;
+        private float homeGhost;
+        private float homePerception;
+        private float homeSteer;
+        private float homeMaxClimb;
+
+        /// <summary>
+        /// The vertical speed the torpedo flew at last frame, so its nose can
+        /// point where it is going. Zero once it gives up the chase, which levels
+        /// it off.
+        /// </summary>
+        private float homeClimb;
+
+        /// <summary>
+        /// Makes this round a torpedo that steers after <paramref name="target"/>'s
+        /// height for <paramref name="seconds"/>, through the lag TorpedoSteer
+        /// describes, and inside the band given.
+        ///
+        /// It starts out believing the target is at its own height, which is what
+        /// makes the first few tenths of a second a straight run out of the
+        /// muzzle rather than a snap toward the player.
+        /// </summary>
+        public void Home(Transform target, float seconds, float perception, float steer, float maxClimb,
+                         float floor, float ceiling)
         {
-            routeAmplitude = amplitude;
-            routePeriod = period;
-            routePhase = phase;
-            routeHeight = transform.position.y;
-            routeStart = Time.time;
+            homeTarget = target;
+            homeUntil = Time.time + Mathf.Max(0f, seconds);
+            homeGhost = transform.position.y;
+            homePerception = perception;
+            homeSteer = steer;
+            homeMaxClimb = maxClimb;
+            homeClimb = 0f;
+            throwFloor = floor;
+            throwCeiling = ceiling;
+            throwSpeed = 0f;
+        }
+
+        public void Throw(float verticalSpeed, float floor, float ceiling)
+        {
+            homeTarget = null;
+            throwSpeed = verticalSpeed;
+            throwHeight = transform.position.y;
+            throwStart = Time.time;
+            throwFloor = floor;
+            throwCeiling = ceiling;
         }
 
         /// <summary>
@@ -194,8 +239,11 @@ namespace SurvivalChaos
             // been fired, through everything in between.
             hasLastStep = false;
 
-            // A reused round must not keep the weave of the volley it died in.
-            routeAmplitude = 0f;
+            // A reused round must not keep the throw of the volley it died in,
+            // nor go on hunting for the one before.
+            throwSpeed = 0f;
+            homeTarget = null;
+            homeClimb = 0f;
 
             // A deterministic starting point, not the final orientation: every
             // frame of Update ends by facing the arena axis, and FaceOrbitCentre
@@ -399,15 +447,38 @@ namespace SurvivalChaos
             }
 
             // Before the orbit, so the LookAt at the end faces from where this
-            // ends up rather than from where it started the frame. The route
+            // ends up rather than from where it started the frame. The throw
             // sets height and the lane sets distance from the axis, so neither
             // undoes the other.
-            if (routeAmplitude != 0f)
+            if (throwSpeed != 0f)
             {
-                Vector3 routed = transform.position;
-                routed.y = routeHeight + RoundRoute.Offset(
-                    routeAmplitude, routePeriod, routePhase, Time.time - routeStart);
-                transform.position = routed;
+                Vector3 thrown = transform.position;
+                thrown.y = RoundRoute.Height(
+                    throwHeight, throwSpeed, Time.time - throwStart, throwFloor, throwCeiling);
+                transform.position = thrown;
+            }
+
+            if (homeTarget != null)
+            {
+                if (Time.time < homeUntil && homeTarget.gameObject.activeInHierarchy)
+                {
+                    Vector3 chasing = transform.position;
+                    float height = chasing.y;
+
+                    homeClimb = TorpedoSteer.Step(ref height, ref homeGhost, homeTarget.position.y,
+                        homePerception, homeSteer, homeMaxClimb, throwFloor, throwCeiling, Time.deltaTime);
+
+                    chasing.y = height;
+                    transform.position = chasing;
+                }
+                else
+                {
+                    // Given up: level off and fly on at the height it reached, so
+                    // a torpedo that missed is a round to avoid on its next lap
+                    // rather than one still hunting.
+                    homeTarget = null;
+                    homeClimb = 0f;
+                }
             }
 
             if (laneResponse > 0f)
@@ -424,6 +495,23 @@ namespace SurvivalChaos
             pos.y = transform.position.y;
             transform.RotateAround(pos, Vector3.up, Time.deltaTime * speed);
             transform.LookAt(pos);
+
+            // A torpedo points its nose along its path. LookAt leaves the round
+            // level and facing the axis, with the ring running along its local X,
+            // so the climb is a turn about its own forward - positive noses up
+            // when it travels toward +X, and the other way when it travels back.
+            if (homeClimb != 0f)
+            {
+                float radius = Vector2.Distance(
+                    new Vector2(transform.position.x, transform.position.z),
+                    new Vector2(pos.x, pos.z));
+                float alongRing = speed * Mathf.Deg2Rad * radius;
+                float pitch = TorpedoSteer.Pitch(homeClimb, alongRing);
+
+                // RotateAround turns positive degrees anticlockwise from above,
+                // which carries the round toward its own -X after LookAt.
+                transform.Rotate(0f, 0f, speed > 0f ? -pitch : pitch, Space.Self);
+            }
         }
 
         /// <summary>

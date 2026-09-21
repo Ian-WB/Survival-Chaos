@@ -139,5 +139,57 @@ namespace SurvivalChaos.Tests
                 }
             }
         }
+
+        /// <summary>
+        /// The crown's rows as the prefab has them, in pivot order: four rows of
+        /// four, listed out of order because the pivot list is.
+        /// </summary>
+        private static readonly int[] CrownRows = { 3, 3, 2, 2, 1, 1, 0, 0, 3, 3, 2, 2, 1, 1, 0, 0 };
+
+        [Test]
+        public void SingleShot_OnePassFiresEveryMuzzleOnce()
+        {
+            var seen = new System.Collections.Generic.HashSet<int>();
+
+            for (int volley = 0; volley < 16; volley++)
+            {
+                Assert.IsTrue(seen.Add(VolleyTell.SingleShotMuzzle(CrownRows, 4, volley)), "volley " + volley);
+            }
+
+            Assert.AreEqual(16, seen.Count);
+        }
+
+        [Test]
+        public void SingleShot_TheFirstPassClimbsFromTheBottomRow()
+        {
+            int previousRow = -1;
+
+            for (int volley = 0; volley < 16; volley++)
+            {
+                int row = CrownRows[VolleyTell.SingleShotMuzzle(CrownRows, 4, volley)];
+                Assert.GreaterOrEqual(row, previousRow, "volley " + volley);
+                previousRow = row;
+            }
+        }
+
+        [Test]
+        public void SingleShot_TheSecondPassComesBackDown()
+        {
+            int previousRow = int.MaxValue;
+
+            for (int volley = 16; volley < 32; volley++)
+            {
+                int row = CrownRows[VolleyTell.SingleShotMuzzle(CrownRows, 4, volley)];
+                Assert.LessOrEqual(row, previousRow, "volley " + volley);
+                previousRow = row;
+            }
+        }
+
+        [Test]
+        public void SingleShot_WithNoMuzzles_FiresNothing()
+        {
+            Assert.AreEqual(-1, VolleyTell.SingleShotMuzzle(new int[0], 0, 3));
+            Assert.AreEqual(-1, VolleyTell.SingleShotMuzzle(null, 4, 3));
+        }
     }
 }

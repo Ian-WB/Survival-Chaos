@@ -68,6 +68,11 @@ namespace SurvivalChaos
                  "heights, so this times a rake across the whole bank whatever it is made of.")]
         private float stepSeconds = 0.12f;
 
+        [SerializeField]
+        [Tooltip("Fire one muzzle per volley instead of the whole bank, working through the bank in " +
+                 "the staircase's order - so Interval becomes the time between single rounds.")]
+        private bool singleShot;
+
         [Header("Curtain")]
         [SerializeField]
         [Range(1, 4)]
@@ -118,28 +123,36 @@ namespace SurvivalChaos
                  "merges them, and a rake whose rows have merged no longer shows which way it climbs.")]
         private float tellSize = 0.5f;
 
-        [Header("Route")]
+        [Header("Throw")]
         [SerializeField]
-        [Tooltip("How far above and below its firing height each round weaves, in world units. " +
-                 "Keep it inside the bank's own rows: the armoured act is about which height the " +
-                 "fire comes from, and a weave wider than the bank erases that.")]
-        private float routeAmplitude;
+        [Tooltip("Units a second each round climbs or dives as it travels, bouncing off the floor " +
+                 "and ceiling of the band the player flies in. 0 holds the height it was fired at. " +
+                 "A whole volley is thrown the same way, so a curtain keeps its gap, and alternate " +
+                 "volleys are thrown up and then down. Keep it under the player's climb speed, or " +
+                 "a thrown wall cannot be outflown.")]
+        private float throwSpeed;
+
+        [Header("Torpedo")]
+        [SerializeField]
+        [Tooltip("Seconds each round steers after the player's height before it gives up and flies " +
+                 "straight. 0 makes plain rounds. A torpedo that never gave up would keep lapping " +
+                 "the ring and hunting for the rest of the act.")]
+        private float homeSeconds;
 
         [SerializeField]
-        [Tooltip("Seconds for one full weave, up and back down.")]
-        private float routePeriod = 1.5f;
+        [Tooltip("How quickly a torpedo's idea of the player's height catches up with the real one, " +
+                 "per second. This is the delay: lower is slower to notice a change of height, " +
+                 "so easier to shake off.")]
+        private float homePerception = 2.5f;
 
         [SerializeField]
-        [Tooltip("Alternate rows weave in opposite directions, so neighbouring rows close, cross " +
-                 "and open again. Off, the whole volley weaves as one shape - which is what a " +
-                 "curtain wants, since its gap has to stay a gap.")]
-        private bool routeCrossing;
+        [Tooltip("How hard a torpedo turns toward where it thinks the player is, per second.")]
+        private float homeSteer = 3f;
 
         [SerializeField]
-        [Tooltip("Fire the other way round the ring from the way the boss is travelling. Two banks " +
-                 "going the same way at the same speed read as one lane; one of them reversed is " +
-                 "two routes that visibly cross.")]
-        private bool reverseRoute;
+        [Tooltip("The fastest a torpedo may climb or dive, in units a second. Keep it well under the " +
+                 "player's climb, or it can only be outrun and never dodged.")]
+        private float homeMaxClimb = 3.5f;
 
         /// <summary>Inspector-only name. Nothing reads this at runtime.</summary>
         public string Label => label;
@@ -163,6 +176,9 @@ namespace SurvivalChaos
 
         /// <summary>Seconds between volleys.</summary>
         public float Interval => interval;
+
+        /// <summary>Whether each volley is one round, the bank taken in turn.</summary>
+        public bool SingleShot => singleShot;
 
         /// <summary>Seconds between rows in a Sequence volley.</summary>
         public float StepSeconds => Mathf.Max(0f, stepSeconds);
@@ -197,30 +213,23 @@ namespace SurvivalChaos
         /// <summary>World units across each muzzle's glow at full.</summary>
         public float TellSize => Mathf.Max(0f, tellSize);
 
-        /// <summary>Whether rounds from this attack weave at all.</summary>
-        public bool HasRoute => routeAmplitude != 0f && routePeriod > 0f;
-
-        /// <summary>How far each round weaves either side of its firing height.</summary>
-        public float RouteAmplitude => routeAmplitude;
-
-        /// <summary>Seconds for one full weave.</summary>
-        public float RoutePeriod => routePeriod;
-
-        /// <summary>Whether alternate rows weave in opposite directions.</summary>
-        public bool RouteCrossing => routeCrossing;
-
         /// <summary>
-        /// The round a volley of this attack fires, which way round the ring
-        /// included.
-        ///
-        /// Separate from <see cref="ProjectileFor"/> because the lance reads
-        /// that one for its direction, and reversing a volley's route is not a
-        /// statement about which way the lance should sweep.
+        /// Units a second this attack's rounds climb or dive, bouncing between
+        /// the band's limits. Zero holds height.
         /// </summary>
-        public GameObject RoundFor(bool travellingLeft)
-        {
-            return ProjectileFor(reverseRoute ? !travellingLeft : travellingLeft);
-        }
+        public float ThrowSpeed => Mathf.Abs(throwSpeed);
+
+        /// <summary>Seconds each round homes for. Zero is a plain round.</summary>
+        public float HomeSeconds => Mathf.Max(0f, homeSeconds);
+
+        /// <summary>How quickly a torpedo notices a change of height, per second.</summary>
+        public float HomePerception => Mathf.Max(0f, homePerception);
+
+        /// <summary>How hard a torpedo turns toward its belief, per second.</summary>
+        public float HomeSteer => Mathf.Max(0f, homeSteer);
+
+        /// <summary>The fastest a torpedo climbs or dives, units a second.</summary>
+        public float HomeMaxClimb => Mathf.Max(0f, homeMaxClimb);
 
         /// <summary>
         /// The emplacement that has to survive for this attack to fire, or null

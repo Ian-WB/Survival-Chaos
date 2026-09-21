@@ -4,163 +4,208 @@ using UnityEngine;
 namespace SurvivalChaos.Tests
 {
     /// <summary>
-    /// The weave a boss round flies through height.
+    /// A boss round thrown at an angle, bouncing off the band's floor and ceiling.
     ///
-    /// Pinned against the rows on the real boss and the numbers BuildBossRig
-    /// authors for them, because the constraint that matters is spatial: a route
-    /// has to leave from its muzzle, stay inside its own bank, and - for the
-    /// curtain - keep its gap the size it was fired at. Each of those can be
-    /// broken by a number that looks harmless on its own.
+    /// Pinned against the real band and the throw BuildBossRig authors, because
+    /// what matters is spatial: the disc leaves from its muzzle, never leaves the
+    /// band once inside it, turns back at each edge rather than passing through,
+    /// and is never thrown straight out of the fight from a muzzle that sits
+    /// below the floor.
     /// </summary>
     public class RoundRouteTests
     {
-        /// <summary>Row heights off the boss, lowest first - see MuzzleRowsTests.</summary>
-        private static readonly float[] KeelRows = { -3.66f, -2.50f, -1.15f };
-        private static readonly float[] CrownRows = { 4.215f, 4.626f, 5.085f, 5.60f };
+        /// <summary>The player's band, off the ApplyBounds box in the Game scene.</summary>
+        private const float Floor = 4.42f;
+        private const float Ceiling = 13.32f;
 
-        /// <summary>The prow's single row, the middle of the band.</summary>
-        private const float ProwRow = 1.38f;
+        /// <summary>What BuildBossRig throws the keel's discs at.</summary>
+        private const float Throw = 4f;
 
-        // What BuildBossRig writes onto the two volleys.
-        private const float KeelAmplitude = 0.4f;
-        private const float KeelPeriod = 1.5f;
-        private const float CrownAmplitude = 0.3f;
-        private const float CrownPeriod = 1.2f;
+        /// <summary>The player's climb speed, which a thrown wall must stay under.</summary>
+        private const float PlayerClimb = 7f;
 
-        private const float Tolerance = 1e-4f;
+        private const float Tolerance = 1e-3f;
 
         [Test]
-        public void EveryRoundLeavesFromItsMuzzle_WhicheverWayItSetsOff()
+        public void LeavesFromItsMuzzle()
         {
-            Assert.AreEqual(0f, RoundRoute.Offset(0.4f, 1.5f, 0f, 0f), Tolerance);
-            Assert.AreEqual(0f, RoundRoute.Offset(0.4f, 1.5f, Mathf.PI, 0f), Tolerance);
+            Assert.AreEqual(8f, RoundRoute.Height(8f, Throw, 0f, Floor, Ceiling), Tolerance);
         }
 
         [Test]
-        public void TheTwoPhases_SetOffInOppositeDirections()
+        public void ClimbsAtItsThrowSpeed_BeforeReachingAnEdge()
         {
-            float early = 0.05f;
-
-            Assert.Greater(RoundRoute.Offset(0.3f, 1.2f, 0f, early), 0f);
-            Assert.Less(RoundRoute.Offset(0.3f, 1.2f, Mathf.PI, early), 0f);
-        }
-
-        [Test]
-        public void NeverStraysFurtherThanItsAmplitude()
-        {
-            for (float t = 0f; t < 6f; t += 0.01f)
-            {
-                Assert.LessOrEqual(Mathf.Abs(RoundRoute.Offset(0.4f, 1.5f, 0f, t)), 0.4f + Tolerance);
-            }
-        }
-
-        [Test]
-        public void ReachesItsAmplitude_AQuarterOfTheWayThrough()
-        {
-            Assert.AreEqual(0.4f, RoundRoute.Offset(0.4f, 1.5f, 0f, 1.5f / 4f), Tolerance);
-        }
-
-        [Test]
-        public void RepeatsEveryPeriod()
-        {
-            Assert.AreEqual(
-                RoundRoute.Offset(0.3f, 1.2f, 0f, 0.37f),
-                RoundRoute.Offset(0.3f, 1.2f, 0f, 0.37f + 1.2f * 3f),
-                Tolerance);
-        }
-
-        [Test]
-        public void NoAmplitudeOrNoPeriod_HoldsHeight()
-        {
-            Assert.AreEqual(0f, RoundRoute.Offset(0f, 1.5f, 0f, 0.4f));
-            Assert.AreEqual(0f, RoundRoute.Offset(0.4f, 0f, 0f, 0.4f));
-            Assert.AreEqual(0f, RoundRoute.Offset(0.4f, -1f, 0f, 0.4f));
-        }
-
-        [Test]
-        public void WithoutCrossing_EveryRowTakesTheSamePhase()
-        {
-            for (int row = 0; row < 4; row++)
-            {
-                Assert.AreEqual(0f, RoundRoute.PhaseForRow(row, crossing: false));
-            }
-        }
-
-        [Test]
-        public void WithCrossing_AlternateRowsAreOpposed()
-        {
-            Assert.AreEqual(0f, RoundRoute.PhaseForRow(0, crossing: true));
-            Assert.AreEqual(Mathf.PI, RoundRoute.PhaseForRow(1, crossing: true));
-            Assert.AreEqual(0f, RoundRoute.PhaseForRow(2, crossing: true));
-            Assert.AreEqual(Mathf.PI, RoundRoute.PhaseForRow(3, crossing: true));
+            Assert.AreEqual(9f, RoundRoute.Height(8f, Throw, 0.25f, Floor, Ceiling), Tolerance);
+            Assert.AreEqual(7f, RoundRoute.Height(8f, -Throw, 0.25f, Floor, Ceiling), Tolerance);
         }
 
         /// <summary>
-        /// The curtain weaves as one shape, so the distance between any two of
-        /// its rows - and so the gap - is the same at every moment of its flight.
+        /// Thrown up from 12, it meets the ceiling after 0.33s and comes back
+        /// down: half a second in it has covered 2 units, 1.32 up and 0.68 back.
         /// </summary>
         [Test]
-        public void TheCurtain_KeepsItsGapTheSameSize()
+        public void TurnsBackOffTheCeiling()
         {
-            float fired = KeelRows[2] - KeelRows[0];
+            Assert.AreEqual(Ceiling - 0.68f, RoundRoute.Height(12f, Throw, 0.5f, Floor, Ceiling), Tolerance);
+        }
 
-            for (float t = 0f; t < 4.5f; t += 0.05f)
+        [Test]
+        public void TurnsBackOffTheFloor()
+        {
+            Assert.AreEqual(Floor + 0.42f, RoundRoute.Height(5f, -Throw, 0.25f, Floor, Ceiling), Tolerance);
+        }
+
+        [Test]
+        public void NeverLeavesTheBand_OnceInside()
+        {
+            for (float t = 0f; t < 20f; t += 0.013f)
             {
-                float low = KeelRows[0] + Height(KeelAmplitude, KeelPeriod, 0, false, t);
-                float high = KeelRows[2] + Height(KeelAmplitude, KeelPeriod, 2, false, t);
+                float height = RoundRoute.Height(6f, Throw, t, Floor, Ceiling);
 
-                Assert.AreEqual(fired, high - low, Tolerance, "at t = " + t);
+                Assert.GreaterOrEqual(height, Floor - Tolerance, "at t = " + t);
+                Assert.LessOrEqual(height, Ceiling + Tolerance, "at t = " + t);
             }
         }
 
         /// <summary>
-        /// The keel is the floor of the band and the prow its middle. A weave that
-        /// carried the discs up to the prow's height would be the thing the
-        /// armoured act cannot afford: fire from one bank arriving at another's.
+        /// Worked out from elapsed time, so a long frame lands where the short
+        /// ones would have - it cannot carry a disc through an edge.
         /// </summary>
         [Test]
-        public void TheCurtain_NeverReachesTheProw()
+        public void ALongFrameCannotCarryItThroughAnEdge()
         {
-            float highest = KeelRows[KeelRows.Length - 1] + KeelAmplitude;
+            Assert.LessOrEqual(RoundRoute.Height(13f, Throw, 3f, Floor, Ceiling), Ceiling + Tolerance);
+        }
 
-            Assert.Less(highest, ProwRow);
+        /// <summary>Up the band and back down again returns it to where it started.</summary>
+        [Test]
+        public void ComesBackToItsStart_AfterOneRoundTrip()
+        {
+            float roundTrip = 2f * (Ceiling - Floor) / Throw;
+
+            Assert.AreEqual(7f, RoundRoute.Height(7f, Throw, roundTrip, Floor, Ceiling), Tolerance);
         }
 
         /// <summary>
-        /// The whole point of crossing: each pair of rows swaps order part way
-        /// through the weave. Row 0 starts under row 1 and a quarter weave later
-        /// is above it, and the same for rows 2 and 3.
+        /// Two discs thrown at the same speed keep their distance until one of
+        /// them reaches an edge - the arithmetic the fan's matching slots on two
+        /// rows rely on to stay a row apart.
         /// </summary>
         [Test]
-        public void TheRake_CrossesEachPairOfRows()
+        public void TwoDiscsThrownAlike_KeepTheirDistance_UntilAnEdge()
         {
-            float quarter = CrownPeriod / 4f;
+            float low = 5f;
+            float high = 7.4f;
 
-            for (int low = 0; low < 4; low += 2)
+            for (float t = 0f; t < 1.4f; t += 0.05f)
             {
-                float lowAt = CrownRows[low] + Height(CrownAmplitude, CrownPeriod, low, true, quarter);
-                float highAt = CrownRows[low + 1] + Height(CrownAmplitude, CrownPeriod, low + 1, true, quarter);
+                float gap = RoundRoute.Height(high, Throw, t, Floor, Ceiling)
+                            - RoundRoute.Height(low, Throw, t, Floor, Ceiling);
 
-                Assert.Greater(lowAt, highAt, "rows " + low + " and " + (low + 1) + " never cross");
+                Assert.AreEqual(high - low, gap, Tolerance, "at t = " + t);
             }
         }
 
-        /// <summary>
-        /// The rake stays inside the crown: no row goes below the crown's bottom
-        /// row by more than the weave, and so never down into the prow's middle
-        /// of the band.
-        /// </summary>
         [Test]
-        public void TheRake_StaysAboveTheProw()
+        public void FromUnderTheFloor_TravelsStraightUntilItEnters()
         {
-            float lowest = CrownRows[0] - CrownAmplitude;
-
-            Assert.Greater(lowest, ProwRow);
+            Assert.AreEqual(3.42f, RoundRoute.Height(2.42f, Throw, 0.25f, Floor, Ceiling), Tolerance);
         }
 
-        private static float Height(float amplitude, float period, int row, bool crossing, float t)
+        [Test]
+        public void FromUnderTheFloor_BouncesOnceInside()
         {
-            return RoundRoute.Offset(amplitude, period, RoundRoute.PhaseForRow(row, crossing), t);
+            for (float t = 1f; t < 20f; t += 0.05f)
+            {
+                float height = RoundRoute.Height(1f, Throw, t, Floor, Ceiling);
+
+                Assert.GreaterOrEqual(height, Floor - Tolerance, "at t = " + t);
+                Assert.LessOrEqual(height, Ceiling + Tolerance, "at t = " + t);
+            }
+        }
+
+        [Test]
+        public void UnderTheFloor_IsAlwaysThrownUpward()
+        {
+            Assert.Greater(RoundRoute.SpeedInto(1f, -Throw, Floor, Ceiling), 0f);
+        }
+
+        [Test]
+        public void OverTheCeiling_IsAlwaysThrownDownward()
+        {
+            Assert.Less(RoundRoute.SpeedInto(15f, Throw, Floor, Ceiling), 0f);
+        }
+
+        [Test]
+        public void InsideTheBand_IsThrownAsGiven()
+        {
+            Assert.AreEqual(Throw, RoundRoute.SpeedInto(8f, Throw, Floor, Ceiling));
+            Assert.AreEqual(-1.5f, RoundRoute.SpeedInto(8f, -1.5f, Floor, Ceiling));
+        }
+
+        /// <summary>
+        /// A keel row is four muzzles at one height. Every one of them has to
+        /// leave on a different path, or two discs leave together - which is
+        /// what a row thrown at one angle did in play.
+        /// </summary>
+        [Test]
+        public void AFourMuzzleRow_FansIntoFourDifferentThrows()
+        {
+            var seen = new System.Collections.Generic.HashSet<float>();
+
+            for (int slot = 0; slot < 4; slot++)
+            {
+                Assert.IsTrue(seen.Add(RoundRoute.FanSpeed(Throw, slot, 4, 0)), "slot " + slot + " repeats a throw");
+            }
+        }
+
+        [Test]
+        public void TheFan_RunsFromSteepUpToSteepDown()
+        {
+            Assert.AreEqual(Throw, RoundRoute.FanSpeed(Throw, 0, 4, 0), Tolerance);
+            Assert.AreEqual(Throw / 3f, RoundRoute.FanSpeed(Throw, 1, 4, 0), Tolerance);
+            Assert.AreEqual(-Throw / 3f, RoundRoute.FanSpeed(Throw, 2, 4, 0), Tolerance);
+            Assert.AreEqual(-Throw, RoundRoute.FanSpeed(Throw, 3, 4, 0), Tolerance);
+        }
+
+        [Test]
+        public void TheFan_MirrorsOnAlternateVolleys()
+        {
+            for (int slot = 0; slot < 4; slot++)
+            {
+                Assert.AreEqual(
+                    -RoundRoute.FanSpeed(Throw, slot, 4, 0),
+                    RoundRoute.FanSpeed(Throw, slot, 4, 1),
+                    Tolerance);
+            }
+        }
+
+        [Test]
+        public void TheFan_NeverThrowsFasterThanTheSteepEnd()
+        {
+            for (int slot = 0; slot < 4; slot++)
+            {
+                Assert.LessOrEqual(Mathf.Abs(RoundRoute.FanSpeed(Throw, slot, 4, 3)), Throw + Tolerance);
+            }
+        }
+
+        [Test]
+        public void ARowOfOne_IsThrownAtFull()
+        {
+            Assert.AreEqual(Throw, RoundRoute.FanSpeed(Throw, 0, 1, 0), Tolerance);
+        }
+
+        [Test]
+        public void NoThrow_HoldsHeight()
+        {
+            Assert.AreEqual(8f, RoundRoute.Height(8f, 0f, 3f, Floor, Ceiling));
+        }
+
+        /// <summary>A thrown wall has to be outflyable, or it is not dodgeable.</summary>
+        [Test]
+        public void TheThrow_IsSlowerThanThePlayerCanClimb()
+        {
+            Assert.Less(Throw, PlayerClimb);
         }
     }
 }

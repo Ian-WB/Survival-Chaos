@@ -62,6 +62,51 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// The muzzle a one-round volley fires from: volley after volley working
+        /// through the bank in the staircase's order - row by row, and within a
+        /// row in pivot order - one pass climbing from the bottom row and the
+        /// next coming back down from the top. -1 for a bank with no muzzles.
+        ///
+        /// Worked out by counting rather than from a sorted list, so it costs no
+        /// allocation however often it is asked.
+        /// </summary>
+        public static int SingleShotMuzzle(int[] rows, int rowCount, int volley)
+        {
+            if (rows == null || rows.Length == 0 || rowCount <= 0)
+            {
+                return -1;
+            }
+
+            int total = rows.Length;
+            int pass = volley / total;
+            int wanted = volley % total;
+            bool upward = Upward(pass);
+            int seen = 0;
+
+            for (int step = 0; step < rowCount; step++)
+            {
+                int row = FiringOrder(step, rowCount, upward);
+
+                for (int m = 0; m < total; m++)
+                {
+                    if (rows[m] != row)
+                    {
+                        continue;
+                    }
+
+                    if (seen == wanted)
+                    {
+                        return m;
+                    }
+
+                    seen++;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
         /// Slow to start and quick to finish, so the glow reads as charging
         /// rather than as a lamp being turned up - and the moment it peaks is
         /// the moment it fires.
