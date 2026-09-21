@@ -606,7 +606,7 @@ namespace SurvivalChaos
                     break;
 
                 default:
-                    FireMuzzles(attack, index, attack.ProjectileFor(TravellingLeft), rows[index], -1, volley);
+                    FireMuzzles(attack, index, attack.ProjectileFor(TravellingLeft), rows[index], -1);
                     break;
             }
         }
@@ -619,8 +619,7 @@ namespace SurvivalChaos
         /// having two copies of.
         /// </summary>
         /// <param name="row">The row to fire, or -1 for every muzzle.</param>
-        /// <param name="volley">Which volley this is, for the way a thrown attack is thrown.</param>
-        private void FireMuzzles(BossAttack attack, int index, GameObject projectile, int[] muzzleRows, int row, int volley)
+        private void FireMuzzles(BossAttack attack, int index, GameObject projectile, int[] muzzleRows, int row)
         {
             Transform[] pivots = attack.Pivots;
 
@@ -638,7 +637,7 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                ThrowRound(attack, index, i, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), volley);
+                ThrowRound(attack, index, i, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity));
                 fired = true;
             }
 
@@ -655,7 +654,7 @@ namespace SurvivalChaos
         /// thrown upward whatever its place in the fan, or its disc leaves the
         /// fight.
         /// </summary>
-        private void ThrowRound(BossAttack attack, int index, int muzzle, GameObject round, int volley)
+        private void ThrowRound(BossAttack attack, int index, int muzzle, GameObject round)
         {
             bool homes = attack.HomeSeconds > 0f;
 
@@ -681,7 +680,7 @@ namespace SurvivalChaos
             }
 
             float start = round.transform.position.y;
-            float fan = RoundRoute.FanSpeed(attack.ThrowSpeed, slots[index][muzzle], slotCounts[index][muzzle], volley);
+            float fan = RoundRoute.FanSpeed(attack.ThrowSpeed, slots[index][muzzle], slotCounts[index][muzzle]);
             float speed = RoundRoute.SpeedInto(start, fan, floor, ceiling);
 
             // The middle of an odd fan is thrown flat, which is a disc that holds
@@ -762,7 +761,7 @@ namespace SurvivalChaos
         /// each, for the same reason it always did.
         /// </summary>
         private IEnumerator FireMuzzlesStaggered(
-            BossAttack attack, int index, GameObject projectile, int[] muzzleRows, int row, int volley)
+            BossAttack attack, int index, GameObject projectile, int[] muzzleRows, int row)
         {
             Transform[] pivots = attack.Pivots;
 
@@ -786,7 +785,7 @@ namespace SurvivalChaos
                     yield return gap;
                 }
 
-                ThrowRound(attack, index, i, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity), volley);
+                ThrowRound(attack, index, i, ObjectPool.Spawn(projectile, pivots[i].position, Quaternion.identity));
 
                 if (!fired)
                 {
@@ -816,7 +815,7 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                FireMuzzles(attack, index, projectile, rows[index], row, volley);
+                FireMuzzles(attack, index, projectile, rows[index], row);
             }
         }
 
@@ -884,7 +883,7 @@ namespace SurvivalChaos
                 }
 
                 SetTell(index, m, 0f);
-                ThrowRound(attack, index, m, ObjectPool.Spawn(projectile, pivots[m].position, Quaternion.identity), volley);
+                ThrowRound(attack, index, m, ObjectPool.Spawn(projectile, pivots[m].position, Quaternion.identity));
 
                 if (!fired)
                 {
@@ -938,7 +937,7 @@ namespace SurvivalChaos
             if (!Silenced(attack))
             {
                 ThrowRound(attack, index, muzzle,
-                    ObjectPool.Spawn(projectile, pivots[muzzle].position, Quaternion.identity), volley);
+                    ObjectPool.Spawn(projectile, pivots[muzzle].position, Quaternion.identity));
                 PlayVolleySound();
             }
 
@@ -1002,7 +1001,7 @@ namespace SurvivalChaos
                     }
                 }
 
-                FireMuzzles(attack, index, projectile, muzzleRows, row, volley);
+                FireMuzzles(attack, index, projectile, muzzleRows, row);
 
                 if (step + 1 < count)
                 {

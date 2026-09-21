@@ -86,18 +86,18 @@ namespace SurvivalChaos
         /// four to a row come out at full, a third, minus a third and minus
         /// full. A row of one is thrown at full.
         ///
-        /// Mirrored on alternate volleys, so the muzzle that threw up last time
-        /// throws down this time and no one muzzle's path can be memorised as
-        /// safe.
+        /// The same every volley, so each muzzle's disc takes the same path and
+        /// bounces in the same places every time - a route the player can learn.
+        /// It had been mirrored on alternate volleys, and was made fixed at the
+        /// player's call on 21 September 2026.
         /// </summary>
         /// <param name="slot">This muzzle's place in its row, 0 first.</param>
         /// <param name="slots">How many muzzles the row has.</param>
-        public static float FanSpeed(float speed, int slot, int slots, int volley)
+        public static float FanSpeed(float speed, int slot, int slots)
         {
             float spread = slots > 1 ? Mathf.Lerp(1f, -1f, Mathf.Clamp01(slot / (float)(slots - 1))) : 1f;
-            float mirror = (volley & 1) == 0 ? 1f : -1f;
 
-            return Mathf.Abs(speed) * spread * mirror;
+            return Mathf.Abs(speed) * spread;
         }
 
         /// <summary>

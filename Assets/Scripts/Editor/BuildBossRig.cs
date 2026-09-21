@@ -1204,7 +1204,7 @@ namespace SurvivalChaos.EditorTools
                 // playtest's note was that discs and bullets merged into one lane,
                 // and the answer asked for was discs thrown in different
                 // directions that come off the game's bounds. Each row fans out,
-                // steep up to steep down, mirrored on alternate curtains. Thrown
+                // steep up to steep down, the same every curtain. Thrown
                 // as one wall first, a row's four discs still left as one stack,
                 // because they share a height and ease onto one lane. The price is
                 // the curtain's gap, which now holds only at the moment of

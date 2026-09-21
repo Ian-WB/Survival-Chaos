@@ -155,44 +155,33 @@ namespace SurvivalChaos.Tests
 
             for (int slot = 0; slot < 4; slot++)
             {
-                Assert.IsTrue(seen.Add(RoundRoute.FanSpeed(Throw, slot, 4, 0)), "slot " + slot + " repeats a throw");
+                Assert.IsTrue(seen.Add(RoundRoute.FanSpeed(Throw, slot, 4)), "slot " + slot + " repeats a throw");
             }
         }
 
         [Test]
         public void TheFan_RunsFromSteepUpToSteepDown()
         {
-            Assert.AreEqual(Throw, RoundRoute.FanSpeed(Throw, 0, 4, 0), Tolerance);
-            Assert.AreEqual(Throw / 3f, RoundRoute.FanSpeed(Throw, 1, 4, 0), Tolerance);
-            Assert.AreEqual(-Throw / 3f, RoundRoute.FanSpeed(Throw, 2, 4, 0), Tolerance);
-            Assert.AreEqual(-Throw, RoundRoute.FanSpeed(Throw, 3, 4, 0), Tolerance);
+            Assert.AreEqual(Throw, RoundRoute.FanSpeed(Throw, 0, 4), Tolerance);
+            Assert.AreEqual(Throw / 3f, RoundRoute.FanSpeed(Throw, 1, 4), Tolerance);
+            Assert.AreEqual(-Throw / 3f, RoundRoute.FanSpeed(Throw, 2, 4), Tolerance);
+            Assert.AreEqual(-Throw, RoundRoute.FanSpeed(Throw, 3, 4), Tolerance);
         }
 
-        [Test]
-        public void TheFan_MirrorsOnAlternateVolleys()
-        {
-            for (int slot = 0; slot < 4; slot++)
-            {
-                Assert.AreEqual(
-                    -RoundRoute.FanSpeed(Throw, slot, 4, 0),
-                    RoundRoute.FanSpeed(Throw, slot, 4, 1),
-                    Tolerance);
-            }
-        }
 
         [Test]
         public void TheFan_NeverThrowsFasterThanTheSteepEnd()
         {
             for (int slot = 0; slot < 4; slot++)
             {
-                Assert.LessOrEqual(Mathf.Abs(RoundRoute.FanSpeed(Throw, slot, 4, 3)), Throw + Tolerance);
+                Assert.LessOrEqual(Mathf.Abs(RoundRoute.FanSpeed(Throw, slot, 4)), Throw + Tolerance);
             }
         }
 
         [Test]
         public void ARowOfOne_IsThrownAtFull()
         {
-            Assert.AreEqual(Throw, RoundRoute.FanSpeed(Throw, 0, 1, 0), Tolerance);
+            Assert.AreEqual(Throw, RoundRoute.FanSpeed(Throw, 0, 1), Tolerance);
         }
 
         [Test]
