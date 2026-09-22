@@ -83,6 +83,17 @@ current target is kept unless another beats it by a clear margin: each has 80
 health, and a pilot drifting between an emplacement and nearby obstacles never
 finished one. Reports log each emplacement's health in steps of 10 and when it
 falls.
+Height is scored on the closest a candidate route comes to the target, with a
+little weight on where it ends. Scored on the end alone, a climb held for the
+whole horizon overshoots a target in the middle of the band by as much as
+staying put misses it, so the pilot sat above the Prow shooting into the Crown.
+While an emplacement is the target, reports add an `AIM` line each second:
+the pilot's height and angle against the pod's real position and against the
+position the pilot saw, which way it is firing, how far in front of the pod's face
+it is, and anything at its height between it and the pod that would take the
+rounds. These are read from the game for the report only.
+With no emplacement in sight the hull takes an emplacement's priority, so
+obstacles near the pilot do not pull it off the exposed boss.
 The policy pursues healing below half health,
 then shots, attack speed, maximum health and movement upgrades. The real player
 must touch a pickup for its benefit to apply.

@@ -90,5 +90,23 @@ namespace SurvivalChaos.Tests
             Assert.That(In(1,80,8),Is.False, "far enough to see the rounds coming");
             Assert.That(In(1,350,8),Is.False, "wraps the short way round");
         }
+
+        [Test]
+        public void HeightMiss_RewardsPassingThrough_AndHoldingBeatsOvershooting()
+        {
+            var method=Pilot.GetMethod("HeightMiss",BindingFlags.NonPublic|BindingFlags.Static);
+            const float target=7.47f, above=target+.6f;
+            Vector3[] Held(float from, Vector2 request) =>
+                Route(new Vector3(10,from,0),Vector3.zero,Vector2.zero,0,request:request);
+            float Miss(Vector3[] route) => (float)method.Invoke(null,new object[]{route,target});
+            float EndMiss(Vector3[] route) => Mathf.Abs(route.Last().y-target);
+            // The 22 Sep Prow, at this fixture's climb: a held descent ends further
+            // past the height than staying put misses it. Scored on the end, the
+            // pilot stays where it is and shoots over the target.
+            Assume.That(EndMiss(Held(above,Vector2.down)),Is.GreaterThan(EndMiss(Held(above,Vector2.zero))));
+            Assert.That(Miss(Held(above,Vector2.down)),Is.LessThan(Miss(Held(above,Vector2.zero))));
+            Assert.That(Miss(Held(target,Vector2.zero)),Is.LessThan(Miss(Held(target,Vector2.down))),
+                "once there, it holds the height");
+        }
     }
 }

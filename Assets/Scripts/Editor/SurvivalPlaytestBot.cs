@@ -143,7 +143,7 @@ namespace SurvivalChaos.EditorTools
             private Vector2 lastLoggedInput;
             private int stepped = -1, health, level;
             private bool dashEdge, flipEdge, released;
-            private float nextObserve, nextDecision, nextFlip;
+            private float nextObserve, nextDecision, nextFlip, nextAim;
             // The target being worked on, kept so a nearer distraction has to beat
             // it by a margin rather than by a hair, and whether the pilot is on its
             // way round the ring to an emplacement's front.
@@ -248,8 +248,10 @@ namespace SurvivalChaos.EditorTools
             }
             public void CheckEnd()
             {
-                if (EndReason != null) return;
+                // Before the early return: the run can end inside a frame's input read,
+                // and the fatal hit went unlogged when it did.
                 RecordHealth();
+                if (EndReason != null) return;
                 if (!ReferenceEquals(GameInput.Source, this)) EndReason = "Input ownership changed";
                 else if (player == null) EndReason = "Player removed or scene changed";
                 else if (RunOutcome.RunEnded || player.CurrentHealth <= 0) EndReason = "Run ended; final HP=" + player.CurrentHealth;
@@ -346,6 +348,39 @@ namespace SurvivalChaos.EditorTools
             }
             private float Angle(Vector3 p) => Mathf.Atan2(-(p.z - centre.position.z), p.x - centre.position.x) * Mathf.Rad2Deg;
             private float Radius(Vector3 p) { p -= centre.position; p.y = 0; return p.magnitude; }
+            /// <summary>
+            /// Report-only diagnosis of a shot at an emplacement: where the pilot is
+            /// against where the pod really is, which way the guns point, and what
+            /// on the ring ahead at the pilot's height would take the rounds first.
+            /// Read from the game, never fed back into a decision. The hull, ships,
+            /// obstacles and wreckage all swallow player rounds.
+            /// </summary>
+            private void LogAim(Item goal, Vector3 origin)
+            {
+                Vector3 truth = goal.source is Component pod && pod != null ? pod.transform.position : goal.position;
+                GameObject prefab = Read<GameObject>(player, player.DirectionFlipped ? "shootPrefab" : "shootPrefab1");
+                var shot = prefab != null ? prefab.GetComponent<ShootScript>() : null;
+                float fire = shot != null ? Mathf.Sign(shot.Speed) : 0f;
+                float gap = Mathf.DeltaAngle(Angle(origin), Angle(truth));
+                float inFront = Mathf.DeltaAngle(Angle(truth), Angle(origin)) * goal.side;
+                var blockers = new List<string>();
+                if (Mathf.Sign(gap) == fire)
+                {
+                    foreach (var c in Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude))
+                    {
+                        if (!c.enabled || (c.GetComponent<Enemy>() == null && c.GetComponent<BossWreckage>() == null)) continue;
+                        Bounds b = c.bounds;
+                        if (b.min.y > origin.y + .2f || b.max.y < origin.y - .2f) continue;
+                        if (Mathf.Abs(Radius(b.center) - ArenaGeometry.LaneRadius) > Mathf.Max(b.extents.x, b.extents.z) + .3f) continue;
+                        float ahead = Mathf.DeltaAngle(Angle(origin), Angle(b.center)) * fire;
+                        float halfSpan = Mathf.Max(b.extents.x, b.extents.z) / ArenaGeometry.LaneRadius * Mathf.Rad2Deg;
+                        if (ahead + halfSpan > 0 && ahead - halfSpan < Mathf.Abs(gap)) blockers.Add(c.name);
+                    }
+                }
+                Log($"AIM {goal.label} heightOff={origin.y - truth.y:+0.00;-0.00} seenHeightOff={origin.y - goal.position.y:+0.00;-0.00} angleTo={gap:F1} "
+                    + $"firing={(fire == 0 ? "unknown" : Mathf.Sign(gap) == fire ? "toward" : "away")} inFront={inFront:F1} side={goal.side:+0;-0} "
+                    + $"inTheWay={(blockers.Count == 0 ? "nothing" : string.Join(",", blockers))}");
+            }
             private Vector3 At(float angle, float radius, float y)
             {
                 Vector3 p = centre.position + Quaternion.Euler(0, angle, 0) * Vector3.right * radius;
@@ -399,6 +434,14 @@ namespace SurvivalChaos.EditorTools
                 foreach (var boss in Object.FindObjectsByType<BossEmitter>(FindObjectsInactive.Exclude)) Add(boss, Kind.Target, 1, 0, snapshot, seen);
                 foreach (var pod in Object.FindObjectsByType<BossWeakPoint>(FindObjectsInactive.Exclude))
                     if (!pod.Destroyed) Add(pod, Kind.Target, EmplacementPriority, 0, snapshot, seen);
+                // With no emplacement in sight the hull is the fight. At priority 1 a
+                // nearby obstacle beat it on distance, and in the first full run the
+                // pilot spent the Exposed phase's last seconds aiming at Enemy 3.
+                bool emplacementSeen = false;
+                foreach (var item in snapshot.items) if (item.side != 0) emplacementSeen = true;
+                if (!emplacementSeen)
+                    for (int i = 0; i < snapshot.items.Count; i++)
+                        if (snapshot.items[i].hull) { var hull = snapshot.items[i]; hull.priority = EmplacementPriority; snapshot.items[i] = hull; }
                 foreach (var beam in Object.FindObjectsByType<BossLanceBeam>(FindObjectsInactive.Exclude)) ObserveBeam(beam, snapshot);
                 // Plates shed from destroyed emplacements in the second act. They hang
                 // still in the lane and hurt on contact, and are none of the kinds above.
@@ -581,6 +624,22 @@ namespace SurvivalChaos.EditorTools
                 return points;
             }
             /// <summary>
+            /// How far a route misses a target height. Scored on the route's end
+            /// alone, a climb held for the whole horizon carries the ship about 5.6
+            /// units, so for a target in the middle of the band going there
+            /// overshot it by as much as staying put missed it: on 22 Sep the pilot
+            /// sat 2.86 above the Prow for 40 seconds, shooting over it into the
+            /// Crown. The pilot replans every decision, so passing through the
+            /// height is what counts; the end still weighs a little, so that once
+            /// there, holding the height beats flying through it.
+            /// </summary>
+            private static float HeightMiss(Vector3[] route, float target)
+            {
+                float closest = float.PositiveInfinity;
+                foreach (var point in route) closest = Mathf.Min(closest, Mathf.Abs(point.y - target));
+                return closest + .25f * Mathf.Abs(route[route.Length - 1].y - target);
+            }
+            /// <summary>
             /// Where an enemy that chases the player's height will be, <paramref name="elapsed"/>
             /// seconds after it was seen at <paramref name="observed"/>: the same exponential
             /// approach EnemyMovement runs, toward the height the player will be at.
@@ -726,7 +785,7 @@ namespace SurvivalChaos.EditorTools
                     else if (goal.HasValue)
                     {
                         var g = goal.Value;
-                        score += Mathf.Max(0, Mathf.Abs(end.y - g.position.y) - AlignmentTolerance) * 2;
+                        score += Mathf.Max(0, HeightMiss(route, g.position.y) - AlignmentTolerance) * 2;
                         if (g.kind == Kind.Pickup)
                             score += Mathf.Abs(Mathf.DeltaAngle(Angle(end), Angle(g.position))) * Mathf.Deg2Rad * ArenaGeometry.LaneRadius;
                         else score += x == 0 ? .5f : 0;
@@ -752,6 +811,7 @@ namespace SurvivalChaos.EditorTools
                     : wrongSide != 0 ? "Going round to the front of " + goal.Value.label
                     : goal.HasValue ? (goal.Value.kind == Kind.Pickup ? "Collecting " : "Aligning with ") + goal.Value.label : "Searching";
                 if (next != reason || desired != lastLoggedInput || dashEdge || flipEdge) Log($"{next}; input={desired}; dash={dashEdge}; flip={flipEdge}");
+                if (goal.HasValue && goal.Value.side != 0 && Time.time >= nextAim) { nextAim = Time.time + 1f; LogAim(goal.Value, origin); }
                 lastLoggedInput = desired;
                 reason = next;
             }
