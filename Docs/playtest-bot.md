@@ -78,7 +78,11 @@ In the boss fight the emplacements are the targets: while one is in sight the
 hull is not, since it takes no damage until they are gone. The emplacements
 stick out of one side of the hull and the hull swallows rounds, so from the
 wrong side the pilot goes the long way round the ring to the front instead of
-shooting armour.
+shooting armour. Emplacements outrank everything but a heal when low, and the
+current target is kept unless another beats it by a clear margin: each has 80
+health, and a pilot drifting between an emplacement and nearby obstacles never
+finished one. Reports log each emplacement's health in steps of 10 and when it
+falls.
 The policy pursues healing below half health,
 then shots, attack speed, maximum health and movement upgrades. The real player
 must touch a pickup for its benefit to apply.

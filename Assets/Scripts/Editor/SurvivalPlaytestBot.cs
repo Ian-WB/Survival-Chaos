@@ -115,6 +115,15 @@ namespace SurvivalChaos.EditorTools
             // before the pilot could answer it - so a gun that close is dodged by
             // leaving its height, the way a person watches the ship rather than
             // the round. 45 degrees is about 14.7 units of ring.
+            // An emplacement has 80 health, so it falls to sustained fire or not at
+            // all. At priority 2 a nearby obstacle beat it on distance and the pilot
+            // spent a 137-second fight drifting between the two. 10 outranks every
+            // pickup but a heal when low; a current target is kept unless something
+            // else beats it by GoalStickiness.
+            private const float EmplacementPriority = 10f, GoalStickiness = 6f;
+            // Going round starts once the ship is a degree behind the emplacement's
+            // face and ends once it is 8 in front, so it does not flicker at the edge.
+            private const float BehindDegrees = 1f, FrontDegrees = 8f;
             private const float PointBlankDegrees = 45f, FireHalfHeight = .35f, LineOfFireCost = 25f;
             private readonly float delay;
             private readonly IGameInput previous;
@@ -135,6 +144,12 @@ namespace SurvivalChaos.EditorTools
             private int stepped = -1, health, level;
             private bool dashEdge, flipEdge, released;
             private float nextObserve, nextDecision, nextFlip;
+            // The target being worked on, kept so a nearer distraction has to beat
+            // it by a margin rather than by a hair, and whether the pilot is on its
+            // way round the ring to an emplacement's front.
+            private Object goalSource;
+            private bool goingRound;
+            private readonly Dictionary<string, int> emplacementHealth = new Dictionary<string, int>();
             private string reason = "Searching", cameraName = "unknown";
             private string bossPhase = "not encountered";
             private float bossStarted = -1;
@@ -159,6 +174,7 @@ namespace SurvivalChaos.EditorTools
                 public Vector3 position;
                 public float radius, angleRate, heightRate, radialRate, priority;
                 public string label;
+                public Object source;
                 public Vector3 extents, end;
                 // Height chasing, for enemies that follow the player's height:
                 // the response of that chase and the distance it starts inside.
@@ -245,6 +261,16 @@ namespace SurvivalChaos.EditorTools
                     if (bossStarted < 0) bossStarted = Time.time;
                     bossPhase = boss.Phase.ToString();
                     Log("BOSS PHASE " + bossPhase);
+                }
+                if (boss != null)
+                {
+                    foreach (var pod in boss.GetComponentsInChildren<BossWeakPoint>(true))
+                    {
+                        int hp = pod.Destroyed ? 0 : pod.CurrentHealth;
+                        if (emplacementHealth.TryGetValue(pod.Label, out int last) && (last == hp || (hp > 0 && last - hp < 10))) continue;
+                        emplacementHealth[pod.Label] = hp;
+                        Log(hp == 0 ? $"EMPLACEMENT {pod.Label} destroyed" : $"EMPLACEMENT {pod.Label} hp={hp}");
+                    }
                 }
             }
             private void RecordHealth()
@@ -372,7 +398,7 @@ namespace SurvivalChaos.EditorTools
                     if (enemy.GetComponent<BossEmitter>() == null) Add(enemy, Kind.Target, 0, 0, snapshot, seen);
                 foreach (var boss in Object.FindObjectsByType<BossEmitter>(FindObjectsInactive.Exclude)) Add(boss, Kind.Target, 1, 0, snapshot, seen);
                 foreach (var pod in Object.FindObjectsByType<BossWeakPoint>(FindObjectsInactive.Exclude))
-                    if (!pod.Destroyed) Add(pod, Kind.Target, 2, 0, snapshot, seen);
+                    if (!pod.Destroyed) Add(pod, Kind.Target, EmplacementPriority, 0, snapshot, seen);
                 foreach (var beam in Object.FindObjectsByType<BossLanceBeam>(FindObjectsInactive.Exclude)) ObserveBeam(beam, snapshot);
                 // Plates shed from destroyed emplacements in the second act. They hang
                 // still in the lane and hurt on contact, and are none of the kinds above.
@@ -467,7 +493,7 @@ namespace SurvivalChaos.EditorTools
                 Vector3 p = bounds.center;
                 float angle = Angle(p), radius = Radius(p);
                 var item = new Item { kind = kind, position = p, radius = bounds.extents.magnitude,
-                    priority = priority, label = obj.name, extents = bounds.extents };
+                    priority = priority, label = obj.name, extents = bounds.extents, source = obj };
                 tracks.TryGetValue(obj, out Track old);
                 bool continuous = old != null && old.generation == generation && s.time - old.time <= ObserveEvery * 2.5f;
                 if (continuous)
@@ -641,7 +667,7 @@ namespace SurvivalChaos.EditorTools
                     if (item.kind != Kind.Target && item.kind != Kind.Pickup) continue;
                     if (item.hull && emplacementInSight) continue;
                     float distance = Mathf.Abs(Mathf.DeltaAngle(Angle(origin), Angle(item.position))) * Mathf.Deg2Rad * ArenaGeometry.LaneRadius + Mathf.Abs(item.position.y - origin.y);
-                    float score = item.priority * 3 - distance;
+                    float score = item.priority * 3 - distance + (item.source != null && ReferenceEquals(item.source, goalSource) ? GoalStickiness : 0);
                     if (score > bestGoal) { bestGoal = score; goal = item; }
                 }
                 float orbit = Read<float>(movement, "orbitSpeed"), climb = Read<float>(movement, "climbSpeed");
@@ -656,9 +682,14 @@ namespace SurvivalChaos.EditorTools
                 // every round hits armour, and the hull spans the whole band, so the
                 // way to the front is the long way round.
                 float wrongSide=0;
-                if(goal.HasValue && goal.Value.kind==Kind.Target && goal.Value.side!=0
-                    && Mathf.DeltaAngle(Angle(goal.Value.position),Angle(origin))*goal.Value.side<0)
-                    wrongSide=goal.Value.side;
+                if(goal.HasValue && goal.Value.kind==Kind.Target && goal.Value.side!=0)
+                {
+                    float inFront=Mathf.DeltaAngle(Angle(goal.Value.position),Angle(origin))*goal.Value.side;
+                    goingRound = goingRound && ReferenceEquals(goal.Value.source,goalSource) ? inFront<FrontDegrees : inFront< -BehindDegrees;
+                    if(goingRound) wrongSide=goal.Value.side;
+                }
+                else goingRound=false;
+                goalSource = goal.HasValue ? goal.Value.source : null;
                 Vector3 selectedEnd=origin;
                 float duration=dash!=null ? Read<float>(dash,"duration") : 0;
                 float boost=dash!=null ? Read<float>(dash,"speedMultiplier") : 1;
