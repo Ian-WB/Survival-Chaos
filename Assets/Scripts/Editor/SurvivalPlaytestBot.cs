@@ -125,6 +125,9 @@ namespace SurvivalChaos.EditorTools
             // face and ends once it is 8 in front, so it does not flicker at the edge.
             private const float BehindDegrees = 1f, FrontDegrees = 8f;
             private const float PointBlankDegrees = 45f, FireHalfHeight = .35f, LineOfFireCost = 25f;
+            // The aim diagnostic's probe: about a player round's half size (its box is
+            // 0.21 by 0.11, scaled 0.54), stepped along the ring well inside a hull.
+            private const float RoundRadius = .05f, AimProbeStep = .2f;
             private readonly float delay;
             private readonly IGameInput previous;
             private readonly Player player;
@@ -192,6 +195,9 @@ namespace SurvivalChaos.EditorTools
             private sealed class Snapshot
             {
                 public float time;
+                // Where the pilot's own ship was when this was seen: height chasers
+                // spend the reaction delay closing on it.
+                public Vector3 playerPosition;
                 public List<Item> items = new List<Item>();
             }
 
@@ -368,23 +374,47 @@ namespace SurvivalChaos.EditorTools
                 float fire = shot != null ? Mathf.Sign(shot.Speed) : 0f;
                 float gap = Mathf.DeltaAngle(Angle(origin), Angle(truth));
                 float inFront = Mathf.DeltaAngle(Angle(truth), Angle(origin)) * goal.side;
-                var blockers = new List<string>();
+                // Walks the ring from the ship toward the pod at the ship's height, the
+                // way a round flies, and names the first thing a round would meet. It
+                // checked bounding boxes of Enemy and wreckage colliders only, so the hull
+                // and the two shooting kinds never showed, and a box that spans the band
+                // cannot say what a round meets first anyway.
+                string blocker = "nothing";
                 if (Mathf.Sign(gap) == fire)
                 {
-                    foreach (var c in Object.FindObjectsByType<Collider>(FindObjectsInactive.Exclude))
+                    float radius = Radius(origin), from = Angle(origin);
+                    float step = AimProbeStep / Mathf.Max(.01f, radius) * Mathf.Rad2Deg;
+                    Transform target = goal.source is Component aimed && aimed != null ? aimed.transform : null;
+                    bool reached = false;
+                    for (float swept = step; swept < Mathf.Abs(gap) && !reached && blocker == "nothing"; swept += step)
                     {
-                        if (!c.enabled || (c.GetComponent<Enemy>() == null && c.GetComponent<BossWreckage>() == null)) continue;
-                        Bounds b = c.bounds;
-                        if (b.min.y > origin.y + .2f || b.max.y < origin.y - .2f) continue;
-                        if (Mathf.Abs(Radius(b.center) - ArenaGeometry.LaneRadius) > Mathf.Max(b.extents.x, b.extents.z) + .3f) continue;
-                        float ahead = Mathf.DeltaAngle(Angle(origin), Angle(b.center)) * fire;
-                        float halfSpan = Mathf.Max(b.extents.x, b.extents.z) / ArenaGeometry.LaneRadius * Mathf.Rad2Deg;
-                        if (ahead + halfSpan > 0 && ahead - halfSpan < Mathf.Abs(gap)) blockers.Add(c.name);
+                        foreach (var c in Physics.OverlapSphere(At(from + swept * fire, radius, origin.y), RoundRadius, ~0, QueryTriggerInteraction.Collide))
+                        {
+                            if (c.transform.IsChildOf(player.transform)) continue;
+                            if (target != null && c.transform.IsChildOf(target)) { reached = true; break; }
+                            Component owner = RoundStopper(c);
+                            if (owner != null) { blocker = owner.name; break; }
+                        }
                     }
                 }
                 Log($"AIM {goal.label} heightOff={origin.y - truth.y:+0.00;-0.00} seenHeightOff={origin.y - goal.position.y:+0.00;-0.00} angleTo={gap:F1} "
                     + $"firing={(fire == 0 ? "unknown" : Mathf.Sign(gap) == fire ? "toward" : "away")} inFront={inFront:F1} side={goal.side:+0;-0} "
-                    + $"inTheWay={(blockers.Count == 0 ? "nothing" : string.Join(",", blockers))}");
+                    + $"inTheWay={blocker}");
+            }
+            /// <summary>
+            /// What a player round hitting <paramref name="c"/> would stop on: an
+            /// emplacement, the hull, a wreck plate, or a ship of either kind, looked up
+            /// from the collider through its parents. Null for anything rounds pass,
+            /// such as pickups and enemy rounds.
+            /// </summary>
+            private static Component RoundStopper(Collider c)
+            {
+                Component owner = c.GetComponentInParent<BossWeakPoint>();
+                if (owner == null) owner = c.GetComponentInParent<BossEmitter>();
+                if (owner == null) owner = c.GetComponentInParent<BossWreckage>();
+                if (owner == null) owner = c.GetComponentInParent<Enemy>();
+                if (owner == null) owner = c.GetComponentInParent<Enemy_1>();
+                return owner;
             }
             private Vector3 At(float angle, float radius, float y)
             {
@@ -430,12 +460,18 @@ namespace SurvivalChaos.EditorTools
             }
             private void Observe()
             {
-                var snapshot = new Snapshot { time = Time.time };
+                var snapshot = new Snapshot { time = Time.time, playerPosition = player.transform.position };
                 var seen = new HashSet<Component>();
                 foreach (var shot in ShootScript.Live)
                     if (shot != null && shot.isActiveAndEnabled && shot.CompareTag("enemy_Shoot")) Add(shot, Kind.Threat, 0, shot.Volley, snapshot, seen);
                 foreach (var enemy in Object.FindObjectsByType<Enemy>(FindObjectsInactive.Exclude))
                     if (enemy.GetComponent<BossEmitter>() == null) Add(enemy, Kind.Target, 0, 0, snapshot, seen);
+                // The two shooting kinds, Enemy and Enemy 1, carry Enemy_1, which is not
+                // an Enemy. Until 22 Sep the pilot never saw either ship, only its rounds
+                // once fired, so it neither aimed at them, flew round them, nor watched
+                // their guns.
+                foreach (var shooter in Object.FindObjectsByType<Enemy_1>(FindObjectsInactive.Exclude))
+                    if (shooter.GetComponent<Enemy>() == null) Add(shooter, Kind.Target, 0, 0, snapshot, seen);
                 foreach (var boss in Object.FindObjectsByType<BossEmitter>(FindObjectsInactive.Exclude)) Add(boss, Kind.Target, 1, 0, snapshot, seen);
                 foreach (var pod in Object.FindObjectsByType<BossWeakPoint>(FindObjectsInactive.Exclude))
                     if (!pod.Destroyed) Add(pod, Kind.Target, EmplacementPriority, 0, snapshot, seen);
@@ -554,7 +590,7 @@ namespace SurvivalChaos.EditorTools
                     item.radialRate = (radius - old.radius) / dt;
                 }
                 var track = new Track { position = p, angle = angle, height = p.y, radius = radius, time = s.time, generation = generation };
-                if (obj is Enemy && obj.GetComponent<BossEmitter>() == null)
+                if ((obj is Enemy || obj is Enemy_1) && obj.GetComponent<BossEmitter>() == null)
                 {
                     // What a practised player knows about each kind by sight: which
                     // ones come after your height, and how hard. Read from the enemy's
@@ -565,7 +601,8 @@ namespace SurvivalChaos.EditorTools
                         item.homeRate = Mathf.Max(0f, Read<float>(chase, "speed"));
                         item.chaseRadius = ArenaGeometry.LaneRadius * Mathf.Max(0f, Read<float>(chase, "chaseRadiusFraction"));
                     }
-                    var gun = obj.GetComponentInChildren<Enemy_1>();
+                    var gun = obj as Enemy_1;
+                    if (gun == null) gun = obj.GetComponentInChildren<Enemy_1>();
                     if (gun != null) AddLinesOfFire(gun, chase, item, s);
                 }
                 if (obj.GetComponent<BossEmitter>() != null) item.hull = true;
@@ -656,6 +693,43 @@ namespace SurvivalChaos.EditorTools
                 return target + (observed - target) * Mathf.Exp(-rate * elapsed);
             }
             /// <summary>
+            /// A height chaser over the reaction delay: from <paramref name="observed"/>,
+            /// seen when the player was at <paramref name="playerThen"/>, to now, with the
+            /// player at <paramref name="playerNow"/>. That chase has happened, so it
+            /// follows where the player went, taken as a straight line between the two,
+            /// and no route the pilot is weighing can change it.
+            /// </summary>
+            private static float CaughtUp(float observed, float playerThen, float playerNow, float rate, float elapsed)
+            {
+                float height = observed;
+                for (float done = 0; done < elapsed; done += PredictStep)
+                {
+                    float step = Mathf.Min(PredictStep, elapsed - done);
+                    height = HomedHeight(height, Mathf.Lerp(playerThen, playerNow, (done + step * .5f) / elapsed), rate, step);
+                }
+                return height;
+            }
+            /// <summary>
+            /// The heights a height chaser takes along a route, from <paramref name="height"/>
+            /// now, a step at a time so each stretch closes on where the player is then.
+            /// Worked out in one go from each point's height, a chaser was forecast as if
+            /// it had been after that height since it was seen: against a climb, already
+            /// most of the way to its top. Out of <paramref name="chaseRadius"/> it holds its
+            /// height, as EnemyMovement does. <paramref name="at"/> is where it is on the ring
+            /// at each point.
+            /// </summary>
+            private static float[] ChaseAlong(float height, float rate, float chaseRadius, Vector3[] route, Func<int, Vector3> at)
+            {
+                var heights = new float[route.Length];
+                for (int i = 0; i < route.Length; i++)
+                {
+                    Vector3 enemy = at(i); enemy.y = height;
+                    if (Vector3.Distance(enemy, route[i]) <= chaseRadius) height = HomedHeight(height, route[i].y, rate, PredictStep);
+                    heights[i] = height;
+                }
+                return heights;
+            }
+            /// <summary>
             /// Whether <paramref name="pointAngle"/>, at <paramref name="pointHeight"/>, sits in
             /// the stretch of ring a gun at <paramref name="gunAngle"/> fires down before
             /// its rounds can be seen and answered.
@@ -673,12 +747,25 @@ namespace SurvivalChaos.EditorTools
             private float RouteDanger(Vector3[] route, float age, float invincibleFor, out float landing)
             {
                 float danger=0; landing=0;
+                // Each height chaser's heights along this route. The chase runs through
+                // a dash too, so these are worked out before the dash's steps are skipped.
+                var chased=new float[known.items.Count][];
+                float playerNow=player.transform.position.y;
+                for(int j=0;j<known.items.Count;j++)
+                {
+                    var item=known.items[j];
+                    if(item.homeRate<=0) continue;
+                    float now=Vector3.Distance(item.position,known.playerPosition)<=item.chaseRadius
+                        ? CaughtUp(item.position.y,known.playerPosition.y,playerNow,item.homeRate,age) : item.position.y;
+                    chased[j]=ChaseAlong(now,item.homeRate,item.chaseRadius,route,i=>Predict(item,age+(i+1)*PredictStep));
+                }
                 for(int i=0;i<route.Length;i++)
                 {
                     float t=(i+1)*PredictStep;
                     if(t<invincibleFor) continue;
-                    foreach(var item in known.items)
+                    for(int j=0;j<known.items.Count;j++)
                     {
+                        var item=known.items[j];
                         if(item.kind==Kind.Pickup) continue;
                         float cost=0;
                         if(item.kind==Kind.Warning)
@@ -688,8 +775,7 @@ namespace SurvivalChaos.EditorTools
                         else if(item.kind==Kind.LineOfFire)
                         {
                             Vector3 gun=Predict(item,age+t);
-                            if(item.homeRate>0 && Vector3.Distance(gun,route[i])<=item.chaseRadius)
-                                gun.y=HomedHeight(item.position.y,route[i].y,item.homeRate,age+t);
+                            if(chased[j]!=null) gun.y=chased[j][i];
                             cost=InLineOfFire(Angle(gun),gun.y,item.fireDirection,Angle(route[i]),route[i].y) ? LineOfFireCost : 0;
                         }
                         else
@@ -700,8 +786,7 @@ namespace SurvivalChaos.EditorTools
                             // A height chaser does not hold the height it was seen at: it
                             // closes on the player's, so a straight-line forecast walks the
                             // pilot into it. Enemy 2 closes most of a gap in half a second.
-                            if(item.homeRate>0 && Vector3.Distance(predicted,route[i])<=item.chaseRadius)
-                                predicted.y=HomedHeight(item.position.y,route[i].y,item.homeRate,age+t);
+                            if(chased[j]!=null) predicted.y=chased[j][i];
                             Vector3 delta=route[i]-predicted;
                             Vector3 outside=new Vector3(Mathf.Abs(delta.x),Mathf.Abs(delta.y),Mathf.Abs(delta.z))-item.extents;
                             float separation=new Vector3(Mathf.Max(0,outside.x),Mathf.Max(0,outside.y),Mathf.Max(0,outside.z)).magnitude-SafetyMargin;

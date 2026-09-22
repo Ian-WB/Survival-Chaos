@@ -78,6 +78,56 @@ namespace SurvivalChaos.Tests
             Assert.That(At(10),Is.EqualTo(6).Within(.001f));
         }
 
+        // The game's own chase, EnemyMovement's ShipMotion.Approach, run in fine steps
+        // toward a player whose height is given at each moment.
+        private static float Simulated(float start, Func<float,float> player, float rate, float seconds)
+        {
+            const float dt=.0005f;
+            float height=start;
+            for(float t=0;t<seconds;t+=dt) height=ShipMotion.Approach(height,player(t+dt),rate,dt);
+            return height;
+        }
+
+        [Test]
+        public void ChaseAlong_FollowsAPlayerWhoClimbs_NotTheTopOfTheClimb()
+        {
+            var method=Pilot.GetMethod("ChaseAlong",BindingFlags.NonPublic|BindingFlags.Static);
+            // Held climb from 0 at 2 units a second: the fixture's climb, for the whole horizon.
+            var route=Route(new Vector3(10,0,0),Vector3.zero,Vector2.zero,0,request:Vector2.up);
+            Func<int,Vector3> beside=i=>route[i];
+            var heights=(float[])method.Invoke(null,new object[]{0f,2f,100f,route,beside});
+            float seconds=route.Length*.02f;
+            float expected=Simulated(0,t=>route[Mathf.Clamp(Mathf.CeilToInt(t/.02f)-1,0,route.Length-1)].y,2f,seconds);
+            Assert.That(heights.Last(),Is.EqualTo(expected).Within(.02f));
+            // Worked out in one go toward the route's last height, as it was before:
+            // the chaser is forecast well above where it really is.
+            var closed=Pilot.GetMethod("HomedHeight",BindingFlags.NonPublic|BindingFlags.Static);
+            float oneGo=(float)closed.Invoke(null,new object[]{0f,route.Last().y,2f,seconds});
+            Assume.That(oneGo-expected,Is.GreaterThan(.5f));
+        }
+
+        [Test]
+        public void ChaseAlong_HoldsItsHeight_OutOfRange()
+        {
+            var method=Pilot.GetMethod("ChaseAlong",BindingFlags.NonPublic|BindingFlags.Static);
+            var route=Route(new Vector3(10,0,0),Vector3.zero,Vector2.zero,0,request:Vector2.up);
+            Func<int,Vector3> farAway=i=>new Vector3(-10,0,0);
+            var heights=(float[])method.Invoke(null,new object[]{3f,2f,5f,route,farAway});
+            Assert.That(heights.All(h=>h==3f),Is.True);
+        }
+
+        [Test]
+        public void CaughtUp_FollowsWhereThePlayerWentDuringTheDelay()
+        {
+            var method=Pilot.GetMethod("CaughtUp",BindingFlags.NonPublic|BindingFlags.Static);
+            // Seen at 5 with the player at 5; the player has since dropped to 2 over a
+            // third of a second. The chaser follows the drop, not a player at 2 all along.
+            float caught=(float)method.Invoke(null,new object[]{5f,5f,2f,2f,.33f});
+            float expected=Simulated(5,t=>Mathf.Lerp(5,2,t/.33f),2f,.33f);
+            Assert.That(caught,Is.EqualTo(expected).Within(.02f));
+            Assert.That((float)method.Invoke(null,new object[]{5f,5f,2f,2f,0f}),Is.EqualTo(5f));
+        }
+
         [Test]
         public void LineOfFire_IsAheadOfTheGunOnly_AtItsHeight_AndNear()
         {
