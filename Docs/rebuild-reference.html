@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 320 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 327 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>320</b><span>commits</span></div>
-      <div class="stat"><b>367</b><span>tests</span></div>
-      <div class="stat"><b>111</b><span>runtime scripts</span></div>
+      <div class="stat"><b>327</b><span>commits</span></div>
+      <div class="stat"><b>381</b><span>tests</span></div>
+      <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
@@ -520,6 +520,14 @@
       tighter, so the choice can be made by playing rather than by argument.</li>
       <li><strong>A laser for the lance</strong> &mdash; the thrown arc replaced by a beam that flashes out from
       the prow, holds and goes out, drawn as a white-hot core in a soft glow turned to face the camera.</li>
+      <li><strong>A game a fifth slower</strong> &mdash; the ship, every enemy and the boss cut to 0.8 of their
+      speed so the relationships between them hold, and the crown&rsquo;s torpedoes made faster against the
+      slower ship.</li>
+      <li><strong>A playtest bot</strong> &mdash; an editor-only pilot that flies a whole run through the
+      player&rsquo;s own inputs, sees what the camera sees a quarter of a second late, and writes down what it
+      had seen whenever it was hit.</li>
+      <li><strong>Salvage for health</strong> &mdash; the health drop every second level replaced by repair scrap
+      from wrecks, paced by how hurt the player is rather than by how far they have levelled.</li>
     </ul>
   </section>
 
@@ -594,8 +602,8 @@ transform.LookAt(pos);</code></pre>
     <div class="warn">
       <div class="label">The number the inspector was lying about</div>
       <p>The player's two speeds used to be authored in different units and shown side by side as though they were the same thing. <code>Speed</code> was <strong>32 degrees per second</strong> and <code>Up_Down_Speed</code> was <strong>5 world units per second</strong>, so 32 sat next to 5 looking six times larger while the ship was actually only about half again as quick sideways as it was vertically. There was no way to see that from the Inspector.</p>
-      <p>Both are units per second now, named Orbit Speed and Climb Speed, and the conversion to the angle <code>RotateAround</code> wants happens in code. Set equal at 7, the ship covers the same ground in both directions.</p>
-      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 5 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 21.42&nbsp;deg/s at today's lane from the same authored number, which is what stops them drifting apart.</p>
+      <p>Both are units per second now, named Orbit Speed and Climb Speed, and the conversion to the angle <code>RotateAround</code> wants happens in code. Set equal, the ship covers the same ground in both directions. Both are 5.6 since 22 September, when the whole game was slowed by a fifth; they were 7.</p>
+      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 5 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 17.14&nbsp;deg/s at today's lane from the same authored number, which is what stops them drifting apart.</p>
     </div>
     <div class="note">
       <div class="label">Why this matters practically</div>
@@ -678,7 +686,7 @@ transform.LookAt(pos);</code></pre>
     <h3>The ship model</h3>
     <p><code>SpaceShipPitch</code> animates the visual only. It reads <code>Player.DirectionFlipped</code> rather than tracking its own copy — the two used to be toggled independently by the same key, which meant any frame where one saw the input and the other didn't left the model facing the wrong way permanently.</p>
     <p>The ship and the four normal enemies are <strong>half size</strong> since 11 September, done the way the project scales models: through each FBX's importer. Two prefabs, <code>PlayerSpaceShip</code> and the base <code>Enemy</code>, were detached copies of their models storing their own node positions, so an importer change would have shrunk each part in place and left the layout behind; both were re-attached as nested model instances first. Their rounds followed on the root transform instead &mdash; the player's and <code>Enemy 1</code>'s are primitive capsules with no importer, and one enemy round's FBX is shared with the boss's &mdash; and <code>shotSpacing</code> halved with them so a volley keeps its proportions.</p>
-    <p>The four enemies went back up <strong>&times;1.25</strong> on 18 September, by the same two halves and with the player and the boss untouched, so they are no longer the same size as the ship. Their hitboxes scaled with them &mdash; including the deliberate height tolerance on <code>Enemy</code> and <code>Enemy 2</code>, which makes them more forgiving rather than less.</p>
+    <p>The four enemies went back up <strong>&times;1.25</strong> on 18 September, by the same two halves and with the player and the boss untouched, so they are no longer the same size as the ship. Their hitboxes scaled with them &mdash; including the deliberate height tolerance on <code>Enemy</code> and <code>Enemy 2</code>, which made them more forgiving rather than less, until those two boxes were cut back by hand on 22 September &mdash; see <a href="#waves">Enemies and waves</a>.</p>
 
     <h3>Thrusters, and the dash&rsquo;s ready light</h3>
     <p>Nothing on the ship showed what it was doing. It leaned, through <code>SpaceShipPitch</code>, and that was all &mdash; a cue it shares with the idle drift it also performs standing still. <code>ShipThrusters</code> adds four flares: a main plume out of the rocket at the tail on forward throttle, 0.26 world units against a ship 0.345 long; two retros under the nose at 0.10 on reverse; and a ready light on the spine. A dash doubles whichever end is doing the work, and puts a floor under both when the burst is straight up or down, where neither throttle axis is pushed.</p>
@@ -715,8 +723,8 @@ transform.LookAt(pos);</code></pre>
     <div class="warn">
       <div class="label">Healing is no longer one of them</div>
       <p><code>Heal</code> used to sit in the pool as the unlimited entry, which meant the commonest way to meet healing was as one of three pickups on a level-up — so <strong>taking the heal forfeited two upgrades, and taking an upgrade forfeited the heal</strong>. That is a trade between a reward for killing well and the thing you need when you are not, and it is not a decision worth putting in front of anyone.</p>
-      <p>It arrives on its own cadence now, every second level, outside any offer. <code>SkillSelect</code> filters the type out of its pool in code rather than trusting the scene list, because putting it back is a single click with a confusing symptom.</p>
-      <p>Two consequences. Healing is weaker — the skill restored 5 and a health drop restores 2. The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are twenty picks now, across four upgrades, and the stretched run pays out enough to earn all of them — so the empty draw is a guard rather than the usual ending. It still sends health out when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
+      <p>It went out on its own cadence after that, +2 every second level and outside any offer, and since 22 September it is not tied to levelling at all: it comes as salvage from wrecks, paced by how hurt the player is &mdash; see <a href="#run">Progression</a>. <code>SkillSelect</code> filters the type out of its pool in code rather than trusting the scene list, because putting it back is a single click with a confusing symptom.</p>
+      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are twenty picks now, across four upgrades, and the stretched run pays out enough to earn all of them — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
     </div>
 
     <div class="note">
@@ -772,6 +780,7 @@ transform.LookAt(pos);</code></pre>
     <h3>Hittable at the player's height</h3>
     <p>Once every enemy sat on the lane, the misses that were left were about height. <code>Enemy 1</code>'s model hung 0.524 above its own pivot &mdash; the height it chases to &mdash; so its body flew above the player's shots; the model, both gun pivots and the hitbox moved down together so it centres on the pivot. <code>Enemy</code> and <code>Enemy 2</code> hitboxes doubled in height to 0.48 around the same centre, taller than their models on purpose: that is the tolerance they had before the halving. And <code>Enemy 2</code> matched the player's height too slowly to use it &mdash; free-flying ones sat 0.4 to 1.9 off &mdash; so its height-chase speed went from 0.5 to 2, closing most of a gap in half a second instead of two. <code>Enemy 3</code> holds its spawn height by design and is unchanged.</p>
     <p>Checked with a single shot and targets held on the lane: <code>Enemy 1</code> and <code>Enemy 2</code> die at the player's height and <code>Enemy 2</code> at +0.2, and both are missed at +0.4, which is exactly the hitbox's reach.</p>
+    <p>On 22 September both boxes were cut back by hand, closer to the models: from 0.60 tall &mdash; the doubled 0.48 after the enemies grew a quarter &mdash; to 0.34 on <code>Enemy</code> and 0.24 on <code>Enemy 2</code>. The tolerance goes with them. By the boxes, a round now reaches about 0.15 either side of an <code>Enemy 2</code>'s centre, against 0.27 before, so one 0.2 off the player's height is out of reach again &mdash; and fewer of them run into the ship. The held-target check has not been rerun.</p>
 
     <h3>The floor moved, and four streams stayed where they were</h3>
     <p>The player's vertical band is a box in the scene. The heights enemies arrive at are numbers in a wave asset. Nothing connected the two, so when the band was raised — floor from 1.103 to 4.421, ceiling from 11.129 to 13.318 — the spawn heights did not move with it, and four of the twelve obstacle streams, authored at 2.9 and spawning over 1.8 to 3.7, ended up entirely beneath the floor.</p>
@@ -885,7 +894,7 @@ transform.LookAt(pos);</code></pre>
         <tbody>
           <tr><td>Curtain</td><td>Keel &middot; 12</td><td class="num">8s</td><td>every row but one, the gap stepping up a row per volley and wrapping &mdash; learnable rather than random. Throws <strong>discs</strong>, a disc every 2&nbsp;s, each climbing or diving and bouncing off the floor and ceiling</td></tr>
           <tr><td>Torpedo</td><td>Crown &middot; 16</td><td class="num">3s</td><td>one steering torpedo at a time, the muzzles taken in the order the old rake fired them; it was a staircase of sixteen until 21 September</td></tr>
-          <tr><td>Lance</td><td>Prow &middot; 1 laser</td><td class="num">2.6s</td><td>charges for one full crossing of the band, then fires a laser 160&deg; round the ring from the prow and holds it half a second; owns the middle, which nothing else reaches</td></tr>
+          <tr><td>Lance</td><td>Prow &middot; 1 laser</td><td class="num">2.6s</td><td>charges for 1.2&nbsp;s, three quarters of a crossing of the band at the player's 5.6, then fires a laser 160&deg; round the ring from the prow and holds it half a second; owns the middle, which nothing else reaches</td></tr>
           <tr><td>Ram</td><td>&mdash;</td><td class="num">4.5s</td><td>the ship itself at three times cruise; countered by the dash and only by the dash</td></tr>
           <tr><td>Wreckage</td><td>&mdash;</td><td class="num">0.7s</td><td>a plate of the boss's own hull, torn off a wrecked emplacement and left in the lane</td></tr>
         </tbody>
@@ -919,8 +928,8 @@ transform.LookAt(pos);</code></pre>
     </div>
 
     <h3>The crown fires torpedoes</h3>
-    <p>The rake became one round at a time, and then a round that hunts. <code>TorpedoSteer</code> is the flight model, with no Unity object in it: a torpedo lives in the ring laid out flat &mdash; distance round the ring against height &mdash; with a heading and a speed. It leaves the muzzle at 3 units a second, runs straight for 0.3&nbsp;s, spins up over 0.6&nbsp;s to 7.5, a touch over the player&rsquo;s 7, and turns at no more than 90&deg; a second: a turning circle about ten units across. It steers for 10&nbsp;s, coasts for 2 and is gone; the crown fires one every 3&nbsp;s, so about four are in the air. <code>ShootScript</code> flies it on the ring, closes it onto the lane, and rolls it so the nose follows the heading for both of the crown&rsquo;s rounds, which are modelled facing opposite ways.</p>
-    <p>The dodge is a delay. The torpedo keeps its own idea of where the player is, which catches up over about 0.6&nbsp;s, and it steers at that. Hold still and it hits; dodge a couple of units a second and a half early and it follows you in; move a unit or more in the last second or so and it passes where you were; run to an edge and it follows you there. A miss comes round again while it has fuel &mdash; though with the player inside its turning circle it tends to circle past rather than connect, which is what homing missiles do.</p>
+    <p>The rake became one round at a time, and then a round that hunts. <code>TorpedoSteer</code> is the flight model, with no Unity object in it: a torpedo lives in the ring laid out flat &mdash; distance round the ring against height &mdash; with a heading and a speed. It leaves the muzzle at 3 units a second, runs straight for 0.3&nbsp;s, spins up over 0.6&nbsp;s to 8.5, half again the player&rsquo;s 5.6 &mdash; both moved on 22 September, from 7.5 against 7 &mdash; and turns at no more than 90&deg; a second: a turning circle about eleven units across. It steers for 10&nbsp;s, coasts for 2 and is gone; the crown fires one every 3&nbsp;s, so about four are in the air. <code>ShootScript</code> flies it on the ring, closes it onto the lane, and rolls it so the nose follows the heading for both of the crown&rsquo;s rounds, which are modelled facing opposite ways.</p>
+    <p>The dodge is a delay. The torpedo keeps its own idea of where the player is, which catches up over about 0.6&nbsp;s, and it steers at that. At today&rsquo;s speeds, as <code>TorpedoSteerTests</code> simulates them rather than as anyone has played them: hold still and it hits; move two units a second and a half early and it follows you in; move them in the last 0.3 to 0.7&nbsp;s and it passes where you were. A dive all the way to the floor is a timed escape as well &mdash; begun half a second to a second before it arrives it gets away, a second and a half early it follows you down, and 0.3&nbsp;s is too late &mdash; where at 7.5 against 7 it was simply followed down. A player who runs flat out along the ring is gained on, to about 2.7 behind after six and a half seconds, and never caught, because the torpedo steers at where it last saw them. A miss comes round again while it has fuel &mdash; though with the player inside its turning circle it tends to circle past rather than connect, which is what homing missiles do.</p>
     <p>The band is shallower than the turning circle, so the edges needed rules of their own. A torpedo pulls out before an edge at three times its steering turn and arrives running along it &mdash; before that, a twentieth of all torpedo frames had the nose more than 20&deg; off the way it was going, scraping the ceiling. Coming about for a player behind it, it commits to one way round, carrying on if it is already climbing or diving and going toward the roomier edge if it is level, and it turns the other way if the committed loop stops fitting. Without the commitment it dithered: each few degrees of climb took room from above, which made down look better, which took room from below.</p>
     <p>It is drawn half the size of the round it was, hit box and all, and <code>TorpedoExhaust</code> burns the ship&rsquo;s own thruster plume out of its tail in the muzzle glows&rsquo; orange &mdash; low out of the muzzle, full at cruise, and out the moment the fuel is, so a spent torpedo looks spent. It finds the tail from the visible art rather than a written offset, for the same reason the roll does. Played against on 21 September: at one a second 13 of 18 hit and the hull went in 46&nbsp;s; at one every two with a 12&nbsp;s life, 11 of 33 in 67&nbsp;s, most of them from torpedoes over four seconds old, coming round again.</p>
     <div class="warn">
@@ -938,7 +947,7 @@ transform.LookAt(pos);</code></pre>
     <p>So <code>BossLanceBeam</code> fires one now. After the 1.2&nbsp;s charge it flashes out from the prow 160&deg; round the ring in 0.15&nbsp;s &mdash; the stretch the thrown arc used to cross &mdash; holds for 0.5&nbsp;s and thins out over 0.15&nbsp;s, hurting no one as it thins. It follows the prow&rsquo;s bearing as the boss moves round the ring and keeps the height it fired at, because that height is what the charge warned about. Caught in it costs four hits at the far end and five by the prow, against about four for a pass of the thrown arc, on the same 0.15&nbsp;s tick and the same 0.2 hit width. Shooting the prow emplacement out while it is on puts it out, as it already cancelled the charge.</p>
     <div class="note">
       <div class="label">The charge is the whole warning now, which is what it was sized for</div>
-      <p>The thrown arc could be watched coming, so a player far round the ring had more warning than the charge gave; the laser arrives in a sixth of a second, so everyone has exactly the charge. That is the number the charge was built on &mdash; 1.2&nbsp;s is about one full crossing of the band at the player&rsquo;s 7&nbsp;u/s &mdash; so the laser makes the design&rsquo;s promise literal rather than generous.</p>
+      <p>The thrown arc could be watched coming, so a player far round the ring had more warning than the charge gave; the laser arrives in a sixth of a second, so everyone has exactly the charge. That is the number the charge was built on &mdash; 1.2&nbsp;s was about one full crossing of the band at the player&rsquo;s 7&nbsp;u/s &mdash; so the laser makes the design&rsquo;s promise literal rather than generous. At 5.6 since 22 September the charge is three quarters of a crossing, which still leaves plenty: leaving the beam&rsquo;s height takes about half a unit.</p>
     </div>
     <p>It is drawn as two ribbons along one spine, rebuilt each frame the beam is on and turned to face the camera, which is what makes a flat strip read as a round beam from any angle &mdash; a square tube shows its faces and its edges, and a laser has neither. The core is opaque and white-hot, on <code>BossLance.shadergraph</code>, the needle&rsquo;s graph with its function rewritten, with energy pulsing out from the prow. The glow around it is additive, on <code>BossLanceGlow.shadergraph</code>, the streak&rsquo;s graph renamed, soft to nothing at its edges and writing its own motion vectors for the reason under <a href="#render">Rendering</a>. Both materials sit on the lance&rsquo;s round prefabs, which nothing spawns, because the beam takes its look from the round in submesh order; <code>BossLanceBuilder</code> makes and places them.</p>
     <div class="note">
@@ -949,7 +958,7 @@ transform.LookAt(pos);</code></pre>
     <h3>The second act had lost what the first one was about</h3>
     <p>Armoured is a fight about height. Exposed threw that away: with the hull spanning the whole band, any height is as good as another, and what was left was holding the trigger through 120 hit points and dashing once every seven seconds.</p>
     <p><strong>Wreckage puts the three heights back with their meaning reversed.</strong> The boss sheds plates of its own hull from the emplacements the player themselves destroyed, at those emplacements' own heights. The places that were worth flying to become the places worth avoiding, and the player already knows where they are.</p>
-    <p>The plates do not move. Everything else in this arena rides the ring; these are the one thing that does not, which is what makes them read as debris rather than as another attacker &mdash; and it means the boss, cruising at 15&deg; a second while it sheds, leaves a wake of its own hull and eventually comes back round into it. Life over cadence is the tuning: 11 seconds against 0.7 holds about sixteen plates, five at any one height, which against a player lapping the ring every 12.3 seconds is a forced move every two and a half seconds or so. It was 16 over 1.8 &mdash; about nine plates &mdash; but that density only exists in a steady state that takes a whole plate lifetime to build, and the act used to be over before it arrived, so the number it was tuned for had never once been on screen. Three shots break one, and breaking it earns nothing &mdash; clearing a lane is the whole of its reward.</p>
+    <p>The plates do not move. Everything else in this arena rides the ring; these are the one thing that does not, which is what makes them read as debris rather than as another attacker &mdash; and it means the boss, cruising at 12&deg; a second while it sheds, leaves a wake of its own hull and eventually comes back round into it. Life over cadence is the tuning: 11 seconds against 0.7 holds about sixteen plates, five at any one height, which against a player lapping the ring every 21 seconds is a forced move every four seconds or so. It was 16 over 1.8 &mdash; about nine plates &mdash; but that density only exists in a steady state that takes a whole plate lifetime to build, and the act used to be over before it arrived, so the number it was tuned for had never once been on screen. Three shots break one. It earns no experience &mdash; clearing a lane is most of its reward &mdash; but since 22 September a broken plate counts as a wreck for salvage, which is what keeps healing alive once the waves have stopped.</p>
     <div class="warn">
       <div class="label">One collision has to cost one hit, and the obvious fix was the wrong one</div>
       <p>Contact was billing far more than a hit. The first guess was the plate's shape, on the theory that a tumbling box sweeps the player in and out of itself; the collider became a sphere and it changed nothing. What turns is <em>the player</em> &mdash; <code>PlayerMovement</code> aims the ship at the arena's axis every frame and <code>SpaceShipPitch</code> rolls it, so a ship inside a stationary trigger keeps carrying its own collider back out through the surface and in again, and every one of those is a fresh <code>OnTriggerEnter</code>.</p>
@@ -1015,17 +1024,40 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
 
     <h3>A level-up is a choice on the ring</h3>
     <p>Levelling used to apply a random skill the instant the bar filled. That is the single biggest reason the player felt strong from the first minute: every upgrade was free, arrived without being asked for, and cost no attention at a moment when attention is the only currency the game charges.</p>
-    <p>Three glowing pickups now go out around the orbit instead, spaced far enough apart that they cannot all be reached — committing to one is giving up the others, which is the whole point of handing upgrades out this way. A skill is drawn from the pool when the offer goes out but <strong>charged against its pick limit only when one is actually collected</strong>, so the two the player flew past are still available next level. An offer is not a pick.</p>
-    <p>Health rides along on its own cadence, every second level, and is <em>not</em> part of the offer. <code>Pickup.Offer</code> stays null on a health drop, so the code that clears the rest of an offer walks past it in both directions: taking the health forfeits no upgrade, and taking an upgrade does not clear the health.</p>
+    <p>Three glowing pickups now go out around the orbit instead, spaced far enough apart that they cannot all be reached — committing to one is giving up the others, which is the whole point of handing upgrades out this way. A skill is drawn from the pool when the offer goes out but <strong>charged against its pick limit only when one is actually collected</strong>, so the two the player flew past are still available next level. An offer is not a pick. It waits 28 seconds for an answer, twice the 14 it had until 22 September, and flashes through its last three.</p>
+    <p>Health is not part of a level-up any more. It rode along every second level, outside the offer, until 22 September; it comes from wrecks now &mdash; see <em>Health comes from wrecks</em> below.</p>
     <div class="warn">
       <div class="label">Sharing the ring is not the same as sharing the forfeit</div>
       <p>Health and the upgrade offer were first placed by two separate calls, each asking the placement helper for its own bearings from the same player position with its own coin flip for direction. The nearest bearing of a set is the same number whatever the set's size — the clearance is clamped by the step but not scaled by it — so whenever the two flips agreed, <strong>the health drop landed exactly on top of the first upgrade</strong>. Measured before and after: nearest pair 0°, then 90°.</p>
-      <p>A level-up is one placement now. Health takes a slot at random rather than always the nearest or always the furthest, because either fixed choice teaches the player which pickup to fly at before they have looked at what is on offer.</p>
+      <p>A level-up became one placement, with health in a random slot rather than always the nearest or always the furthest, because either fixed choice teaches the player which pickup to fly at before they have looked at what is on offer. Health has since left the level-up altogether, so what remains is the lesson: two placements that each ask for bearings from the same point can agree exactly.</p>
     </div>
 
+    <h3>Health comes from wrecks</h3>
+    <p>The health drop every second level answered progress rather than need. It came out on schedule whether the player was at full health or one hit from dying, and at +2 every two levels it was worth about two hit points a minute at best. Since 22 September health is <strong>salvage</strong>: a small green piece worth one hit point, left where an enemy or a boss hull plate is destroyed, and flown into like any other pickup. A green <em>+1&nbsp;HP</em> rises where it was taken.</p>
+    <p>How often is decided by <code>SalvageClock</code>, which has no Unity object in it. It fills while the player is hurt, at a rate proportional to the share of health missing, and the next wreck after it is full leaves a piece and empties it. So the wait between pieces follows need:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Health missing</th><th class="num">A piece every</th></tr></thead>
+        <tbody>
+          <tr><td class="num">10%</td><td class="num">60 s</td></tr>
+          <tr><td class="num">25%</td><td class="num">24 s</td></tr>
+          <tr><td class="num">50%</td><td class="num">12 s</td></tr>
+          <tr><td class="num">75%</td><td class="num">8 s</td></tr>
+          <tr><td class="num">none</td><td class="num">never</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>That is one field on the <code>PickupSpawner</code>, <em>Salvage Seconds At Half Health</em>, at 12, and at half health it pays up to five hit points a minute to a player who collects every piece. The clock holds at most one piece owed, so a stretch with nothing to destroy cannot bank a burst.</p>
+    <div class="note">
+      <div class="label">Paced by time, because kills do not keep time</div>
+      <p>The obvious version is a chance per kill that rises as health falls. The two playtest-bot runs of 22 September killed about two enemies a second and about one, so any per-kill odds would have paid one player twice what they paid the other for the same wounds &mdash; healing would have followed how fast the player killed rather than how hurt they were. The clock decides <em>when</em>; the wreck only decides <em>where</em>.</p>
+    </div>
+    <p>What counts as a wreck is deliberate. An enemy shot down counts; one the player rams does not, because ramming despawns it without a death. Broken hull plates count, because the waves stop when the boss arrives and healing would otherwise dry up with the last stragglers. Emplacements do not, because the boss chases the player round the ring and would run over scrap left at its own face. A piece lands on the lane at the wreck&rsquo;s bearing and height, pulled into the band if the wreck was outside it, and lasts 15 seconds, flashing through the last three.</p>
+    <p>It is the same pickup prefab as an upgrade, uncaptioned and at 0.6 of the size. <code>Pickup.Configure</code> scales the glowing core and leaves the trigger alone, so a smaller piece is no harder to take, and it puts the core back to its authored size on every spawn &mdash; a pooled pickup keeps whatever size it last had, and an upgrade drawn after a piece of salvage would otherwise come out scrap-sized. <code>Pickup.Offer</code> stays null on salvage, so taking one clears nothing. None of it has been played yet.</p>
+
     <h3>Naming what is on offer</h3>
-    <p>Three coloured shapes are not a choice. The pickups were told apart by tint alone, on the reasoning recorded in <code>SkillDefinition</code>: there is no room for a label on an object the size of a bullet, and no time to read one while dodging. That holds for the health drop, which is only ever something to go and get. It does not hold for an offer, where deliberating <em>is</em> the point.</p>
-    <p><code>Pickup</code> still does not know what it grants. <code>Configure</code> takes a finished caption the same way it already took a finished colour, so one prefab serves every skill and the health drop alike.</p>
+    <p>Three coloured shapes are not a choice. The pickups were told apart by tint alone, on the reasoning recorded in <code>SkillDefinition</code>: there is no room for a label on an object the size of a bullet, and no time to read one while dodging. That holds for salvage, which is only ever something to go and get. It does not hold for an offer, where deliberating <em>is</em> the point.</p>
+    <p><code>Pickup</code> still does not know what it grants. <code>Configure</code> takes a finished caption the same way it already took a finished colour, so one prefab serves every skill and salvage alike.</p>
     <p>Collecting one now spawns a burst, which it never had: <code>PickupSpawner.collectEffect</code> was marked optional and left empty from the day the field was added, so taking a pickup produced nothing at all. It is the pack's <code>EnergyExplosion</code>, chosen against the alternative for being <strong>cyan</strong> &mdash; every other bright thing in this arena is lava-warm, and the HUD is already cyan, so a reward reads as a reward rather than as something detonating. It fires one burst at <code>t&nbsp;=&nbsp;0</code> across four sub-systems, the longest of which lives two seconds, and retires itself at 2.42 &mdash; which is the check worth doing on any pooled one-shot, because a retire shorter than the effect cuts it off mid-flight.</p>
     <p>The banner text and the pickup text are separate fields, because they are read at different moments. <em>&ldquo;Attack Speed Increased!&rdquo;</em> is written to fire after the fact, and reads oddly floating above something nobody has touched yet:</p>
     <div class="scroll">
@@ -1074,7 +1106,7 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <h4>In front of the camera is not the same as visible</h4>
     <p>The volcano stands in the middle of the ring, so a pickup on the far side projects to a perfectly good screen position — straight across the cone that is hiding it. A three-way offer would routinely put one of its three names on a rock.</p>
     <p>The test is arithmetic rather than <code>Physics.Linecast</code>, because the scene has no scenery colliders at all: not the island, not the ruins, not the volcano. Giving the island a MeshCollider would push 40,050 vertices of static geometry into the physics world for the first time, and bullets and enemies would then need keeping off it. That is a gameplay change to fix a caption.</p>
-    <p>It is flat because the arena is. <code>PickupSpawner</code> places pickups at the player's own height, and the camera holds that height and looks along the horizontal, so every sight line that matters runs level at y&nbsp;=&nbsp;7. A cone sliced at one height is a circle, and the whole question drops to two dimensions — closest approach of the camera-to-label segment to the arena axis, clamped to the segment so a pickup in front, with the volcano behind it, is not mistaken for one hiding behind the volcano.</p>
+    <p>It is flat because the arena is. <code>PickupSpawner</code> places an offer at the player's own height, and the camera holds that height and looks along the horizontal, so every sight line that matters runs level at y&nbsp;=&nbsp;7. A cone sliced at one height is a circle, and the whole question drops to two dimensions — closest approach of the camera-to-label segment to the arena axis, clamped to the segment so a pickup in front, with the volcano behind it, is not mistaken for one hiding behind the volcano.</p>
     <p>The radius was measured, not guessed. The volcano is not its own object — it is part of the island mesh — so sampling that mesh's 40,050 vertices in one-unit height bands gives the profile of a body of revolution:</p>
     <div class="scroll">
       <table>
@@ -1932,13 +1964,13 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>367 tests across 32 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>381 tests across 34 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
         <tbody>
           <tr><td><code>DisplayOptionsTests</code></td><td class="num">29</td><td>resolution filtering, the inverted vendor quality enums, and the frame cap that must not land on the refresh rate</td></tr>
-          <tr><td><code>TorpedoSteerTests</code></td><td class="num">22</td><td>that a torpedo hits a still player and misses a late dodge by the real hit boxes, turns no faster than it may, never snaps its heading, and arrives at an edge running along it</td></tr>
+          <tr><td><code>TorpedoSteerTests</code></td><td class="num">22</td><td>that a torpedo hits a still player and misses a late dodge by the real hit boxes, lets a timed dive to the floor escape, gains on a player who runs without ever catching them, turns no faster than it may, never snaps its heading, and arrives at an edge running along it</td></tr>
           <tr><td><code>MuzzleRowsTests</code></td><td class="num">20</td><td>grouping a bank of muzzles into the rows the artist modelled, pinned against the real heights off the boss</td></tr>
           <tr><td><code>RoundRouteTests</code></td><td class="num">19</td><td>a thrown disc turning back off the band&rsquo;s edges at any frame rate, and each slot of a row thrown its own way</td></tr>
           <tr><td><code>SkillPoolTests</code></td><td class="num">17</td><td>both original skill bugs, and that an offer is not a pick</td></tr>
@@ -1959,10 +1991,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
           <tr><td><code>CameraFramingTests</code></td><td class="num">8</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
           <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
+          <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">8</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate, a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
           <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
           <tr><td><code>ArenaLaneTests</code></td><td class="num">6</td><td>a shot eases onto the player's lane without overshooting, and gets there before it has missed its chance</td></tr>
           <tr><td><code>BossSheddingTests</code></td><td class="num">6</td><td>wreckage is fed evenly to all three heights whatever order the pods died in</td></tr>
+          <tr><td><code>SalvageClockTests</code></td><td class="num">6</td><td>salvage paced by need: due after the set wait at half health, sooner the more is missing, never at full health or once dead, and one piece owed at a time</td></tr>
           <tr><td><code>FireflyFieldTests</code></td><td class="num">6</td><td>that a firefly is placed inside the tree it belongs to, on a footprint that is not round, and that the birth rate cannot divide by zero</td></tr>
           <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
@@ -1977,6 +2011,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
     </div>
     <p>The newer suites all test things that fail <em>quietly</em>. A pool that hands the same object to two callers, a benchmark figure that misrepresents a tester's machine, a health bar showing a red loss stretch while the player is healing, a volume slider that does nothing over its bottom half, an upscaler handed the opposite quality mode to the one the player picked — none of those announce themselves.</p>
+
+    <h3>A pilot for whole runs</h3>
+    <p>The suite checks rules; nothing in it plays a run. <code>SurvivalPlaytestBot</code> does. It is editor-only, written with ChatGPT and then reviewed and extended here. <em>Survival Chaos › Playtest Bot</em> takes over <code>GameInput.Source</code> in play mode and flies the ship through the same axes and buttons a player has, so nothing in the game knows it is there; it hands input back when stopped, and never skips a wave, grants an upgrade or touches health. It sees what the camera&rsquo;s frustum and physics occlusion let through, a quarter of a second late, and every fifth of a second it weighs nine ways to move over a 1.2-second horizon, dashes included when walking is dangerous.</p>
+    <p>Its first long run showed what it could not see. Enemy rounds fly at about 26 units a second, so by the time the delayed pilot had seen one twice it had covered 9 to 12 units, and 21 of 37 traceable hits had nothing seen within 1.5 units of the ship. It now watches the guns instead, treating the 45&deg; ahead of each at its height as a line of fire; forecasts <code>Enemy 2</code> closing on each candidate route&rsquo;s height at the game&rsquo;s own easing rate, where it had held them at the height they were seen; and tracks wreckage, which is tagged Boss and was none of the kinds it looked for. Against the boss it takes the emplacements rather than the armoured hull, goes the long way round to their side of it, keeps one until it falls, and turns on the hull once they are gone.</p>
+    <p>Every session writes a report to <code>Logs/PlaytestBot/</code>: its decisions, every change of health with what it had seen just before, emplacement health in steps of ten, and a summary. On 22 September a full run reached the boss at level 20 with 1,279 kills, took all three emplacements in 41 seconds and died 11 seconds into Exposed. It is not a human simulation, and its survival is not a difficulty verdict &mdash; it reacts late and knows more than a player does &mdash; but it plays every run the same way, which no person does, and its kill rates are why the salvage clock keeps time rather than counting kills. <code>Docs/playtest-bot.md</code> is its manual.</p>
   </section>
 
   <hr class="div">
@@ -1992,7 +2031,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code> and <code>TorpedoSteer</code> — none of them are MonoBehaviours. That's what made 367 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 381 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2020,6 +2059,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h3>A number in a message is not a number in the file</h3>
     <p>The fog's density was stated correctly in a commit message and wrong in the asset, and six days of lighting work trusted the message. A message describes intent; the asset is what renders. When a later decision leans on a value from history &mdash; &ldquo;the fog is dense now, so the lights can come down&rdquo; &mdash; read the value back out of the file before building on it.</p>
+
+    <h3>A passing test can be yesterday&rsquo;s test</h3>
+    <p>Two rewritten torpedo tests were reported passing on 22 September against code that had not compiled yet: the runner used the assembly from before the edit. They failed on the next run, after they had been committed, and a claim built on them &mdash; that the faster torpedo now caught a player who ran &mdash; had to be taken back; it gains on them and never catches them. A count of passing tests says nothing about a change until the change has compiled. Force the compile, wait for it to finish, and find the new tests by name in the results.</p>
 
     <h3>Physics sees steps, not paths</h3>
     <p>A round that moves a unit between physics steps can pass straight through a hitbox two thirds of a unit wide, and it will do so for some positions and not others &mdash; which reads as randomness, or as a target that is slightly off its lane, rather than as a sampling gap. Tests of it are just as easy to spoil: a player ramming the target, a target phase-locked to the step, waves spawning into the measurement. Hold everything still, step the target through one gap, and count.</p>
@@ -2073,16 +2115,29 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <code>26_0921-1757_laser</code> build. One is picked by playing and becomes the default; if it is a far
       one, the audio listener moves to the ship. The Player's lane offset stays at 5; waves spawn from 21.45 out,
       so anything up to about +7.7 keeps every arrival outside the lane.</li>
-      <li><strong>The torpedoes at one every three seconds have not been played.</strong> At two with a 12&nbsp;s
+      <li><strong>The torpedoes at one every three seconds have had no verdict, and are faster now.</strong> Their
+      cruise went from 7.5 to 8.5 on 22 September, asked for as the player slowed to 5.6, and that is in no build
+      yet. At two with a 12&nbsp;s
       life, most hits came from torpedoes over four seconds old coming round again. If that feels cheap the fuel
       is the dial &mdash; six seconds would keep the second pass and lose most of the circling.</li>
-      <li><strong>The lance is a laser, and has only been seen in stills.</strong> The thrown arc read as a
+      <li><strong>The lance is a laser, and has had no verdict yet.</strong> The thrown arc read as a
       bent log, and the laser that replaced it on 21 September flashes out, holds half a second and goes out.
       Whether the flash reads as firing rather than switching on, whether half a second of hold is right, and
       whether the charge alone is warning enough now that the beam cannot be watched coming all want a run. The
       arithmetic that retired the forty-round stream is still the lesson worth keeping: the round&rsquo;s
       <em>speed</em> of 80 is degrees a second, so rounds leaving 0.06&nbsp;s apart were 1.15 units apart while
       each was 1.286 long, and had overlapped before they went anywhere.</li>
+      <li><strong>The boss was tuned against a ship at 7.</strong> The player went to 5.6 on 22 September and the
+      boss&rsquo;s rounds kept their speeds. Worked out, not played: the lance&rsquo;s charge is three quarters of a
+      band crossing, which is plenty, since leaving the beam takes half a unit; a vertical dash carries 3.6 of the 4.45
+      between banks; and a dash covers about 6 units of a 7.05-unit hull, so it gets through the ram only because the
+      ram closes head-on &mdash; about 8.5 units of travel between them in the 0.22&nbsp;s, against 10.7 before. If the
+      ram becomes a wall, <code>PlayerDash</code>&rsquo;s speed multiplier at 6.25 puts the dash back where it was.
+      Its tooltips still quote the old 7.7 and 4.47.</li>
+      <li><strong>Salvage has not been played.</strong> Its pace is one number, <em>Salvage Seconds At Half
+      Health</em> on the <code>PickupSpawner</code>: 12 pays up to five hit points a minute at half health, and 18 would
+      pay about three. The playtest bot reports what it healed as <code>healingObserved</code>, so a bot run can
+      measure it before a person does.</li>
       <li><strong>Boss rounds may reach the player too late now.</strong> The half-size ship narrowed
       the band a boss round can touch from about 0.33 either side of the lane to 0.21, so the outermost gun's
       round takes about 0.36&nbsp;s to become dangerous instead of 0.275. If the fight feels soft with god
@@ -2150,7 +2205,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 320 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 327 commits
   </footer>
 
 </div>
