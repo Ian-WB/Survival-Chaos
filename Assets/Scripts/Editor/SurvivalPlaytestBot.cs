@@ -166,6 +166,12 @@ namespace SurvivalChaos.EditorTools
                 // For a line of fire: which way round the ring its rounds fly, +1
                 // or -1 in this pilot's angle convention.
                 public float fireDirection;
+                // The boss's hull, which is armoured while any emplacement stands.
+                public bool hull;
+                // For an emplacement: which side of the hull it sticks out of, +1 or
+                // -1 in this pilot's angle convention. The hull swallows rounds, so
+                // an emplacement can only be shot from that side.
+                public float side;
             }
             private sealed class Snapshot
             {
@@ -486,8 +492,12 @@ namespace SurvivalChaos.EditorTools
                     var gun = obj.GetComponentInChildren<Enemy_1>();
                     if (gun != null) AddLinesOfFire(gun, chase, item, s);
                 }
+                if (obj.GetComponent<BossEmitter>() != null) item.hull = true;
                 if (obj is BossWeakPoint pod)
                 {
+                    var owner = pod.GetComponentInParent<BossEmitter>();
+                    if (owner != null)
+                        item.side = Mathf.Sign(Mathf.DeltaAngle(Angle(owner.transform.position), angle));
                     Transform glow = Read<Transform>(pod, "glow");
                     track.glowSize = glow.lossyScale.magnitude;
                     // Observe visible growth, not the emitter's schedule or charge progress.
@@ -619,9 +629,17 @@ namespace SurvivalChaos.EditorTools
                 float age = Time.time - known.time;
                 Item? goal = null;
                 float bestGoal = float.NegativeInfinity;
+                // The hull takes no damage while an emplacement stands, and the orange
+                // emplacements say so plainly: while one is in sight, the hull is not a
+                // target. It was, and with the remaining emplacements a few units off
+                // the pilot's height the nearer hull won, so after the first one fell
+                // it spent the fight shooting armour.
+                bool emplacementInSight = false;
+                foreach (var item in known.items) if (item.kind == Kind.Target && item.side != 0) emplacementInSight = true;
                 foreach (var item in known.items)
                 {
                     if (item.kind != Kind.Target && item.kind != Kind.Pickup) continue;
+                    if (item.hull && emplacementInSight) continue;
                     float distance = Mathf.Abs(Mathf.DeltaAngle(Angle(origin), Angle(item.position))) * Mathf.Deg2Rad * ArenaGeometry.LaneRadius + Mathf.Abs(item.position.y - origin.y);
                     float score = item.priority * 3 - distance;
                     if (score > bestGoal) { bestGoal = score; goal = item; }
@@ -634,6 +652,13 @@ namespace SurvivalChaos.EditorTools
                 float bestScore = float.PositiveInfinity, selectedDanger = 0, selectedLanding=0;
                 float bestWalkDanger=float.PositiveInfinity;
                 bool selectedDash=false;
+                // An emplacement faces one way along the ring. From behind the hull
+                // every round hits armour, and the hull spans the whole band, so the
+                // way to the front is the long way round.
+                float wrongSide=0;
+                if(goal.HasValue && goal.Value.kind==Kind.Target && goal.Value.side!=0
+                    && Mathf.DeltaAngle(Angle(goal.Value.position),Angle(origin))*goal.Value.side<0)
+                    wrongSide=goal.Value.side;
                 Vector3 selectedEnd=origin;
                 float duration=dash!=null ? Read<float>(dash,"duration") : 0;
                 float boost=dash!=null ? Read<float>(dash,"speedMultiplier") : 1;
@@ -661,7 +686,13 @@ namespace SurvivalChaos.EditorTools
                     float danger=RouteDanger(route,age,burst,out float landing);
                     if(!useDash) bestWalkDanger=Mathf.Min(bestWalkDanger,danger);
                     float score = danger*10 + landing*20 + (candidate - desired).sqrMagnitude * .15f + (useDash ? 4 : 0);
-                    if (goal.HasValue)
+                    if (wrongSide!=0)
+                    {
+                        // Input x of +1 lowers the angle, so x equal to the side carries
+                        // the ship away from the hull's back and round to its front.
+                        score += x == (int)wrongSide ? 0 : 3;
+                    }
+                    else if (goal.HasValue)
                     {
                         var g = goal.Value;
                         score += Mathf.Max(0, Mathf.Abs(end.y - g.position.y) - AlignmentTolerance) * 2;
@@ -687,6 +718,7 @@ namespace SurvivalChaos.EditorTools
                     { flipEdge = true; nextFlip = Time.time + .5f; }
                 }
                 string next = selectedDanger > 0 ? "Evading observed threat"
+                    : wrongSide != 0 ? "Going round to the front of " + goal.Value.label
                     : goal.HasValue ? (goal.Value.kind == Kind.Pickup ? "Collecting " : "Aligning with ") + goal.Value.label : "Searching";
                 if (next != reason || desired != lastLoggedInput || dashEdge || flipEdge) Log($"{next}; input={desired}; dash={dashEdge}; flip={flipEdge}");
                 lastLoggedInput = desired;

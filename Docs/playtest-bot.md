@@ -74,6 +74,11 @@ chase the player's height (Enemy 2 closes most of a gap in half a second) are
 forecast closing on the height of each candidate route, using the same
 exponential approach the game runs, rather than holding the height they were
 seen at.
+In the boss fight the emplacements are the targets: while one is in sight the
+hull is not, since it takes no damage until they are gone. The emplacements
+stick out of one side of the hull and the hull swallows rounds, so from the
+wrong side the pilot goes the long way round the ring to the front instead of
+shooting armour.
 The policy pursues healing below half health,
 then shots, attack speed, maximum health and movement upgrades. The real player
 must touch a pickup for its benefit to apply.
