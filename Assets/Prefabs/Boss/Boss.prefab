@@ -764,7 +764,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0.5
-  rotationSpeed: 15
+  rotationSpeed: 12
   leftOrRight: 0
   turnDeadbandDegrees: 20
   spawnSpeed: 0.1
@@ -874,7 +874,7 @@ MonoBehaviour:
     throwSpeed: 0
     homeSeconds: 10
     homePerception: 1.6
-    homeSpeed: 7.5
+    homeSpeed: 8.5
     homeLaunchSpeed: 3
     homeSpinUp: 0.6
     homeArmSeconds: 0.3

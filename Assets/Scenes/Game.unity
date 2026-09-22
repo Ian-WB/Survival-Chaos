@@ -15616,8 +15616,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 206122948}
-  orbitSpeed: 7
-  climbSpeed: 7
+  orbitSpeed: 5.6
+  climbSpeed: 5.6
 --- !u!114 &963194231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33164,8 +33164,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   center: {fileID: 206122948}
-  orbitSpeed: 7
-  climbSpeed: 7
+  orbitSpeed: 5.6
+  climbSpeed: 5.6
 --- !u!114 &919132148744893762
 MonoBehaviour:
   m_ObjectHideFlags: 0

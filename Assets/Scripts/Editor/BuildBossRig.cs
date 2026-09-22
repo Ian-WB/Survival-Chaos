@@ -1285,8 +1285,10 @@ namespace SurvivalChaos.EditorTools
                 // player's height at the old round's 80 degrees a second, 26
                 // units a second at the lane - read as bullets with a lean.
                 // These leave the muzzle at 3, run straight for 0.3s, spin up
-                // over 0.6s to 7.5 - a touch over the player's 7, asked for
-                // after 8 - and turn at 90 degrees a second: a turning circle
+                // over 0.6s to 8.5 - asked for on 22 September, when the
+                // player slowed from 7 to 5.6, so it now gains on a fleeing
+                // player; it was 7.5 against the player's 7 before that, asked
+                // for after 8 - and turn at 90 degrees a second: a turning circle
                 // about 10 units across, wider than the band, so one turning
                 // near an edge pulls out tight along it, and one that misses
                 // swings round and comes back at you while its fuel lasts. Half
@@ -1309,7 +1311,7 @@ namespace SurvivalChaos.EditorTools
                 // at once, and a missed torpedo has time to come round again.
                 HomeSeconds = 10f,
                 HomePerception = 1.6f,
-                HomeSpeed = 7.5f,
+                HomeSpeed = 8.5f,
                 HomeLaunchSpeed = 3f,
                 HomeSpinUp = 0.6f,
                 HomeArmSeconds = 0.3f,

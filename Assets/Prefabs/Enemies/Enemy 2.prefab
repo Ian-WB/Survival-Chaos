@@ -111,7 +111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 2
-  rotationSpeed: 25
+  rotationSpeed: 20
   leftOrRight: 0
   turnDeadbandDegrees: 20
   spawnSpeed: 0.2

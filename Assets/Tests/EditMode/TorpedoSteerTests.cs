@@ -18,7 +18,7 @@ namespace SurvivalChaos.Tests
         private const float Ceiling = 13.32f;
 
         /// <summary>The player's speed each way.</summary>
-        private const float PlayerSpeed = 7f;
+        private const float PlayerSpeed = 5.6f;
 
         /// <summary>The crown round the torpedo replaced: 80 degrees a second at the 18.72 lane.</summary>
         private const float OldRoundSpeed = 26.1f;
@@ -37,7 +37,7 @@ namespace SurvivalChaos.Tests
         private static readonly TorpedoHandling Crown = new TorpedoHandling
         {
             LaunchSpeed = 3f,
-            CruiseSpeed = 7.5f,
+            CruiseSpeed = 8.5f,
             SpinUp = 0.6f,
             ArmSeconds = 0.3f,
             TurnRate = 90f,
@@ -209,19 +209,20 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// Far slower than the round it replaced, and only a touch faster than
-        /// the player: one fleeing flat out along the ring is gained on, slowly,
-        /// and not caught from 20 away before the fuel runs out.
+        /// Far slower than the round it replaced, and half again the player's
+        /// speed since the player slowed to 5.6 on 22 September: running is no
+        /// longer an answer, so one fleeing flat out along the ring from 20 away
+        /// is caught before the fuel runs out. Dodging late is the answer.
         /// </summary>
         [Test]
-        public void IsOnlyATouchFasterThanThePlayer()
+        public void OutrunsAFleeingPlayer_ButFarSlowerThanTheOldRound()
         {
             Assert.Less(Crown.CruiseSpeed, OldRoundSpeed);
-            Assert.Greater(Crown.CruiseSpeed, PlayerSpeed);
-            Assert.Less(Crown.CruiseSpeed, PlayerSpeed * 1.15f);
+            Assert.Greater(Crown.CruiseSpeed, PlayerSpeed * 1.4f);
+            Assert.Less(Crown.CruiseSpeed, PlayerSpeed * 1.6f);
 
             Mover fleeing = time => new Vector2(20f + PlayerSpeed * time, 8f);
-            Assert.Greater(Closest(fleeing, Crown.Fuel, out _), 5f);
+            Assert.Less(Closest(fleeing, Crown.Fuel, out _), HitLength);
         }
 
         [Test]

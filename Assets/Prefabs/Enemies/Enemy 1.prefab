@@ -117,7 +117,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.93358976, y: 0.63960177, z: 0.9611164}
-  m_Center: {x: -0.09535801, y: 4.850328e-05, z: 0.023121208}
+  m_Center: {x: -0.09535801, y: 0.00004850328, z: 0.023121208}
 --- !u!114 &-5890411756183546034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -144,7 +144,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0.2
-  rotationSpeed: 15
+  rotationSpeed: 12
   leftOrRight: 0
   turnDeadbandDegrees: 20
   spawnSpeed: 0.2
