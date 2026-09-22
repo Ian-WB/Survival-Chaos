@@ -287,9 +287,9 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 318 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 320 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>318</b><span>commits</span></div>
+      <div class="stat"><b>320</b><span>commits</span></div>
       <div class="stat"><b>367</b><span>tests</span></div>
       <div class="stat"><b>111</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
@@ -518,6 +518,8 @@
       its fuel.</li>
       <li><strong>Seven cameras on the debug menu</strong> &mdash; the close wide lens against further back and
       tighter, so the choice can be made by playing rather than by argument.</li>
+      <li><strong>A laser for the lance</strong> &mdash; the thrown arc replaced by a beam that flashes out from
+      the prow, holds and goes out, drawn as a white-hot core in a soft glow turned to face the camera.</li>
     </ul>
   </section>
 
@@ -791,6 +793,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">The rescale fixes the instance, not the mechanism</div>
       <p>Moving the box again would break it again, silently, and again only on <code>Enemy 3</code>. So the gap is checked now. <code>SpawnBand</code> holds the arithmetic free of scene types so it is directly testable; <code>ApplyBounds.TryGetBand</code> exposes the band; and <code>WaveDefinition.DescribeStreamsOutside</code> takes the band as a parameter, because an asset can be opened with no scene loaded.</p>
       <p>It reports and never repairs. Whether the streams or the bounds are the wrong half depends on intent, and guessing between them would be worse than saying so. It does separate a stream that straddles the floor from one wholly beneath it, because losing some of a stream and losing all of it are different problems.</p>
+      <p>It checks where things <em>appear</em>, and that is all it checks. On 21 September the box moved down 1.7 and every stream still spawned inside it, the boss included &mdash; while the boss&rsquo;s banks, fixed to a hull that spawned where it always had, left the crown emplacement above the new ceiling. See <a href="#boss">The boss</a>.</p>
       <p><code>WaveDirector</code> runs the sweep at Start, editor-only — not from <code>OnValidate</code>, which fires when the component is touched and not when either of the two things it compares changes. Pressing play is the one action that reliably follows editing a wave or a bounds box. <code>Survival Chaos › Waves › Check Spawn Heights</code> runs the same sweep on demand.</p>
     </div>
 
@@ -865,9 +868,14 @@ transform.LookAt(pos);</code></pre>
     <p>One pool for all three, so the bar moves throughout &mdash; including through a phase where the hull itself is taking nothing &mdash; and retuning an emplacement cannot quietly change what the boss is worth. <code>BossPhaseState</code> holds the order with no Unity object attached, because &ldquo;once, and never backwards&rdquo; is exactly the kind of rule that is impossible to check by playing: a phase that can be re-entered looks identical to one that cannot until the frame where two bullets arrive together.</p>
 
     <h3>Three emplacements, and why they are where they are</h3>
-    <p>Each sits at the centroid of its own bank's muzzle heights, averaged from the model at build time rather than typed in, so a pod cannot drift away from the guns it stands for. They land at world y <strong>5.38, 9.17 and 12.71</strong> against a playable band of 4.42 to 13.32 &mdash; floor, middle, ceiling.</p>
+    <p>Each sits at the centroid of its own bank's muzzle heights, averaged from the model at build time rather than typed in, so a pod cannot drift away from the guns it stands for. They land at world y <strong>3.68, 7.47 and 11.01</strong> against a playable band of 2.72 to 11.62 &mdash; floor, middle, ceiling.</p>
     <p>Player bullets fly at the player's own height and never change it, so killing a bank means flying at that bank's height, which is where its own fire is thickest. The risk and the reward both fall out of the rig rather than out of a difficulty number.</p>
     <p>They are mounted proud of the hull, which is not decoration: the hull is a trigger that eats bullets, so a target inside it could never be hit at all. Wrecking one silences its bank for the rest of the two long acts &mdash; the Scuttle brings every muzzle back, wrecked banks included &mdash; so the order the player kills them in is a difficulty dial they set themselves.</p>
+    <div class="warn">
+      <div class="label">Moving the band leaves the boss behind</div>
+      <p>On 21 September the player&rsquo;s bounds box moved down <strong>1.7</strong>, from a band of 4.42&ndash;13.32 to 2.72&ndash;11.62. Everything that bounces, homes or frames reads the band live, so the curtain, the torpedoes and the whole-band cameras followed it. The boss did not: its banks are fixed to the hull, and the hull spawned at 7.79 as before. The crown emplacement, at 12.71 with a 0.7 radius, bottomed out at 12.01 against a ceiling of 11.62, and rounds leave the ship 0.045 below its centre &mdash; so only the six-shot upgrade&rsquo;s top round, flown at the ceiling, could touch it. The hull stays armoured while any emplacement stands, so <strong>in most runs the boss could not be killed</strong>, and the lance had drifted to 2 above the band&rsquo;s middle.</p>
+      <p>The boss spawns at 6.09 now, exactly 1.7 lower, which puts every bank back where it sits against the band. It was caught before a build, by measuring the banks against the new band &mdash; the spawn check passed, because the boss still appeared inside it. Whenever the box moves, the boss&rsquo;s stream in <code>MainRun</code> moves by the same amount.</p>
+    </div>
 
     <h3>Five shapes instead of one</h3>
     <p>The difference between them is entirely in <em>when</em> each muzzle goes off, which is the cheapest place to buy a boss fight: a slab of sixteen bullets and a staircase of sixteen bullets are the same volley and completely different problems.</p>
@@ -877,7 +885,7 @@ transform.LookAt(pos);</code></pre>
         <tbody>
           <tr><td>Curtain</td><td>Keel &middot; 12</td><td class="num">8s</td><td>every row but one, the gap stepping up a row per volley and wrapping &mdash; learnable rather than random. Throws <strong>discs</strong>, a disc every 2&nbsp;s, each climbing or diving and bouncing off the floor and ceiling</td></tr>
           <tr><td>Torpedo</td><td>Crown &middot; 16</td><td class="num">3s</td><td>one steering torpedo at a time, the muzzles taken in the order the old rake fired them; it was a staircase of sixteen until 21 September</td></tr>
-          <tr><td>Lance</td><td>Prow &middot; 1 arc</td><td class="num">2.6s</td><td>charges for one full crossing of the band, then draws a beam along the ring; owns the middle, which nothing else reaches</td></tr>
+          <tr><td>Lance</td><td>Prow &middot; 1 laser</td><td class="num">2.6s</td><td>charges for one full crossing of the band, then fires a laser 160&deg; round the ring from the prow and holds it half a second; owns the middle, which nothing else reaches</td></tr>
           <tr><td>Ram</td><td>&mdash;</td><td class="num">4.5s</td><td>the ship itself at three times cruise; countered by the dash and only by the dash</td></tr>
           <tr><td>Wreckage</td><td>&mdash;</td><td class="num">0.7s</td><td>a plate of the boss's own hull, torn off a wrecked emplacement and left in the lane</td></tr>
         </tbody>
@@ -923,6 +931,19 @@ transform.LookAt(pos);</code></pre>
       <div class="label">The boss stopped climbing to meet the player</div>
       <p>That is the one real behaviour change, and it had to go. The pods sit at fixed offsets from the hull, so a boss that matches the player's altitude parks the crown pod 4.9 units above them &mdash; above whatever height they climb to, forever &mdash; and the fight loses a third of itself to a weak point that cannot be reached.</p>
       <p>Nothing is lost by holding station. The hull is <strong>15.6 units tall against a band of 8.9</strong>, so it already spans every height the player can occupy; matching their altitude never changed whether the boss could be flown over, only where its guns pointed. This is the one enemy in the game that is a wall rather than a chaser.</p>
+    </div>
+
+    <h3>The lance is a laser</h3>
+    <p>From 8 September the lance was one drawn arc where it had been forty rounds: a 12.8-unit square tube, 24 segments bent along the ring, growing out of the prow and sliding round the band at the rounds&rsquo; own 80&deg; a second for two seconds. In play it read as a bent log. A material of its own &mdash; a hot core, a fade toward the tail, a pulse &mdash; improved the look and not the reading, because the throw was as much of it as the shape: a chunk that leaves the prow and slides away is a projectile, whatever it is drawn with. A laser stays attached to what fired it.</p>
+    <p>So <code>BossLanceBeam</code> fires one now. After the 1.2&nbsp;s charge it flashes out from the prow 160&deg; round the ring in 0.15&nbsp;s &mdash; the stretch the thrown arc used to cross &mdash; holds for 0.5&nbsp;s and thins out over 0.15&nbsp;s, hurting no one as it thins. It follows the prow&rsquo;s bearing as the boss moves round the ring and keeps the height it fired at, because that height is what the charge warned about. Caught in it costs four hits at the far end and five by the prow, against about four for a pass of the thrown arc, on the same 0.15&nbsp;s tick and the same 0.2 hit width. Shooting the prow emplacement out while it is on puts it out, as it already cancelled the charge.</p>
+    <div class="note">
+      <div class="label">The charge is the whole warning now, which is what it was sized for</div>
+      <p>The thrown arc could be watched coming, so a player far round the ring had more warning than the charge gave; the laser arrives in a sixth of a second, so everyone has exactly the charge. That is the number the charge was built on &mdash; 1.2&nbsp;s is about one full crossing of the band at the player&rsquo;s 7&nbsp;u/s &mdash; so the laser makes the design&rsquo;s promise literal rather than generous.</p>
+    </div>
+    <p>It is drawn as two ribbons along one spine, rebuilt each frame the beam is on and turned to face the camera, which is what makes a flat strip read as a round beam from any angle &mdash; a square tube shows its faces and its edges, and a laser has neither. The core is opaque and white-hot, on <code>BossLance.shadergraph</code>, the needle&rsquo;s graph with its function rewritten, with energy pulsing out from the prow. The glow around it is additive, on <code>BossLanceGlow.shadergraph</code>, the streak&rsquo;s graph renamed, soft to nothing at its edges and writing its own motion vectors for the reason under <a href="#render">Rendering</a>. Both materials sit on the lance&rsquo;s round prefabs, which nothing spawns, because the beam takes its look from the round in submesh order; <code>BossLanceBuilder</code> makes and places them.</p>
+    <div class="note">
+      <div class="label">White is wrong on a blob and right on a line</div>
+      <p>The energy material&rsquo;s first core had the needle&rsquo;s brightness and rendered (250, 244, 231) at the head and (236, 219, 182) at the tail &mdash; white at both ends, which swallowed the fade and the pulse, because everything past the tonemapper&rsquo;s shoulder looks the same. That is the pods&rsquo; problem again. Halving it brought them back. The laser&rsquo;s core is white-hot on purpose: on a line 0.06 wide that reads as a laser, and the glow around it carries the colour.</p>
     </div>
 
     <h3>The second act had lost what the first one was about</h3>
@@ -2049,19 +2070,19 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       than about the mechanic, so it has deliberately not been made.</li>
       <li><strong>The camera is a choice between seven presets now.</strong> The classic 75&deg; from 5 out, the
       same framing from 9 and 14, and the whole band from 7, 10, 14 and 20 &mdash; cycled with F8 then 9 in the
-      <code>26_0921-1643_laneeasing</code> build. One is picked by playing and becomes the default; if it is a far
+      <code>26_0921-1757_laser</code> build. One is picked by playing and becomes the default; if it is a far
       one, the audio listener moves to the ship. The Player's lane offset stays at 5; waves spawn from 21.45 out,
       so anything up to about +7.7 keeps every arrival outside the lane.</li>
       <li><strong>The torpedoes at one every three seconds have not been played.</strong> At two with a 12&nbsp;s
       life, most hits came from torpedoes over four seconds old coming round again. If that feels cheap the fuel
       is the dial &mdash; six seconds would keep the second pass and lose most of the circling.</li>
-      <li><strong>The lance reads; it should read as energy.</strong> Seen in the boss fight on
-      10 September it was unmistakable &mdash; a solid, hard-edged bar, nothing like a smear &mdash; which
-      answers the legibility question the beam was built around. What it reads as is a plank, because
-      <code>BossLanceBeam</code> borrows the plain round's single material and stretches one bullet's flat
-      emission over 12.8 units. The arithmetic that retired the forty-round stream is still the lesson worth
-      keeping: the round's <em>speed</em> of 80 is degrees a second, so rounds leaving 0.06&nbsp;s apart were
-      1.15 units apart while each was 1.286 long, and had overlapped before they went anywhere.</li>
+      <li><strong>The lance is a laser, and has only been seen in stills.</strong> The thrown arc read as a
+      bent log, and the laser that replaced it on 21 September flashes out, holds half a second and goes out.
+      Whether the flash reads as firing rather than switching on, whether half a second of hold is right, and
+      whether the charge alone is warning enough now that the beam cannot be watched coming all want a run. The
+      arithmetic that retired the forty-round stream is still the lesson worth keeping: the round&rsquo;s
+      <em>speed</em> of 80 is degrees a second, so rounds leaving 0.06&nbsp;s apart were 1.15 units apart while
+      each was 1.286 long, and had overlapped before they went anywhere.</li>
       <li><strong>Boss rounds may reach the player too late now.</strong> The half-size ship narrowed
       the band a boss round can touch from about 0.33 either side of the lane to 0.21, so the outermost gun's
       round takes about 0.36&nbsp;s to become dangerous instead of 0.275. If the fight feels soft with god
@@ -2129,7 +2150,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 318 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 320 commits
   </footer>
 
 </div>

@@ -400,11 +400,14 @@ namespace SurvivalChaos
         /// <summary>
         /// Keeps the beam's root on the prow as the boss moves round the ring.
         ///
-        /// The bearing follows; the height does not. EnemyMovement chases the
-        /// player's height once the boss is close, so a beam that followed the
-        /// prow up and down would follow the player through the one thing the
-        /// charge gave them time to do - leave its height. The boss moves slowly
-        /// enough that the root stays on the prow for the half second this is on.
+        /// The bearing follows; the height does not. The boss holds its height
+        /// today - its EnemyMovement has a chase radius of 0, so it never takes
+        /// up the player's - but the height at the moment of firing is the whole
+        /// of what the charge warned about, and a beam that followed the prow up
+        /// or down would move the thing the player spent the charge leaving. So
+        /// it stays put even if the boss is ever given a chase. The boss moves
+        /// round the ring slowly enough that the root stays on the prow for the
+        /// half second this is on.
         /// </summary>
         private void Follow()
         {

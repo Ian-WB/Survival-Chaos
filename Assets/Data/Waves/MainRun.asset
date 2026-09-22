@@ -250,7 +250,7 @@ MonoBehaviour:
     minInterval: 0.1
   - label: BossSpawn -> Boss
     prefab: {fileID: 2752971980227408059, guid: 16ffec50ecaea2b47a6a45d6eeb4ca56, type: 3}
-    position: {x: -1.8099998, y: 7.7906327, z: -21.37}
+    position: {x: -1.8099998, y: 6.0906324, z: -21.37}
     rotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
     xOffsetRange: {x: 0, y: 0}
     yOffsetRange: {x: 0, y: 0}

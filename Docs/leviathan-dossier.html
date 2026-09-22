@@ -328,8 +328,8 @@
         <h3>You cannot fly over it</h3>
         <p class="dim">
           The hull trigger is <span class="mono">15.3</span> units tall against a playable band of
-          <span class="mono">8.9</span>. It spans <span class="mono">y&nbsp;1.2&ndash;16.5</span>;
-          you live in <span class="mono">y&nbsp;4.4&ndash;13.3</span>.
+          <span class="mono">8.9</span>. It spans <span class="mono">y&nbsp;&minus;0.5&ndash;14.8</span>;
+          you live in <span class="mono">y&nbsp;2.7&ndash;11.6</span>.
           <span class="em">The boss is a moving wall</span> &mdash; the Stormruler shape, already
           built. The only way past it is around, which makes the direction flip the most
           important key on the board.
@@ -344,7 +344,7 @@
         </thead>
         <tbody>
           <tr><td>Lane radius</td><td class="num">18.72</td><td class="dim">the ring everything shares &mdash; the arena&rsquo;s 13.72, moved out 5 by the player&rsquo;s offset on 14 September</td></tr>
-          <tr><td>Playable band</td><td class="num">y 4.42 &rarr; 13.32</td><td class="dim">8.90 units tall</td></tr>
+          <tr><td>Playable band</td><td class="num">y 2.72 &rarr; 11.62</td><td class="dim">8.90 units tall &mdash; moved down 1.7 on 21 September, and the boss with it</td></tr>
           <tr><td>Player orbit</td><td class="num">21.4&deg;/s</td><td class="dim">7 u/s, 16.8 s per lap</td></tr>
           <tr><td>Player climb</td><td class="num">7 u/s</td><td class="dim">1.27 s floor to ceiling</td></tr>
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
@@ -373,19 +373,20 @@
 
     <figure class="band-fig">
       <svg class="band-svg" viewBox="0 0 300 430" role="img"
-           aria-label="Vertical section of the arena showing the playable band from y 44 to y 133, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
+           aria-label="Vertical section of the arena showing the playable band from y 2.7 to y 11.6, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
         <!-- band -->
         <rect x="86" y="30" width="128" height="360" fill="var(--ember-soft)" stroke="var(--line)"/>
 
         <!-- ceiling / floor labels -->
         <line x1="70" y1="30" x2="230" y2="30" stroke="var(--line)" stroke-dasharray="3 3"/>
         <line x1="70" y1="390" x2="230" y2="390" stroke="var(--line)" stroke-dasharray="3 3"/>
-        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">13.32</text>
-        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">4.42</text>
+        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">11.62</text>
+        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">2.72</text>
         <text x="238" y="27" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">CEILING</text>
         <text x="238" y="399" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">FLOOR</text>
 
-        <!-- CROWN rows: world y 13.41,13.37,12.88,12.42,12.00  -> map y=4.42..13.32 to 390..30 -->
+        <!-- CROWN rows: world y 11.71,11.67,11.18,10.72,10.31  -> map y=2.72..11.62 to 390..30.
+             The band and the boss moved down 1.7 together, so every line stays where it was. -->
         <g stroke="var(--weak)" stroke-width="2">
           <line x1="96" y1="26.4" x2="204" y2="26.4"/>
           <line x1="96" y1="28.0" x2="204" y2="28.0"/>
@@ -396,12 +397,12 @@
         <text x="238" y="60" fill="var(--weak)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">CROWN</text>
         <text x="238" y="73" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">16 muzzles</text>
 
-        <!-- PROW: world y 9.17 -->
+        <!-- PROW: world y 7.47 -->
         <line x1="96" y1="198.1" x2="204" y2="198.1" stroke="var(--ember)" stroke-width="3"/>
         <text x="238" y="196" fill="var(--ember)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">PROW</text>
         <text x="238" y="209" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">4 muzzles</text>
 
-        <!-- KEEL rows: world y 6.65, 6.63, 5.35, 5.28, 4.15, 4.12 -->
+        <!-- KEEL rows: world y 4.95, 4.93, 3.65, 3.58, 2.45, 2.42 -->
         <g stroke="var(--holo)" stroke-width="2">
           <line x1="96" y1="299.9" x2="204" y2="299.9"/>
           <line x1="96" y1="300.7" x2="204" y2="300.7"/>
@@ -417,10 +418,12 @@
               letter-spacing="1.5" transform="rotate(-90 10 215)" text-anchor="middle">PLAYABLE BAND</text>
       </svg>
       <figcaption>
-        Muzzle heights with the boss at its spawn height of 7.79. The outermost rows of each
+        Muzzle heights with the boss at its spawn height of 6.09. The outermost rows of each
         bank sit fractionally outside the band &mdash; the top crown row 0.09 above the ceiling,
-        the bottom keel row 0.29 below the floor &mdash; which is close enough to read as
-        &ldquo;the guns reach the edges of the world&rdquo; and worth leaving alone.
+        the bottom keel row 0.30 below the floor &mdash; which is close enough to read as
+        &ldquo;the guns reach the edges of the world&rdquo; and worth leaving alone. The band moved
+        down 1.7 on 21 September and the boss&rsquo;s spawn moved with it, from 7.79, so the banks
+        sit exactly where they did against it.
       </figcaption>
     </figure>
 
@@ -432,17 +435,17 @@
         <tbody>
           <tr>
             <td><span class="tag t-crown">Crown</span></td>
-            <td class="num">16</td><td class="num">12.00 &ndash; 13.41</td>
+            <td class="num">16</td><td class="num">10.31 &ndash; 11.71</td>
             <td class="dim">the upper wing, four rows of four</td>
           </tr>
           <tr>
             <td><span class="tag t-prow">Prow</span></td>
-            <td class="num">4</td><td class="num">9.17</td>
+            <td class="num">4</td><td class="num">7.47</td>
             <td class="dim">a single line at the furthest-forward point of the hull</td>
           </tr>
           <tr>
             <td><span class="tag t-keel">Keel</span></td>
-            <td class="num">12</td><td class="num">4.12 &ndash; 6.65</td>
+            <td class="num">12</td><td class="num">2.42 &ndash; 4.95</td>
             <td class="dim">three rows down the lower hull, both flanks</td>
           </tr>
         </tbody>
@@ -506,8 +509,8 @@
         <p class="dim">
           Each pod sits at the centroid of its own bank&rsquo;s muzzle heights, averaged from the
           model at build time rather than typed in, so it cannot drift away from the guns it stands
-          for &mdash; world y <span class="mono">5.38</span>, <span class="mono">9.17</span> and
-          <span class="mono">12.71</span>. They are mounted proud of the hull, which is not
+          for &mdash; world y <span class="mono">3.68</span>, <span class="mono">7.47</span> and
+          <span class="mono">11.01</span>. They are mounted proud of the hull, which is not
           decoration: the hull is a trigger that eats bullets, so a target inside it could never be
           hit at all.
         </p>
@@ -599,16 +602,19 @@
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-prow">Prow</span><strong>Lance</strong>
-            <span class="timing">one arc &middot; charge 1.2 s &middot; beam 2.0 s &middot; cycle 2.6 s</span>
+            <span class="timing">a laser &middot; charge 1.2 s &middot; out in 0.15 s &middot; holds 0.5 s &middot; cycle 2.6 s</span>
           </div>
           <p class="dim">
             The laser, timed rather than triggered. The prow pod swells for the whole 1.2&thinsp;s
             wind-up &mdash; that swell <em>is</em> the telegraph, and it is the only one, because a
-            muzzle is an empty transform with nothing to light up. Then the beam is simply there.
+            muzzle is an empty transform with nothing to light up. Then the laser fires.
             <span class="em">The design said the lance captured your height during the charge; it
             does not.</span> The boss holds altitude now, so what the lance actually does is own the
             middle of the band, which nothing else in the fight reaches. The 1.2&thinsp;s telegraph
-            is one full band crossing at 70&nbsp;u/s: always escapable, never for free. Shoot the pod
+            is about one full band crossing at the player&rsquo;s 7&nbsp;u/s: always escapable, never
+            for free. <span class="em">Since 21 September it is the whole of the warning</span>
+            &mdash; the laser is at full length a sixth of a second after it fires, so there is no
+            watching it come. Shoot the pod
             off mid-charge and the warning stops with it, rather than leaving the player dodging a
             shot that is never coming &mdash; which now means cutting a sound as well as a swell,
             since the wind-up makes a noise. It rises 198 to 694&thinsp;Hz over 1.15&thinsp;s
@@ -633,11 +639,30 @@
             length they read as sticks flying in formation. 33 was not a taste either &mdash; it is
             the longest a straight mesh can be on a circle this size before it visibly stops
             following the lane, which is what said the shape wanted here was never a projectile at
-            all. So the lance is now a single 12.8-unit arc, 24 segments bent along the ring, that
-            grows from its own muzzle, sweeps the band at the same 80&deg;/s the rounds had, and
-            lives two seconds. It borrows its material and its direction from the round prefab it
-            replaced, so it cannot drift out of step with the rest of the boss&rsquo;s fire, and it
-            bills damage on a 0.15&thinsp;s tick rather than per collider entry.
+            all. So from 8 September the lance was a single 12.8-unit arc, 24 segments bent along
+            the ring, that grew from its own muzzle, slid round the band at the same 80&deg;/s the
+            rounds had, and lived two seconds.
+          </p>
+          <p class="dim">
+            <span class="em">In play it read as a giant bent log, not a laser</span> &mdash; first
+            on a flat material, then on one with a hot core and a fade, which helped the look and not
+            the reading. The throw was the other half of it: a chunk that leaves the prow and slides
+            away is a projectile, whatever it is drawn with. A laser stays attached to what fired it.
+            So on 21 September it became one. After the charge it flashes out
+            <span class="mono">160&deg;</span> round the ring in <span class="mono">0.15&thinsp;s</span>
+            &mdash; the stretch the thrown arc used to cross &mdash; holds for half a second, and
+            thins out over another 0.15, hurting no one as it does. It follows the prow&rsquo;s bearing
+            as the boss moves and keeps the height it fired at, because that height is what the charge
+            warned about. It is drawn as a thin white-hot core inside a soft orange glow: two ribbons
+            turned to face the camera, the core opaque, the glow additive and writing its own motion
+            vectors for FSR, so there is no face or edge to see from any angle.
+          </p>
+          <p class="dim">
+            Caught in it costs four hits at the far end and five by the prow, against about four for a
+            pass of the thrown arc. It still bills on a 0.15&thinsp;s tick and is still 0.2 wide, and
+            it still takes its materials and its direction from the round prefab it replaced, so the
+            weapon&rsquo;s art lives in one place. Shoot the prow emplacement out while it is on and it
+            goes out, as the charge already did.
           </p>
         </div>
       </div>
@@ -851,9 +876,10 @@
 
   <section>
     <div class="eyebrow">Found while measuring</div>
-    <h2>Ten things the build turned up</h2>
+    <h2>Eleven things the build turned up</h2>
     <p class="lede">
-      Every one of them was invisible from the outside, and none would have been found by playing.
+      Every one of them but the crown was invisible from the outside, and none of those would have
+      been found by playing.
     </p>
 
     <div class="card">
@@ -996,6 +1022,24 @@
     </div>
 
     <div class="card">
+      <h3>The crown rose out of reach &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        On 21 September the player&rsquo;s bounds moved down <span class="mono">1.7</span>, from a band
+        of 4.42&ndash;13.32 to 2.72&ndash;11.62, and the boss&rsquo;s spawn stayed at 7.79. Its banks
+        are fixed to the boss, so they did not follow: the crown emplacement, at
+        <span class="mono">12.71</span> with a <span class="mono">0.7</span> radius, bottomed out at
+        12.01 against a ceiling of 11.62. Rounds leave the ship 0.045 below its centre, so only the
+        six-shot upgrade&rsquo;s top round, flown at the ceiling, reached it at all &mdash; and the hull
+        stays armoured while any emplacement stands, so <span class="em">in most runs the boss could
+        not be killed</span>. The lance had drifted to the upper part of the band too, 2 above its
+        middle. The boss spawns 1.7 lower now, at 6.09, which puts every bank back where it sits
+        against the band. Nothing checks this: the spawn check tests where the boss appears, and it
+        still appeared inside the band &mdash; it was the guns that left. Found before the build, by
+        measuring the banks against the new band.
+      </p>
+    </div>
+
+    <div class="card">
       <h3>The orphaned trigger volume &mdash; <span class="em">deleted</span></h3>
       <p class="dim">
         <code>27b8a93</code> added a &ldquo;Laser Trigger&rdquo; sphere to the prefab;
@@ -1047,17 +1091,16 @@
         </p>
       </div>
       <div class="card">
-        <h3>Whether the beam reads as a beam</h3>
+        <h3>Whether the laser reads as a laser</h3>
         <p class="dim">
-          The lance stopped being a stream of rounds on 8 September and became one drawn arc. That
-          settles the legibility argument on paper &mdash; there is nothing left to tell apart
-          &mdash; but it has not been played. The things to watch for are its own: whether a
-          12.8-unit chord bent into 24 segments still reads as straight at this radius, whether a
-          beam that grows from the muzzle rather than appearing whole is legible as a beam or as a
-          very fast projectile, and whether a 0.15&thinsp;s damage tick over two seconds is a fair
-          exchange for a hitbox the player can be inside. <span class="em">Length, thickness,
-          segments, lifetime and tick are all constants in one file</span>, which is the same
-          reason the numbers it replaced were easy to move.
+          The thrown arc read as a log, and the laser that replaced it on 21 September has only been
+          seen in stills. The things to watch for are its own: whether the flash-out reads as firing
+          rather than as switching on, whether half a second of hold is long enough to register and
+          short enough not to feel like a wall, and whether the charge alone is warning enough now
+          that the beam cannot be watched coming. Where it runs straight at the camera it pinches to
+          a glint, which is what any camera-facing beam does. <span class="em">Reach, widths, the
+          three timings and the tick are all constants in one file</span>, which is the same reason
+          the numbers it replaced were easy to move.
         </p>
       </div>
       <div class="card">
@@ -1068,7 +1111,7 @@
           20 hull went in 67&thinsp;s &mdash; and most of those hits came from torpedoes over
           4&thinsp;s old, coming round again. Since then the interval is 3&thinsp;s, the cruise 7.5
           rather than 8, and the torpedo half the size; the smaller box makes it an eighth-of-a-unit
-          intercept, easier to slip. That shape is in <span class="mono">26_0921-1643_laneeasing</span>
+          intercept, easier to slip. That shape is in <span class="mono">26_0921-1757_laser</span>
           and has not been played. If the old hunters feel cheap, the fuel is the dial: 6&thinsp;s
           would keep the second pass and lose most of the circling.
         </p>
