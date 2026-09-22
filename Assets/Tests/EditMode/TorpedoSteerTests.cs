@@ -156,15 +156,26 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// Diving all the way to the floor is not a way out: it follows the
-        /// player down, pulls out along the floor and runs into them there -
-        /// the same rule that bounces the discs off the band's edges.
+        /// Diving all the way to the floor is a timed escape, like the short
+        /// dodge. It used to be none: at a cruise of 7.5 against a player at 7,
+        /// one that dived half a second out was followed down and run into along
+        /// the floor. Since 22 September (cruise 8.5, player 5.6) a dive started
+        /// half a second to a second before it arrives gets away. Too early and it
+        /// follows you down; too late and you are still in its path.
         /// </summary>
         [Test]
-        public void HuggingAnEdgeIsNoEscape()
+        public void DivingToTheFloor_EscapesOnlyIfTimed()
         {
             float arrival = Arrival();
-            Assert.IsTrue(Hits(MovingBy(-10f, arrival - 0.5f), Crown.Fuel));
+            Assert.IsTrue(Hits(MovingBy(-10f, arrival - 1.5f), Crown.Fuel), "diving 1.5s before it arrives");
+
+            foreach (float lead in new[] { 1f, 0.7f, 0.5f })
+            {
+                Assert.IsFalse(Hits(MovingBy(-10f, arrival - lead), Crown.Fuel),
+                    "diving " + lead + "s before it arrives");
+            }
+
+            Assert.IsTrue(Hits(MovingBy(-10f, arrival - 0.3f), Crown.Fuel), "diving 0.3s before it arrives");
         }
 
         /// <summary>
@@ -209,20 +220,26 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// Far slower than the round it replaced, and half again the player's
-        /// speed since the player slowed to 5.6 on 22 September: running is no
-        /// longer an answer, so one fleeing flat out along the ring from 20 away
-        /// is caught before the fuel runs out. Dodging late is the answer.
+        /// Far slower than the round it replaced, and about half again the
+        /// player's speed since the player slowed to 5.6 on 22 September - yet
+        /// still no catch for a player who runs flat out along the ring from 20
+        /// away. It steers at where it last saw the player, which runs a little
+        /// behind them, so it closes to about 2.7 after six and a half seconds,
+        /// passes that point and has to come about. Running buys time; it does
+        /// not end the chase.
         /// </summary>
         [Test]
-        public void OutrunsAFleeingPlayer_ButFarSlowerThanTheOldRound()
+        public void GainsOnAPlayerWhoRuns_ButNeverCatchesThem()
         {
             Assert.Less(Crown.CruiseSpeed, OldRoundSpeed);
             Assert.Greater(Crown.CruiseSpeed, PlayerSpeed * 1.4f);
             Assert.Less(Crown.CruiseSpeed, PlayerSpeed * 1.6f);
 
             Mover fleeing = time => new Vector2(20f + PlayerSpeed * time, 8f);
-            Assert.Less(Closest(fleeing, Crown.Fuel, out _), HitLength);
+            float closest = Closest(fleeing, Crown.Fuel, out _);
+            Assert.Less(closest, 5f, "it should gain on them");
+            Assert.Greater(closest, HitLength * 4f, "it should not reach them");
+            Assert.IsFalse(Hits(fleeing, Crown.Fuel));
         }
 
         [Test]
