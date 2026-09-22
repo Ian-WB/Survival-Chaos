@@ -17,8 +17,8 @@ namespace SurvivalChaos
     public class SkillSelect : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("Skills this run can draw from. Healing is not one - it arrives on its own " +
-                 "cadence from PickupSpawner, and any HealSkill listed here is ignored.")]
+        [Tooltip("Skills this run can draw from. Healing is not one - it arrives as salvage " +
+                 "from PickupSpawner, and any HealSkill listed here is ignored.")]
         private List<SkillDefinition> skills = new List<SkillDefinition>();
 
         [SerializeField]
@@ -74,8 +74,8 @@ namespace SurvivalChaos
             {
                 Debug.Log(
                     $"SkillSelect ignored {healing} healing skill(s) in its list. Health is not an " +
-                    "upgrade any more - PickupSpawner drops it on its own level cadence, so that it " +
-                    "does not cost the player an upgrade to take.", this);
+                    "upgrade any more - PickupSpawner leaves it as salvage where things are destroyed, " +
+                    "so that it does not cost the player an upgrade to take.", this);
             }
 
             return upgrades;
@@ -88,7 +88,7 @@ namespace SurvivalChaos
         /// </summary>
         public void PickSkill(){
             // Final boss XP still updates progression, but the ending screen must
-            // not create another offer or health drop behind itself.
+            // not create another offer behind itself.
             if (RunOutcome.RunEnded) { return; }
 
             if(pool == null){
@@ -101,15 +101,10 @@ namespace SurvivalChaos
                 return;
             }
 
-            // Drawn here, placed there. The spawner decides whether health is due and
-            // lays everything out in one go - two separate placements from the same
-            // player bearing landed on top of each other.
-            //
-            // An empty draw is not a special case: every upgrade being spent is
-            // something the spawner handles, by sending health out on its own.
-            pickups.OfferLevelUp(
-                player != null ? player.currentLevel : 0,
-                pool.Draw(pickups.OfferSize));
+            // Drawn here, placed there. An empty draw is not a special case: every
+            // upgrade being spent is something the spawner handles, by leaving a
+            // piece of salvage instead.
+            pickups.OfferLevelUp(pool.Draw(pickups.OfferSize));
         }
 
 #if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU

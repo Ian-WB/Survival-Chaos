@@ -59,9 +59,9 @@ namespace SurvivalChaos.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"Emissive ladder applied to {changed} asset(s). The health drop colour lives " +
+            Debug.Log($"Emissive ladder applied to {changed} asset(s). The salvage colour lives " +
                       "on the PickupSpawner in the scene and is normalised separately - see " +
-                      "NormaliseHealthDropColour.");
+                      "NormaliseSalvageColour.");
         }
 
         /// <summary>
@@ -168,11 +168,11 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// The timed health drop's colour, which is a field on the spawner in the
-        /// scene rather than an asset - so it needs the scene open and saved.
+        /// Salvage's colour, which is a field on the spawner in the scene rather
+        /// than an asset - so it needs the scene open and saved.
         /// </summary>
-        [MenuItem("Survival Chaos/Normalise Health Drop Colour", priority = 52)]
-        public static void NormaliseHealthDropColour()
+        [MenuItem("Survival Chaos/Normalise Salvage Colour", priority = 52)]
+        public static void NormaliseSalvageColour()
         {
             // Any rather than First: there is only ever one spawner, and the
             // ordered variant is deprecated for depending on instance ID order.
@@ -184,10 +184,10 @@ namespace SurvivalChaos.EditorTools
             }
 
             SerializedObject serialized = new SerializedObject(spawner);
-            SerializedProperty colour = serialized.FindProperty("healthColor");
+            SerializedProperty colour = serialized.FindProperty("salvageColor");
             if (colour == null)
             {
-                Debug.LogWarning("PickupSpawner has no healthColor field.");
+                Debug.LogWarning("PickupSpawner has no salvageColor field.");
                 return;
             }
 
@@ -196,7 +196,7 @@ namespace SurvivalChaos.EditorTools
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(spawner);
 
-            Debug.Log($"Health drop: {Describe(before)} -> {Describe(colour.colorValue)}. " +
+            Debug.Log($"Salvage: {Describe(before)} -> {Describe(colour.colorValue)}. " +
                       "Save the scene to keep it.");
         }
 

@@ -9,10 +9,10 @@ namespace SurvivalChaos
     /// Colour used to be the only thing separating one pickup from another, on
     /// the reasoning recorded in SkillDefinition: there is no room for a label on
     /// an object the size of a bullet, and no time to read one while dodging.
-    /// That holds for the health drop, which is just something to go and get. It
-    /// does not hold for a level-up offer - three go out, taking one forfeits the
-    /// other two, and a choice the player cannot read is a choice between three
-    /// colours.
+    /// That holds for salvage, which is just something to go and get, and goes
+    /// out uncaptioned. It does not hold for a level-up offer - three go out,
+    /// taking one forfeits the other two, and a choice the player cannot read is
+    /// a choice between three colours.
     ///
     /// This was world-space text to begin with, a TextMeshPro on this very
     /// object. It read correctly and looked soft, because TextMeshPro's shader

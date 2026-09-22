@@ -79,6 +79,11 @@ namespace SurvivalChaos
         private Color experienceTint = new Color(1f, 0.78f, 0.25f);
 
         [SerializeField]
+        [ColorUsage(showAlpha: false, hdr: true)]
+        [Tooltip("Colour of the health restored where a piece of salvage was taken.")]
+        private Color healthTint = new Color(0.35f, 1f, 0.55f);
+
+        [SerializeField]
         [Range(0.2f, 3f)]
         [Tooltip("How long one number stays up, in seconds.")]
         private float numberSeconds = 0.9f;
@@ -224,6 +229,24 @@ namespace SurvivalChaos
             }
 
             Instance.Add(where, "+" + amount, Instance.experienceTint);
+        }
+
+        /// <summary>
+        /// Puts the health a piece of salvage restored where it was taken.
+        ///
+        /// Salvage carries no caption of its own, so this is where the player
+        /// learns what the green scrap was. Marked HP, because a bare "+1" in the
+        /// same place as the experience numbers would read as another one of
+        /// those in a different colour.
+        /// </summary>
+        public static void Health(Vector3 where, int amount)
+        {
+            if (Instance == null || amount <= 0)
+            {
+                return;
+            }
+
+            Instance.Add(where, "+" + amount + " HP", Instance.healthTint);
         }
 
         private void Add(Vector3 where, string caption, Color tint)
@@ -406,8 +429,9 @@ namespace SurvivalChaos
         /// where bullets and enemies would then have to be kept from noticing it.
         /// That is a gameplay change to fix a caption.
         ///
-        /// The test is flat because the arena is. Pickups spawn at the player's own
-        /// height (PickupSpawner passes player.position.y straight through) and the
+        /// The test is flat because the arena is. Captioned pickups spawn at the
+        /// player's own height (PickupSpawner passes player.position.y straight
+        /// through for an upgrade offer; salvage has no caption) and the
         /// camera holds that height and looks along the horizontal, so every sight
         /// line that matters runs level at y = 7. A cone sliced at one height is a
         /// circle, which reduces the whole question to two dimensions.

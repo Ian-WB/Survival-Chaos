@@ -143,6 +143,7 @@ namespace SurvivalChaos
             // whether or not anything is keeping score.
             PickupLabelBoard.Experience(transform.position, reward);
             RunStats.RecordKill(reward);
+            PickupSpawner.ReportWreck(transform.position);
 
             PlayDeathSound();
         }

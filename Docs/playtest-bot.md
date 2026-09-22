@@ -19,7 +19,9 @@ Pausing suspends gameplay decisions. Stopping the bot does not pause the game.
 
 Reports are written automatically to `Logs/PlaytestBot/`, outside `Assets`, when
 the session ends. They contain decision changes, health/level changes, camera
-settings, boss phase diagnostics, total kills and collected upgrade counts.
+settings, boss phase diagnostics, total kills and collected upgrade counts. The
+summary's `healingObserved` is health gained beyond what maximum-health picks
+explain, which in practice is salvage collected.
 Health losses include recent candidate decisions, predicted landing risk, input,
 dash state and the nearest delayed observations. These are evidence of what the
 bot knew, not proof of which object caused the hit. Fatal health loss is recorded
@@ -94,9 +96,10 @@ it is, and anything at its height between it and the pod that would take the
 rounds. These are read from the game for the report only.
 With no emplacement in sight the hull takes an emplacement's priority, so
 obstacles near the pilot do not pull it off the exposed boss.
-The policy pursues healing below half health,
-then shots, attack speed, maximum health and movement upgrades. The real player
-must touch a pickup for its benefit to apply.
+The policy pursues salvage ahead of everything below half health, and ahead of
+ordinary targets whenever any health is missing; upgrades go shots, attack
+speed, maximum health, then movement. The real player must touch a pickup for
+its benefit to apply.
 
 The tool restores the previous input provider only while it still owns input.
 It also stops on Play-mode exit, window closure, assembly reload, player removal,

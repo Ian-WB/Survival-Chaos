@@ -141,7 +141,7 @@ namespace SurvivalChaos.EditorTools
             private Snapshot known;
             private Vector2 axes, desired = Vector2.right;
             private Vector2 lastLoggedInput;
-            private int stepped = -1, health, level;
+            private int stepped = -1, health, maxHealth, level;
             private bool dashEdge, flipEdge, released;
             private float nextObserve, nextDecision, nextFlip, nextAim;
             // The target being worked on, kept so a nearer distraction has to beat
@@ -153,7 +153,7 @@ namespace SurvivalChaos.EditorTools
             private string reason = "Searching", cameraName = "unknown";
             private string bossPhase = "not encountered";
             private float bossStarted = -1;
-            private int injuries, dashRequests;
+            private int injuries, healed, dashRequests;
             private float lastFailureDump = -10;
             private string lastPlan = "No plan yet";
             private readonly MaterialPropertyBlock observedBlock = new MaterialPropertyBlock();
@@ -213,6 +213,7 @@ namespace SurvivalChaos.EditorTools
                 delay = reaction;
                 started = Time.time;
                 health = player.CurrentHealth;
+                maxHealth = player.MaxHealth;
                 level = player.currentLevel;
                 previous = GameInput.Source;
                 Log($"START hp={health}/{player.MaxHealth} level={level} reaction={delay} observation={ObserveEvery} commitment={CommitFor} horizon={Horizon}");
@@ -238,7 +239,7 @@ namespace SurvivalChaos.EditorTools
             public string Export(string end)
             {
                 Log("END " + end);
-                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={Time.time - started:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={(player != null ? player.CurrentHealth : 0)} bossSeconds={(bossStarted < 0 ? 0 : Time.time - bossStarted):F2} phase={bossPhase} damageObserved={injuries} dashRequests={dashRequests}");
+                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={Time.time - started:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={(player != null ? player.CurrentHealth : 0)} bossSeconds={(bossStarted < 0 ? 0 : Time.time - bossStarted):F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests}");
                 foreach (string skill in RunStats.SkillOrder) Log($"UPGRADE {skill}: {RunStats.PicksOf(skill)}");
                 string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/PlaytestBot"));
                 Directory.CreateDirectory(dir);
@@ -307,6 +308,10 @@ namespace SurvivalChaos.EditorTools
                         Log("FAILURE CONTEXT END");
                     }
                 }
+                // A Max HP pick raises current health with the ceiling. Only what
+                // the ceiling does not explain is healing - salvage, in practice.
+                else healed += Mathf.Max(0, current - health - Mathf.Max(0, player.MaxHealth - maxHealth));
+                maxHealth = player.MaxHealth;
                 health = current;
             }
             private void Step()
@@ -449,7 +454,9 @@ namespace SurvivalChaos.EditorTools
                     Add(plate, Kind.Threat, 0, 0, snapshot, seen);
                 foreach (var pickup in Object.FindObjectsByType<Pickup>(FindObjectsInactive.Exclude))
                 {
-                    float priority = pickup.HealAmount > 0 ? (health < player.MaxHealth * .5f ? 12 : -1)
+                    // Salvage restores 1 and comes often when hurt: worth a detour
+                    // whenever anything is missing, ahead of everything when low.
+                    float priority = pickup.HealAmount > 0 ? (health < player.MaxHealth * .5f ? 12 : health < player.MaxHealth ? 4 : -1)
                         : pickup.Skill is ShotUpgradeSkill ? 8 : pickup.Skill is AttackSpeedSkill ? 7
                         : pickup.Skill is MaxHealthSkill ? 6 : 5;
                     if (priority > 0) Add(pickup, Kind.Pickup, priority, 0, snapshot, seen);

@@ -389,10 +389,8 @@ namespace SurvivalChaos
                 GameSounds.Play(GameSounds.Instance.LevelUp);
             }
 
-            // Counted before the offer goes out, so what PickSkill sees is the level
-            // just reached rather than the one being left. The health cadence keys
-            // off it, and off-by-one there is the difference between health on the
-            // even levels and health on the odd ones.
+            // Counted before the offer goes out, so anything the offer reads sees
+            // the level just reached rather than the one being left.
             currentLevel += 1;
             RunStats.RecordLevel(currentLevel);
 

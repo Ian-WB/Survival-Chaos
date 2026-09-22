@@ -8257,6 +8257,7 @@ MonoBehaviour:
   arenaCenter: {fileID: 0}
   occluderRadius: 5
   experienceTint: {r: 1, g: 0.78, b: 0.25, a: 1}
+  healthTint: {r: 0.35, g: 1, b: 0.55, a: 1}
   numberSeconds: 0.9
   numberRise: 2.2
 --- !u!1 &388051838
@@ -19135,11 +19136,12 @@ MonoBehaviour:
   warmup: 5
   offerSize: 3
   offerSeparation: 55
-  offerLifetime: 14
-  healthEveryLevels: 2
-  healthAmount: 2
-  healthLifetime: 20
-  healthColor: {r: 0.3, g: 3, b: 0.90000004, a: 1}
+  offerLifetime: 28
+  salvageSecondsAtHalfHealth: 12
+  salvageAmount: 1
+  salvageLifetime: 15
+  salvageSize: 0.6
+  salvageColor: {r: 0.3, g: 3, b: 0.90000004, a: 1}
   skillSelect: {fileID: 919132148744893763}
   collectEffect: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
 --- !u!4 &1185721726

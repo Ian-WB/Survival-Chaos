@@ -180,10 +180,16 @@ namespace SurvivalChaos
                 }
 
                 // No experience, no kill recorded, and nothing taken off the
-                // boss's health. Breaking a plate opens a lane, and that is the
-                // whole of its reward - paying for it as well would make shooting
-                // away from the boss the scoring play in the act where shooting
-                // the boss is finally worth something.
+                // boss's health. Paying for a plate would make shooting away from
+                // the boss the scoring play in the act where shooting the boss is
+                // finally worth something.
+                //
+                // It does count as a wreck for salvage. That pays on need, paced
+                // by a clock rather than by what is shot, so breaking more plates
+                // does not bring more of it. With the waves over, plates are most
+                // of what the player can destroy in this act, and without them
+                // salvage would dry up with the last of the waves' stragglers.
+                PickupSpawner.ReportWreck(body.position);
                 ObjectPool.Despawn(gameObject);
                 return;
             }

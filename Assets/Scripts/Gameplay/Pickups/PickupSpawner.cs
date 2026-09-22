@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SurvivalChaos
 {
@@ -12,19 +13,21 @@ namespace SurvivalChaos
     /// are the reward for killing things, and making them a choice is what stops
     /// a run being the same build every time.
     ///
-    /// Health arrives on its own cadence, every few levels, and is never part of
-    /// an offer. It used to be both a timed drop and a skill in the pool, which
-    /// meant the commonest way to meet it was as one of three pickups - so
-    /// healing cost an upgrade, and taking an upgrade cost the heal. Neither is a
-    /// trade worth making the player think about: one is a reward for killing
-    /// well and the other is what you need when you are not.
+    /// Health arrives as salvage: a small piece of repair scrap left where
+    /// something the player destroyed went down, due more often the more health
+    /// is missing - see <see cref="SalvageClock"/>. It is never part of an offer.
     ///
-    /// Separating them costs the tension a timer had - health no longer arrives
-    /// mid-fight and forces a decision about breaking position - and buys a
-    /// player who is losing a reliable idea of when relief comes. It also means
-    /// health cannot arrive during the stretch when a struggling player most
-    /// needs it, because they are levelling slowly. That is the known cost of
-    /// this arrangement.
+    /// This is health's third design. As a skill in the pool it was one of three
+    /// pickups, so healing cost an upgrade and taking an upgrade cost the heal.
+    /// As a drop every second level it sat in the same fan as the upgrades,
+    /// looking like one of them without being one, and it ran on the levelling
+    /// clock - so it came least to a struggling player, who levels slowly, and
+    /// hardly at all in the boss fight, where the waves have stopped.
+    ///
+    /// Salvage answers need rather than progress, and it turns up in the fights
+    /// where the damage is being taken. Fetching it means breaking position in
+    /// the middle of one, which is the decision the old timed drop asked for
+    /// and the level cadence lost.
     /// </summary>
     public class PickupSpawner : MonoBehaviour
     {
@@ -50,8 +53,8 @@ namespace SurvivalChaos
         private GameObject pickupPrefab;
 
         [SerializeField]
-        [Tooltip("How many to build up front. The default covers one full offer plus a " +
-                 "health drop overlapping it.")]
+        [Tooltip("How many to build up front. The default covers one full offer plus two " +
+                 "pieces of salvage overlapping it.")]
         private int warmup = 5;
 
         [Header("Upgrade offers")]
@@ -69,26 +72,38 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Seconds an upgrade pickup stays out. Running out forfeits it, which is " +
                  "what gives the offer stakes.")]
-        private float offerLifetime = 14f;
+        private float offerLifetime = 28f;
 
-        [Header("Health drops")]
+        [Header("Salvage")]
         [SerializeField]
-        [Min(0)]
-        [Tooltip("Levels between health drops. 2 means one on every even level. Zero turns " +
-                 "them off entirely.")]
-        private int healthEveryLevels = 2;
-
-        [SerializeField]
-        private int healthAmount = 2;
-
-        [SerializeField]
-        [Tooltip("Seconds a health drop stays out. Longer than an upgrade offer - it is not " +
-                 "a choice between alternatives, just something to go and get.")]
-        private float healthLifetime = 20f;
+        [Min(1f)]
+        [Tooltip("Seconds between pieces of salvage at half health. The wait follows how much " +
+                 "health is missing: twice this with a quarter gone, two thirds of it with three " +
+                 "quarters gone, never at full health. A piece that is due waits for the next " +
+                 "thing the player destroys.")]
+        private float salvageSecondsAtHalfHealth = 12f;
 
         [SerializeField]
+        [Min(1)]
+        [Tooltip("Health one piece restores.")]
+        private int salvageAmount = 1;
+
+        [SerializeField]
+        [Tooltip("Seconds a piece stays out. Half a lap of the ring takes about 10.5 at base " +
+                 "speed, so a piece anywhere can be reached - the cost of fetching it is leaving " +
+                 "the fight, not the distance.")]
+        private float salvageLifetime = 15f;
+
+        [SerializeField]
+        [Range(0.2f, 1f)]
+        [Tooltip("Size of a piece against an upgrade. Only the glowing core shrinks; the grab " +
+                 "radius stays the same, so it reads as scrap without being harder to take.")]
+        private float salvageSize = 0.6f;
+
+        [SerializeField]
+        [FormerlySerializedAs("healthColor")]
         [ColorUsage(showAlpha: false, hdr: true)]
-        private Color healthColor = new Color(0.2f, 2f, 0.6f);
+        private Color salvageColor = new Color(0.2f, 2f, 0.6f);
 
         [Header("Feedback")]
         [SerializeField]
@@ -112,6 +127,33 @@ namespace SurvivalChaos
         /// </summary>
         private readonly List<SkillOffer> offers = new List<SkillOffer>();
 
+        private readonly SalvageClock salvage = new SalvageClock();
+
+        /// <summary>
+        /// Holds the player's height band, so salvage from a wreck above or below
+        /// it still lands where the player can fly. Found on the player.
+        /// </summary>
+        private ApplyBounds band;
+
+        /// <summary>
+        /// The spawner wrecks report to. One per scene - the callers are pooled
+        /// enemies and hull plates, which have no reference to it.
+        /// </summary>
+        private static PickupSpawner active;
+
+        private void OnEnable()
+        {
+            active = this;
+        }
+
+        private void OnDisable()
+        {
+            if (active == this)
+            {
+                active = null;
+            }
+        }
+
         private void Start()
         {
             ResolveReferences();
@@ -122,34 +164,84 @@ namespace SurvivalChaos
             }
         }
 
-        /// <summary>Whether the level just reached is one the cadence drops on.</summary>
-        private bool HealthDueAt(int level)
+        /// <summary>
+        /// Scaled time, so the clock stops with the game: a paused player is not
+        /// owed repairs for the time they spent on the pause screen.
+        /// </summary>
+        private void Update()
         {
-            return healthEveryLevels > 0 && level > 0 && level % healthEveryLevels == 0;
+            if (playerTarget != null)
+            {
+                salvage.Advance(
+                    Time.deltaTime,
+                    playerTarget.CurrentHealth,
+                    playerTarget.MaxHealth,
+                    salvageSecondsAtHalfHealth);
+            }
         }
 
         /// <summary>
-        /// Puts everything a level-up brings on the ring: the upgrade offer, and
-        /// a health drop when the level is due one.
+        /// Something the player destroyed went down here. Leaves a piece of
+        /// salvage when one is due.
         ///
-        /// One call because they share the ring. Placed separately, each went
-        /// through PickupPlacement.Bearings from the same player bearing with its
-        /// own coin flip for direction - and the nearest bearing of a set is the
-        /// same number whatever the set's size, so whenever the two flips agreed
-        /// the health drop landed exactly on top of the first upgrade. Asking for
-        /// all of them at once is what lets the spacing do its job.
-        ///
-        /// Sharing a placement does not make health part of the offer. It goes
-        /// down with no SkillOffer attached, so taking it forfeits no upgrade and
-        /// taking an upgrade does not clear it.
+        /// Static for the same reason PickupLabelBoard.Experience is: the callers
+        /// are enemies and hull plates dying, and none of them should have to
+        /// know whether the scene has a spawner. Silent when it does not.
+        /// Only real kills report - an enemy that rams the player dies silently
+        /// and leaves nothing, the same as it earns no experience.
         /// </summary>
-        /// <param name="level">The level just reached, for the health cadence.</param>
+        public static void ReportWreck(Vector3 where)
+        {
+            if (active != null)
+            {
+                active.Salvage(where);
+            }
+        }
+
+        private void Salvage(Vector3 where)
+        {
+            if (pickupPrefab == null || playerTarget == null || RunOutcome.RunEnded)
+            {
+                return;
+            }
+
+            if (!salvage.TrySpend(playerTarget.CurrentHealth, playerTarget.MaxHealth))
+            {
+                return;
+            }
+
+            Vector3 center = arenaCenter != null ? arenaCenter.position : Vector3.zero;
+            PlaceSalvage(PickupPlacement.BearingOf(where, center), ReachableHeight(where.y));
+        }
+
+        /// <summary>
+        /// A height inside the band the player is held in.
+        ///
+        /// Everything the player can shoot is at a height they can fly to - their
+        /// rounds never change height - so this is a guard rather than a routine
+        /// correction. A piece a few units outside the band would sit in plain
+        /// view and never be collectable, and nothing about it would say why.
+        /// </summary>
+        private float ReachableHeight(float height)
+        {
+            return band != null && band.TryGetBand(out float floor, out float ceiling)
+                ? Mathf.Clamp(height, floor, ceiling)
+                : height;
+        }
+
+        /// <summary>
+        /// Puts the upgrade offer a level-up brings on the ring.
+        ///
+        /// Health is no longer part of this. It rode along every second level,
+        /// placed in the same fan, and a green pickup among three labelled ones
+        /// read as a fourth choice whatever the code said about it.
+        /// </summary>
         /// <param name="skills">
         /// What to offer, already drawn from the pool but not yet charged
         /// against it - see SkillPool.Draw. May be empty once every upgrade is
-        /// spent, in which case health goes out on its own.
+        /// spent, in which case a piece of salvage goes out instead.
         /// </param>
-        public void OfferLevelUp(int level, IReadOnlyList<SkillDefinition> skills)
+        public void OfferLevelUp(IReadOnlyList<SkillDefinition> skills)
         {
             if (pickupPrefab == null)
             {
@@ -158,45 +250,32 @@ namespace SurvivalChaos
 
             int skillCount = skills != null ? skills.Count : 0;
 
-            // Health also stands in when there is nothing left to offer: a
-            // level-up that puts nothing on the ring reads as broken pickups
-            // rather than as a finished build.
-            bool health = HealthDueAt(level) || skillCount == 0;
-
-            int total = skillCount + (health ? 1 : 0);
-            if (total == 0)
-            {
-                return;
-            }
-
             float bearing = CurrentPlayerBearing();
             float height = player != null ? player.position.y : transform.position.y;
 
             float[] bearings = PickupPlacement.Bearings(
                 bearing,
-                total,
+                Mathf.Max(1, skillCount),
                 offerSeparation,
                 clockwise: Random.value < 0.5f);
 
-            // A slot at random rather than always the nearest or always the
-            // furthest. Either fixed choice teaches the player which pickup to
-            // fly at before they have looked at what is on offer.
-            int healthSlot = health ? Random.Range(0, total) : -1;
-
-            var offer = new SkillOffer();
-            int nextSkill = 0;
-
-            for (int i = 0; i < total && i < bearings.Length; i++)
+            // A level-up that puts nothing on the ring reads as broken pickups
+            // rather than as a finished build, so a spent pool leaves salvage.
+            if (skillCount == 0)
             {
-                if (i == healthSlot)
+                if (bearings.Length > 0)
                 {
-                    Place(
-                        bearings[i], height, null, healthAmount, healthColor,
-                        HealthCaption(), healthLifetime);
-                    continue;
+                    PlaceSalvage(bearings[0], height);
                 }
 
-                SkillDefinition skill = skills[nextSkill++];
+                return;
+            }
+
+            var offer = new SkillOffer();
+
+            for (int i = 0; i < skillCount && i < bearings.Length; i++)
+            {
+                SkillDefinition skill = skills[i];
                 if (skill == null)
                 {
                     continue;
@@ -204,13 +283,29 @@ namespace SurvivalChaos
 
                 offer.Add(Place(
                     bearings[i], height, skill, 0, skill.PickupColor,
-                    CaptionFor(skill), offerLifetime));
+                    CaptionFor(skill), offerLifetime, 1f));
             }
 
             if (offer.LiveCount > 0)
             {
                 offers.Add(offer);
             }
+        }
+
+        /// <summary>
+        /// One piece of salvage, uncaptioned.
+        ///
+        /// The health drop carried a label because it landed among labelled
+        /// upgrades, where an unlabelled pickup read as a label that had failed.
+        /// Salvage lands on its own, out of an explosion, and a caption on every
+        /// piece would be clutter in the middle of the fights it turns up in.
+        /// What it restored is shown as it is taken, where the player is looking.
+        /// </summary>
+        private void PlaceSalvage(float bearing, float height)
+        {
+            Place(
+                bearing, height, null, salvageAmount, salvageColor,
+                string.Empty, salvageLifetime, salvageSize);
         }
 
         /// <summary>
@@ -239,25 +334,12 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// What the label above a health drop says.
-        ///
-        /// Labelled for the same reason the upgrades are, even though health is
-        /// not one: it lands in the same set, at the same moment, looking like
-        /// the same kind of object. An unlabelled pickup among labelled ones
-        /// reads as a label that failed rather than as a different sort of thing.
-        /// </summary>
-        private string HealthCaption()
-        {
-            return $"+{healthAmount} Health";
-        }
-
-        /// <summary>
         /// Puts one pickup on the ring at a bearing.
         ///
-        /// A null skill with a heal amount is a health drop: no SkillOffer is
-        /// attached, so Pickup.Offer stays null and ClearOffer walks away from it
-        /// when an upgrade is taken - and it walks away from the upgrades when it
-        /// is taken. That absence is the whole of what makes health independent.
+        /// A null skill with a heal amount is salvage: no SkillOffer is attached,
+        /// so Pickup.Offer stays null and ClearOffer walks away from it when an
+        /// upgrade is taken - and it walks away from the upgrades when it is
+        /// taken. That absence is the whole of what makes health independent.
         /// </summary>
         private Pickup Place(
             float bearing,
@@ -266,7 +348,8 @@ namespace SurvivalChaos
             int healAmount,
             Color color,
             string caption,
-            float lifetime)
+            float lifetime,
+            float size)
         {
             Vector3 center = arenaCenter != null ? arenaCenter.position : Vector3.zero;
             Vector3 position = PickupPlacement.PointAt(
@@ -285,7 +368,7 @@ namespace SurvivalChaos
                 return null;
             }
 
-            pickup.Configure(this, skill, healAmount, color, caption, lifetime);
+            pickup.Configure(this, skill, healAmount, color, caption, lifetime, size);
             return pickup;
         }
 
@@ -341,7 +424,13 @@ namespace SurvivalChaos
             }
             else if (playerTarget != null)
             {
+                int before = playerTarget.CurrentHealth;
                 playerTarget.Heal(pickup.HealAmount);
+
+                // What it actually restored, which at full health is nothing -
+                // and a "+1" that did not happen is worse than no number.
+                PickupLabelBoard.Health(
+                    pickup.transform.position, playerTarget.CurrentHealth - before);
                 PlayCollectSound();
             }
 
@@ -458,6 +547,19 @@ namespace SurvivalChaos
             if (playerTarget == null && player != null)
             {
                 player.TryGetComponent(out playerTarget);
+            }
+
+            // Where BossEmitter looks for it too. Without one, salvage keeps the
+            // wreck's own height, which is inside the band for everything the
+            // player can reach to destroy.
+            if (band == null && player != null)
+            {
+                band = player.GetComponentInParent<ApplyBounds>();
+
+                if (band == null)
+                {
+                    band = player.GetComponentInChildren<ApplyBounds>();
+                }
             }
 
             if (arenaCenter == null)

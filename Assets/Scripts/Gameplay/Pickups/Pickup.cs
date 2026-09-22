@@ -10,10 +10,10 @@ namespace SurvivalChaos
     /// how to notice the player. It deliberately does not know what it grants -
     /// the payload is carried opaquely and handed back to the spawner on
     /// contact. Keeping the reward out of here is what lets one prefab serve
-    /// every skill and the health drop as well.
+    /// every skill and salvage as well.
     ///
-    /// Spawned through ObjectPool, so all the setup lives in
-    /// <see cref="Configure"/> rather than in a constructor or in Awake.
+    /// Spawned through ObjectPool, so everything that belongs to one life is set
+    /// in <see cref="Configure"/> rather than in a constructor or in Awake.
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public class Pickup : MonoBehaviour
@@ -76,6 +76,14 @@ namespace SurvivalChaos
         private bool collected;
 
         /// <summary>
+        /// The tinted core's authored size, read before any life can change it.
+        /// Salvage shrinks the core, and a pooled pickup keeps whatever size it
+        /// last had - an upgrade drawn from the pool after a piece of salvage
+        /// would otherwise come out scrap-sized.
+        /// </summary>
+        private Vector3 coreScale = Vector3.one;
+
+        /// <summary>
         /// Where in its bob cycle this pickup starts.
         ///
         /// Without it every pickup drives off the same clock and a three-way
@@ -93,12 +101,25 @@ namespace SurvivalChaos
         /// <summary>The offer this belongs to, or null for a standalone drop.</summary>
         public SkillOffer Offer { get; set; }
 
+        private void Awake()
+        {
+            if (tintTarget == null)
+            {
+                tintTarget = GetComponentInChildren<Renderer>();
+            }
+
+            if (tintTarget != null)
+            {
+                coreScale = tintTarget.transform.localScale;
+            }
+        }
+
         /// <summary>
         /// Sets the pickup up for a life. Called immediately after Spawn, before
         /// the object has had a frame to run.
         /// </summary>
         /// <param name="spawner">Told when this is taken or runs out.</param>
-        /// <param name="skill">The upgrade granted, or null for a health drop.</param>
+        /// <param name="skill">The upgrade granted, or null for salvage.</param>
         /// <param name="healAmount">Health granted when <paramref name="skill"/> is null.</param>
         /// <param name="color">Glow colour, normally the skill's own.</param>
         /// <param name="caption">
@@ -110,13 +131,19 @@ namespace SurvivalChaos
         /// payload on purpose.
         /// </param>
         /// <param name="lifetime">Seconds before the pickup gives up and expires.</param>
+        /// <param name="size">
+        /// The core's size against the prefab's, 1 for an upgrade. The collider
+        /// is left alone: a smaller pickup should look smaller, not be harder to
+        /// take.
+        /// </param>
         public void Configure(
             PickupSpawner spawner,
             SkillDefinition skill,
             int healAmount,
             Color color,
             string caption,
-            float lifetime)
+            float lifetime,
+            float size)
         {
             owner = spawner;
             Skill = skill;
@@ -131,6 +158,12 @@ namespace SurvivalChaos
             // Time.time is the right one: a paused game should not expire an
             // offer the player never got to answer.
             expiresAt = Time.time + Mathf.Max(0.1f, lifetime);
+
+            // Only a child's scale. On the root it would scale the trigger too.
+            if (tintTarget != null && tintTarget.transform != transform)
+            {
+                tintTarget.transform.localScale = coreScale * Mathf.Max(0.01f, size);
+            }
 
             Tint(color);
 

@@ -159,6 +159,7 @@ namespace SurvivalChaos
 
             PickupLabelBoard.Experience(transform.position, reward);
             RunStats.RecordKill(reward);
+            PickupSpawner.ReportWreck(transform.position);
 
             PlayDeathSound();
         }
