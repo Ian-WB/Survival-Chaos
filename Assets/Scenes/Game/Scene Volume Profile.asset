@@ -1,5 +1,49 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-2328534765814165853
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: VisualEnvironment
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.VisualEnvironment
+  active: 1
+  m_Version: 1
+  skyType:
+    m_OverrideState: 0
+    m_Value: 0
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
+  skyAmbientMode:
+    m_OverrideState: 0
+    m_Value: 1
+  planetRadius:
+    m_OverrideState: 0
+    m_Value: 6378.1
+  renderingSpace:
+    m_OverrideState: 0
+    m_Value: 1
+  centerMode:
+    m_OverrideState: 1
+    m_Value: 1
+  planetCenter:
+    m_OverrideState: 1
+    m_Value: {x: 0, y: -6379.1, z: 0}
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 0
+  fogType:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-726831603946336383
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -42,13 +86,13 @@ MonoBehaviour:
     m_Value: 1000
   baseHeight:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1000
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 1050
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 50
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
@@ -60,7 +104,7 @@ MonoBehaviour:
     m_Value: 1
   depthExtent:
     m_OverrideState: 1
-    m_Value: 60
+    m_Value: 64
   denoisingMode:
     m_OverrideState: 1
     m_Value: 3
@@ -84,7 +128,7 @@ MonoBehaviour:
     m_Value: 64
   m_VolumetricFogBudget:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.333
   m_ResolutionDepthRatio:
     m_OverrideState: 1
     m_Value: 0.5
@@ -111,6 +155,7 @@ MonoBehaviour:
   - {fileID: 6899709033243038368}
   - {fileID: 4984656191658638696}
   - {fileID: -726831603946336383}
+  - {fileID: -2328534765814165853}
 --- !u!114 &3770913140674972688
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -308,16 +353,16 @@ MonoBehaviour:
     m_Value: 0.01
   altitudeRange:
     m_OverrideState: 1
-    m_Value: 6000
+    m_Value: 5000
   fadeInMode:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   fadeInStart:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 5
   fadeInDistance:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 300
   numPrimarySteps:
     m_OverrideState: 0
     m_Value: 64
@@ -675,7 +720,7 @@ MonoBehaviour:
     m_Value: {fileID: 8900000, guid: 412a5cae74c553641876180b52468e65, type: 3}
   distortionMode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   flowmap:
     m_OverrideState: 0
     m_Value: {fileID: 0}

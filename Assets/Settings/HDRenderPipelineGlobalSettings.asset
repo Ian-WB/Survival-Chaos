@@ -197,28 +197,7 @@ MonoBehaviour:
       - rid: 1753254471785513268
       - rid: 1753254471785513269
     m_RuntimeSettings:
-      m_List:
-      - rid: 1753254471785513235
-      - rid: 1753254471785513236
-      - rid: 1753254471785513238
-      - rid: 1753254471785513240
-      - rid: 1753254471785513241
-      - rid: 1753254471785513242
-      - rid: 1753254471785513243
-      - rid: 1753254471785513245
-      - rid: 1753254471785513246
-      - rid: 1753254471785513247
-      - rid: 1753254471785513248
-      - rid: 1753254471785513249
-      - rid: 1753254471785513250
-      - rid: 1753254471785513253
-      - rid: 1753254471785513257
-      - rid: 1753254471785513260
-      - rid: 1753254471785513261
-      - rid: 1753254471785513262
-      - rid: 1753254471785513265
-      - rid: 1753254471785513266
-      - rid: 1753254471785513268
+      m_List: []
   renderingLayerNames:
   - Default
   lightLayerName0: 
@@ -286,7 +265,7 @@ MonoBehaviour:
         m_VolumetricCloudsTraceShadowsCS: {fileID: 7200000, guid: f350c5c3b41fd1b408aac9076f96610e, type: 3}
         m_VolumetricCloudsShadowFilterCS: {fileID: 7200000, guid: 771ea9a52996c024095906ac37a8a71f, type: 3}
         m_VolumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb, type: 3}
-        m_VolumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3, type: 3}
+        m_VolumetricCloudsCombinePS: {fileID: 4800000, guid: af4412cb121a45c4892ac99015133508, type: 3}
         m_CloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114, type: 3}
         m_WorleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
         m_WorleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
