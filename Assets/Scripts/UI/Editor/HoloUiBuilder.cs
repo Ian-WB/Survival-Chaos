@@ -61,6 +61,7 @@ namespace SurvivalChaos.EditorTools
 
             BuildHealth(root.transform, bar);
             BuildDash(root.transform, bar);
+            BuildDeflector(root.transform, bar);
             BuildExperience(root.transform, bar);
             BuildTimer(root.transform, bar);
             BuildBossBar(root.transform, bar);
@@ -184,6 +185,103 @@ namespace SurvivalChaos.EditorTools
             Undo.AddComponent<DashBar>(image.gameObject);
         }
 
+        /// <summary>
+        /// Adds the deflector's bar to a HUD that is already built, replacing it
+        /// if it is there, without rebuilding the rest.
+        ///
+        /// A full rebuild would do it too, but it also replaces every other
+        /// element and repoints half the scene, which is a lot to take on for
+        /// one bar in a scene whose HUD has been adjusted since it was built.
+        /// </summary>
+        [MenuItem("Survival Chaos/UI/Add Deflector Bar", priority = 21)]
+        public static void AddDeflectorBar()
+        {
+            Canvas canvas = FindCanvas();
+            Transform root = canvas != null ? canvas.transform.Find(RootName) : null;
+            if (root == null)
+            {
+                EditorUtility.DisplayDialog("No HUD",
+                    "Open the Game scene and build the HUD first (Survival Chaos/UI/Rebuild HUD).", "OK");
+                return;
+            }
+
+            Material bar = HoloUiFactory.EnsureBaseMaterial("HoloBar", "Survival Chaos/Holo Bar");
+            if (bar == null)
+            {
+                return;
+            }
+
+            Transform existing = root.Find(DeflectorName);
+            if (existing != null)
+            {
+                Undo.DestroyObjectImmediate(existing.gameObject);
+            }
+
+            BuildDeflector(root, bar);
+            WireDeflector(root);
+
+            AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);
+            Debug.Log("Deflector bar added to the HUD. Ctrl+Z removes it.", root);
+        }
+
+        private const string DeflectorName = "Deflector";
+
+        /// <summary>
+        /// The deflector's charge, beside the dash bar and the same height, so
+        /// the row reads as the two things that can save you from the next hit.
+        /// It ends where the hull bar does.
+        ///
+        /// Built under a parent of its own that stays active: DeflectorBar hides
+        /// the bar and its label until the upgrade is taken, and it cannot switch
+        /// off the object it runs on and still be there to switch it back on.
+        ///
+        /// Unlike the dash bar it keeps the red loss trail. This one only drops
+        /// when a hit has been blocked, which is exactly what that red means.
+        /// </summary>
+        private static void BuildDeflector(Transform parent, Material bar)
+        {
+            RectTransform group = HoloUiFactory.CreateRect(parent, DeflectorName, Vector2.zero,
+                Vector2.zero, Vector2.zero, Vector2.zero);
+            HoloUiFactory.Stretch(group);
+
+            TextMeshProUGUI label = HoloUiFactory.CreateText(group, "Deflector Label", Vector2.zero,
+                Vector2.zero, new Vector2(292f, 138f), new Vector2(200f, 24f), 14f,
+                TextAlignmentOptions.Left);
+            label.text = "Deflector";
+
+            Image image = HoloUiFactory.CreateBarImage(group, "Deflector Bar", Vector2.zero,
+                Vector2.zero, new Vector2(288f, 120f), new Vector2(200f, 12f), bar,
+                HoloUiFactory.Edge, 0f);
+
+            image.type = Image.Type.Simple;
+            image.fillAmount = 1f;
+
+            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
+
+            // No low pulse: empty means "just blocked one", which is the upgrade
+            // working rather than an emergency.
+            HoloUiFactory.ConfigureBar(holo, null, 0f);
+
+            DeflectorBar meter = Undo.AddComponent<DeflectorBar>(group.gameObject);
+            HoloUiFactory.Assign(meter, "fill", image);
+            HoloUiFactory.Assign(meter, "label", label.gameObject);
+        }
+
+        /// <summary>Points the deflector's bar at the player. Returns how many were wired.</summary>
+        private static int WireDeflector(Transform root)
+        {
+            DeflectorBar meter = HoloUiFactory.Find<DeflectorBar>(root, DeflectorName);
+            if (meter == null)
+            {
+                return 0;
+            }
+
+            HoloUiFactory.Assign(meter, "player",
+                Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include));
+            return 1;
+        }
+
         private static void BuildExperience(Transform parent, Material bar)
         {
             // ExpBar reads an Image's fillAmount rather than a Slider, so this one
@@ -299,6 +397,8 @@ namespace SurvivalChaos.EditorTools
                 HoloUiFactory.Assign(dashBar, "dash", dash);
                 wired++;
             }
+
+            wired += WireDeflector(root);
 
             foreach (SkillSelect target in Object.FindObjectsByType<SkillSelect>(FindObjectsInactive.Include))
             {

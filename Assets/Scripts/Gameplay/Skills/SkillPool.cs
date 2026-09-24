@@ -45,12 +45,19 @@ namespace SurvivalChaos
             }
         }
 
-        /// <summary>Skills that still have picks remaining.</summary>
+        /// <summary>
+        /// Passed as the level to open every level gate - see
+        /// SkillDefinition.IsAvailableAt. The default for callers with no level
+        /// to give, which is how the pool behaved before skills had gates.
+        /// </summary>
+        public const int AnyLevel = int.MaxValue;
+
+        /// <summary>Skills that still have picks remaining, whatever level they open at.</summary>
         public int AvailableCount
         {
             get
             {
-                RefreshAvailable();
+                RefreshAvailable(AnyLevel);
                 return availableBuffer.Count;
             }
         }
@@ -62,12 +69,14 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Returns the next skill and records the pick, or null when nothing is
-        /// left. A pool containing an unlimited skill never returns null.
+        /// Returns the next skill a player at <paramref name="level"/> can have
+        /// and records the pick, or null when nothing is left. A pool containing
+        /// an unlimited, ungated skill never returns null.
         /// </summary>
-        public SkillDefinition Next()
+        public SkillDefinition Next(int level = AnyLevel)
         {
-            SkillDefinition chosen = TakeOne(availableBuffer, refresh: true);
+            RefreshAvailable(level);
+            SkillDefinition chosen = TakeOne(availableBuffer);
 
             if (chosen != null)
             {
@@ -90,8 +99,10 @@ namespace SurvivalChaos
         ///
         /// Fewer than <paramref name="count"/> come back when the pool cannot
         /// field that many distinct skills; an offer of two is still an offer.
+        /// Only skills whose next pick is open at <paramref name="level"/> are
+        /// drawn.
         /// </summary>
-        public List<SkillDefinition> Draw(int count)
+        public List<SkillDefinition> Draw(int count, int level = AnyLevel)
         {
             var drawn = new List<SkillDefinition>();
 
@@ -103,12 +114,12 @@ namespace SurvivalChaos
             // A copy, because entries are removed as they are drawn to keep the
             // set distinct - and the shared buffer is refreshed from the pool
             // rather than owned by this call.
-            RefreshAvailable();
+            RefreshAvailable(level);
             var remaining = new List<SkillDefinition>(availableBuffer);
 
             while (drawn.Count < count && remaining.Count > 0)
             {
-                drawn.Add(TakeOne(remaining, refresh: false));
+                drawn.Add(TakeOne(remaining));
             }
 
             return drawn;
@@ -130,13 +141,8 @@ namespace SurvivalChaos
         /// Chooses an entry through <see cref="selectIndex"/> and removes it from
         /// the list it came from, clamping a selector that returns out of range.
         /// </summary>
-        private SkillDefinition TakeOne(List<SkillDefinition> from, bool refresh)
+        private SkillDefinition TakeOne(List<SkillDefinition> from)
         {
-            if (refresh)
-            {
-                RefreshAvailable();
-            }
-
             if (from.Count == 0)
             {
                 return null;
@@ -156,13 +162,16 @@ namespace SurvivalChaos
             return chosen;
         }
 
-        private void RefreshAvailable()
+        private void RefreshAvailable(int level)
         {
             availableBuffer.Clear();
 
             foreach (SkillDefinition definition in skills)
             {
-                if (definition.IsUnlimited || pickCounts[definition] < definition.MaxPicks)
+                int taken = pickCounts[definition];
+
+                if ((definition.IsUnlimited || taken < definition.MaxPicks)
+                    && definition.IsAvailableAt(taken, level))
                 {
                     availableBuffer.Add(definition);
                 }

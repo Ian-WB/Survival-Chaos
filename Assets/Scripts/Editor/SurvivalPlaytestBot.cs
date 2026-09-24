@@ -684,6 +684,26 @@ namespace SurvivalChaos.EditorTools
                 return closest + .25f * Mathf.Abs(route[route.Length - 1].y - target);
             }
             /// <summary>
+            /// How far a route stays from a pickup: the closest it comes, plus a
+            /// little for where it ends. Straight-line distance, because a pickup is
+            /// taken by flying into its sphere, so the ring and the height count
+            /// together.
+            ///
+            /// The same fix as <see cref="HeightMiss"/>, for the ring. Pickups were
+            /// scored on where the route ended alone, and a route held at full speed
+            /// for the horizon runs about 6.7 units, so from anywhere nearer than
+            /// half that, flying through the pickup ended further from it than
+            /// stopping did. On 24 Sep the pilot twice parked 2 units short of an
+            /// upgrade, level with it, for over 20 seconds, and three offers ran
+            /// out in a 6-minute run.
+            /// </summary>
+            private static float PickupMiss(Vector3[] route, Vector3 target)
+            {
+                float closest = float.PositiveInfinity;
+                foreach (var point in route) closest = Mathf.Min(closest, Vector3.Distance(point, target));
+                return closest + .1f * Vector3.Distance(route[route.Length - 1], target);
+            }
+            /// <summary>
             /// Where an enemy that chases the player's height will be, <paramref name="elapsed"/>
             /// seconds after it was seen at <paramref name="observed"/>: the same exponential
             /// approach EnemyMovement runs, toward the height the player will be at.
@@ -877,10 +897,13 @@ namespace SurvivalChaos.EditorTools
                     else if (goal.HasValue)
                     {
                         var g = goal.Value;
-                        score += Mathf.Max(0, HeightMiss(route, g.position.y) - AlignmentTolerance) * 2;
                         if (g.kind == Kind.Pickup)
-                            score += Mathf.Abs(Mathf.DeltaAngle(Angle(end), Angle(g.position))) * Mathf.Deg2Rad * ArenaGeometry.LaneRadius;
-                        else score += x == 0 ? .5f : 0;
+                            score += PickupMiss(route, g.position) * 2;
+                        else
+                        {
+                            score += Mathf.Max(0, HeightMiss(route, g.position.y) - AlignmentTolerance) * 2;
+                            score += x == 0 ? .5f : 0;
+                        }
                     }
                     else score += x == 1 && y == 0 ? 0 : 1;
                     if (score < bestScore) { bestScore = score; best = candidate; selectedDanger = danger; selectedDash=useDash; selectedLanding=landing; selectedEnd=end; }

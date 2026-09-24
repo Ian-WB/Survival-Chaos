@@ -103,8 +103,9 @@ namespace SurvivalChaos
 
             // Drawn here, placed there. An empty draw is not a special case: every
             // upgrade being spent is something the spawner handles, by leaving a
-            // piece of salvage instead.
-            pickups.OfferLevelUp(pool.Draw(pickups.OfferSize));
+            // piece of salvage instead. Drawn at the level just reached, so a
+            // skill that opens at level 8 is first offered by the level-up to 8.
+            pickups.OfferLevelUp(pool.Draw(pickups.OfferSize, CurrentLevel));
         }
 
 #if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
@@ -213,7 +214,7 @@ namespace SurvivalChaos
                     "outright instead of offering them on the ring.", this);
             }
 
-            SkillDefinition skill = pool.Next();
+            SkillDefinition skill = pool.Next(CurrentLevel);
             if (skill == null)
             {
                 return;
@@ -228,6 +229,13 @@ namespace SurvivalChaos
 
             ShowBanner(skill.GetDisplayName(pool.PicksTaken(skill)));
         }
+
+        /// <summary>
+        /// The level an offer is for, which the player has already reached:
+        /// Player.LevelUp counts it before asking. Every gate is open when there
+        /// is no player to ask.
+        /// </summary>
+        private int CurrentLevel => player != null ? player.currentLevel : SkillPool.AnyLevel;
 
         /// <summary>The banner still counting down, so the next pick can stop it.</summary>
         private Coroutine banner;

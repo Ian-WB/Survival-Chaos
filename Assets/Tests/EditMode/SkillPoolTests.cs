@@ -144,6 +144,107 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual("SexTUPLO Shot!", shots.GetDisplayName(99));
         }
 
+        /// <summary>Fills a staged skill's two name lists the way the Inspector would.</summary>
+        private static void SetStages(SkillDefinition skill, string field, params string[] names)
+        {
+            SerializedObject serialized = new SerializedObject(skill);
+            SerializedProperty list = serialized.FindProperty(field);
+            list.arraySize = names.Length;
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                list.GetArrayElementAtIndex(i).stringValue = names[i];
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
+        public void StagedSkill_NamesEachPick_AndHoldsTheLastPastTheEnd()
+        {
+            DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
+            SetStages(deflector, "stagePickupNames", "Deflector", "Faster Deflector");
+
+            Assert.AreEqual("Deflector", deflector.GetPickupName(1));
+            Assert.AreEqual("Faster Deflector", deflector.GetPickupName(2));
+            Assert.AreEqual("Faster Deflector", deflector.GetPickupName(5));
+        }
+
+        [Test]
+        public void StagedSkill_WithNoStages_FallsBackToItsOwnNames()
+        {
+            MagnetSkill magnet = NewSkill<MagnetSkill>(2);
+            SerializedObject serialized = new SerializedObject(magnet);
+            serialized.FindProperty("displayName").stringValue = "Magnet Range Increased!";
+            serialized.FindProperty("pickupName").stringValue = "Magnet";
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.AreEqual("Magnet Range Increased!", magnet.GetDisplayName(2));
+            Assert.AreEqual("Magnet", magnet.GetPickupName(2));
+        }
+
+        /// <summary>Sets the level each pick opens at, the way the Inspector would.</summary>
+        private static void SetLevels(SkillDefinition skill, params int[] levels)
+        {
+            SerializedObject serialized = new SerializedObject(skill);
+            SerializedProperty list = serialized.FindProperty("availableFromLevel");
+            list.arraySize = levels.Length;
+
+            for (int i = 0; i < levels.Length; i++)
+            {
+                list.GetArrayElementAtIndex(i).intValue = levels[i];
+            }
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        [Test]
+        public void Draw_LeavesOutASkill_UntilItsLevel()
+        {
+            AttackSpeedSkill stat = NewSkill<AttackSpeedSkill>(8);
+            DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
+            SetLevels(deflector, 5);
+            var pool = new SkillPool(new SkillDefinition[] { stat, deflector }, _ => 0);
+
+            CollectionAssert.DoesNotContain(pool.Draw(3, level: 4), deflector);
+            CollectionAssert.Contains(pool.Draw(3, level: 5), deflector);
+        }
+
+        [Test]
+        public void EachPick_WaitsForItsOwnLevel()
+        {
+            DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
+            SetLevels(deflector, 3, 8);
+            var pool = new SkillPool(new SkillDefinition[] { deflector }, _ => 0);
+
+            CollectionAssert.Contains(pool.Draw(3, level: 3), deflector);
+            pool.RecordPick(deflector);
+
+            Assert.IsEmpty(pool.Draw(3, level: 7), "the second pick came before its level");
+            CollectionAssert.Contains(pool.Draw(3, level: 8), deflector);
+        }
+
+        [Test]
+        public void ASkillWithNoLevels_IsOfferedFromTheStart()
+        {
+            MoveSpeedSkill stat = NewSkill<MoveSpeedSkill>(5);
+            var pool = new SkillPool(new SkillDefinition[] { stat }, _ => 0);
+
+            CollectionAssert.Contains(pool.Draw(3, level: 1), stat);
+        }
+
+        [Test]
+        public void Next_WithNoLevelGiven_IgnoresTheGates()
+        {
+            // The callers with no player to ask - and every test above this one,
+            // written before skills had levels.
+            DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
+            SetLevels(deflector, 50);
+            var pool = new SkillPool(new SkillDefinition[] { deflector }, _ => 0);
+
+            Assert.AreSame(deflector, pool.Next());
+        }
+
         // Draw and RecordPick exist because an offer is not a pick. Level-up puts
         // several pickups on the ring and the player takes one, so drawing must
         // not charge anything - otherwise a three-way offer spends three picks

@@ -55,7 +55,12 @@ namespace SurvivalChaos
             {
                 Vector3 impact = other.transform.position;
 
-                ObjectPool.Despawn(other.gameObject);
+                // Spends the round, or lets a piercing one fly on. A round that
+                // has already struck this enemy is not a second hit.
+                if (!ShootScript.Land(other, gameObject))
+                {
+                    return;
+                }
 
                 // Death effects and the reward now fire here rather than from
                 // Update(), which only ever ran because Destroy is deferred.

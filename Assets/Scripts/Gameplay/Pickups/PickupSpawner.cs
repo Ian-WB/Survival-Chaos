@@ -438,6 +438,35 @@ namespace SurvivalChaos
             ObjectPool.Despawn(pickup.gameObject);
         }
 
+        /// <summary>
+        /// Where a pickup resting at <paramref name="anchor"/> should be after
+        /// drifting toward the player for <paramref name="seconds"/>, for the
+        /// Magnet upgrade. Unchanged with no magnet, or out of its reach.
+        ///
+        /// Straight at the ship rather than round the ring. Inside the widest
+        /// reach the chord runs at most a third of a unit inside the lane, and
+        /// the path ends on the ship either way. Asked by each pickup rather than
+        /// swept from here, because pickups hold their own anchor and the spawner
+        /// keeps no list of salvage.
+        /// </summary>
+        public Vector3 Attract(Vector3 anchor, float seconds)
+        {
+            if (playerTarget == null || player == null || seconds <= 0f || RunOutcome.RunEnded)
+            {
+                return anchor;
+            }
+
+            float reach = playerTarget.MagnetReach;
+            Vector3 ship = player.position;
+
+            if (reach <= 0f || (ship - anchor).sqrMagnitude > reach * reach)
+            {
+                return anchor;
+            }
+
+            return Vector3.MoveTowards(anchor, ship, playerTarget.MagnetPullSpeed * seconds);
+        }
+
         /// <summary>Called by a pickup whose clock ran out.</summary>
         public void OnExpired(Pickup pickup)
         {

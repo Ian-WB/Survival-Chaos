@@ -188,6 +188,13 @@ namespace SurvivalChaos
                 return;
             }
 
+            // The anchor rather than the position, so the bob and spin carry on
+            // around wherever the Magnet upgrade has drawn it to.
+            if (owner != null)
+            {
+                anchor = owner.Attract(anchor, Time.deltaTime);
+            }
+
             Animate(remaining);
         }
 

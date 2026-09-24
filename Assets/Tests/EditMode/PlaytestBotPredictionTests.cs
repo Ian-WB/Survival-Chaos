@@ -22,6 +22,27 @@ namespace SurvivalChaos.Tests
                     2f, 2f, 10f, floor, ceiling, heading, duration, 4f, 2f });
         }
 
+        private static float PickupMiss(Vector3[] route, Vector3 pickup)
+        {
+            return (float)Pilot.GetMethod("PickupMiss", BindingFlags.NonPublic | BindingFlags.Static)
+                .Invoke(null, new object[] { route, pickup });
+        }
+
+        [Test]
+        public void PickupMiss_FlyingThroughAPickup_BeatsStoppingShortOfIt()
+        {
+            // The pickup a quarter of the way along the walk: close enough that the
+            // walk ends further from it than standing still is, which is the case
+            // that parked the pilot 2 units short of upgrades on 24 Sep.
+            Vector3 origin = new Vector3(10, 0, 0);
+            var walk = Route(origin, Vector3.zero, Vector2.zero, 0, request: Vector2.right);
+            var stand = Route(origin, Vector3.zero, Vector2.zero, 0);
+            Vector3 pickup = walk[walk.Length / 4];
+
+            Assert.That(Vector3.Distance(walk.Last(), pickup), Is.GreaterThan(Vector3.Distance(origin, pickup)));
+            Assert.That(PickupMiss(walk, pickup), Is.LessThan(PickupMiss(stand, pickup)));
+        }
+
         [Test]
         public void DashEndingBetweenSteps_DoesNotGainExtraBoost()
         {

@@ -186,6 +186,30 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
+        public void SetCooldown_AppliesToACooldownAlreadyRunning()
+        {
+            // The Dash Recovery pick is taken whenever the player flies into it,
+            // which is as likely mid-cooldown as not.
+            DashCycle cycle = Cycle(duration: 0.2f, cooldown: 1f);
+            cycle.TryBegin(10f);
+
+            cycle.SetCooldown(0.5f);
+
+            Assert.IsTrue(cycle.IsReady(10.7f + Margin));
+            Assert.AreEqual(0.5f, cycle.Cooldown);
+        }
+
+        [Test]
+        public void SetCooldown_TreatsANegativeValueAsZero()
+        {
+            DashCycle cycle = Cycle(duration: 0.2f, cooldown: 1f);
+
+            cycle.SetCooldown(-3f);
+
+            Assert.AreEqual(0f, cycle.Cooldown);
+        }
+
+        [Test]
         public void Reset_PutsTheCycleBackToNeverDashed()
         {
             DashCycle cycle = Cycle(duration: 0.2f, cooldown: 1f);

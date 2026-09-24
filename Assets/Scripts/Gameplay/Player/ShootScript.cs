@@ -180,6 +180,58 @@ namespace SurvivalChaos
         private BoxCollider torpedoTargetBox;
 
         /// <summary>
+        /// Enemies this round may still pass through, and what it has already
+        /// struck. Only the player's rounds are given passes - see
+        /// <see cref="Pierce"/> - so every other round stops at its first target.
+        /// </summary>
+        private readonly RoundPierce pierce = new RoundPierce();
+
+        /// <summary>
+        /// Lets this round pass through <paramref name="count"/> enemies before
+        /// the next one stops it, for the Piercing Rounds upgrade. Called straight
+        /// after the spawn, the way <see cref="Throw"/> and <see cref="Home"/> are.
+        /// </summary>
+        public void Pierce(int count)
+        {
+            pierce.Reset(count);
+        }
+
+        /// <summary>
+        /// What an enemy does with one of the player's rounds that has struck it,
+        /// in place of despawning the round outright: the round flies on if it has
+        /// a pass left, and goes back to the pool if not.
+        ///
+        /// Returns false when the hit should not count at all - this round has
+        /// struck this enemy already, or was spent earlier in the same physics
+        /// step and is only now being reported.
+        ///
+        /// The boss's parts do not come through here and stop every round, as
+        /// they always have. The hull swallows rounds, and a pass that carried one
+        /// through an emplacement would only take it into the armour behind.
+        /// </summary>
+        public static bool Land(Collider round, GameObject target)
+        {
+            if (!round.TryGetComponent(out ShootScript script))
+            {
+                ObjectPool.Despawn(round.gameObject);
+                return true;
+            }
+
+            switch (script.pierce.Strike(target))
+            {
+                case StrikeResult.PassThrough:
+                    return true;
+
+                case StrikeResult.Stop:
+                    ObjectPool.Despawn(round.gameObject);
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
         /// Whether this round is a torpedo, for the player: a torpedo goes off
         /// when it hits, where a plain round flies on through.
         /// </summary>
@@ -353,6 +405,9 @@ namespace SurvivalChaos
             torpedoTarget = null;
             torpedoTargetBox = null;
 
+            // Nor the passes it had left, or the enemies it had already struck.
+            pierce.Reset(0);
+
             // A deterministic starting point, not the final orientation: every
             // frame of Update ends by facing the arena axis, and FaceOrbitCentre
             // below settles this to the same place before the round is ever
@@ -510,6 +565,7 @@ namespace SurvivalChaos
 
                 // The hit usually sends this round back to the pool, and a round
                 // that has already landed does not carry on to a second target.
+                // A piercing round is still active here, and goes on down the list.
                 if (!gameObject.activeInHierarchy)
                 {
                     return;

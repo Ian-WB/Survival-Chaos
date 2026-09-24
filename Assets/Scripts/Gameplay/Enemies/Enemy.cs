@@ -67,7 +67,12 @@ namespace SurvivalChaos
                 // the player their shot connected.
                 Vector3 impact = other.transform.position;
 
-                ObjectPool.Despawn(other.gameObject);
+                // Spends the round, or lets a piercing one fly on. A round that
+                // has already struck this enemy is not a second hit.
+                if (!ShootScript.Land(other, gameObject))
+                {
+                    return;
+                }
 
                 // One effect per outcome: a spark for a hit, an explosion for a kill.
                 // Playing both on the fatal shot buries the explosion in its own

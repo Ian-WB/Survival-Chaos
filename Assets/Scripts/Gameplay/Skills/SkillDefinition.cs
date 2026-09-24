@@ -22,6 +22,13 @@ namespace SurvivalChaos
         private int maxPicks = 1;
 
         [SerializeField]
+        [Tooltip("The level the player must have reached before each pick can be offered, in pick " +
+                 "order: the first entry gates the first pick, the second the second, and the last " +
+                 "holds for any pick after it. Left empty, every pick can be offered from the first " +
+                 "level-up, which is what the stat upgrades want.")]
+        private int[] availableFromLevel = new int[0];
+
+        [SerializeField]
         [ColorUsage(showAlpha: false, hdr: true)]
         [Tooltip("Colour of this skill's pickup on the ring. HDR - values above 1 bloom, " +
                  "which is what makes it read as a glowing object rather than a painted one.")]
@@ -43,6 +50,26 @@ namespace SurvivalChaos
 
         /// <summary>A skill with no pick limit never leaves the pool.</summary>
         public bool IsUnlimited => maxPicks <= 0;
+
+        /// <summary>
+        /// Whether the next pick can be offered to a player at
+        /// <paramref name="level"/>, with <paramref name="picksTaken"/> taken so
+        /// far. Says nothing about the pick limit, which the pool checks itself.
+        ///
+        /// Per pick rather than once per skill, so a skill can arrive early and
+        /// hold its stronger stages back: the first Deflector at one level, the
+        /// faster one several levels later.
+        /// </summary>
+        public bool IsAvailableAt(int picksTaken, int level)
+        {
+            if (availableFromLevel == null || availableFromLevel.Length == 0)
+            {
+                return true;
+            }
+
+            int gate = availableFromLevel[Mathf.Clamp(picksTaken, 0, availableFromLevel.Length - 1)];
+            return level >= gate;
+        }
 
         /// <summary>
         /// Banner text for a pick. Takes the number of times this skill has now

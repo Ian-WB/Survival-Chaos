@@ -100,6 +100,25 @@ namespace SurvivalChaos
         /// </summary>
         public float ReadyFraction => cycle != null ? cycle.ReadyFraction(Time.time) : 1f;
 
+        /// <summary>Seconds between dashes as things stand, upgrades included.</summary>
+        public float Cooldown => cycle != null ? cycle.Cooldown : cooldown;
+
+        /// <summary>
+        /// Takes <paramref name="seconds"/> off the cooldown, for the Dash
+        /// Recovery upgrade, stopping at <paramref name="floor"/>. A floor the
+        /// cooldown is already under leaves it where it is rather than raising it.
+        /// </summary>
+        public void ShortenCooldown(float seconds, float floor)
+        {
+            if (cycle == null)
+            {
+                return;
+            }
+
+            float current = cycle.Cooldown;
+            cycle.SetCooldown(Mathf.Min(current, Mathf.Max(floor, current - seconds)));
+        }
+
         private void Awake()
         {
             cycle = new DashCycle(duration, cooldown);

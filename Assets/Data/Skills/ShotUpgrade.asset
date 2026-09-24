@@ -15,6 +15,7 @@ MonoBehaviour:
   displayName: More Shots!
   pickupName: 
   maxPicks: 3
+  availableFromLevel: 040000000a00000012000000i
   pickupColor: {r: 3, g: 0.85, b: 0.15, a: 1}
   stageNames:
   - Double Shot!

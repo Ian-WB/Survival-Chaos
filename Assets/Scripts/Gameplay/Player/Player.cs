@@ -98,8 +98,9 @@ namespace SurvivalChaos
         private int levelCostIncrease = 35;
 
         [SerializeField, Min(0f)]
-        [Tooltip("Scales every enemy's Experience Reward, rounded to whole points. 1 is the run " +
-                 "as tuned: about 20 level-ups for the 20 upgrade picks, the last just before the boss.")]
+        [Tooltip("Scales every enemy's Experience Reward, rounded to whole points. A full run " +
+                 "reaches about 20 level-ups at 1, 29 at 2 and 35 at 3, against 29 upgrade picks in " +
+                 "the pool; a level-up with the pool spent leaves a piece of salvage instead.")]
         private float experienceMultiplier = 1f;
 
         [SerializeField]
@@ -269,6 +270,14 @@ namespace SurvivalChaos
                 return;
             }
 
+            // After both checks above, so a hit that could not have landed is not
+            // one the deflector spends itself on. Called for every hit once the
+            // deflector is held, blocked or not: each one restarts its recharge.
+            if (deflector != null && deflector.TryAbsorb(Time.time))
+            {
+                return;
+            }
+
             bool killed = health.TakeDamage(1);
 
             if (spawnHitEffect)
@@ -374,10 +383,17 @@ namespace SurvivalChaos
 
             foreach (float offset in offsets)
             {
-                ObjectPool.Spawn(
+                GameObject round = ObjectPool.Spawn(
                     prefab,
                     shootPivot.position + new Vector3(0f, offset * shotSpacing, 0f),
                     Quaternion.Euler(0f, 0f, 90f));
+
+                // Given after the spawn because the spawn is what clears it: a
+                // pooled round resets its passes in OnEnable.
+                if (pierceUpgrades > 0 && round != null && round.TryGetComponent(out ShootScript script))
+                {
+                    script.Pierce(pierceUpgrades);
+                }
             }
         }
 
@@ -480,6 +496,53 @@ namespace SurvivalChaos
                  "or it falls behind the ship.")]
         private float moveSpeedStep = 0.10f;
 
+        [Header("Piercing rounds")]
+        [SerializeField]
+        [Min(0)]
+        [Tooltip("How many enemies each round passes through before the next one stops it. One per " +
+                 "Piercing Rounds pick. Serialized so it can be tried from here without playing up " +
+                 "to it, like the shot pattern stage.")]
+        private int pierceUpgrades;
+
+        [Header("Dash recovery")]
+        [SerializeField]
+        [Range(0.05f, 0.5f)]
+        [Tooltip("Seconds taken off the dash cooldown per Dash Recovery pick. From 1.0, three " +
+                 "picks at 0.15 reach 0.55.")]
+        private float dashCooldownStep = 0.15f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("The shortest the dash cooldown may get. A balance cap, like Shot Interval Floor: " +
+                 "the burst is invincible, so a dash with no gap behind it is most of the way to " +
+                 "god mode.")]
+        private float dashCooldownFloor = 0.4f;
+
+        [Header("Deflector")]
+        [SerializeField]
+        [Tooltip("Seconds without being hit before the deflector's charge comes back, one entry " +
+                 "per pick: the first pick grants it, the second shortens the wait. The last entry " +
+                 "holds for any pick past the end.")]
+        private float[] deflectorRecharge = { 10f, 6f };
+
+        [Header("Magnet")]
+        [SerializeField]
+        [Tooltip("How near, in world units, a pickup has to be before it drifts to the player, one " +
+                 "entry per Magnet pick. The pickups of one offer are a third of the ring apart, over " +
+                 "30 units at the lane, so no reach here can take two of them.")]
+        private float[] magnetReach = { 4f, 7f };
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("World units a second a pickup in reach drifts toward the player.")]
+        private float magnetPullSpeed = 10f;
+
+        /// <summary>Null until the first Deflector pick.</summary>
+        private DeflectorCharge deflector;
+
+        private int deflectorPicks;
+        private int magnetPicks;
+
         /// <summary>
         /// The shortest gap between volleys the game will tolerate at all.
         ///
@@ -543,6 +606,82 @@ namespace SurvivalChaos
         public void IncreaseMoveSpeed()
         {
             PlayerMovement.AddSpeedBonus(moveSpeedStep);
+        }
+
+        /// <summary>Every round fired from now on passes through one more enemy.</summary>
+        public void AddPierce()
+        {
+            pierceUpgrades++;
+        }
+
+        /// <summary>
+        /// Shortens the dash cooldown by one step. The dash owns the cooldown,
+        /// and the bar reading it follows along without being told.
+        /// </summary>
+        public void QuickenDash()
+        {
+            if (dash != null)
+            {
+                dash.ShortenCooldown(dashCooldownStep, dashCooldownFloor);
+            }
+        }
+
+        /// <summary>
+        /// Grants the deflector charged, or shortens its recharge if it is held.
+        /// A later pick does not refill a spent charge: it shortens the wait for
+        /// it, which is the thing the pick is for.
+        /// </summary>
+        public void UpgradeDeflector()
+        {
+            deflectorPicks++;
+            float recharge = PerPick(deflectorRecharge, deflectorPicks, 10f);
+
+            if (deflector == null)
+            {
+                deflector = new DeflectorCharge(recharge);
+            }
+            else
+            {
+                deflector.SetRecharge(recharge);
+            }
+        }
+
+        /// <summary>Pickups start drifting in from a little further away.</summary>
+        public void ExtendMagnet()
+        {
+            magnetPicks++;
+        }
+
+        /// <summary>Whether a Deflector pick has been taken this run. Read by the HUD.</summary>
+        public bool HasDeflector => deflector != null;
+
+        /// <summary>True when the deflector is held and will block the next hit. Read by DeflectorShield.</summary>
+        public bool DeflectorCharged => deflector != null && deflector.IsCharged(Time.time);
+
+        /// <summary>How far the deflector's charge has come back, 0 to 1; 0 when not held.</summary>
+        public float DeflectorReadyFraction => deflector != null ? deflector.ReadyFraction(Time.time) : 0f;
+
+        /// <summary>
+        /// How near a pickup has to be to drift to the player, 0 with no Magnet
+        /// pick. Read by PickupSpawner, which moves the pickups.
+        /// </summary>
+        public float MagnetReach => PerPick(magnetReach, magnetPicks, 0f);
+
+        /// <summary>World units a second a pickup in reach drifts in at.</summary>
+        public float MagnetPullSpeed => magnetPullSpeed;
+
+        /// <summary>
+        /// The entry for a pick count, <paramref name="none"/> before the first
+        /// pick. Clamped, so picks past the end of a list keep its last entry.
+        /// </summary>
+        private static float PerPick(float[] values, int picks, float none)
+        {
+            if (values == null || values.Length == 0 || picks <= 0)
+            {
+                return none;
+            }
+
+            return values[Mathf.Clamp(picks - 1, 0, values.Length - 1)];
         }
     }
 }

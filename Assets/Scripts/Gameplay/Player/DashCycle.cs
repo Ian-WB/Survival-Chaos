@@ -21,7 +21,7 @@ namespace SurvivalChaos
     public sealed class DashCycle
     {
         private readonly float duration;
-        private readonly float cooldown;
+        private float cooldown;
 
         /// <summary>
         /// When the current dash began. Negative infinity rather than a flag:
@@ -42,6 +42,18 @@ namespace SurvivalChaos
 
         /// <summary>Seconds after a burst ends before another may start.</summary>
         public float Cooldown => cooldown;
+
+        /// <summary>
+        /// Changes the cooldown, for the Dash Recovery upgrade.
+        ///
+        /// Applies to a cooldown already running. It is measured from when the
+        /// burst ended, which does not move, so a shorter one simply ends sooner
+        /// - a pick taken mid-cooldown is felt on the very next dash.
+        /// </summary>
+        public void SetCooldown(float seconds)
+        {
+            cooldown = Mathf.Max(0f, seconds);
+        }
 
         /// <summary>True while a burst is in progress.</summary>
         public bool IsDashing(float now)
