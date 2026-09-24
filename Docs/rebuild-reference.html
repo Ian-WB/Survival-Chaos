@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 327 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 329 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>327</b><span>commits</span></div>
-      <div class="stat"><b>381</b><span>tests</span></div>
+      <div class="stat"><b>329</b><span>commits</span></div>
+      <div class="stat"><b>384</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -525,7 +525,8 @@
       slower ship.</li>
       <li><strong>A playtest bot</strong> &mdash; an editor-only pilot that flies a whole run through the
       player&rsquo;s own inputs, sees what the camera sees a quarter of a second late, and writes down what it
-      had seen whenever it was hit.</li>
+      had seen whenever it was hit &mdash; and which, a review found, had never seen two of the four enemy
+      kinds.</li>
       <li><strong>Salvage for health</strong> &mdash; the health drop every second level replaced by repair scrap
       from wrecks, paced by how hurt the player is rather than by how far they have levelled.</li>
     </ul>
@@ -1958,13 +1959,13 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <div class="note">
       <div class="label">Two things the upgrade settled</div>
       <p><code>com.unity.pipeline</code> was the real risk in moving. It is experimental, it declares <code>&quot;unity&quot;: &quot;6000.0&quot;</code>, and it is what the terminal drives the editor through &mdash; so losing it would have cost the whole loop described above. It came through unchanged, and has moved twice since, both times for the CLI's sake.</p>
-      <p>And the fault where a Player build nulled all six probe-volume references in <code>Game Baking Set.asset</code> <strong>did not reproduce</strong>. A confirmed clean build &mdash; the editor log says <em>&ldquo;Rebuilding Data files because BuildOptions.CleanBuildCache is set&rdquo;</em> &mdash; left the asset untouched, its modification time still predating the build, and the references at six resolved and none null, through that build and an editor restart afterwards. Two explanations died there: that Editor builds broke it while CLI builds did not, which was a false correlation drawn from three samples in which the CLI build had merely been incremental; and that clean builds were the trigger. The streaming conversion demonstrably ran, since <code>APVStreamingAssets</code> shipped into the player, so &ldquo;the conversion ran&rdquo; was never sufficient to cause the rewrite. <strong>It came back on 13 September.</strong> A clean-cache build on the Checked variant nulled all six again, so the idea that 6.6 had fixed it died too, and the trigger is still unknown. Every build is followed by the same repair and count: restore the asset from git, force-import it so the editor lets go of the nulled copy it holds in memory, and expect six references resolved and none null.</p>
+      <p>And the fault where a Player build nulled all six probe-volume references in <code>Game Baking Set.asset</code> <strong>did not reproduce</strong>. A confirmed clean build &mdash; the editor log says <em>&ldquo;Rebuilding Data files because BuildOptions.CleanBuildCache is set&rdquo;</em> &mdash; left the asset untouched, its modification time still predating the build, and the references at six resolved and none null, through that build and an editor restart afterwards. Two explanations died there: that Editor builds broke it while CLI builds did not, which was a false correlation drawn from three samples in which the CLI build had merely been incremental; and that clean builds were the trigger. The streaming conversion demonstrably ran, since <code>APVStreamingAssets</code> shipped into the player, so &ldquo;the conversion ran&rdquo; was never sufficient to cause the rewrite. <strong>It came back on 13 September.</strong> A clean-cache build on the Checked variant nulled all six again, so the idea that 6.6 had fixed it died too, and the trigger is still unknown. It happened again on 23 September, to a build made just after a rebake on the new machine, and not to the build made the next morning. Every build is followed by the same repair and count: restore the asset from git, force-import it so the editor lets go of the nulled copy it holds in memory, and expect six references resolved and none null.</p>
     </div>
   </section>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>381 tests across 34 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>384 tests across 34 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -1991,7 +1992,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
           <tr><td><code>CameraFramingTests</code></td><td class="num">8</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
           <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
-          <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">8</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate, a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
+          <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">11</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
           <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
           <tr><td><code>ArenaLaneTests</code></td><td class="num">6</td><td>a shot eases onto the player's lane without overshooting, and gets there before it has missed its chance</td></tr>
@@ -2015,7 +2016,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <h3>A pilot for whole runs</h3>
     <p>The suite checks rules; nothing in it plays a run. <code>SurvivalPlaytestBot</code> does. It is editor-only, written with ChatGPT and then reviewed and extended here. <em>Survival Chaos › Playtest Bot</em> takes over <code>GameInput.Source</code> in play mode and flies the ship through the same axes and buttons a player has, so nothing in the game knows it is there; it hands input back when stopped, and never skips a wave, grants an upgrade or touches health. It sees what the camera&rsquo;s frustum and physics occlusion let through, a quarter of a second late, and every fifth of a second it weighs nine ways to move over a 1.2-second horizon, dashes included when walking is dangerous.</p>
     <p>Its first long run showed what it could not see. Enemy rounds fly at about 26 units a second, so by the time the delayed pilot had seen one twice it had covered 9 to 12 units, and 21 of 37 traceable hits had nothing seen within 1.5 units of the ship. It now watches the guns instead, treating the 45&deg; ahead of each at its height as a line of fire; forecasts <code>Enemy 2</code> closing on each candidate route&rsquo;s height at the game&rsquo;s own easing rate, where it had held them at the height they were seen; and tracks wreckage, which is tagged Boss and was none of the kinds it looked for. Against the boss it takes the emplacements rather than the armoured hull, goes the long way round to their side of it, keeps one until it falls, and turns on the hull once they are gone.</p>
-    <p>Every session writes a report to <code>Logs/PlaytestBot/</code>: its decisions, every change of health with what it had seen just before, emplacement health in steps of ten, and a summary. On 22 September a full run reached the boss at level 20 with 1,279 kills, took all three emplacements in 41 seconds and died 11 seconds into Exposed. It is not a human simulation, and its survival is not a difficulty verdict &mdash; it reacts late and knows more than a player does &mdash; but it plays every run the same way, which no person does, and its kill rates are why the salvage clock keeps time rather than counting kills. <code>Docs/playtest-bot.md</code> is its manual.</p>
+    <div class="warn">
+      <div class="label">It could not see two of the four enemy kinds</div>
+      <p>A review of the bot by ChatGPT, on 22 September, found that it looked for <code>Enemy</code> components &mdash; and the two shooting kinds carry <code>Enemy_1</code>, which is a separate class, on prefabs confusingly named <code>Enemy</code> and <code>Enemy 1</code>. So it saw their rounds once fired and never the ships. It did not aim at them, did not fly round them, and did not watch the guns the fix above was written for, since that code only ran for an object it had already recognised as an <code>Enemy</code>. Every run to that point was made half blind, the one that reached the second act included.</p>
+      <p>The line-of-fire forecast had a passing test the whole time. The test checked the arithmetic, and nothing checked that anything ever fed it. It observes both kinds now. The same review caught two smaller things. A height chaser was forecast as though it had been chasing each route point&rsquo;s height since the moment it was seen, which puts it most of the way up a climb before the climb has happened, so the chase is stepped along the route now, after catching up over the reaction delay toward where the ship actually went. And the aim line reported nothing in the way whenever the hull or a shooter was, so it walks the ring at the ship&rsquo;s height the way a round flies, against the real colliders, and names the first thing a round would meet.</p>
+    </div>
+    <p>Every session writes a report to <code>Logs/PlaytestBot/</code>: its decisions, every change of health with what it had seen just before, emplacement health in steps of ten, and a summary. On 22 September a full run reached the boss at level 20 with 1,279 kills, took all three emplacements in 41 seconds and died 11 seconds into Exposed. The first run after the fix took 7 hits in its first eight minutes, against 25 for the one blind run that lived that long, then 36 in the two minutes before the boss, and died 8 seconds into Armoured. It is not a human simulation, and its survival is not a difficulty verdict &mdash; it reacts late and knows more than a player does &mdash; but it plays every run the same way, which no person does, and its kill rates are why the salvage clock keeps time rather than counting kills. <code>Docs/playtest-bot.md</code> is its manual.</p>
   </section>
 
   <hr class="div">
@@ -2031,7 +2037,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 381 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 384 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2062,6 +2068,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h3>A passing test can be yesterday&rsquo;s test</h3>
     <p>Two rewritten torpedo tests were reported passing on 22 September against code that had not compiled yet: the runner used the assembly from before the edit. They failed on the next run, after they had been committed, and a claim built on them &mdash; that the faster torpedo now caught a player who ran &mdash; had to be taken back; it gains on them and never catches them. A count of passing tests says nothing about a change until the change has compiled. Force the compile, wait for it to finish, and find the new tests by name in the results.</p>
+
+    <h3>A test of the arithmetic is not a test of the wiring</h3>
+    <p>The playtest bot&rsquo;s line-of-fire forecast had a unit test that passed from the day it was written, and for every run the bot made it never once ran: the enemies with guns are an <code>Enemy_1</code>, and the code that projected their fire was reached only through a check for <code>Enemy</code>. The test fed the maths a gun by hand. What it could not say was whether the game would ever hand it one. When a feature sits behind a lookup, check once, in a running game, that the lookup finds the thing &mdash; a line in a report saying <em>seen</em> is worth more than another test of what happens next.</p>
 
     <h3>Physics sees steps, not paths</h3>
     <p>A round that moves a unit between physics steps can pass straight through a hitbox two thirds of a unit wide, and it will do so for some positions and not others &mdash; which reads as randomness, or as a target that is slightly off its lane, rather than as a sampling gap. Tests of it are just as easy to spoil: a player ramming the target, a target phase-locked to the step, waves spawning into the measurement. Hold everything still, step the target through one gap, and count.</p>
@@ -2111,13 +2120,13 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       glows because it is dangerous rather than because it is hot &mdash; a call about the art direction rather
       than about the mechanic, so it has deliberately not been made.</li>
       <li><strong>The camera is a choice between seven presets now.</strong> The classic 75&deg; from 5 out, the
-      same framing from 9 and 14, and the whole band from 7, 10, 14 and 20 &mdash; cycled with F8 then 9 in the
-      <code>26_0921-1757_laser</code> build. One is picked by playing and becomes the default; if it is a far
+      same framing from 9 and 14, and the whole band from 7, 10, 14 and 20 &mdash; cycled with F8 then 9 in every build since
+      <code>26_0921-1757_laser</code>, the newest <code>26_0924-0845_salvage</code>. One is picked by playing and becomes the default; if it is a far
       one, the audio listener moves to the ship. The Player's lane offset stays at 5; waves spawn from 21.45 out,
       so anything up to about +7.7 keeps every arrival outside the lane.</li>
       <li><strong>The torpedoes at one every three seconds have had no verdict, and are faster now.</strong> Their
-      cruise went from 7.5 to 8.5 on 22 September, asked for as the player slowed to 5.6, and that is in no build
-      yet. At two with a 12&nbsp;s
+      cruise went from 7.5 to 8.5 on 22 September, asked for as the player slowed to 5.6, and that is in
+      <code>26_0924-0845_salvage</code>, unplayed. At two with a 12&nbsp;s
       life, most hits came from torpedoes over four seconds old coming round again. If that feels cheap the fuel
       is the dial &mdash; six seconds would keep the second pass and lose most of the circling.</li>
       <li><strong>The lance is a laser, and has had no verdict yet.</strong> The thrown arc read as a
@@ -2136,8 +2145,15 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       Its tooltips still quote the old 7.7 and 4.47.</li>
       <li><strong>Salvage has not been played.</strong> Its pace is one number, <em>Salvage Seconds At Half
       Health</em> on the <code>PickupSpawner</code>: 12 pays up to five hit points a minute at half health, and 18 would
-      pay about three. The playtest bot reports what it healed as <code>healingObserved</code>, so a bot run can
-      measure it before a person does.</li>
+      pay about three. The playtest bot reports what it healed as <code>healingObserved</code>: 8 against 38 hits in a run
+      that died at level 11, where the clock had a piece ready about 14 times, and 5 against 44 in the first run
+      that could see every enemy, most of those hits landing faster than any pace could answer. Neither says 12 is
+      too generous.</li>
+      <li><strong>The last two minutes of waves may be a wall.</strong> The first bot run that could see every enemy
+      took 7 hits in its first eight minutes, then 14 and 22 in the two minutes before the boss, and met it with 11
+      health. A bot reacts late and ranks upgrades in a fixed order, so this is a thing to watch for in a real run
+      rather than a finding; if a person feels it too, the lever is the waves&rsquo; own ramp in <code>MainRun</code>,
+      not the boss.</li>
       <li><strong>Boss rounds may reach the player too late now.</strong> The half-size ship narrowed
       the band a boss round can touch from about 0.33 either side of the lane to 0.21, so the outermost gun's
       round takes about 0.36&nbsp;s to become dangerous instead of 0.275. If the fight feels soft with god
@@ -2163,8 +2179,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       lightmaps, compressed at <strong>High Quality</strong>, bake resolution 50, four bounces, and the light-probe sample
       multiplier back to 8. The sample counts
       followed on 10 September, to 128 direct, 2048 indirect and 1024 environment, paid for by taking the
-      lava lights' shadows away. The output costs disk and bake time, not quota. Compression came last, on 16 September: the lightmaps
-      had been uncompressed until then, and High Quality took a build from about 857&nbsp;MB to 684.</li>
+      lava lights' shadows away. The output costs disk and bake time, not quota. Compression came on 16 September: the lightmaps
+      had been uncompressed until then, and High Quality took a build from about 857&nbsp;MB to 684. It went off again
+      on 23 September, deliberately, when the lighting was rebaked after the project moved to a new machine, so a
+      build is about 985&nbsp;MB now.</li>
     </ul>
     <p>The <strong>bullet hell</strong> direction was explored and shelved. The profile can afford it — 1500 simultaneous bullets measured at 0.056 ms, around 0.3% of a frame — and the design work is recorded in the history, but the decision was to improve what exists rather than add a mode. It is available to pick up rather than abandoned.</p>
 
@@ -2205,7 +2223,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 327 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 329 commits
   </footer>
 
 </div>

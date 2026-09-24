@@ -64,6 +64,9 @@ from their drawn mesh and passed through the same observation delay. Repeated
 visible hull-emission flashes create an ambiguous possible-ram warning: damage
 flashes can look the same, so the report must not call this certain recognition.
 The hull is tracked even though it is not an ordinary Enemy component.
+So are the two shooting kinds: the Enemy and Enemy 1 prefabs carry `Enemy_1`,
+which is a separate class, and until 22 September the pilot looked for `Enemy`
+alone, so it saw their rounds once fired and never the ships.
 Wreckage plates shed in the second act are tracked as stationary hazards.
 
 Enemy rounds fly at about 26 units a second, so by the time the delayed pilot
@@ -73,9 +76,12 @@ each shooting enemy projects a line of fire at each gun's height, 45 degrees
 (about 14.7 units) round the ring in the direction it faces, and standing in it
 is costly. Farther out, the rounds themselves are seen in time. Enemies that
 chase the player's height (Enemy 2 closes most of a gap in half a second) are
-forecast closing on the height of each candidate route, using the same
-exponential approach the game runs, rather than holding the height they were
-seen at.
+forecast with the same exponential approach the game runs, rather than holding
+the height they were seen at. The reaction delay is caught up first, toward
+where the pilot's ship actually went since the sighting, so no candidate route
+can change a chase that has already happened; then the chase is stepped along
+each route, closing on the route's height at each step, and holds whenever the
+chaser is out of range.
 In the boss fight the emplacements are the targets: while one is in sight the
 hull is not, since it takes no damage until they are gone. The emplacements
 stick out of one side of the hull and the hull swallows rounds, so from the
@@ -92,8 +98,10 @@ staying put misses it, so the pilot sat above the Prow shooting into the Crown.
 While an emplacement is the target, reports add an `AIM` line each second:
 the pilot's height and angle against the pod's real position and against the
 position the pilot saw, which way it is firing, how far in front of the pod's face
-it is, and anything at its height between it and the pod that would take the
-rounds. These are read from the game for the report only.
+it is, and the first thing a round would meet on the way: the ring is walked at
+the pilot's height the way a round flies, against the real colliders, and an
+emplacement, the hull, a wreck plate or a ship of either kind all count. These
+are read from the game for the report only.
 With no emplacement in sight the hull takes an emplacement's priority, so
 obstacles near the pilot do not pull it off the exposed boss.
 The policy pursues salvage ahead of everything below half health, and ahead of
@@ -145,6 +153,15 @@ came within 1.5 units of an Enemy 2. The line-of-fire and height-chase
 forecasts, and wreckage tracking, were added in answer; they are covered by unit
 tests only and have not yet been run in Play mode. The boss has never been
 reached: use the debug menu's Skip to boss before starting the bot to test it.
+
+Later the same day full runs did reach the boss, once dying 11 seconds into
+Exposed. A review by ChatGPT then found the pilot had never seen the Enemy and
+Enemy 1 ships (above), so every run to that point was made half blind, and the
+line-of-fire forecast had never run for the guns it was written for: its unit
+test checked the arithmetic, not whether anything fed it. The first run after
+the fix took 7 hits in its first eight minutes, against 25 for the one blind
+run that lived that long, then 36 between eight and ten minutes in, and died 8
+seconds into Armoured at level 20.
 
 ## Removal
 

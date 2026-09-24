@@ -1,0 +1,6 @@
+﻿<Solution>
+  <Project Path="SurvivalChaos.Editor.csproj" />
+  <Project Path="SurvivalChaos.UI.Editor.csproj" />
+  <Project Path="SurvivalChaos.csproj" />
+  <Project Path="SurvivalChaos.Tests.EditMode.csproj" />
+</Solution>
