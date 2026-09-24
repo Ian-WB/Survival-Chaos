@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 329 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 335 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>329</b><span>commits</span></div>
-      <div class="stat"><b>384</b><span>tests</span></div>
+      <div class="stat"><b>335</b><span>commits</span></div>
+      <div class="stat"><b>426</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -529,6 +529,10 @@
       kinds.</li>
       <li><strong>Salvage for health</strong> &mdash; the health drop every second level replaced by repair scrap
       from wrecks, paced by how hurt the player is rather than by how far they have levelled.</li>
+      <li><strong>An audit, answered</strong> &mdash; an outside read of the code found stale upgrade offers that
+      skipped level gates, experience that could fail to arrive and was misreported when it did, and rounds that
+      could skip their first stretch or stop at the wrong target. All fixed on 24 September, with tests, and the
+      three editor tools that would have overwritten tuned assets with old values are deleted.</li>
     </ul>
   </section>
 
@@ -682,6 +686,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">A still player could miss a still enemy the last round had just hit</div>
       <p>Rounds move by setting their transform in <code>Update</code>, and physics only tests the positions it finds at each 50&nbsp;Hz step. At 150&deg; a second on the 18.72 lane a round covers <strong>0.98 units</strong> between steps, while a hit needs a sample inside a window of box width plus round length: 0.69 for <code>Enemy</code> and <code>Enemy 2</code>, 0.86 for <code>Enemy 1</code>, 0.89 for <code>Enemy 3</code>. Whether a round landed depended on where along the ring the target happened to sit.</p>
       <p><code>ShootScript</code> now sweeps each round's box in <code>FixedUpdate</code> along the stretch it moved since the previous step. Anything it overlaps at either end is left to the physics system; anything wholly in the gap gets the same <code>OnTriggerEnter</code> the engine would have sent, on both sides, so every receiver keeps its own rules and nothing is hit twice. Rounds ignore rounds, respect the layer matrix, and start a fresh sweep when reused from the pool. Measured with the waves stopped and a held target stepped through one physics gap in tenths: without the sweep <strong>45 to 99%</strong> of rounds hit depending on position; with it, 98% or more at every one.</p>
+      <p>Three holes in it were closed on 24 September, found by an audit of the code rather than in play. The first sweep began at the first physics step, so a round that had already moved by then &mdash; at any frame rate above fifty &mdash; never swept its first stretch, and an enemy at point-blank range could be flown through; it begins at the muzzle now, and only an end the physics system has actually tested is left to it. The hits came back in no particular order, so a round that stops at its first target could stop at the further of two; they are taken nearest first. And the query had room for sixteen, with every other round in the air in the answer too, since everything shares the Default layer and no mask can leave them out; a full buffer is grown and the query run again rather than trusted.</p>
     </div>
 
     <h3>The ship model</h3>
@@ -710,12 +715,16 @@ transform.LookAt(pos);</code></pre>
     <h3>Skills</h3>
     <div class="scroll">
       <table>
-        <thead><tr><th>Skill</th><th>Effect</th><th class="num">Max picks</th></tr></thead>
+        <thead><tr><th>Skill</th><th>Effect</th><th class="num">Max picks</th><th>Each pick opens at level</th></tr></thead>
         <tbody>
-          <tr><td>Shot Upgrade</td><td>advances double → triple → sextuple</td><td class="num">3</td></tr>
-          <tr><td>Attack Speed</td><td>+10% fire rate, flat per pick</td><td class="num">8</td></tr>
-          <tr><td>Move Speed</td><td>+10% orbit and climb, flat per pick</td><td class="num">5</td></tr>
-          <tr><td>Max Health</td><td>+5 to the ceiling</td><td class="num">4</td></tr>
+          <tr><td>Attack Speed</td><td>+10% fire rate, flat per pick</td><td class="num">12</td><td>any</td></tr>
+          <tr><td>Move Speed</td><td>+10% orbit and climb, flat per pick</td><td class="num">8</td><td>any</td></tr>
+          <tr><td>Max Health</td><td>+5 to the ceiling</td><td class="num">8</td><td>any</td></tr>
+          <tr><td>Shot Upgrade</td><td>advances double → triple → sextuple</td><td class="num">3</td><td>4, 10, 18</td></tr>
+          <tr><td>Dash Recovery</td><td>0.15&nbsp;s off the dash cooldown, down to 0.4</td><td class="num">3</td><td>6, 14, 22</td></tr>
+          <tr><td>Piercing Rounds</td><td>each round passes through one more enemy</td><td class="num">2</td><td>8, 18</td></tr>
+          <tr><td>Magnet</td><td>pickups drift in from 4 units away, then 7</td><td class="num">2</td><td>5, 15</td></tr>
+          <tr><td>Deflector</td><td>a charge that blocks one hit, back after 10&nbsp;s without one, then 6</td><td class="num">2</td><td>10, 20</td></tr>
         </tbody>
       </table>
     </div>
@@ -725,7 +734,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">Healing is no longer one of them</div>
       <p><code>Heal</code> used to sit in the pool as the unlimited entry, which meant the commonest way to meet healing was as one of three pickups on a level-up — so <strong>taking the heal forfeited two upgrades, and taking an upgrade forfeited the heal</strong>. That is a trade between a reward for killing well and the thing you need when you are not, and it is not a decision worth putting in front of anyone.</p>
       <p>It went out on its own cadence after that, +2 every second level and outside any offer, and since 22 September it is not tied to levelling at all: it comes as salvage from wrecks, paced by how hurt the player is &mdash; see <a href="#run">Progression</a>. <code>SkillSelect</code> filters the type out of its pool in code rather than trusting the scene list, because putting it back is a single click with a confusing symptom.</p>
-      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are twenty picks now, across four upgrades, and the stretched run pays out enough to earn all of them — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
+      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are forty picks now, across eight upgrades, more than a full run has level-ups — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
     </div>
 
     <div class="note">
@@ -1021,11 +1030,18 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
 
   <section id="run">
     <div class="part-head"><h2>Progression and ending a run</h2></div>
-    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code>; <code>Player</code> subscribes and accumulates. At the threshold it counts the level, calls <code>SkillSelect.PickSkill()</code>, raises the requirement by 35, and continues.</p>
+    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 3 today &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 35. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
+    <div class="warn">
+      <div class="label">Three ways experience was lost or misreported, until 24 September</div>
+      <p><strong>A subscription that could miss.</strong> <code>Player</code> subscribed from <code>OnEnable</code>, and Unity orders <code>Awake</code> and <code>OnEnable</code> across objects only by execution order &mdash; 0 for both &mdash; so whether <code>EXP.Awake</code> had run yet came down to the order the scene loaded its objects in. When it had not, a null check skipped the only attempt and every kill of the run earned nothing. <code>EXP</code> wakes first now, and the player binds again from <code>Start</code> to the instance it remembers, so a second try cannot subscribe twice.</p>
+      <p><strong>A bar that emptied on every level.</strong> Crossing a threshold set the bar to zero, dropping whatever the kill had brought past it: at 45 of 50, a Fighter&rsquo;s 45 levelled the player and threw 40 away. Worked out rather than measured, that was about 3% of a full run&rsquo;s experience &mdash; roughly one level-up, most of it early.</p>
+      <p><strong>Numbers that disagreed.</strong> The multiplier was applied in the bar alone, so a Fighter read <em>+15</em> as it died while the bar took 45, and the total on the end-of-run card was a third of what had been earned.</p>
+    </div>
 
     <h3>A level-up is a choice on the ring</h3>
     <p>Levelling used to apply a random skill the instant the bar filled. That is the single biggest reason the player felt strong from the first minute: every upgrade was free, arrived without being asked for, and cost no attention at a moment when attention is the only currency the game charges.</p>
     <p>Three glowing pickups now go out around the orbit instead, spaced far enough apart that they cannot all be reached — committing to one is giving up the others, which is the whole point of handing upgrades out this way. A skill is drawn from the pool when the offer goes out but <strong>charged against its pick limit only when one is actually collected</strong>, so the two the player flew past are still available next level. An offer is not a pick. It waits 28 seconds for an answer, twice the 14 it had until 22 September, and flashes through its last three.</p>
+    <p>Offers overlap, though &mdash; levelling again before one is answered puts a second set out &mdash; and the same skill can sit in both. Taking it from one re-checks the rest. A pickup whose next stage is still open is relabelled for it; one whose level gate or pick limit now shuts it becomes another skill the pool can still field, in the same place and with the time it had left; and with nothing left to field it leaves the ring, and if that empties its offer, a piece of salvage takes its place, as it does for a level-up with the pool spent. Until 24 September the second pickup kept its label and handed over the next stage regardless: Shot Upgrade in the level-4 and level-5 offers gave Triple Shot at level 5 instead of 10, from a pickup reading <em>Double Shot</em>. <code>SkillSelect</code> checks again as a skill is applied, so nothing the re-check misses can pass a gate either.</p>
     <p>Health is not part of a level-up any more. It rode along every second level, outside the offer, until 22 September; it comes from wrecks now &mdash; see <em>Health comes from wrecks</em> below.</p>
     <div class="warn">
       <div class="label">Sharing the ring is not the same as sharing the forfeit</div>
@@ -1067,7 +1083,7 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
         <tbody>
           <tr><td>Attack Speed</td><td>Attack Speed Increased!</td><td>Attack Speed</td></tr>
           <tr><td>Max Health</td><td>Max HP Increased!</td><td>Max HP</td></tr>
-          <tr><td>Shot Upgrade</td><td>Double Shot! &hellip;</td><td>Double Shot / Triple Shot / SexTUPLO Shot / Back Shot</td></tr>
+          <tr><td>Shot Upgrade</td><td>Double Shot! &hellip;</td><td>Double Shot / Triple Shot / SexTUPLO Shot</td></tr>
         </tbody>
       </table>
     </div>
@@ -1092,8 +1108,11 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       <p>A floating number in a shooter is usually damage. Damage here is always exactly <strong>1</strong>:
       every weapon, every enemy, the boss included — all four <code>TakeDamage</code> call sites pass 1. A
       column of ones would be thirteen hundred glyphs a run telling the player something they already know.</p>
-      <p>The reward is the number that varies. A Scout is 5 and a Fighter beside it is 15, and knowing that
-      mid-run is what turns going after one rather than the other into a decision. The hull flash carries the
+      <p>The reward is the number that varies. A Fighter is worth three Scouts, and knowing that
+      mid-run is what turns going after one rather than the other into a decision. It is the amount the bar
+      takes, after the multiplier &mdash; 45 and 15 at today&rsquo;s 3 &mdash; so the player puts it up rather
+      than the enemy that died, since the player is what scales it; until 24 September it showed the reward
+      before scaling, a third of what the bar gained. The hull flash carries the
       other half of the message — that a shot landed, and on what — so the number is free to carry what
       the kill was worth rather than repeating that it happened.</p>
     </div>
@@ -1206,10 +1225,10 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     it empty underneath and saying nothing about how the run had gone. <code>RunStats</code> counts as it
     happens — kills, experience, level, and the picks taken — and <code>RunSummary</code> writes them into
     that gap.</p>
-    <p>Counted rather than derived, because most of it cannot be recovered afterwards: experience earned is
-    not readable from the player's level and bar, since levels cost a different amount each time and the bar
-    is reset on every one of them, and enemies destroyed is not readable from anything at all once they are
-    back in the pool. The clock stops in <code>RunOutcome.ReportRunEnded</code>, the one place both endings
+    <p>Counted rather than derived, because most of it cannot be recovered afterwards: enemies destroyed is not
+    readable from anything at all once they are back in the pool, and experience earned was not readable from
+    the level and the bar while every level-up emptied the bar. It carries over now, but the debug menu&rsquo;s
+    level-ups cost nothing, so working it back from the thresholds would still be wrong. The clock stops in <code>RunOutcome.ReportRunEnded</code>, the one place both endings
     already pass through — and which they reach <em>before</em> stopping time, so the reading is the run
     rather than zero. It is scaled time, so a player who spends four minutes on the pause screen has not
     survived four minutes.</p>
@@ -1316,7 +1335,8 @@ emission  = hot * glow * veins;</code></pre>
     <div class="warn">
       <div class="label">Those lights are at eight per cent of the brightness they were asked for</div>
       <p>Every Lava Light in the scene carries <strong>238.732</strong> lumens, which is 3000 &divide; 4&pi; to three decimals. <code>LavaLightPlacer</code> set them through <code>HDAdditionalLightData.SetIntensity</code>, deprecated since 2023.3, which converts out of whatever unit the light is <em>currently</em> in &mdash; and a <code>Light</code> component added four lines earlier has not run its own initialisation, so it is still in a point light's default candela and the call quietly divides by 4&pi;. Asking for 9000 stores 716.2.</p>
-      <p>So the field said 3000 and the lights got eight per cent of it, and the arena's lighting was then tuned by eye around the wrong number. The tooltip asserted the opposite &mdash; that writing <code>Light.intensity</code> directly came out &ldquo;roughly a hundred times too bright&rdquo; &mdash; which was true of an older HDRP and is now backwards: <code>Light.lightUnit</code> and <code>Light.intensity</code> store exactly what they are given. The placer sets those, and its default became 238.7 so that re-running it reproduces the arena that exists rather than one ten times brighter. <code>BuildBossRig</code> had already found this and written a comment around it; the placer was still walking into it.</p>
+      <p>So the field said 3000 and the lights got eight per cent of it, and the arena's lighting was then tuned by eye around the wrong number. The tooltip asserted the opposite &mdash; that writing <code>Light.intensity</code> directly came out &ldquo;roughly a hundred times too bright&rdquo; &mdash; which was true of an older HDRP and is now backwards: <code>Light.lightUnit</code> and <code>Light.intensity</code> store exactly what they are given. The placer set those from then on, and its default became 238.7 so that re-running it would reproduce the arena rather than one ten times brighter. <code>BuildBossRig</code> had already found this and written a comment around it; the placer was still walking into it.</p>
+      <p>The placer is deleted now. The scene moved on from it &mdash; six lights, five at a range of 15 and one at 20 that casts, all baked as Mixed &mdash; while it still made fourteen at a range of 10, and it began by deleting whatever lights were there. Running it would have replaced the tuned lighting, so the scene is the only source of it.</p>
     </div>
 
     <h3>Shadows are a row, and the clouds only get half of it</h3>
@@ -1624,6 +1644,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <li><code>ShootScript</code> reset its rotation in <code>Start</code> — a reused bullet would have kept whatever rotation it died with. The <code>Scenario</code> lookup is now cached statically too; it was a tag search per projectile, and reuse would have repeated it forever.</li>
       <li><code>DestroyAfterTime</code> armed in <code>Awake</code> — a reused projectile would have flown on forever. Moving it to <code>OnEnable</code> is only half the fix: <code>OnDisable</code> has to cancel, or a projectile that dies early carries a pending timer into its next life and vanishes partway through it.</li>
     </ul>
+    <p>A clone&rsquo;s first life had the opposite problem. <code>Instantiate</code> runs <code>Awake</code> and <code>OnEnable</code> before it returns, and the pool created every new instance at its own root and moved it afterwards, so it woke wherever its prefab was saved. New instances are created where they are going now, which a round needs: <code>OnEnable</code> is where its first sweep starts.</p>
     <div class="note">
       <div class="label">One deliberate behaviour change</div>
       <p><code>Destroy</code> is deferred to the end of the frame, so a bullet's collider stayed live after impact and could damage two overlapping enemies in the same frame. <code>Despawn</code> deactivates immediately, so a bullet now hits exactly one target. That piercing was almost certainly unintended, but it is a real change in dense waves.</p>
@@ -1938,7 +1959,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>The engine version, and what 6.6 moved</h3>
-    <p>The project runs on <strong>Unity 6.6 (6000.6.2f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.3f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
     <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
     <div class="note">
       <div class="label">The 6.6.1 patch moved nothing this project can see</div>
@@ -1946,6 +1967,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>The lighting was rebaked on it, and <strong>it reproduced what was already there</strong>: the lightmap came back 707 bytes different out of 62&nbsp;MB, and the adaptive probe volume data regenerated byte-identical, so <code>Game Baking Set.asset</code> had no content change to show for it. That is the useful finding &mdash; a patch bump of this engine does not move this scene&rsquo;s lighting, so a later build that looks different is a different cause.</p>
       <p>One new build warning, and it is not this project&rsquo;s: a TextMeshPro shader still uses <code>#pragma enable_d3d11_debug_symbols</code>, which 6.6.1 deprecates. It belongs to the package and goes when the package does.</p>
       <p>6000.6.2f1 followed on 21 September, and the one new thing it does is churn: a build re-saves the Game scene with garbage in six lights&rsquo; <code>m_BoundingSphereOverride</code>, a field their <code>m_UseBoundingSphereOverride</code> of 0 leaves unused. It is uninitialised memory rather than an edit, so it is reverted with the rest of what a build leaves behind.</p>
+      <p>6000.6.3f1 followed on 24 September. The first build after it recompiled every shader, which took 22 minutes; the one after that took its usual minute and a half.</p>
     </div>
     <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
 
@@ -1965,18 +1987,18 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>384 tests across 34 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>426 tests across 40 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
         <tbody>
           <tr><td><code>DisplayOptionsTests</code></td><td class="num">29</td><td>resolution filtering, the inverted vendor quality enums, and the frame cap that must not land on the refresh rate</td></tr>
+          <tr><td><code>SkillPoolTests</code></td><td class="num">26</td><td>both original skill bugs, that an offer is not a pick, and that each pick waits for its own level</td></tr>
           <tr><td><code>TorpedoSteerTests</code></td><td class="num">22</td><td>that a torpedo hits a still player and misses a late dodge by the real hit boxes, lets a timed dive to the floor escape, gains on a player who runs without ever catching them, turns no faster than it may, never snaps its heading, and arrives at an edge running along it</td></tr>
           <tr><td><code>MuzzleRowsTests</code></td><td class="num">20</td><td>grouping a bank of muzzles into the rows the artist modelled, pinned against the real heights off the boss</td></tr>
           <tr><td><code>RoundRouteTests</code></td><td class="num">19</td><td>a thrown disc turning back off the band&rsquo;s edges at any frame rate, and each slot of a row thrown its own way</td></tr>
-          <tr><td><code>SkillPoolTests</code></td><td class="num">17</td><td>both original skill bugs, and that an offer is not a pick</td></tr>
+          <tr><td><code>DashCycleTests</code></td><td class="num">18</td><td>the burst, the cooldown, and that invincibility ends with the travel rather than with the cycle</td></tr>
           <tr><td><code>VolleyTellTests</code></td><td class="num">17</td><td>that a muzzle&rsquo;s glow lights in the order it fires, and that one-at-a-time firing takes each muzzle once a pass</td></tr>
-          <tr><td><code>DashCycleTests</code></td><td class="num">16</td><td>the burst, the cooldown, and that invincibility ends with the travel rather than with the cycle</td></tr>
           <tr><td><code>HealthStateTests</code></td><td class="num">16</td><td>a kill is reported exactly once</td></tr>
           <tr><td><code>ObjectPoolTests</code></td><td class="num">16</td><td>reuse never hands out a live instance twice</td></tr>
           <tr><td><code>ThrusterResponseTests</code></td><td class="num">16</td><td>which of the ship&rsquo;s nozzles burns, either way round the flip &mdash; the one question about a thruster that looking at it cannot answer</td></tr>
@@ -1992,18 +2014,24 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
           <tr><td><code>CameraFramingTests</code></td><td class="num">8</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
           <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
-          <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">11</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
+          <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">12</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
           <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
+          <tr><td><code>DeflectorChargeTests</code></td><td class="num">7</td><td>the deflector&rsquo;s one charge: it blocks one hit, and comes back only to a player who stops being hit</td></tr>
+          <tr><td><code>PlayerExperienceTests</code></td><td class="num">7</td><td>that the player earns experience whichever of it and <code>EXP</code> woke first, scales a kill once for the bar and the run&rsquo;s total, and carries what crosses a threshold into the next level</td></tr>
           <tr><td><code>ArenaLaneTests</code></td><td class="num">6</td><td>a shot eases onto the player's lane without overshooting, and gets there before it has missed its chance</td></tr>
           <tr><td><code>BossSheddingTests</code></td><td class="num">6</td><td>wreckage is fed evenly to all three heights whatever order the pods died in</td></tr>
           <tr><td><code>SalvageClockTests</code></td><td class="num">6</td><td>salvage paced by need: due after the set wait at half health, sooner the more is missing, never at full health or once dead, and one piece owed at a time</td></tr>
           <tr><td><code>FireflyFieldTests</code></td><td class="num">6</td><td>that a firefly is placed inside the tree it belongs to, on a footprint that is not round, and that the birth rate cannot divide by zero</td></tr>
           <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
+          <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
+          <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
+          <tr><td><code>RoundPierceTests</code></td><td class="num">5</td><td>a piercing round passes through as many enemies as it has passes, and never strikes one twice</td></tr>
           <tr><td><code>ShadowLadderTests</code></td><td class="num">5</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, and that no tier defaults to Off</td></tr>
-          <tr><td><code>ExpTests</code></td><td class="num">4</td><td>the experience contract</td></tr>
           <tr><td><code>BossRoundLaneTests</code></td><td class="num">2</td><td>that every round the boss fires eases onto the player&rsquo;s lane, read off the prefabs the boss&rsquo;s attacks point at &mdash; the one suite that checks an asset rather than a rule, because the value that went to 0 lives in one</td></tr>
+          <tr><td><code>CloudCombineShaderTests</code></td><td class="num">2</td><td>that the clouds are still combined by the project&rsquo;s own copy of HDRP&rsquo;s shader, and that the copy compiles</td></tr>
+          <tr><td><code>RoundSweepTests</code></td><td class="num">2</td><td>that a round&rsquo;s sweep answers nearest first, and loses nothing when a crowded stretch fills its buffer</td></tr>
         </tbody>
       </table>
     </div>
@@ -2037,7 +2065,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 384 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 426 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2143,6 +2171,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       ram closes head-on &mdash; about 8.5 units of travel between them in the 0.22&nbsp;s, against 10.7 before. If the
       ram becomes a wall, <code>PlayerDash</code>&rsquo;s speed multiplier at 6.25 puts the dash back where it was.
       Its tooltips still quote the old 7.7 and 4.47.</li>
+      <li><strong>The audit&rsquo;s fixes have not been played.</strong> The re-checked offers, the experience
+      and the sweep are covered by tests, which is all an edit-mode suite can say about them. A run is what shows
+      whether carrying experience over moves the level curve enough to notice, and whether a round fired into an
+      enemy at point-blank range now lands every time.</li>
       <li><strong>Salvage has not been played.</strong> Its pace is one number, <em>Salvage Seconds At Half
       Health</em> on the <code>PickupSpawner</code>: 12 pays up to five hit points a minute at half health, and 18 would
       pay about three. The playtest bot reports what it healed as <code>healingObserved</code>: 8 against 38 hits in a run
@@ -2162,7 +2194,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <li><strong>The pods passed.</strong> Whether red emplacements read against orange lava was open
       for a week; in the 11 September playtest they were always found, so they stay as they are.</li>
       <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>
-      <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s. The ceiling is the same for a player who takes all four, but taking one or two ends a run lower than the old single pick did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
+      <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s, and then eight. A player who takes them all ends higher than the old pick left them, but one or two end a run lower than it did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
       <li><strong>Ray-traced reflections are validated; the rest of the rungs are not.</strong> RT Reflections was selected in a build on DXR hardware and visibly changed the image — which is precisely the bar ray-traced <em>shadows</em> failed. That row shipped allocating a screen-space buffer no light wrote to, invisible in the editor and haze in a build, and was removed outright. RT global illumination is reachable and deliberately unused for the reasons above; no tier selects a ray-traced rung by default, and compiling ray tracing into three of the four tiers makes every build larger.</li>
       <li><strong>Enemy reuse has only been lightly exercised.</strong> Pooling defects cannot appear until the warmup is exhausted and instances start recycling, which takes a few minutes of play. The three failure modes to watch for are enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and <code>Enemy_1</code> firing faster as a run goes on.</li>
       <li><strong>LFS is no longer the constraint on lighting.</strong> It was: a bake went through
@@ -2223,7 +2255,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.2f1) · HDRP 17.6 · branch <code>main</code> · 329 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 335 commits
   </footer>
 
 </div>

@@ -58,15 +58,23 @@ namespace SurvivalChaos
             GameObject instance = TakeIdle(prefab);
             bool reused = instance != null;
 
-            if (!reused)
+            if (reused)
             {
-                instance = Object.Instantiate(prefab, Root);
+                // Set the transform before activating, so OnEnable on the instance
+                // sees its final position rather than wherever it last died.
+                instance.transform.SetPositionAndRotation(position, rotation);
+            }
+            else
+            {
+                // Created where it is going, for the same reason. A clone of an
+                // active prefab runs Awake and OnEnable inside Instantiate, before
+                // anything after this line - so created at the pool's root, it
+                // woke at the prefab's own position and was only moved after,
+                // and a round took that as where its first sweep starts.
+                instance = Object.Instantiate(prefab, position, rotation, Root);
                 instance.AddComponent<PooledInstance>().Source = prefab;
             }
 
-            // Set the transform before activating, so OnEnable on the instance
-            // sees its final position rather than wherever it last died.
-            instance.transform.SetPositionAndRotation(position, rotation);
             instance.SetActive(true);
 
             if (reused && instance.TryGetComponent(out PooledInstance pooled))

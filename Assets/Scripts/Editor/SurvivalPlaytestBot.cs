@@ -306,7 +306,13 @@ namespace SurvivalChaos.EditorTools
                             foreach (var item in nearby)
                             {
                                 if (item.kind == Kind.Pickup) continue;
-                                Log($"SEEN {item.kind} {item.label} at={item.position} predictedNow={Predict(item,age)} angularRate={item.angleRate:F2} verticalRate={item.heightRate:F2}"
+                                // Both, because they differ for a height chaser: plannedNow is
+                                // where RouteDanger takes it to be, and the straight-line
+                                // extrapolation walks it on at the height rate it was seen with.
+                                Vector3 extrapolated = Predict(item, age);
+                                Vector3 planned = extrapolated;
+                                if (item.homeRate > 0) planned.y = ChaserHeightNow(item, age);
+                                Log($"SEEN {item.kind} {item.label} at={item.position} plannedNow={planned} extrapolatedNow={extrapolated} angularRate={item.angleRate:F2} verticalRate={item.heightRate:F2}"
                                     + (item.homeRate > 0 ? $" chasesHeight={item.homeRate:F2}" : "") + (item.kind == Kind.LineOfFire ? $" fires={item.fireDirection:+0;-0}" : ""));
                                 if (++count >= 12) break;
                             }
@@ -764,20 +770,30 @@ namespace SurvivalChaos.EditorTools
                 Vector3 edge=b-a;
                 return Vector3.Distance(point,a+edge*Mathf.Clamp01(Vector3.Dot(point-a,edge)/Mathf.Max(1e-8f,edge.sqrMagnitude)));
             }
+            /// <summary>
+            /// The height the planner takes a height chaser to be at now, <paramref name="age"/>
+            /// seconds after it was seen: caught up on the player over that time if the
+            /// player was in its reach, otherwise holding the height it was seen at, as
+            /// EnemyMovement does out of reach. Shared by <see cref="RouteDanger"/> and
+            /// the failure log, so the log reports what the planner acted on.
+            /// </summary>
+            private float ChaserHeightNow(Item item, float age)
+            {
+                return Vector3.Distance(item.position, known.playerPosition) <= item.chaseRadius
+                    ? CaughtUp(item.position.y, known.playerPosition.y, player.transform.position.y, item.homeRate, age)
+                    : item.position.y;
+            }
             private float RouteDanger(Vector3[] route, float age, float invincibleFor, out float landing)
             {
                 float danger=0; landing=0;
                 // Each height chaser's heights along this route. The chase runs through
                 // a dash too, so these are worked out before the dash's steps are skipped.
                 var chased=new float[known.items.Count][];
-                float playerNow=player.transform.position.y;
                 for(int j=0;j<known.items.Count;j++)
                 {
                     var item=known.items[j];
                     if(item.homeRate<=0) continue;
-                    float now=Vector3.Distance(item.position,known.playerPosition)<=item.chaseRadius
-                        ? CaughtUp(item.position.y,known.playerPosition.y,playerNow,item.homeRate,age) : item.position.y;
-                    chased[j]=ChaseAlong(now,item.homeRate,item.chaseRadius,route,i=>Predict(item,age+(i+1)*PredictStep));
+                    chased[j]=ChaseAlong(ChaserHeightNow(item,age),item.homeRate,item.chaseRadius,route,i=>Predict(item,age+(i+1)*PredictStep));
                 }
                 for(int i=0;i<route.Length;i++)
                 {

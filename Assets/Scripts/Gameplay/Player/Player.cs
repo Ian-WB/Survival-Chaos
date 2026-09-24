@@ -99,35 +99,75 @@ namespace SurvivalChaos
 
         [SerializeField, Min(0f)]
         [Tooltip("Scales every enemy's Experience Reward, rounded to whole points. A full run " +
-                 "reaches about 20 level-ups at 1, 29 at 2 and 35 at 3, against 29 upgrade picks in " +
-                 "the pool; a level-up with the pool spent leaves a piece of salvage instead.")]
+                 "reached about 20 level-ups at 1, 29 at 2 and 35 at 3 while each level-up still " +
+                 "dropped the experience past its threshold; carrying it over adds about one. " +
+                 "There are 40 upgrade picks in the pool, and a level-up with the pool spent " +
+                 "leaves a piece of salvage instead.")]
         private float experienceMultiplier = 1f;
 
         [SerializeField]
         private SkillSelect skillSelect;
 
+        /// <summary>
+        /// The EXP this player is subscribed to, so binding can be tried more
+        /// than once without subscribing twice, and undone against the object
+        /// it was made with rather than whatever EXP.Instance says by then.
+        /// </summary>
+        private EXP boundExperience;
+
         private void OnEnable()
         {
-            // EXP.Instance is assigned in EXP.Awake() on a different object, and
-            // Unity does not order Awake across objects - so it can legitimately be
-            // null here, and on teardown EXP may already be gone.
-            if (EXP.Instance != null)
-            {
-                EXP.Instance.OnEXPChange += HandleEXPChange;
-            }
+            BindExperience();
         }
 
         private void OnDisable()
         {
-            if (EXP.Instance != null)
+            // The object it was made with, even one already destroyed on
+            // teardown: taking a handler off a C# event needs nothing from Unity.
+            if ((object)boundExperience != null)
             {
-                EXP.Instance.OnEXPChange -= HandleEXPChange;
+                boundExperience.OnEXPChange -= HandleEXPChange;
+                boundExperience = null;
+            }
+        }
+
+        /// <summary>
+        /// Subscribes to the scene's EXP, once.
+        ///
+        /// EXP wakes first now (its DefaultExecutionOrder), so the call from
+        /// OnEnable finds it. Start calls this again anyway, because the failure
+        /// it guards against is silent and total: a subscription that missed
+        /// EXP.Awake was never retried, and every kill of the run earned nothing.
+        /// A second call with the same EXP does nothing; a different one is
+        /// swapped in, not added.
+        /// </summary>
+        private void BindExperience()
+        {
+            EXP current = EXP.Instance;
+
+            if (current == boundExperience)
+            {
+                return;
+            }
+
+            if ((object)boundExperience != null)
+            {
+                boundExperience.OnEXPChange -= HandleEXPChange;
+            }
+
+            boundExperience = current;
+
+            if (current != null)
+            {
+                current.OnEXPChange += HandleEXPChange;
             }
         }
 
         // Start is called before the first frame update
         void Start()
         {
+            BindExperience();
+
             healthBar.SetMaxHealth(health.Max);
             rotate = false;
             instantiatedChild = Instantiate(childPrefab, childObject);
@@ -397,17 +437,47 @@ namespace SurvivalChaos
             }
         }
 
-        private void HandleEXPChange(int newExperience)
+        /// <summary>
+        /// A kill's reward arriving, before the multiplier.
+        ///
+        /// Scaled here, once, and the scaled number is the one used everywhere:
+        /// the bar, the figure floating up from the kill, and the run's total.
+        /// The last two used to take the reward before scaling, so at the
+        /// multiplier of 3 a Fighter read "+15" while the bar took 45.
+        ///
+        /// What crosses the threshold carries into the next level rather than
+        /// being dropped, and a reward that covers more than one threshold pays
+        /// for each. The bar used to empty on every level-up, which threw away
+        /// whatever the kill had brought past the line.
+        /// </summary>
+        private void HandleEXPChange(int reward, Vector3 where)
         {
-            currentExperience += Mathf.RoundToInt(newExperience * experienceMultiplier);
-            expBar.setCurrentExp(currentExperience);
-            if (currentExperience >= maxExperience)
+            int awarded = Mathf.RoundToInt(reward * experienceMultiplier);
+
+            PickupLabelBoard.Experience(where, awarded);
+            RunStats.RecordExperience(awarded);
+
+            currentExperience += awarded;
+
+            // LevelUp raises the threshold, so this ends even at a cost
+            // increase of 0; the guard is for a threshold authored at 0.
+            while (maxExperience > 0 && currentExperience >= maxExperience)
             {
+                currentExperience -= maxExperience;
                 LevelUp();
-                //this will show a popup on screen that "press space to level up, still to do
+            }
+
+            if (expBar != null)
+            {
+                expBar.setCurrentExp(currentExperience);
             }
         }
 
+        /// <summary>
+        /// One level, with its offer. The experience it cost is spent by the
+        /// caller: HandleEXPChange carries the rest over, and the debug menu's
+        /// level-up costs nothing, so it leaves the bar where it was.
+        /// </summary>
         private void LevelUp(bool offerSkill = true)
         {
             if (GameSounds.Instance != null)
@@ -423,10 +493,12 @@ namespace SurvivalChaos
             //Here we'll make it so a popup image appears that pauses the game and the player is able to choose between 3 power ups or something like that
             if (offerSkill && skillSelect != null) { skillSelect.PickSkill(); }
 
-            currentExperience = 0;
-            expBar.setCurrentExp(currentExperience);
             maxExperience += levelCostIncrease;
-            expBar.setMaxExp(maxExperience);
+
+            if (expBar != null)
+            {
+                expBar.setMaxExp(maxExperience);
+            }
         }
 
 #if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
@@ -443,16 +515,21 @@ namespace SurvivalChaos
         }
 #endif
 
-        // How many shot upgrades have been taken. Drives the pattern flags below,
-        // which Shoot() reads.
+        // How many shot upgrades have been taken. Indexes ForwardPattern, which
+        // Shoot() reads.
         [SerializeField]
-        [Tooltip("Shot pattern stage: 0 single, 1 double, 2 triple, 3 sextuple, 4 plus rear shots. " +
-                 "Serialized so a stage can be tried from here without playing up to it - it " +
-                 "replaced four separate bools that had to be kept mutually exclusive by hand.")]
+        [Tooltip("Shot pattern stage: 0 single, 1 double, 2 triple, 3 sextuple. Serialized so a " +
+                 "stage can be tried from here without playing up to it - it replaced four " +
+                 "separate bools that had to be kept mutually exclusive by hand.")]
         private int shotUpgrades;
 
-        /// <summary>The number of upgrades after which the pattern stops changing.</summary>
-        public const int MaxShotUpgrades = 4;
+        /// <summary>
+        /// The number of upgrades after which the pattern stops changing: one
+        /// per row of <see cref="ForwardPattern"/> after the opening single
+        /// shot. It was 4 until Back Shot was retired, which left a fourth pick
+        /// that added nothing.
+        /// </summary>
+        public const int MaxShotUpgrades = 3;
 
         public void UpgradeShotPattern(){
             if(shotUpgrades >= MaxShotUpgrades){

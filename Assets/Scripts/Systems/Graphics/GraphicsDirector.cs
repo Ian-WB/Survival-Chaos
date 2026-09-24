@@ -79,6 +79,16 @@ namespace SurvivalChaos
         public static event Action SettingsChanged;
 
         private Volume overrides;
+
+        /// <summary>
+        /// The overrides' profile, made in code in <see cref="BuildOverrideVolume"/>
+        /// and so this class's to destroy: a Volume leaves a profile handed to it
+        /// to whoever made it, and nothing else would. Kept rather than read
+        /// back through Volume.profile, which makes a new one when asked on a
+        /// volume that has none.
+        /// </summary>
+        private VolumeProfile overrideProfile;
+
         private ScreenSpaceReflection reflections;
         private Fog fog;
         private MotionBlur motionBlur;
@@ -211,6 +221,22 @@ namespace SurvivalChaos
 
             // Nothing to hand back. Every quality level points at a real asset in
             // the project, and this class never replaced one.
+
+            // The profile and each override added to it are separate objects,
+            // and destroying the profile leaves the overrides behind.
+            if (overrideProfile != null)
+            {
+                foreach (VolumeComponent component in overrideProfile.components)
+                {
+                    if (component != null)
+                    {
+                        Destroy(component);
+                    }
+                }
+
+                Destroy(overrideProfile);
+                overrideProfile = null;
+            }
 
             if (Instance == this)
             {
@@ -823,7 +849,8 @@ namespace SurvivalChaos
             overrides = host.AddComponent<Volume>();
             overrides.isGlobal = true;
             overrides.priority = 10000f;
-            overrides.profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            overrideProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            overrides.profile = overrideProfile;
 
             reflections = overrides.profile.Add<ScreenSpaceReflection>();
             fog = overrides.profile.Add<Fog>();

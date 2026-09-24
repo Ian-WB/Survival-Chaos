@@ -21,9 +21,7 @@ MonoBehaviour:
   - Double Shot!
   - Triple Shot!
   - SexTUPLO Shot!
-  - Back Shot!
   stagePickupNames:
   - Double Shot
   - Triple Shot
   - SexTUPLO Shot
-  - Back Shot

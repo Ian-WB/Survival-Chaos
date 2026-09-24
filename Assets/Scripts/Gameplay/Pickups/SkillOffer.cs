@@ -24,6 +24,12 @@ namespace SurvivalChaos
         /// <summary>How many of this offer's pickups are still on the ring.</summary>
         public int LiveCount => members.Count;
 
+        /// <summary>
+        /// The pickups still on the ring, for re-checking what they grant.
+        /// Copy it before removing anything - see PickupSpawner.RefreshOffers.
+        /// </summary>
+        public IReadOnlyList<Pickup> Members => members;
+
         public void Add(Pickup pickup)
         {
             if (pickup == null)

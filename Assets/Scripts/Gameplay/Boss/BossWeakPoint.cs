@@ -39,14 +39,15 @@ namespace SurvivalChaos
         private string label = "Emplacement";
 
         [SerializeField]
-        [Tooltip("Hit points, one per bullet. Three of these at 50 spend the first half of the " +
-                 "boss's 300, which is what keeps the health bar moving through a phase where " +
-                 "the hull itself is taking nothing.")]
+        [Tooltip("Hit points, one per bullet. Each one also comes off the boss's own bar: the " +
+                 "three emplacements at 80 spend the first 240 of the boss's 600, which is what " +
+                 "keeps the health bar moving through a phase where the hull itself is taking " +
+                 "nothing.")]
         private int healthPoints = 50;
 
         [SerializeField]
         [Tooltip("Played where a shot lands without destroying this. Same role as the enemy " +
-                 "spark: at 50 hit points, 49 of every 50 shots produce nothing without it.")]
+                 "spark: at 80 hit points, 79 of every 80 shots produce nothing without it.")]
         private GameObject hitEffect;
 
         [SerializeField]
@@ -200,8 +201,8 @@ namespace SurvivalChaos
             bool killed = health.TakeDamage(1);
 
             // Reported either way. The bar shows one pool for the whole boss and
-            // the emplacements spend the first half of it, so every point that
-            // lands here has to move it.
+            // the emplacements spend the first 240 of its 600, so every point
+            // that lands here has to move it.
             if (owner != null)
             {
                 owner.ReportEmplacementDamage(1);

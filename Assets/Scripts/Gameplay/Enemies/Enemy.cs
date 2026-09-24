@@ -139,15 +139,14 @@ namespace SurvivalChaos
         {
             int reward = definition != null ? definition.ExperienceReward : 5;
 
+            // The player scales the reward, so the player also shows it and
+            // adds it to the run's total - see Player.HandleEXPChange.
             if (EXP.Instance != null)
             {
-                EXP.Instance.AddEXP(reward);
+                EXP.Instance.AddEXP(reward, transform.position);
             }
 
-            // Outside the guard above: what the kill was worth is worth showing
-            // whether or not anything is keeping score.
-            PickupLabelBoard.Experience(transform.position, reward);
-            RunStats.RecordKill(reward);
+            RunStats.RecordKill();
             PickupSpawner.ReportWreck(transform.position);
 
             PlayDeathSound();

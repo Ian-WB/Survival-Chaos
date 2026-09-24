@@ -78,6 +78,12 @@ namespace SurvivalChaos
         private MeshRenderer ringRenderer;
         private MaterialPropertyBlock block;
 
+        /// <summary>
+        /// Built here, so destroyed here: the ring's object goes with the ship,
+        /// but a mesh made in code belongs to no object and outlives it.
+        /// </summary>
+        private Mesh ringMesh;
+
         private bool wasCharged;
         private float burstStarted = float.NegativeInfinity;
         private float returnStarted = float.NegativeInfinity;
@@ -104,7 +110,8 @@ namespace SurvivalChaos
             ring = host.transform;
             ring.SetParent(transform, false);
 
-            host.AddComponent<MeshFilter>().sharedMesh = RingMesh(radius, width);
+            ringMesh = RingMesh(radius, width);
+            host.AddComponent<MeshFilter>().sharedMesh = ringMesh;
 
             ringRenderer = host.AddComponent<MeshRenderer>();
             ringRenderer.sharedMaterial = material;
@@ -114,6 +121,14 @@ namespace SurvivalChaos
             ringRenderer.enabled = false;
 
             block = new MaterialPropertyBlock();
+        }
+
+        private void OnDestroy()
+        {
+            if (ringMesh != null)
+            {
+                Destroy(ringMesh);
+            }
         }
 
         /// <summary>

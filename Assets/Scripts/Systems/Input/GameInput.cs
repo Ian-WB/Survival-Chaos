@@ -10,8 +10,9 @@ namespace SurvivalChaos
         private static IGameInput source = CreateDefault();
 
         /// <summary>
-        /// The active backend. Assigning null restores the default, so a test
-        /// that forgets to clean up cannot leave the game without input.
+        /// The active backend. Assigning null restores the default, which is how
+        /// a test puts real input back in its teardown. Nothing does that on its
+        /// own: a test that never assigns null leaves its fake installed.
         /// </summary>
         public static IGameInput Source
         {

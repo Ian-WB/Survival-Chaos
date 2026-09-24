@@ -173,6 +173,26 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Changes what an upgrade already on the ring grants, or only what its
+        /// caption says, without starting its life over.
+        ///
+        /// For an offer that went stale while it was out: the same skill was
+        /// taken from another offer first, so this one's stage has moved on, or
+        /// its gate or pick limit now shuts it. The clock, the anchor and the
+        /// size carry on, so the colour and the caption are all that change.
+        /// </summary>
+        public void Retarget(SkillDefinition skill, Color color, string caption)
+        {
+            Skill = skill;
+            Tint(color);
+
+            if (label != null)
+            {
+                label.Show(caption, color);
+            }
+        }
+
         private void Update()
         {
             if (collected)

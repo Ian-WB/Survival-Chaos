@@ -10,9 +10,12 @@ namespace SurvivalChaos.Tests
     {
         // The tests assembly deliberately does not depend on the editor tools assembly.
         // These checks exercise its pure predictor without constructing a live pilot.
-        private static Type Pilot => AppDomain.CurrentDomain.GetAssemblies()
-            .Select(a => a.GetType("SurvivalChaos.EditorTools.SurvivalPlaytestBot+Pilot"))
-            .First(t => t != null);
+        // Looked up by assembly-qualified name: walking AppDomain.GetAssemblies can
+        // turn up assemblies Unity has unloaded, which is what warning UAC0005 says.
+        private static Type Pilot =>
+            Type.GetType("SurvivalChaos.EditorTools.SurvivalPlaytestBot+Pilot, SurvivalChaos.Editor")
+            ?? throw new InvalidOperationException(
+                "SurvivalPlaytestBot.Pilot is not in the SurvivalChaos.Editor assembly any more.");
 
         private static Vector3[] Route(Vector3 origin, Vector3 centre, Vector2 heading, float duration,
             float floor = -100, float ceiling = 100, Vector2 request = default)

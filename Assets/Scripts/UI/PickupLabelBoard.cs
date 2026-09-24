@@ -214,12 +214,13 @@ namespace SurvivalChaos
         /// every weapon, every enemy, the boss included. A column of ones rising
         /// off every hit would be thirteen hundred glyphs a run telling the player
         /// something they already know. The reward is the number that varies: a
-        /// Scout is 5 and a Fighter beside it is 15, and knowing that mid-run is
-        /// what makes going after one rather than the other a decision.
+        /// Fighter is worth three Scouts, and knowing that mid-run is what makes
+        /// going after one rather than the other a decision. It is the amount
+        /// the player's bar took, after the multiplier, which is why the player
+        /// is the caller rather than the enemy that died.
         ///
         /// Silent when there is no board in the scene, matching GameSounds - the
-        /// callers are enemies dying, and none of them should have to know
-        /// whether the HUD exists.
+        /// player should not have to know whether the HUD exists.
         /// </summary>
         public static void Experience(Vector3 where, int amount)
         {

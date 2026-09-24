@@ -4,11 +4,26 @@ using UnityEngine;
 
 namespace SurvivalChaos
 {
+    /// <summary>
+    /// Carries kill rewards to whoever is keeping the experience bar - the Player.
+    ///
+    /// Wakes before every other script. Player subscribes from OnEnable, and
+    /// Unity only orders Awake and OnEnable across objects by execution order:
+    /// at the default of 0 for both, whether this Awake had run yet came down
+    /// to the order the scene happened to load its objects in, and when it had
+    /// not, every kill of the run earned nothing and nothing said so. Player
+    /// tries again from Start as well - see Player.BindExperience.
+    /// </summary>
+    [DefaultExecutionOrder(-100)]
     public class EXP : MonoBehaviour
     {
         public static EXP Instance;
 
-        public delegate void EXPChangeHandler(int amount);
+        /// <summary>
+        /// A kill's reward, before the player's multiplier, and where the kill
+        /// was - the player scales the one and shows the result at the other.
+        /// </summary>
+        public delegate void EXPChangeHandler(int amount, Vector3 where);
         public event EXPChangeHandler OnEXPChange;
 
         //Check to see if there's more than one instance, if there is, destroy it, it's just a safety check but it's good to have one. - Luis Fernando
@@ -46,9 +61,9 @@ namespace SurvivalChaos
             }
         }
 
-        public void AddEXP(int amount)
+        public void AddEXP(int amount, Vector3 where)
         {
-            OnEXPChange?.Invoke(amount);
+            OnEXPChange?.Invoke(amount, where);
         }
     }
 }

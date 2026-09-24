@@ -1512,13 +1512,13 @@ namespace SurvivalChaos
             RunOutcome.ReportRunEnded();
             int reward = definition != null ? definition.ExperienceReward : 2;
 
+            // Shown and totalled by the player, which scales it - see Enemy.Death.
             if (EXP.Instance != null)
             {
-                EXP.Instance.AddEXP(reward);
+                EXP.Instance.AddEXP(reward, transform.position);
             }
 
-            PickupLabelBoard.Experience(transform.position, reward);
-            RunStats.RecordKill(reward);
+            RunStats.RecordKill();
 
             // Not positional, and played before the object goes: this is the run
             // ending, not an event somewhere out on the ring.

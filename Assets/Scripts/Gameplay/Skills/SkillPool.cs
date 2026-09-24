@@ -69,6 +69,22 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Whether a player at <paramref name="level"/> can take this skill
+        /// next: the pool holds it, it has a pick left, and that pick is open
+        /// at the level. False for null and for skills the pool does not hold.
+        ///
+        /// The same test a draw makes, asked again later. An offer is drawn
+        /// and then sits on the ring, and a pick of the same skill from
+        /// another offer can close it in the meantime.
+        /// </summary>
+        public bool CanTake(SkillDefinition definition, int level = AnyLevel)
+        {
+            return definition != null
+                && pickCounts.TryGetValue(definition, out int taken)
+                && Open(definition, taken, level);
+        }
+
+        /// <summary>
         /// Returns the next skill a player at <paramref name="level"/> can have
         /// and records the pick, or null when nothing is left. A pool containing
         /// an unlimited, ungated skill never returns null.
@@ -100,9 +116,13 @@ namespace SurvivalChaos
         /// Fewer than <paramref name="count"/> come back when the pool cannot
         /// field that many distinct skills; an offer of two is still an offer.
         /// Only skills whose next pick is open at <paramref name="level"/> are
-        /// drawn.
+        /// drawn, and none in <paramref name="excluding"/> - the skills already
+        /// on the offer a replacement is being drawn for.
         /// </summary>
-        public List<SkillDefinition> Draw(int count, int level = AnyLevel)
+        public List<SkillDefinition> Draw(
+            int count,
+            int level = AnyLevel,
+            ICollection<SkillDefinition> excluding = null)
         {
             var drawn = new List<SkillDefinition>();
 
@@ -116,6 +136,11 @@ namespace SurvivalChaos
             // rather than owned by this call.
             RefreshAvailable(level);
             var remaining = new List<SkillDefinition>(availableBuffer);
+
+            if (excluding != null)
+            {
+                remaining.RemoveAll(excluding.Contains);
+            }
 
             while (drawn.Count < count && remaining.Count > 0)
             {
@@ -168,14 +193,18 @@ namespace SurvivalChaos
 
             foreach (SkillDefinition definition in skills)
             {
-                int taken = pickCounts[definition];
-
-                if ((definition.IsUnlimited || taken < definition.MaxPicks)
-                    && definition.IsAvailableAt(taken, level))
+                if (Open(definition, pickCounts[definition], level))
                 {
                     availableBuffer.Add(definition);
                 }
             }
+        }
+
+        /// <summary>Whether the pick after <paramref name="taken"/> is within the limit and open at the level.</summary>
+        private static bool Open(SkillDefinition definition, int taken, int level)
+        {
+            return (definition.IsUnlimited || taken < definition.MaxPicks)
+                && definition.IsAvailableAt(taken, level);
         }
     }
 }

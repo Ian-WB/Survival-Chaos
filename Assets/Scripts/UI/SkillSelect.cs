@@ -36,6 +36,13 @@ namespace SurvivalChaos
         private SkillPool pool;
 
         /// <summary>
+        /// The run's pool, built on first use rather than in Start, so nothing
+        /// that asks before Start - or in a test, where Start never runs -
+        /// finds it missing.
+        /// </summary>
+        private SkillPool Pool => pool ??= new SkillPool(Upgrades());
+
+        /// <summary>
         /// Guards the fallback warning. Without it a run with no spawner wired logs
         /// once per level-up, which buries whatever else is in the console.
         /// </summary>
@@ -43,7 +50,7 @@ namespace SurvivalChaos
 
         void Start()
         {
-            if (pool == null) { pool = new SkillPool(Upgrades()); }
+            _ = Pool;
         }
 
         /// <summary>
@@ -91,10 +98,6 @@ namespace SurvivalChaos
             // not create another offer behind itself.
             if (RunOutcome.RunEnded) { return; }
 
-            if(pool == null){
-                pool = new SkillPool(Upgrades());
-            }
-
             if (pickups == null)
             {
                 GrantDirectly();
@@ -105,7 +108,28 @@ namespace SurvivalChaos
             // upgrade being spent is something the spawner handles, by leaving a
             // piece of salvage instead. Drawn at the level just reached, so a
             // skill that opens at level 8 is first offered by the level-up to 8.
-            pickups.OfferLevelUp(pool.Draw(pickups.OfferSize, CurrentLevel));
+            pickups.OfferLevelUp(Pool.Draw(pickups.OfferSize, CurrentLevel));
+        }
+
+        /// <summary>
+        /// Whether a skill already out on the ring can still be taken: it has a
+        /// pick left, and that pick's level gate is open. Asked by the spawner
+        /// after every pick - see PickupSpawner.RefreshOffers.
+        /// </summary>
+        public bool CanOffer(SkillDefinition skill)
+        {
+            return Pool.CanTake(skill, CurrentLevel);
+        }
+
+        /// <summary>
+        /// One skill that can be taken now and is not among
+        /// <paramref name="onOffer"/>, to stand in for a pickup whose own skill
+        /// has closed. Null when the pool has nothing else to field.
+        /// </summary>
+        public SkillDefinition DrawReplacement(ICollection<SkillDefinition> onOffer)
+        {
+            List<SkillDefinition> drawn = Pool.Draw(1, CurrentLevel, onOffer);
+            return drawn.Count > 0 ? drawn[0] : null;
         }
 
 #if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
@@ -117,7 +141,6 @@ namespace SurvivalChaos
         public int ApplyDebugLoadout(bool stronger)
         {
             if (player == null || RunOutcome.RunEnded || player.CurrentHealth <= 0) { return 0; }
-            if (pool == null) { pool = new SkillPool(Upgrades()); }
 
             int granted = 0;
             foreach (SkillDefinition skill in skills)
@@ -130,9 +153,9 @@ namespace SurvivalChaos
                 if (skill == null || wanted == 0) { continue; }
                 if (!skill.IsUnlimited) { wanted = Mathf.Min(wanted, skill.MaxPicks); }
 
-                while (pool.PicksTaken(skill) < wanted)
+                while (Pool.PicksTaken(skill) < wanted)
                 {
-                    pool.RecordPick(skill);
+                    Pool.RecordPick(skill);
                     skill.Apply(player);
                     RunStats.RecordSkill(skill.DisplayName);
                     player.DebugLevelUp(offerSkill: false);
@@ -141,9 +164,13 @@ namespace SurvivalChaos
             }
 
             player.Heal(player.MaxHealth - player.CurrentHealth);
-            if (granted > 0 && skillTextObject != null && skillText != null)
+            if (granted > 0)
             {
                 ShowBanner(stronger ? "Boss kit: strong" : "Boss kit: balanced");
+
+                // The kit charges picks the way a collection does, so anything
+                // still on the ring may now be past a gate or a limit.
+                if (pickups != null) { pickups.RefreshOffers(); }
             }
             return granted;
         }
@@ -153,6 +180,12 @@ namespace SurvivalChaos
         /// Applies a skill the player has just flown into, and only now charges it
         /// against its pick limit. The skills that were offered alongside it were
         /// never charged, so they are still available next level.
+        ///
+        /// A skill that can no longer be taken is swapped for one that can, the
+        /// way PickupSpawner.RefreshOffers swaps the pickup itself. That runs
+        /// after every pick, so this should never fire; it is here so that a
+        /// pickup the refresh missed cannot unlock a stage early or go past a
+        /// limit, and it warns, because it means the refresh has a hole.
         /// </summary>
         public void ApplyCollected(SkillDefinition skill)
         {
@@ -161,7 +194,24 @@ namespace SurvivalChaos
                 return;
             }
 
-            pool?.RecordPick(skill);
+            if (!Pool.CanTake(skill, CurrentLevel))
+            {
+                SkillDefinition substitute = DrawReplacement(null);
+
+                Debug.LogWarning(
+                    $"{skill.name} was collected past its level gate or pick limit, so " +
+                    $"{(substitute != null ? substitute.name : "nothing")} was granted instead. " +
+                    "PickupSpawner.RefreshOffers should have swapped it before it was taken.", this);
+
+                if (substitute == null)
+                {
+                    return;
+                }
+
+                skill = substitute;
+            }
+
+            Pool.RecordPick(skill);
             RunStats.RecordSkill(skill.DisplayName);
             skill.Apply(player);
 
@@ -170,8 +220,7 @@ namespace SurvivalChaos
                 GameSounds.Play(GameSounds.Instance.SkillPicked);
             }
 
-            int picksTaken = pool?.PicksTaken(skill) ?? 1;
-            ShowBanner(skill.GetDisplayName(picksTaken));
+            ShowBanner(skill.GetDisplayName(Pool.PicksTaken(skill)));
         }
 
         /// <summary>
@@ -195,8 +244,7 @@ namespace SurvivalChaos
                 return string.Empty;
             }
 
-            int taken = pool?.PicksTaken(skill) ?? 0;
-            return skill.GetPickupName(taken + 1);
+            return skill.GetPickupName(Pool.PicksTaken(skill) + 1);
         }
 
         /// <summary>
@@ -214,7 +262,7 @@ namespace SurvivalChaos
                     "outright instead of offering them on the ring.", this);
             }
 
-            SkillDefinition skill = pool.Next(CurrentLevel);
+            SkillDefinition skill = Pool.Next(CurrentLevel);
             if (skill == null)
             {
                 return;
@@ -227,7 +275,7 @@ namespace SurvivalChaos
                 GameSounds.Play(GameSounds.Instance.SkillPicked);
             }
 
-            ShowBanner(skill.GetDisplayName(pool.PicksTaken(skill)));
+            ShowBanner(skill.GetDisplayName(Pool.PicksTaken(skill)));
         }
 
         /// <summary>
@@ -266,7 +314,8 @@ namespace SurvivalChaos
         /// </summary>
         private void ShowBanner(string skillName)
         {
-            if (RunOutcome.RunEnded) { return; }
+            // Nothing to show it on in a scene that has not wired the banner.
+            if (RunOutcome.RunEnded || skillTextObject == null || skillText == null) { return; }
             if (banner != null)
             {
                 StopCoroutine(banner);

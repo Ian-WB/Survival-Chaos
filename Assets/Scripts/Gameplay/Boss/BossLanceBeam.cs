@@ -179,6 +179,19 @@ namespace SurvivalChaos
             return beam;
         }
 
+        /// <summary>
+        /// The mesh is made in code and belongs to no object, so it goes when
+        /// the beam does - BossEmitter destroys the beam with itself. The lights
+        /// are children and go on their own.
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (mesh != null)
+            {
+                Destroy(mesh);
+            }
+        }
+
         private void Configure(GameObject roundPrefab, Light lightTemplate, int lightCount)
         {
             filter = GetComponent<MeshFilter>();

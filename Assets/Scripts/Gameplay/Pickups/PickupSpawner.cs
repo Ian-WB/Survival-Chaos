@@ -184,9 +184,9 @@ namespace SurvivalChaos
         /// Something the player destroyed went down here. Leaves a piece of
         /// salvage when one is due.
         ///
-        /// Static for the same reason PickupLabelBoard.Experience is: the callers
-        /// are enemies and hull plates dying, and none of them should have to
-        /// know whether the scene has a spawner. Silent when it does not.
+        /// Static because the callers are enemies and hull plates dying, and
+        /// none of them should have to know whether the scene has a spawner.
+        /// Silent when it does not.
         /// Only real kills report - an enemy that rams the player dies silently
         /// and leaves nothing, the same as it earns no experience.
         /// </summary>
@@ -436,6 +436,94 @@ namespace SurvivalChaos
 
             ClearOffer(pickup);
             ObjectPool.Despawn(pickup.gameObject);
+
+            // After ClearOffer, so the offer just answered is off the list and
+            // only the others are checked. Salvage charges nothing, so it
+            // cannot have made anything stale.
+            if (pickup.Skill != null)
+            {
+                RefreshOffers();
+            }
+        }
+
+        /// <summary>
+        /// Checks every upgrade still out on the ring against the pool, now that
+        /// a pick has been charged. Called whenever one is.
+        ///
+        /// An offer is drawn for the level-up that put it out, and the ones
+        /// before it may still be waiting. Take Shot Upgrade from one and the
+        /// same skill in another is no longer what it says: its label names the
+        /// stage the player now has, and taking it would hand over the next
+        /// stage whatever that stage's level gate says, or a pick past the
+        /// limit. The level-4 and level-5 offers both carrying it gave Triple
+        /// Shot at level 5 instead of 10, under a pickup that read "Double
+        /// Shot".
+        ///
+        /// A pickup whose skill can still be taken is relabelled for its next
+        /// stage. One that cannot gets another skill the pool can still field,
+        /// keeping its place and its remaining time, so the level-up it came
+        /// from is still worth something. With nothing left to swap in it
+        /// leaves the ring, and if that empties its offer, a piece of salvage
+        /// takes its place - what a level-up with the pool spent gets anyway.
+        /// </summary>
+        public void RefreshOffers()
+        {
+            if (skillSelect == null)
+            {
+                return;
+            }
+
+            for (int i = offers.Count - 1; i >= 0; i--)
+            {
+                SkillOffer offer = offers[i];
+
+                // A copy: members are swapped or removed as the loop goes.
+                var members = new List<Pickup>(offer.Members);
+                var onOffer = new List<SkillDefinition>(members.Count);
+
+                foreach (Pickup member in members)
+                {
+                    if (member != null && member.Skill != null)
+                    {
+                        onOffer.Add(member.Skill);
+                    }
+                }
+
+                foreach (Pickup member in members)
+                {
+                    if (member == null || member.Skill == null)
+                    {
+                        continue;
+                    }
+
+                    if (skillSelect.CanOffer(member.Skill))
+                    {
+                        member.Retarget(member.Skill, member.Skill.PickupColor, CaptionFor(member.Skill));
+                        continue;
+                    }
+
+                    SkillDefinition replacement = skillSelect.DrawReplacement(onOffer);
+
+                    if (replacement != null)
+                    {
+                        onOffer.Add(replacement);
+                        member.Retarget(replacement, replacement.PickupColor, CaptionFor(replacement));
+                        continue;
+                    }
+
+                    Vector3 where = member.transform.position;
+                    bool spent = offer.Remove(member);
+                    ObjectPool.Despawn(member.gameObject);
+
+                    if (spent)
+                    {
+                        offers.RemoveAt(i);
+
+                        Vector3 center = arenaCenter != null ? arenaCenter.position : Vector3.zero;
+                        PlaceSalvage(PickupPlacement.BearingOf(where, center), ReachableHeight(where.y));
+                    }
+                }
+            }
         }
 
         /// <summary>

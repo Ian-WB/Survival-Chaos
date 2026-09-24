@@ -118,17 +118,42 @@ namespace SurvivalChaos
         /// </summary>
         private BoxCollider hitBox;
 
-        /// <summary>Where this round was when the previous physics step tested it.</summary>
+        /// <summary>
+        /// Where this round was when the previous physics step tested it, or
+        /// where it was fired from until the first step has.
+        /// </summary>
         private Vector3 lastStepPosition;
 
-        private bool hasLastStep;
+        /// <summary>
+        /// Whether the physics system has tested this round at
+        /// <see cref="lastStepPosition"/>. Not at the muzzle: the round is fired
+        /// between steps, so whatever it overlaps there only this sweep can
+        /// report.
+        /// </summary>
+        private bool lastStepSimulated;
 
         /// <summary>
         /// Shared by every round: a sweep is read and finished before the next one
         /// starts, and allocating per round per step would be the garbage
-        /// ShootScript's registry exists to avoid.
+        /// ShootScript's registry exists to avoid. Grown when a sweep fills it -
+        /// see <see cref="SweepBox"/>.
         /// </summary>
-        private static readonly RaycastHit[] sweepHits = new RaycastHit[16];
+        private static RaycastHit[] sweepHits = new RaycastHit[16];
+
+        /// <summary>
+        /// Where growing the buffer stops. Every other round in the air is in
+        /// the query too - they share the Default layer with everything they can
+        /// hit, so no mask can leave them out - and the boss keeps well over a
+        /// hundred up at once.
+        /// </summary>
+        private const int MaxSweepHits = 256;
+
+        private static readonly IComparer<RaycastHit> NearestFirst = new ByDistance();
+
+        private sealed class ByDistance : IComparer<RaycastHit>
+        {
+            public int Compare(RaycastHit a, RaycastHit b) => a.distance.CompareTo(b.distance);
+        }
 
         [SerializeField]
         private float speed;
@@ -394,9 +419,15 @@ namespace SurvivalChaos
                 authoredScaleKnown = true;
             }
 
-            // A reused round must not sweep from where it died to where it has just
-            // been fired, through everything in between.
-            hasLastStep = false;
+            // The first sweep runs from here, the muzzle. It used to start at the
+            // first physics step, and a round that had moved before it - any
+            // frame rate above the 50 steps a second - never swept that stretch,
+            // so an enemy at point-blank range could be flown through. From here
+            // rather than from where it died, so a reused round cannot sweep
+            // across the arena to its new muzzle: ObjectPool places a round
+            // before this runs, on first spawn and on every reuse.
+            lastStepPosition = transform.position;
+            lastStepSimulated = false;
 
             // A reused round must not keep the throw of the volley it died in,
             // nor go on hunting for the one before.
@@ -486,11 +517,12 @@ namespace SurvivalChaos
         /// player missed a still enemy that the previous round had hit.
         ///
         /// So each step sweeps this round's box along the stretch it has moved since
-        /// the last one. Anything the box overlaps at either end is left alone,
-        /// because the physics system reports those itself; only what lies wholly in
-        /// the gap is delivered, as the same OnTriggerEnter the engine would have
-        /// sent. Every receiver - Enemy, Enemy_1, the boss's emplacements, the
-        /// player - keeps its own rules, and nothing can be hit twice.
+        /// the last one - or, the first time, since it left the muzzle. Anything
+        /// the box overlaps where a step tested it is left alone, because the
+        /// physics system reports those itself; everything else on the way is
+        /// delivered, nearest first, as the same OnTriggerEnter the engine would
+        /// have sent. Every receiver - Enemy, Enemy_1, the boss's emplacements,
+        /// the player - keeps its own rules, and nothing can be hit twice.
         ///
         /// A straight sweep along a curved path: at this radius a 0.98-unit step
         /// bows 0.006 from its chord, far inside any hitbox.
@@ -503,16 +535,12 @@ namespace SurvivalChaos
             }
 
             Vector3 now = transform.position;
-
-            if (!hasLastStep)
-            {
-                lastStepPosition = now;
-                hasLastStep = true;
-                return;
-            }
-
             Vector3 from = lastStepPosition;
+            bool fromSimulated = lastStepSimulated;
+
+            // This step's position is tested by the simulation that follows.
             lastStepPosition = now;
+            lastStepSimulated = true;
 
             Vector3 travel = now - from;
             float distance = travel.magnitude;
@@ -526,19 +554,12 @@ namespace SurvivalChaos
             Vector3 centreOffset = transform.TransformPoint(hitBox.center) - now;
             Vector3 halfExtents = Vector3.Scale(hitBox.size, transform.lossyScale) * 0.5f;
 
-            int count = Physics.BoxCastNonAlloc(
-                from + centreOffset,
-                halfExtents,
-                travel / distance,
-                sweepHits,
-                rotation,
-                distance,
-                Physics.AllLayers,
-                QueryTriggerInteraction.Collide);
+            int count = SweepBox(from + centreOffset, halfExtents, travel / distance, rotation, distance,
+                out RaycastHit[] hits);
 
             for (int i = 0; i < count; i++)
             {
-                Collider other = sweepHits[i].collider;
+                Collider other = hits[i].collider;
 
                 if (other == null || other == hitBox || !other.enabled)
                 {
@@ -556,7 +577,7 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                if (OverlapsAt(from, rotation, other) || OverlapsAt(now, rotation, other))
+                if ((fromSimulated && OverlapsAt(from, rotation, other)) || OverlapsAt(now, rotation, other))
                 {
                     continue;
                 }
@@ -571,6 +592,36 @@ namespace SurvivalChaos
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// Everything a box meets moving from <paramref name="origin"/>, nearest
+        /// first, triggers included. <paramref name="hits"/> is a buffer shared by
+        /// every round, good until the next call.
+        ///
+        /// Sorted because the query answers in no particular order, and a round
+        /// that stops at its first target has to stop at the nearer of two. It
+        /// could take the one behind, when two enemies sat in one step's stretch.
+        ///
+        /// Grown when full, because a full buffer may have dropped hits, and the
+        /// dropped one can be the target: other rounds are in the answer too.
+        /// </summary>
+        public static int SweepBox(Vector3 origin, Vector3 halfExtents, Vector3 direction,
+            Quaternion rotation, float distance, out RaycastHit[] hits)
+        {
+            int count = Physics.BoxCastNonAlloc(origin, halfExtents, direction, sweepHits, rotation,
+                distance, Physics.AllLayers, QueryTriggerInteraction.Collide);
+
+            while (count == sweepHits.Length && sweepHits.Length < MaxSweepHits)
+            {
+                sweepHits = new RaycastHit[sweepHits.Length * 2];
+                count = Physics.BoxCastNonAlloc(origin, halfExtents, direction, sweepHits, rotation,
+                    distance, Physics.AllLayers, QueryTriggerInteraction.Collide);
+            }
+
+            System.Array.Sort(sweepHits, 0, count, NearestFirst);
+            hits = sweepHits;
+            return count;
         }
 
         private bool OverlapsAt(Vector3 position, Quaternion rotation, Collider other)

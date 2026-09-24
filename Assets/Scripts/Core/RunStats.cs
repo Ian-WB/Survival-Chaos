@@ -12,11 +12,11 @@ namespace SurvivalChaos
     /// enemies arrive from a pool mid-run, and the screen that reads their totals
     /// is on a panel that has been inactive since the scene loaded.
     ///
-    /// Counted as it happens rather than derived at the end. Experience earned is
-    /// not recoverable from the player's level and bar - levels cost a different
-    /// amount each time and the bar is reset on every one of them - and enemies
-    /// destroyed is not recoverable from anything at all once they are back in
-    /// the pool.
+    /// Counted as it happens rather than derived at the end. Enemies destroyed is
+    /// not recoverable from anything at all once they are back in the pool.
+    /// Experience used not to be recoverable either, while every level-up
+    /// emptied the bar; the bar carries over now, but the debug menu's level-ups
+    /// cost nothing, so working it back from the thresholds would still be wrong.
     /// </summary>
     public static class RunStats
     {
@@ -51,10 +51,20 @@ namespace SurvivalChaos
             return skill != null && skillCounts.TryGetValue(skill, out int taken) ? taken : 0;
         }
 
-        public static void RecordKill(int reward)
+        public static void RecordKill()
         {
             EnemiesDestroyed++;
-            ExperienceEarned += Mathf.Max(0, reward);
+        }
+
+        /// <summary>
+        /// Experience as the player's bar took it, after the multiplier. Kept
+        /// apart from the kill count because it is the player that scales it:
+        /// totalled from the rewards before scaling, it read a third of what the
+        /// bar had filled with at the multiplier of 3.
+        /// </summary>
+        public static void RecordExperience(int amount)
+        {
+            ExperienceEarned += Mathf.Max(0, amount);
         }
 
         /// <summary>

@@ -344,6 +344,48 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
+        public void CanTake_FollowsTheGateOfThePickAfterTheOnesTaken()
+        {
+            ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(3);
+            SetLevels(shots, 4, 10, 18);
+            var pool = new SkillPool(new SkillDefinition[] { shots }, _ => 0);
+
+            Assert.IsTrue(pool.CanTake(shots, level: 5));
+            pool.RecordPick(shots);
+
+            // What a second offer drawn at level 5 was still promising.
+            Assert.IsFalse(pool.CanTake(shots, level: 5));
+            Assert.IsTrue(pool.CanTake(shots, level: 10));
+        }
+
+        [Test]
+        public void CanTake_IsFalse_AtThePickLimit_AndForSkillsThePoolDoesNotHold()
+        {
+            MaxHealthSkill once = NewSkill<MaxHealthSkill>(1);
+            MaxHealthSkill foreign = NewSkill<MaxHealthSkill>(1);
+            var pool = new SkillPool(new SkillDefinition[] { once }, _ => 0);
+
+            pool.RecordPick(once);
+
+            Assert.IsFalse(pool.CanTake(once));
+            Assert.IsFalse(pool.CanTake(foreign));
+            Assert.IsFalse(pool.CanTake(null));
+        }
+
+        [Test]
+        public void Draw_LeavesOutTheSkillsItIsToldTo()
+        {
+            HealSkill heal = NewSkill<HealSkill>(0);
+            MaxHealthSkill maxHealth = NewSkill<MaxHealthSkill>(1);
+            AttackSpeedSkill attackSpeed = NewSkill<AttackSpeedSkill>(3);
+            var pool = new SkillPool(new SkillDefinition[] { heal, maxHealth, attackSpeed }, _ => 0);
+
+            List<SkillDefinition> drawn = pool.Draw(3, excluding: new SkillDefinition[] { heal, attackSpeed });
+
+            CollectionAssert.AreEqual(new SkillDefinition[] { maxHealth }, drawn);
+        }
+
+        [Test]
         public void Next_StillChargesItsOwnPick()
         {
             // Next is now built on the same helper as Draw, so its old contract

@@ -14,7 +14,7 @@ HDRP 17.6**, C#, Windows standalone. Version 0.9.0, in polish.
 ## 1. Two folders, and which one is which
 
 ```
-E:\Work\UnityProjects\Survival-Chaos-Project\     <- outer. NOT a git repo.
+C:\Work\UnityProjects\Survival-Chaos-Project\     <- outer. NOT a git repo.
 ├── Builds\                                       <- player builds live here
 └── Survival-Chaos\                               <- inner. The git repo AND the Unity project root.
     ├── Assets\
@@ -245,13 +245,15 @@ this project open". Use the relay build:
 
 ```bash
 unity command build --target StandaloneWindows64 \
-  --outputPath "E:/Work/UnityProjects/Survival-Chaos-Project/Builds/26_0908-1416_lancebeam/Survival-Chaos-main.exe" \
-  --options CleanBuildCache --confirm true
+  --outputPath "C:/Work/UnityProjects/Survival-Chaos-Project/Builds/26_0908-1416_lancebeam/Survival-Chaos-main.exe" \
+  --options '["CleanBuildCache"]' --confirm true
 ```
 
 Naming is `YY_MMDD-HHMM_shortLabel`. It returns `{"status":"queued"}`
 immediately; poll `unity command build_status` until `completed`. A healthy
-build is ~900 MB and takes 10–30 seconds warm.
+build is about 940 MB on disk and, with `CleanBuildCache`, takes about 90
+seconds once the shader cache is warm. The first build after an editor update
+recompiles every shader: 22 minutes after the move to 6.6.3.
 
 **Verify against the shipped assembly, not the project** —
 `Builds/<stamp>/Survival-Chaos-main_Data/Managed/SurvivalChaos.dll`. Type and
