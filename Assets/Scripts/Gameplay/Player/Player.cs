@@ -92,6 +92,16 @@ namespace SurvivalChaos
 
         [SerializeField] public int currentExperience = 0, maxExperience = 40, currentLevel = 1;
 
+        [SerializeField, Min(0)]
+        [Tooltip("How much more each level costs than the one before. Max Experience is the " +
+                 "first level's cost.")]
+        private int levelCostIncrease = 35;
+
+        [SerializeField, Min(0f)]
+        [Tooltip("Scales every enemy's Experience Reward, rounded to whole points. 1 is the run " +
+                 "as tuned: about 20 level-ups for the 20 upgrade picks, the last just before the boss.")]
+        private float experienceMultiplier = 1f;
+
         [SerializeField]
         private SkillSelect skillSelect;
 
@@ -373,7 +383,7 @@ namespace SurvivalChaos
 
         private void HandleEXPChange(int newExperience)
         {
-            currentExperience += newExperience;
+            currentExperience += Mathf.RoundToInt(newExperience * experienceMultiplier);
             expBar.setCurrentExp(currentExperience);
             if (currentExperience >= maxExperience)
             {
@@ -399,7 +409,7 @@ namespace SurvivalChaos
 
             currentExperience = 0;
             expBar.setCurrentExp(currentExperience);
-            maxExperience += 35;
+            maxExperience += levelCostIncrease;
             expBar.setMaxExp(maxExperience);
         }
 
