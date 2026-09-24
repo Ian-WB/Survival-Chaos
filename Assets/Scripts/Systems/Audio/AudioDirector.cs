@@ -116,6 +116,8 @@ namespace SurvivalChaos
                 // still written out rather than left implicit - the next person to
                 // rescale the world needs to find them here rather than discover
                 // by ear that every positional sound is attenuating wrongly.
+                // Distances are from the ship, which carries the listener since
+                // 24 September 2026, not from the camera 10 behind it.
                 source.minDistance = 1f;
                 source.maxDistance = 500f;
                 voices[i] = source;

@@ -141,10 +141,12 @@ namespace SurvivalChaos
         private static RaycastHit[] sweepHits = new RaycastHit[16];
 
         /// <summary>
-        /// Where growing the buffer stops. Every other round in the air is in
-        /// the query too - they share the Default layer with everything they can
-        /// hit, so no mask can leave them out - and the boss keeps well over a
-        /// hundred up at once.
+        /// Where growing the buffer stops. Other rounds can be in the answer
+        /// too - they share the Default layer with everything they can hit, so
+        /// no mask can leave them out - though only the ones in this round's
+        /// path. Played on 24 September 2026, the boss's last act put 96 in the
+        /// air at once and no sweep filled the first sixteen, so growing is a
+        /// guard against a full buffer rather than a size the fight needs.
         /// </summary>
         private const int MaxSweepHits = 256;
 

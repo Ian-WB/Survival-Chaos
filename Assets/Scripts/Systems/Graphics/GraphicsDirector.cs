@@ -873,7 +873,9 @@ namespace SurvivalChaos
             // across, and the distance past which shadows stop.
             //
             // 50 against an arena 37.44 units across at the lane, with the camera
-            // trailing at radius 23.72 (5 units behind the lane at radius 18.72).
+            // trailing at radius 28.72 (10 units behind the lane at radius 18.72)
+            // since 24 September 2026, which puts the far side of the lane 47.44
+            // away - inside 50, with less to spare than the 42.44 it was.
             shadowSettings.maxShadowDistance.overrideState = true;
             shadowSettings.maxShadowDistance.value = 50f;
         }

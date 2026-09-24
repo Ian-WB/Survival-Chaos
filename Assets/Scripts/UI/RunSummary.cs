@@ -76,9 +76,9 @@ namespace SurvivalChaos
             into.Append("DESTROYED ").Append(RunStats.EnemiesDestroyed);
             into.Append("    EXPERIENCE ").AppendLine(RunStats.ExperienceEarned.ToString());
 
-            // Counted rather than listed. Twenty picks is twenty lines of mostly
-            // the same four words, and what the player wants back is the shape of
-            // the build - which is the counts.
+            // Counted rather than listed. A full run's thirty-odd picks would be
+            // thirty-odd lines of mostly the same eight names, and what the player
+            // wants back is the shape of the build - which is the counts.
             if (RunStats.SkillOrder.Count > 0)
             {
                 into.AppendLine();

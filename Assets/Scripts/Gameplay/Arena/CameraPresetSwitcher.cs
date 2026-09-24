@@ -3,9 +3,10 @@ using UnityEngine;
 namespace SurvivalChaos
 {
     /// <summary>
-    /// Puts the main camera into one of <see cref="CameraFraming.Presets"/>,
-    /// for trying them in play. Driven from the debug menu, which adds this to
-    /// the camera the first time it is asked.
+    /// Puts the main camera into one of <see cref="CameraFraming.Presets"/>.
+    /// It sits on the Game scene's camera and starts every run on
+    /// <see cref="CameraFraming.DefaultIndex"/>; the debug menu cycles through
+    /// the rest, and adds this to a camera that lacks it.
     ///
     /// It moves only what a preset names: the camera's distance outside the
     /// lane, through its own SnapToOrbit, and its field of view. Round the ring
@@ -15,9 +16,11 @@ namespace SurvivalChaos
     /// the middle of the band - put back after PlayerMovement and ApplyBounds
     /// have moved it each frame, which is why this is LateUpdate.
     ///
-    /// Leaves the audio listener where it is, on the camera. Four sounds are
-    /// partly positional - the lance and ram charges, the boss's shot and an
-    /// enemy dying - and those are a little quieter from further back.
+    /// Nothing here touches what is heard. The audio listener is on the ship,
+    /// not the camera, since the default went from 5 out to 10 on 24 September
+    /// 2026: four sounds are partly positional - the lance and ram charges, the
+    /// boss's shot and an enemy dying - and a listener on a camera further back
+    /// made them quieter.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class CameraPresetSwitcher : MonoBehaviour
@@ -27,7 +30,18 @@ namespace SurvivalChaos
         private ApplyBounds bounds;
         private int current;
 
-        /// <summary>The preset in use on the main camera, or the classic one before any switch.</summary>
+        /// <summary>
+        /// Whether a preset has been put on the camera yet. The debug menu adds
+        /// this component and selects in the same call, and Start must not then
+        /// put the default back over its choice.
+        /// </summary>
+        private bool applied;
+
+        /// <summary>
+        /// The preset in use on the main camera. A camera without this component
+        /// counts as the classic one, which is what it was authored at before the
+        /// default moved.
+        /// </summary>
         public static CameraPreset Current
         {
             get
@@ -73,11 +87,25 @@ namespace SurvivalChaos
             bounds = GetComponent<ApplyBounds>();
         }
 
+        /// <summary>
+        /// Starts the run on <see cref="CameraFraming.DefaultIndex"/>. In Start
+        /// rather than Awake, so SnapToOrbit has placed the camera from its own
+        /// authored offset first and cannot move it back afterwards.
+        /// </summary>
+        private void Start()
+        {
+            if (!applied)
+            {
+                Apply(CameraFraming.DefaultIndex);
+            }
+        }
+
         private void Apply(int index)
         {
             CameraPreset was = CameraFraming.Presets[current];
             CameraPreset preset = CameraFraming.Presets[index];
             current = index;
+            applied = true;
 
             if (snap != null)
             {

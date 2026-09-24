@@ -53,10 +53,16 @@ namespace SurvivalChaos
     /// from four distances, 7 to 20 outside the lane, each at the field of
     /// view that fits the band. Closest keeps nearly the classic lens and its
     /// sense of scale; furthest flattens the ring almost to a corridor.
+    ///
+    /// Playing settled it on 24 September 2026, on the whole band from 10 out -
+    /// see <see cref="DefaultIndex"/>. The other six stay on the debug menu.
     /// </summary>
     public static class CameraFraming
     {
-        /// <summary>The camera as it has always been: 5 outside the lane, 75 degrees.</summary>
+        /// <summary>
+        /// The camera as it was until 24 September 2026: 5 outside the lane, 75
+        /// degrees. Still the first preset, and the one the lens presets match.
+        /// </summary>
         public const float ClassicDistance = 5f;
         public const float ClassicFieldOfView = 75f;
 
@@ -94,6 +100,18 @@ namespace SurvivalChaos
             WholeBand(WholeBandDistances[2]),
             WholeBand(WholeBandDistances[3]),
         };
+
+        /// <summary>
+        /// The preset every run starts on: the whole band from 10 out, at 54
+        /// degrees, picked by playing on 24 September 2026. CameraPresetSwitcher
+        /// applies it as a run starts, and the Game scene's camera is authored
+        /// at the same distance and lens, so the editor frames the arena the way
+        /// the game does.
+        /// </summary>
+        public const int DefaultIndex = 4;
+
+        /// <summary>The preset every run starts on - see <see cref="DefaultIndex"/>.</summary>
+        public static CameraPreset Default => Presets[DefaultIndex];
 
         /// <summary>
         /// A preset that frames the whole band from <paramref name="distance"/>

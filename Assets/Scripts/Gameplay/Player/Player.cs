@@ -380,9 +380,9 @@ namespace SurvivalChaos
         /// There used to be a fifth row, Back Shot, which fired five forward and
         /// four the other way round the ring. It is gone: it was the one upgrade
         /// that changed what the gun *is* rather than how much of it there is, and
-        /// with the progression stretched over a run twice as long there are now
-        /// nineteen other picks doing the stretching. Nothing fires backwards, so
-        /// the backward table and the second FireLine went with it.
+        /// with the progression stretched over a run twice as long, other picks
+        /// can do the stretching - the pool holds forty now. Nothing fires
+        /// backwards, so the backward table and the second FireLine went with it.
         /// </summary>
         private static readonly float[][] ForwardPattern =
         {

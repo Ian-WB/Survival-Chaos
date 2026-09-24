@@ -84,6 +84,22 @@ namespace SurvivalChaos.Tests
             }
         }
 
+        /// <summary>
+        /// The camera a run starts on, picked by playing on 24 September 2026.
+        /// Pinned so that reordering the list cannot quietly move the default to
+        /// a neighbour.
+        /// </summary>
+        [Test]
+        public void TheDefault_IsTheWholeBandFromTenOut()
+        {
+            CameraPreset preset = CameraFraming.Default;
+
+            Assert.AreEqual(10f, preset.Distance);
+            Assert.IsTrue(preset.HoldsBandMiddle);
+            Assert.AreEqual(54.04f, preset.FieldOfView, 0.01f);
+            Assert.AreEqual("Whole band, 10 out, 54°", preset.Name);
+        }
+
         /// <summary>Four presets in a row are told apart by name, so no two may share one.</summary>
         [Test]
         public void EveryPreset_HasItsOwnName()

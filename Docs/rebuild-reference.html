@@ -287,9 +287,9 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 335 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 336 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>335</b><span>commits</span></div>
+      <div class="stat"><b>336</b><span>commits</span></div>
       <div class="stat"><b>426</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
@@ -529,10 +529,17 @@
       kinds.</li>
       <li><strong>Salvage for health</strong> &mdash; the health drop every second level replaced by repair scrap
       from wrecks, paced by how hurt the player is rather than by how far they have levelled.</li>
+      <li><strong>An arena in the clouds</strong> &mdash; lifted 1000 into the volumetric cloud layer by lowering
+      HDRP&rsquo;s planet rather than moving the world, with the fog heights moved up to follow and the clouds
+      fogged only as far as the sky behind them.</li>
       <li><strong>An audit, answered</strong> &mdash; an outside read of the code found stale upgrade offers that
       skipped level gates, experience that could fail to arrive and was misreported when it did, and rounds that
-      could skip their first stretch or stop at the wrong target. All fixed on 24 September, with tests, and the
+      could skip their first stretch or stop at the wrong target. All fixed on 24 September, with tests and a check in play, and the
       three editor tools that would have overwritten tuned assets with old values are deleted.</li>
+      <li><strong>A camera chosen by playing</strong> &mdash; the whole band from 10 out at 54&deg;, holding the
+      band&rsquo;s middle, in place of the close 75&deg; the game had always had, and the audio listener moved to
+      the ship so that the camera&rsquo;s distance no longer changes what is heard; the other six presets stay on
+      the debug menu.</li>
     </ul>
   </section>
 
@@ -669,9 +676,10 @@ transform.LookAt(pos);</code></pre>
     <p><code>PlayerMovement</code> orbits and looks at the centre; <code>ApplyBounds</code> clamps height. The Main Camera runs the <em>same</em> <code>PlayerMovement</code> component with the same speed — that's how it stays in sync, rather than following the player.</p>
 
     <h3>Seven cameras, to settle the lens by playing</h3>
-    <p>The camera sits 5 outside the lane at a vertical field of view of 75&deg;, level with the ship. At the ship&rsquo;s distance that frames <strong>7.7 units</strong> of a band 8.9 tall, so the band never fits the screen at once, and the camera climbs with the ship &mdash; at the ceiling, everything below about 9.5 is off screen. And the lens is wide enough to matter: something ten units round the ring is half as far again from the camera as the ship, so it is drawn two thirds its size, and its height above or below the ship reads two thirds of what it is. Nearly every boss attack is dodged by reading heights.</p>
+    <p>Until 24 September the camera sat 5 outside the lane at a vertical field of view of 75&deg;, level with the ship. At the ship&rsquo;s distance that frames <strong>7.7 units</strong> of a band 8.9 tall, so the band never fitted the screen at once, and the camera climbed with the ship &mdash; at the ceiling, everything below about 9.5 was off screen. And that lens is wide enough to matter: something ten units round the ring is half as far again from the camera as the ship, so it is drawn two thirds its size, and its height above or below the ship reads two thirds of what it is. Nearly every boss attack is dodged by reading heights.</p>
     <p>Whether to pull back and tighten is a feel question, so it is settled by playing. F8 then 9 cycles <code>CameraFraming.Presets</code>: the classic lens, the same 7.7 framed from 9 and from 14 out &mdash; so comparing those three compares the lens and nothing else &mdash; and four that frame the whole band plus a margin, 10.2 units, from 7, 10, 14 and 20 out at 72&deg;, 54&deg;, 40&deg; and 29&deg;. The whole-band ones hold the band&rsquo;s middle rather than climbing with the ship: a fixed screen the ship moves around, as a side-scrolling shooter has. From 14 out the thing ten units round the ring is a fifth further than the ship.</p>
-    <p><code>CameraPresetSwitcher</code> is added to the camera the first time the menu asks. It moves the camera out through its own <code>SnapToOrbit</code>, which gained <code>SetRadiusOffset</code> and refuses it on the lane&rsquo;s definer; sets the field of view; and puts the height back in <code>LateUpdate</code>, after <code>PlayerMovement</code> and <code>ApplyBounds</code> have moved it. Round the ring it keeps station as it always has, because the orbit speed converts through the lane&rsquo;s radius rather than the camera&rsquo;s. Nothing is saved, so every run starts on the classic camera, and the audio listener stays where it is &mdash; four sounds are partly positional, so they are a little quieter from further back.</p>
+    <p><strong>Playing settled it on 24 September, on the whole band from 10 out.</strong> At 54&deg; it frames the band and its margin, 10.2 units, and holds the band&rsquo;s middle at 7.17 however the ship climbs; something ten units round the ring is about a quarter further from the camera than the ship, where from 5 out it was half as far again. The choice is <code>CameraFraming.DefaultIndex</code>, pinned by a test so that reordering the list cannot move it to a neighbour, and the Game scene&rsquo;s camera is authored at the same 10 out and 54&deg;, so the editor frames the arena the way the game does.</p>
+    <p><code>CameraPresetSwitcher</code> sits on that camera and puts the default on in <code>Start</code>, once <code>SnapToOrbit</code> has placed the camera from its own offset; the debug menu cycles the other six, and adds the component to a camera that lacks it. It moves the camera out through its own <code>SnapToOrbit</code>, which gained <code>SetRadiusOffset</code> and refuses it on the lane&rsquo;s definer; sets the field of view; and puts the height back in <code>LateUpdate</code>, after <code>PlayerMovement</code> and <code>ApplyBounds</code> have moved it. Round the ring it keeps station as it always has, because the orbit speed converts through the lane&rsquo;s radius rather than the camera&rsquo;s. Nothing picked from the menu is saved, so every run starts on the default. The audio listener moved to the ship with it: four sounds are partly positional, and a listener on the camera heard them quieter from 10 out than from 5. On the ship, where the camera sits changes nothing that is heard.</p>
     <div class="note">
       <div class="label">What the stills showed</div>
       <p>The same frozen boss moment, all seven. The tight lenses do what the arithmetic says &mdash; the ship stays the size it was, the torpedoes grow and the far island comes forward &mdash; and they also lose what sits beside the ship on the ring: at 31&deg; the boss eleven units away slid off the left edge. The whole-band presets bring it back at 40&deg;. The close camera keeps the most scale and drama, which is what it is for.</p>
@@ -686,7 +694,8 @@ transform.LookAt(pos);</code></pre>
       <div class="label">A still player could miss a still enemy the last round had just hit</div>
       <p>Rounds move by setting their transform in <code>Update</code>, and physics only tests the positions it finds at each 50&nbsp;Hz step. At 150&deg; a second on the 18.72 lane a round covers <strong>0.98 units</strong> between steps, while a hit needs a sample inside a window of box width plus round length: 0.69 for <code>Enemy</code> and <code>Enemy 2</code>, 0.86 for <code>Enemy 1</code>, 0.89 for <code>Enemy 3</code>. Whether a round landed depended on where along the ring the target happened to sit.</p>
       <p><code>ShootScript</code> now sweeps each round's box in <code>FixedUpdate</code> along the stretch it moved since the previous step. Anything it overlaps at either end is left to the physics system; anything wholly in the gap gets the same <code>OnTriggerEnter</code> the engine would have sent, on both sides, so every receiver keeps its own rules and nothing is hit twice. Rounds ignore rounds, respect the layer matrix, and start a fresh sweep when reused from the pool. Measured with the waves stopped and a held target stepped through one physics gap in tenths: without the sweep <strong>45 to 99%</strong> of rounds hit depending on position; with it, 98% or more at every one.</p>
-      <p>Three holes in it were closed on 24 September, found by an audit of the code rather than in play. The first sweep began at the first physics step, so a round that had already moved by then &mdash; at any frame rate above fifty &mdash; never swept its first stretch, and an enemy at point-blank range could be flown through; it begins at the muzzle now, and only an end the physics system has actually tested is left to it. The hits came back in no particular order, so a round that stops at its first target could stop at the further of two; they are taken nearest first. And the query had room for sixteen, with every other round in the air in the answer too, since everything shares the Default layer and no mask can leave them out; a full buffer is grown and the query run again rather than trusted.</p>
+      <p>Three holes in it were closed on 24 September, found by an audit of the code rather than in play. The first sweep began at the first physics step, so a round that had already moved by then &mdash; at any frame rate above fifty &mdash; never swept its first stretch, and an enemy at point-blank range could be flown through; it begins at the muzzle now, and only an end the physics system has actually tested is left to it. The hits came back in no particular order, so a round that stops at its first target could stop at the further of two; they are taken nearest first. And the query had room for sixteen, and other rounds can be in the answer too, since everything shares the Default layer and no mask can leave them out; a full buffer is grown and the query run again rather than trusted.</p>
+      <p>Played the same day, with the old start put back at runtime rather than in code &mdash; each new round&rsquo;s sweep reset to wherever it stood until the physics system first tested it &mdash; and a Scout held still with health enough to count every hit. At the editor&rsquo;s hundred-odd frames a second there are two frames to a physics step, so a round could travel half a unit before the physics system first saw it. With the Scout centred on the muzzle, 19 of 40 rounds landed the old way and all 40 now; with it 0.2 behind the muzzle, still over the ship&rsquo;s nose, 15 against 40. From 0.1 ahead both ways landed every round, because at this frame rate the skipped stretch was too short to carry a round clean past a Scout that far out; a faster frame rate lengthens it. And the buffer never filled: the boss&rsquo;s last act put 96 rounds in the air at once, and no sweep came back with sixteen, so growing it is a guard rather than something the fight needs.</p>
     </div>
 
     <h3>The ship model</h3>
@@ -1357,7 +1366,7 @@ emission  = hot * glow * veins;</code></pre>
     </div>
 
     <h3>Bullet lights, and one shadow per volley</h3>
-    <p>With maximum skills the player has ~36 bullets alive; the boss adds ~174. A light each is impossible — every shadow-casting point light renders the scene six times into a cubemap. <code>BulletLightPool</code> keeps a fixed set of lights that follow the bullets nearest the camera, and only a few of those cast shadows. It clones a template light you configure in the Inspector, so it carries no HDRP dependency and would work unchanged on URP. The scene runs <strong>two</strong> of it &mdash; 36 lights on the player's fire, 32 on the boss's &mdash; because the two want different colours and very different shadow budgets.</p>
+    <p>With maximum skills the player has ~36 bullets alive; the boss added ~174 when this was written, and its last act peaked at 96 when counted again on 24 September. A light each is impossible — every shadow-casting point light renders the scene six times into a cubemap. <code>BulletLightPool</code> keeps a fixed set of lights that follow the bullets nearest the camera, and only a few of those cast shadows. It clones a template light you configure in the Inspector, so it carries no HDRP dependency and would work unchanged on URP. The scene runs <strong>two</strong> of it &mdash; 36 lights on the player's fire, 32 on the boss's &mdash; because the two want different colours and very different shadow budgets.</p>
     <div class="warn">
       <div class="label">The budget on the component is not the ceiling, and the ceiling fails silently</div>
       <p>Lights were vanishing whenever a lot of them got close together, and the number that looks like the
@@ -1415,7 +1424,7 @@ emission  = hot * glow * veins;</code></pre>
       <code>GraphicsDirector</code>: a runtime Volume override pinning <code>maxShadowDistance</code> to <strong>60</strong>, with a comment sizing it
       against an arena <em>27.4 units</em> across.</p>
       <p>That comment had been right. The arena is ten times that now, and the camera trails at radius 212 &mdash; so every shadow in the scene was
-      being culled by distance long before it reached the frame. It is 500 today. <strong>A stale world-unit constant does not announce itself after a
+      being culled by distance long before it reached the frame. It was 500 until the world came back to 1&times;, and is 50 now, which from the camera&rsquo;s 10 out reaches the far side of the lane, 47.44 away, with a little to spare. <strong>A stale world-unit constant does not announce itself after a
       rescale</strong>, because the code still compiles, the setting still applies, and the effect it kills is one you have to be looking for.</p>
       <p>An audit of the rest of <code>GraphicsDirector</code> found this was the <em>only</em> world-unit number in its 1,225 lines, and the only
       runtime volume override in the project. That last part is why no search of the <code>.asset</code> files could ever have found it: the override
@@ -1447,7 +1456,7 @@ emission  = hot * glow * veins;</code></pre>
 
     <h3>Exposure, and one lever for fog</h3>
     <p>Exposure is fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
-    <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. Those are back on their defaults, leaving <code>meanFreePath</code> as the single control over how thick the air is. It is <strong>20</strong> today, with the froxel depth at 60 and the maximum fog distance at 64 &mdash; the island's far edge is about 45 units out. The base height of 0 and maximum height of 50 look like ten-times leftovers and are not: across the flight band they give a density falling from 0.54 of maximum to 0.16, so a low pass over the lava is markedly thicker than a high one.</p>
+    <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. They went back to their defaults, leaving <code>meanFreePath</code> as the single control over how thick the air is, and four have been set again since, the two heights among them. <code>meanFreePath</code> is <strong>30</strong> today &mdash; 20 until the arena rose into the clouds on 24 September, then 50 &mdash; with the froxel depth and the maximum fog distance both at 64; the island's far edge is about 45 units out. The base and maximum heights of 1000 and 1050 are not ten-times leftovers: they are altitudes above HDRP&rsquo;s planet, which that move put 1000 below the arena, so the fog still spans world heights 0 to 50 as it did before. Across the flight band that gives a density falling from 0.54 of maximum to 0.16, so a low pass over the lava is markedly thicker than a high one.</p>
     <p>On the top tier — the one called Ultra since the split — probe volumes moved from L1 to L2 spherical harmonics, the cookie atlas to 4096, the area shadow atlas from 4096 to 8192, and area shadow filtering up a step. The lighter High inserted beneath it kept Medium's probe volumes and took 2048 instead. Sky reflection was left at 2048 on both. One light stops culling shadow casters against the view frustum, so geometry outside the frame keeps throwing shadows into it &mdash; and the scene file shows that flag off on two, which is a trap rather than a second decision. HDRP writes <code>useViewFrustumForShadowCasterCull</code> itself, clearing it when a light enters the cached shadow atlas and setting it when the light is evicted. So on a cached light such as <code>Lava Light 2</code> the serialized value is the renderer's bookkeeping and moves on its own &mdash; the Shadows row's Off rung evicts it every time. On the directional light, which updates every frame and never enters that atlas, nothing overwrites it and it is authored. Same field, two meanings, and only <code>shadowUpdateMode</code> tells them apart.</p>
 
     <div class="warn">
@@ -2147,11 +2156,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       island one can be lost. An emissive tint would fix it and would also be the first thing in the arena that
       glows because it is dangerous rather than because it is hot &mdash; a call about the art direction rather
       than about the mechanic, so it has deliberately not been made.</li>
-      <li><strong>The camera is a choice between seven presets now.</strong> The classic 75&deg; from 5 out, the
-      same framing from 9 and 14, and the whole band from 7, 10, 14 and 20 &mdash; cycled with F8 then 9 in every build since
-      <code>26_0921-1757_laser</code>, the newest <code>26_0924-0845_salvage</code>. One is picked by playing and becomes the default; if it is a far
-      one, the audio listener moves to the ship. The Player's lane offset stays at 5; waves spawn from 21.45 out,
-      so anything up to about +7.7 keeps every arrival outside the lane.</li>
+      <li><strong>The listener rides the ship now, and the mix has not been heard from there.</strong> Every run
+      starts on the whole band from 10 out, and since <code>26_0924-1947_shipListener</code> the audio listener is on the
+      ship rather than the camera. The four partly positional sounds fall off from where the ship is, by Unity&rsquo;s
+      rolloff from 1 unit &mdash; worked out, not heard: an enemy dying three units away plays at about 0.47 of full,
+      against 0.34 from the old camera 5 out and 0.28 from 10 out, while the boss&rsquo;s charges and shot barely move,
+      since 40% of each was never positional. If nearby deaths now crowd the mix, <code>EnemyDeath</code>&rsquo;s spatial
+      blend of 0.8 is the dial. The Player's lane offset stays at 5; waves spawn from 21.45 out, so anything up to about
+      +7.7 keeps every arrival outside the lane.</li>
       <li><strong>The torpedoes at one every three seconds have had no verdict, and are faster now.</strong> Their
       cruise went from 7.5 to 8.5 on 22 September, asked for as the player slowed to 5.6, and that is in
       <code>26_0924-0845_salvage</code>, unplayed. At two with a 12&nbsp;s
@@ -2171,10 +2183,17 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       ram closes head-on &mdash; about 8.5 units of travel between them in the 0.22&nbsp;s, against 10.7 before. If the
       ram becomes a wall, <code>PlayerDash</code>&rsquo;s speed multiplier at 6.25 puts the dash back where it was.
       Its tooltips still quote the old 7.7 and 4.47.</li>
-      <li><strong>The audit&rsquo;s fixes have not been played.</strong> The re-checked offers, the experience
-      and the sweep are covered by tests, which is all an edit-mode suite can say about them. A run is what shows
-      whether carrying experience over moves the level curve enough to notice, and whether a round fired into an
-      enemy at point-blank range now lands every time.</li>
+      <li><strong>The audit&rsquo;s fixes are checked in play, not yet in a run.</strong> A session on 24
+      September drove each one in the running game, with god mode on and the waves stopped. The player was bound
+      to experience exactly once; real kills paid the scaled reward to the bar, the rising number and the
+      run&rsquo;s total alike; and a boss-sized reward crossed two thresholds and kept what was left. The
+      audit&rsquo;s own case, Shot Upgrade out in two offers at level 5, turned the untaken one into Move Speed in
+      place with its clock running on; at level 18, where the next stage was open, the untaken one was relabelled
+      from Triple Shot to SexTUPLO Shot instead; and with the rest of the pool spent it left salvage. Rounds fired
+      into a Scout on the ship&rsquo;s nose landed 40 of 40, against 15 and 19 with the old start put back, and
+      the lance beam&rsquo;s mesh, the deflector ring&rsquo;s and the graphics override profile all went with
+      their owners. What none of that can say is whether carrying experience over moves the level curve enough
+      to notice. That takes a run.</li>
       <li><strong>Salvage has not been played.</strong> Its pace is one number, <em>Salvage Seconds At Half
       Health</em> on the <code>PickupSpawner</code>: 12 pays up to five hit points a minute at half health, and 18 would
       pay about three. The playtest bot reports what it healed as <code>healingObserved</code>: 8 against 38 hits in a run
@@ -2251,11 +2270,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <div class="label">Why the editor never noticed</div>
       <p>The obvious sequence — check out <code>main</code>, then merge — would have rewound the working tree 49 commits and replayed it, with Unity watching hundreds of assets vanish and return. Moving the ref instead (<code>git branch -f main hdrp-experiment</code>) leaves both names on the same commit, so the checkout that follows changes <strong>zero files</strong>. The project stayed open throughout.</p>
     </div>
-    <p>The branch-locked caveat is now moot: <code>HdrpVfxMaterialFixup</code>, <code>LavaLightPlacer</code> and the render-pipeline references in <code>SurvivalChaos.Editor.asmdef</code> have nowhere else they need to go. That asmdef now names three: <code>HighDefinition.Runtime</code>, <code>Core.Runtime</code> for the dynamic-resolution and probe-volume enums, and <code>GPUDriven.Runtime</code> for <code>GPUResidentDrawerMode</code>. Each was added only when a preset field genuinely needed the type — the first attempt to reach one of them failed to compile, which is a cheaper way to find out than shipping.</p>
+    <p>The branch-locked caveat is now moot: <code>HdrpVfxMaterialFixup</code>, <code>LavaLightPlacer</code> (since deleted) and the render-pipeline references in <code>SurvivalChaos.Editor.asmdef</code> have nowhere else they need to go. That asmdef now names three: <code>HighDefinition.Runtime</code>, <code>Core.Runtime</code> for the dynamic-resolution and probe-volume enums, and <code>GPUDriven.Runtime</code> for <code>GPUResidentDrawerMode</code>. Each was added only when a preset field genuinely needed the type — the first attempt to reach one of them failed to compile, which is a cheaper way to find out than shipping.</p>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 335 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 336 commits
   </footer>
 
 </div>
