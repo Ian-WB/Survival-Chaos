@@ -10,11 +10,13 @@
 // Whatever fog lies between the camera and the sky, the lava glow included, still
 // sits in front of them.
 //
-// Swapped in through the pipeline's runtime shaders
-// (HDRenderPipelineRuntimeShaders.volumetricCloudsCombinePS), so HDRP itself is
-// untouched. CloudCombineShaderTests checks the swap has not been reset. After an
-// HDRP upgrade, re-copy the package's shader and reapply CloudFogDepth in passes 0
-// and 7, or this copy may drift from what the pipeline feeds it.
+// Swapped in through the pipeline's global settings
+// (VolumetricCloudsRuntimeResources.volumetricCloudsCombinePS in
+// HDRenderPipelineGlobalSettings.asset), so HDRP itself is untouched.
+// CloudCombineShaderTests checks the swap has not been reset. After an HDRP upgrade,
+// diff the package's shader against this one; if it changed, re-copy it and reapply
+// CloudFogDepth in passes 0 and 7, or this copy may drift from what the pipeline
+// feeds it. Unity 6.6.3 ships it unchanged from 6.6.2.
 
 Shader "Hidden/Survival Chaos/Volumetric Clouds Combine"
 {

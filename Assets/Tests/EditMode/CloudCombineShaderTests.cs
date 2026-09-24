@@ -41,8 +41,10 @@ namespace SurvivalChaos.Tests
             var inUse = resources.GetProperty("volumetricCloudsCombinePS").GetValue(settings) as Shader;
             var ours = AssetDatabase.LoadAssetAtPath<Shader>(ShaderPath);
 
+            // Unity's ==, not AreSame: after the shader is reimported the pipeline
+            // keeps its old C# handle, a different object pointing at the same shader.
             Assert.IsNotNull(ours, ShaderPath + " is missing.");
-            Assert.AreSame(ours, inUse,
+            Assert.IsTrue(inUse == ours,
                 "The clouds are combined by " + (inUse != null ? inUse.name : "nothing") + ", so the " +
                 "fog is back to burying them. Point VolumetricCloudsRuntimeResources." +
                 "volumetricCloudsCombinePS at " + ShaderPath + " again.");
