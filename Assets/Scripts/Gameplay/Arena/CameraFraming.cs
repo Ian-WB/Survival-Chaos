@@ -29,6 +29,26 @@ namespace SurvivalChaos
             FieldOfView = fieldOfView;
             HoldsBandMiddle = holdsBandMiddle;
         }
+
+        /// <summary>
+        /// The field of view to use on a band <paramref name="bandHeight"/> tall.
+        /// A whole-band preset frames the band it is given, so a taller band
+        /// widens its lens and a shorter one tightens it; <see cref="FieldOfView"/>
+        /// is that lens on <see cref="CameraFraming.BandHeight"/>. The lens
+        /// presets frame the ship as the classic camera did and keep theirs.
+        /// </summary>
+        /// <remarks>
+        /// The lens changes rather than the distance because the distance is
+        /// what each preset was picked for - how flat the ring looks, and how
+        /// early things coming round it can be read - and a band that changes
+        /// height should not change that.
+        /// </remarks>
+        public float FieldOfViewOn(float bandHeight)
+        {
+            return HoldsBandMiddle
+                ? CameraFraming.FieldOfViewFor(Distance, CameraFraming.WholeBandHeightOf(bandHeight))
+                : FieldOfView;
+        }
     }
 
     /// <summary>
@@ -51,8 +71,10 @@ namespace SurvivalChaos
     /// The rest frame the whole band and stop following the ship up and down -
     /// a fixed screen the ship moves around, as a side-scrolling shooter has -
     /// from four distances, 7 to 20 outside the lane, each at the field of
-    /// view that fits the band. Closest keeps nearly the classic lens and its
-    /// sense of scale; furthest flattens the ring almost to a corridor.
+    /// view that fits the band - the band as it is live, since 25 September
+    /// 2026, so resizing PlayerBounds resizes the view. Closest keeps nearly
+    /// the classic lens and its sense of scale; furthest flattens the ring
+    /// almost to a corridor.
     ///
     /// Playing settled it on 24 September 2026, on the whole band from 10 out -
     /// see <see cref="DefaultIndex"/>. The other six stay on the debug menu.
@@ -75,7 +97,14 @@ namespace SurvivalChaos
         /// </summary>
         public const float BandMargin = 0.65f;
 
-        /// <summary>The band's height, 4.42 to 13.32, which the player's bounds box sets.</summary>
+        /// <summary>
+        /// The band's height the preset table is written for: 8.9, the height of
+        /// the player's bounds box (4.42 to 13.32, and 2.72 to 11.62 since it
+        /// came down on 21 September 2026). The stored lenses
+        /// use it; the camera itself frames the live band, through
+        /// <see cref="CameraPreset.FieldOfViewOn"/>, so resizing PlayerBounds
+        /// resizes the view with it.
+        /// </summary>
         public const float BandHeight = 8.9f;
 
         /// <summary>
@@ -84,8 +113,19 @@ namespace SurvivalChaos
         /// </summary>
         public const float FarDistance = 14f;
 
-        /// <summary>How tall a whole-band preset frames, at the ship: the band and a margin each side.</summary>
-        public static float WholeBandHeight => BandHeight + 2f * BandMargin;
+        /// <summary>How tall a whole-band preset frames on <see cref="BandHeight"/>.</summary>
+        public static float WholeBandHeight => WholeBandHeightOf(BandHeight);
+
+        /// <summary>
+        /// How tall a whole-band preset frames, at the ship, on a band
+        /// <paramref name="bandHeight"/> tall: the band and a margin each side.
+        /// The margin stays the same whatever the band, because it is room for
+        /// a ship on the edge and the ship does not change size.
+        /// </summary>
+        public static float WholeBandHeightOf(float bandHeight)
+        {
+            return Mathf.Max(0f, bandHeight) + 2f * BandMargin;
+        }
 
         /// <summary>How far out the whole-band presets sit, closest first.</summary>
         public static readonly float[] WholeBandDistances = { 7f, 10f, FarDistance, 20f };
@@ -103,10 +143,10 @@ namespace SurvivalChaos
 
         /// <summary>
         /// The preset every run starts on: the whole band from 10 out, at 54
-        /// degrees, picked by playing on 24 September 2026. CameraPresetSwitcher
-        /// applies it as a run starts, and the Game scene's camera is authored
-        /// at the same distance and lens, so the editor frames the arena the way
-        /// the game does.
+        /// degrees on the band as it is, picked by playing on 24 September 2026.
+        /// CameraPresetSwitcher applies it as a run starts, and the Game scene's
+        /// camera is authored at the same distance and lens, so the editor
+        /// frames the arena the way the game does.
         /// </summary>
         public const int DefaultIndex = 4;
 
@@ -115,16 +155,18 @@ namespace SurvivalChaos
 
         /// <summary>
         /// A preset that frames the whole band from <paramref name="distance"/>
-        /// outside the lane and holds its middle. Named with its distance and
-        /// lens, because four of them in a row are otherwise told apart only by
-        /// looking.
+        /// outside the lane and holds its middle. Named with its distance,
+        /// because four of them in a row are otherwise told apart only by
+        /// looking. The name carried the lens as well until 25 September 2026,
+        /// when the lens began following the band's live height and a number
+        /// fixed in the name could disagree with it; the debug menu shows the
+        /// camera's own lens beside the name instead.
         /// </summary>
         private static CameraPreset WholeBand(float distance)
         {
-            float fieldOfView = FieldOfViewFor(distance, WholeBandHeight);
             return new CameraPreset(
-                "Whole band, " + distance.ToString("0") + " out, " + fieldOfView.ToString("0") + "\u00B0",
-                distance, fieldOfView, true);
+                "Whole band, " + distance.ToString("0") + " out",
+                distance, FieldOfViewFor(distance, WholeBandHeight), true);
         }
 
         /// <summary>

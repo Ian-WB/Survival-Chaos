@@ -14,7 +14,10 @@ namespace SurvivalChaos
     /// converts the orbit speed through the lane's radius rather than the
     /// camera's. Up and down it either keeps climbing with the ship, or holds
     /// the middle of the band - put back after PlayerMovement and ApplyBounds
-    /// have moved it each frame, which is why this is LateUpdate.
+    /// have moved it each frame, which is why this is LateUpdate. Holding the
+    /// band, it also fits its lens to the band's live height each frame, so
+    /// PlayerBounds made taller or shorter is framed whole from the same
+    /// distance (<see cref="CameraPreset.FieldOfViewOn"/>).
     ///
     /// Nothing here touches what is heard. The audio listener is on the ship,
     /// not the camera, since the default went from 5 out to 10 on 24 September
@@ -136,7 +139,9 @@ namespace SurvivalChaos
 
         private void LateUpdate()
         {
-            if (!CameraFraming.Presets[current].HoldsBandMiddle || bounds == null
+            CameraPreset preset = CameraFraming.Presets[current];
+
+            if (!preset.HoldsBandMiddle || bounds == null
                 || !bounds.TryGetBand(out float floor, out float ceiling))
             {
                 return;
@@ -146,8 +151,13 @@ namespace SurvivalChaos
             // PlayerMovement's LookAt aims at the camera's own height, so moving
             // straight up or down leaves the view level.
             Vector3 position = transform.position;
-            position.y = (floor + ceiling) * 0.5f;
+            position.y = SpawnBand.Middle(floor, ceiling);
             transform.position = position;
+
+            if (view != null)
+            {
+                view.fieldOfView = preset.FieldOfViewOn(ceiling - floor);
+            }
         }
     }
 }

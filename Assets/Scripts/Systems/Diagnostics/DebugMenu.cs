@@ -306,7 +306,11 @@ namespace SurvivalChaos
 
             // Asked for on 21 September 2026 to compare the camera close and wide
             // with the camera further back and tighter - see CameraFraming.
-            if (Draw(x, ref y, width, row, gap, "9  Camera: " + CameraPresetSwitcher.Current.Name, true))
+            // The lens is read off the camera rather than the preset, because the
+            // whole-band presets fit it to the band's live height.
+            Camera view = Camera.main;
+            string lens = view != null ? ", " + view.fieldOfView.ToString("0") + "\u00B0" : "";
+            if (Draw(x, ref y, width, row, gap, "9  Camera: " + CameraPresetSwitcher.Current.Name + lens, true))
             {
                 CameraPresetSwitcher.Cycle();
             }

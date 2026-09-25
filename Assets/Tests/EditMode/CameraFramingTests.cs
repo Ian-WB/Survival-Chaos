@@ -97,7 +97,67 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual(10f, preset.Distance);
             Assert.IsTrue(preset.HoldsBandMiddle);
             Assert.AreEqual(54.04f, preset.FieldOfView, 0.01f);
-            Assert.AreEqual("Whole band, 10 out, 54°", preset.Name);
+            Assert.AreEqual("Whole band, 10 out", preset.Name);
+        }
+
+        /// <summary>PlayerBounds in the Game scene on 25 September 2026, 2.72 to 11.62.</summary>
+        private const float LiveBandHeight = 11.618166f - 2.721233f;
+
+        /// <summary>
+        /// Since 25 September 2026 the whole-band presets frame the band's live
+        /// height, so a taller or shorter PlayerBounds is still framed whole,
+        /// margin and all, from the same distance.
+        /// </summary>
+        [TestCase(6f)]
+        [TestCase(8.9f)]
+        [TestCase(12f)]
+        public void EveryWholeBandPreset_FramesTheBandItIsGiven(float bandHeight)
+        {
+            foreach (CameraPreset preset in CameraFraming.Presets)
+            {
+                if (!preset.HoldsBandMiddle)
+                {
+                    continue;
+                }
+
+                Assert.AreEqual(bandHeight + 2f * CameraFraming.BandMargin,
+                    CameraFraming.VisibleHeight(preset.Distance, preset.FieldOfViewOn(bandHeight)), 1e-3f, preset.Name);
+            }
+        }
+
+        [Test]
+        public void ATallerBand_WidensTheLens()
+        {
+            CameraPreset preset = CameraFraming.Default;
+
+            Assert.Greater(preset.FieldOfViewOn(12f), preset.FieldOfViewOn(8.9f));
+            Assert.Less(preset.FieldOfViewOn(6f), preset.FieldOfViewOn(8.9f));
+        }
+
+        /// <summary>
+        /// On the band as it is the default keeps the lens it was picked at: the
+        /// live band is 8.897 against the table's 8.9, a fiftieth of a degree.
+        /// </summary>
+        [Test]
+        public void OnTheBandAsItIs_TheDefaultKeepsItsLens()
+        {
+            Assert.AreEqual(CameraFraming.Default.FieldOfView,
+                CameraFraming.Default.FieldOfViewOn(LiveBandHeight), 0.05f);
+        }
+
+        /// <summary>
+        /// The lens presets frame the ship as the classic camera did, not the
+        /// band, so the band's height leaves them alone.
+        /// </summary>
+        [Test]
+        public void TheLensPresets_KeepTheirLens_WhateverTheBand()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                CameraPreset preset = CameraFraming.Presets[i];
+                Assert.AreEqual(preset.FieldOfView, preset.FieldOfViewOn(12f), preset.Name);
+                Assert.AreEqual(preset.FieldOfView, preset.FieldOfViewOn(6f), preset.Name);
+            }
         }
 
         /// <summary>Four presets in a row are told apart by name, so no two may share one.</summary>
