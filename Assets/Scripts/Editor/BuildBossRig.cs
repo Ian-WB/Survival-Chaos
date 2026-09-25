@@ -86,6 +86,11 @@ namespace SurvivalChaos.EditorTools
         /// first thing to lower if the curtain reads as unfair rather than as
         /// tight. Going the other way, anything past about 0.85 closes the gaps
         /// entirely and the attack stops being threadable at all.
+        ///
+        /// On 25 September 2026 the boss grew by a quarter and the rounds did
+        /// not, so the rows are 1.58 apart and every gap is about 0.3 wider.
+        /// Growing the discs by the same quarter, to 0.875, would put the
+        /// curtain back as it was.
         /// </summary>
         private const string DiscLeftPath = "Assets/Prefabs/Boss/boss_disc 1.prefab";
 
@@ -112,17 +117,23 @@ namespace SurvivalChaos.EditorTools
         /// How far out along the ring an emplacement sits, in the boss's local
         /// units.
         ///
-        /// The hull's own face is at 3.51 and the hull is a trigger that eats
+        /// The hull's own face is at 4.39 and the hull is a trigger that eats
         /// bullets, so anything inside it can never be shot. Mounting the pods
         /// proud of that face is what makes them reachable at all - the bullet
         /// meets the pod before it meets the armour. The boss turns to face
         /// whatever it is chasing, so this is the face the player sees.
+        ///
+        /// 3.95 against a face at 3.51 until 25 September 2026, when the whole
+        /// boss grew by a quarter. Every number the rig authors in the boss's
+        /// units grew with it; a rebuild with the old ones would sink the pods
+        /// into the hull.
         /// </summary>
-        private const float PodOutboard = 3.95f;
+        private const float PodOutboard = 4.9375f;
 
         /// <summary>
-        /// Pod radius in local units, so 0.7 world units across a playable band of
-        /// 8.9.
+        /// Pod radius in local units, so 0.875 world units across a playable band
+        /// of 10.5 - 0.7 across 8.9 until the boss grew by a quarter on 25
+        /// September 2026, the same day the band grew to make room for it.
         ///
         /// A target the player has to line up with rather than one they cannot
         /// miss. The widest shot upgrade spreads six bullets over 1.5 world units,
@@ -130,7 +141,7 @@ namespace SurvivalChaos.EditorTools
         /// a body-length off lands none - which is the whole reason the
         /// emplacements sit at three different heights.
         /// </summary>
-        private const float PodRadius = 0.7f;
+        private const float PodRadius = 0.875f;
 
         /// <summary>
         /// Hit points per emplacement, and with them the length of the first act.
@@ -207,9 +218,10 @@ namespace SurvivalChaos.EditorTools
         /// lands on the plating and wants to stay a colour. So the light is the
         /// same hue at a sane display value rather than the material's HDR one.
         ///
-        /// The range is set against the ship, not the arena. A pod is 1.4 units
+        /// The range is set against the ship, not the arena. A pod is 1.75 units
         /// across on a hull a few units long, and this is meant to wash the
-        /// plating immediately around it - not to light the boss.
+        /// plating immediately around it - not to light the boss. It grew by a
+        /// quarter with the boss on 25 September 2026, from 6.
         ///
         /// Range is the one light property the boss transform does not carry.
         /// A collider radius under a root at scale 1 is a local number; a light
@@ -218,7 +230,7 @@ namespace SurvivalChaos.EditorTools
         /// </summary>
         private static readonly Color PodLightColor = new Color(1f, 0.13f, 0.05f);
 
-        private const float PodLightRange = 6f;
+        private const float PodLightRange = 7.5f;
         private const float PodLightLumens = 90f;
 
         /// <summary>
@@ -322,7 +334,7 @@ namespace SurvivalChaos.EditorTools
                 Name = "Prow Emplacement",
                 Label = "Prow",
                 Muzzles = new[] { 16, 29, 30, 31 },
-                Outboard = 4.6f,
+                Outboard = 5.75f,
             },
             new Bank
             {

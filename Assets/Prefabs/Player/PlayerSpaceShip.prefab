@@ -48,20 +48,20 @@ MonoBehaviour:
   plumeMesh: {fileID: 4300000, guid: 66a43c8127ed24e478d7893d14706523, type: 2}
   glowMesh: {fileID: 4300000, guid: ec6402b5b5329564fb98c7cabefabc23, type: 2}
   flareMaterial: {fileID: 2100000, guid: eed287ed2770d224e9f6df9283febd4a, type: 2}
-  mainOffset: {x: -0.20831044, y: 0.038565267, z: 0}
-  mainLength: 0.26
-  mainWidth: 0.075
+  mainOffset: {x: -0.26038805, y: 0.048206583, z: 0}
+  mainLength: 0.325
+  mainWidth: 0.09375
   mainBrightness: 6
   retroOffsets:
-  - {x: 0.095055684, y: -0.09079614, z: 0.03060497}
-  - {x: 0.09505568, y: -0.091259114, z: -0.030386928}
-  retroLength: 0.1
-  retroWidth: 0.03
+  - {x: 0.11881961, y: -0.11349518, z: 0.038256213}
+  - {x: 0.118819594, y: -0.114073895, z: -0.03798366}
+  retroLength: 0.125
+  retroWidth: 0.037499998
   retroBrightness: 4
   dashFloor: 0.7
   dashBoost: 2
-  readyOffset: {x: -0.035708144, y: 0.1479577, z: 0}
-  readySize: 0.042
+  readyOffset: {x: -0.04463518, y: 0.18494712, z: 0}
+  readySize: 0.0525
   readyBrightness: 2.5
   readyCarry: 0.25
   popSeconds: 0.25

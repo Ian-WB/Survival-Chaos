@@ -24,7 +24,10 @@ namespace SurvivalChaos
     /// 7 to 5.6 and the burst with it. The ram is still dodged because it closes
     /// head-on as well, about four more units in the burst at the boss's 20
     /// degrees a second; if that ever reads as a wall, a speedMultiplier of 6.25
-    /// puts the 7.7 back.
+    /// puts the 7.7 back. The hull has been 8.81 wide since the boss grew by a
+    /// quarter on 25 September 2026, and it turned out not to matter: the hull
+    /// hurts on first touch only, so a burst that is up when it arrives carries
+    /// the ship through whatever is left of it (see BossEmitter.RunRam).
     ///
     /// The climb is sized separately, and against something else. It used to
     /// share that multiplier, which made a vertical dash 7.7 units too - 87% of
@@ -54,9 +57,9 @@ namespace SurvivalChaos
         [SerializeField]
         [Range(0.05f, 1f)]
         [Tooltip("How long one burst lasts, in seconds. With the multiplier below this decides " +
-                 "the distance covered - 0.22s at 5x a 5.6 ship is about 6.2 world units of arc, " +
-                 "less than the boss hull's 7.05, so a dash gets through the ram only because the " +
-                 "ram closes head-on too.")]
+                 "the distance covered - 0.22s at 5x a 5.6 ship is about 6.2 world units of arc. " +
+                 "Against the ram only the start matters: the hull hurts on first touch, so a burst " +
+                 "that is up when it arrives carries the ship through the boss's 8.81.")]
         private float duration = 0.22f;
 
         [SerializeField]

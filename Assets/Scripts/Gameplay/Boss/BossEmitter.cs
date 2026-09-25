@@ -43,11 +43,12 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("The height the boss flies at, measured from the middle of the player's band " +
                  "(PlayerBounds) - below it when negative. The boss takes this height as it " +
-                 "arrives, so moving the band moves the boss and its three banks with it. -1.08 " +
-                 "puts the prow's lance 0.3 above the band's middle with the keel and crown pods " +
-                 "near the floor and ceiling, which was 6.09 on the 2.72-11.62 band. The boss spawn " +
+                 "arrives, so moving the band moves the boss and its three banks with it. -1.35 " +
+                 "puts the hull's middle on the band's middle and the prow's lance 0.37 above it, " +
+                 "with the keel and crown pods near the floor and ceiling. It was -1.08 until the " +
+                 "boss grew by a quarter; that was 6.09 on the 2.72-11.62 band. The boss spawn " +
                  "stream's own height is not used.")]
-        private float heightFromBandMiddle = -1.08f;
+        private float heightFromBandMiddle = -1.35f;
 
         [SerializeField]
         [Tooltip("The hull's hit box - what the ram hits the player with. Stretched upright with " +
@@ -62,8 +63,8 @@ namespace SurvivalChaos
         [Min(0f)]
         [Tooltip("How far past the band's floor and ceiling the hull must reach, so the ram cannot " +
                  "be climbed over or dived under. The hull stretches upright to reach it on a band " +
-                 "too tall for it - from a band of about 13.3 at 1. A band of 8.9 needs nothing: " +
-                 "the hull reaches 3.2 past both edges.")]
+                 "too tall for it - from a band of about 17.1 at 1. A band of 10.5 needs nothing: " +
+                 "the 19.1 hull reaches 4.3 past both edges.")]
         private float hullOverhang = 1f;
 
         /// <summary>The hull as the prefab has it, before any stretch - see FitHullToBand.</summary>
@@ -783,18 +784,19 @@ namespace SurvivalChaos
         /// The ram's one counter is the dash, and that rests on the hull being a
         /// wall: three times cruise beats running, and the hull spans the band,
         /// so climbing loses (see <see cref="RunRam"/>). Authored, the hull is
-        /// 15.3 tall and centred on the band's middle, so it reaches 3.2 past
-        /// both edges of an 8.9 band and any shift of the band is covered
+        /// 19.1 tall and centred on the band's middle, so it reaches 4.3 past
+        /// both edges of a 10.5 band and any shift of the band is covered
         /// by the boss following it. What it could not survive was the band
-        /// growing past about 15.5, where a ship on the ceiling would fly over
-        /// the hull and the ram would miss.
+        /// growing past about 19.3, where a ship on the ceiling would fly over
+        /// the hull and the ram would miss. (15.3 and 15.5 until the boss grew
+        /// by a quarter on 25 September 2026.)
         ///
         /// So on a band that needs it, the hull stretches upright about its own
         /// middle - the model and its box together, so what is drawn is what
         /// hits. The emplacements and the muzzles stay where they are: it is a
-        /// taller wall, not a bigger boss, and a wider one would outlast the
-        /// dash. On the band as it was on 25 September 2026, and on any band
-        /// under about 13.3, it needs nothing and nothing changes.
+        /// taller wall, not a bigger boss, whose banks would leave the band. On
+        /// the band as it was on 25 September 2026, and on any band
+        /// under about 17.1, it needs nothing and nothing changes.
         /// </summary>
         private void FitHullToBand(float floor, float ceiling)
         {
@@ -1394,6 +1396,14 @@ namespace SurvivalChaos
         /// about 10.3 units between the two in the dash's 0.22s, since the boss's
         /// cruise went from 12 to 20 degrees a second on 25 September - it was
         /// 8.5 at 12. PlayerDash's speedMultiplier at 6.25 puts the 7.45 back.
+        ///
+        /// Measured on 25 September 2026, when the boss grew by a quarter and the
+        /// hull went to 8.81 wide: getting all the way through is not what the
+        /// dash has to do. The hull hurts on first touch only
+        /// (Player.OnTriggerEnter), so a burst that is up when the hull reaches
+        /// the ship carries it through however wide the hull is - with the bot
+        /// flying, two dashes ended with the ship still inside and nothing landed.
+        /// The width decides how long the ship is inside, not whether it is hit.
         ///
         /// The telegraph is the hull flashing, because by this act there are no
         /// emplacements left to light up.

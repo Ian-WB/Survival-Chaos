@@ -102,8 +102,8 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual("Whole band, 10 out", preset.Name);
         }
 
-        /// <summary>PlayerBounds in the Game scene on 25 September 2026, 2.72 to 11.62.</summary>
-        private const float LiveBandHeight = 11.618166f - 2.721233f;
+        /// <summary>PlayerBounds when the default was picked, 2.72 to 11.62.</summary>
+        private const float PickedBandHeight = 11.618166f - 2.721233f;
 
         /// <summary>
         /// Since 25 September 2026 the whole-band presets frame the band's live
@@ -130,8 +130,11 @@ namespace SurvivalChaos.Tests
         /// <summary>The boss bar's lower edge, down from the top of a 16:9 screen, measured 25 September 2026.</summary>
         private const float BossBarShare = 0.081f;
 
-        /// <summary>Half the ship's drawn height: its model is 0.21 tall.</summary>
-        private const float ShipHalfHeight = 0.11f;
+        /// <summary>
+        /// Half the ship's drawn height: its model is 0.26 tall since it grew by a
+        /// quarter on 25 September 2026, 0.21 before.
+        /// </summary>
+        private const float ShipHalfHeight = 0.14f;
 
         /// <summary>
         /// Where a whole-band preset draws a height, as a share of the screen
@@ -148,11 +151,13 @@ namespace SurvivalChaos.Tests
         /// screen, under the countdown and the boss bar, which sit across the
         /// top at the same place left to right as the ship. The frame now leaves
         /// the HUD its share and a ship on the ceiling clears the lower of them.
-        /// 8.615 is the band Ian had in the scene when he saw it.
+        /// 8.615 is the band Ian had in the scene when he saw it, and 10.5 the one
+        /// he gave the bigger ships and boss that evening.
         /// </summary>
         [TestCase(6f)]
         [TestCase(8.615f)]
         [TestCase(8.9f)]
+        [TestCase(10.5f)]
         [TestCase(12f)]
         public void AShipOnTheCeiling_IsDrawnBelowTheTopHud(float bandHeight)
         {
@@ -171,6 +176,7 @@ namespace SurvivalChaos.Tests
         [TestCase(6f)]
         [TestCase(8.615f)]
         [TestCase(8.9f)]
+        [TestCase(10.5f)]
         [TestCase(12f)]
         public void TheRoomAboveAndBelowTheBand_IsEqual(float bandHeight)
         {
@@ -192,14 +198,14 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// On the band as it is the default keeps the lens it was picked at: the
-        /// live band is 8.897 against the table's 8.9, a fiftieth of a degree.
+        /// On the band it was picked on the default keeps the lens it was picked
+        /// at: that band was 8.897 against the table's 8.9, a fiftieth of a degree.
         /// </summary>
         [Test]
-        public void OnTheBandAsItIs_TheDefaultKeepsItsLens()
+        public void OnTheBandItWasPickedOn_TheDefaultKeepsItsLens()
         {
             Assert.AreEqual(CameraFraming.Default.FieldOfView,
-                CameraFraming.Default.FieldOfViewOn(LiveBandHeight), 0.05f);
+                CameraFraming.Default.FieldOfViewOn(PickedBandHeight), 0.05f);
         }
 
         /// <summary>

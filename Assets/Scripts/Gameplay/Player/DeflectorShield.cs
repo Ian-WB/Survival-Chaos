@@ -41,13 +41,13 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Min(0.05f)]
-        [Tooltip("Ring radius in world units. The ship is about 0.3 across.")]
-        private float radius = 0.34f;
+        [Tooltip("Ring radius in world units. The ship is about 0.4 across.")]
+        private float radius = 0.425f;
 
         [SerializeField]
         [Min(0.005f)]
         [Tooltip("Width of the ring's line in world units.")]
-        private float width = 0.03f;
+        private float width = 0.0375f;
 
         [SerializeField]
         [Min(1f)]

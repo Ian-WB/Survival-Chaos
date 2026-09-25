@@ -15,9 +15,13 @@ namespace SurvivalChaos.Tests
     /// </summary>
     public class BossBandHeightTests
     {
-        /// <summary>PlayerBounds in the Game scene, as it was when the boss flew at 6.09.</summary>
-        private const float Floor = 2.72f;
-        private const float Ceiling = 11.62f;
+        /// <summary>
+        /// PlayerBounds in the Game scene since the evening of 25 September 2026,
+        /// when the band grew to 10.5 to make room for a boss a quarter bigger.
+        /// It was 2.72 to 11.62 before, and the boss flew at 6.09 on it.
+        /// </summary>
+        private const float Floor = 2.7875f;
+        private const float Ceiling = 13.2875f;
 
         private static GameObject Boss()
         {
@@ -44,15 +48,19 @@ namespace SurvivalChaos.Tests
         [Test]
         public void TheMiddle_IsHalfwayUpTheBand()
         {
-            Assert.AreEqual(7.17f, SpawnBand.Middle(Floor, Ceiling), 1e-4f);
+            Assert.AreEqual(8.0375f, SpawnBand.Middle(Floor, Ceiling), 1e-4f);
         }
 
+        /// <summary>
+        /// 1.35 under the band's middle, which puts the hull's own middle on it.
+        /// Pinned so the height cannot drift without the tests saying so.
+        /// </summary>
         [Test]
-        public void OnTheBandAsItIs_TheBossFliesWhereItAlwaysHas()
+        public void OnTheBandAsItIs_TheBossFliesAt6Point69()
         {
             GameObject boss = Boss();
 
-            Assert.AreEqual(6.09f, SpawnBand.Middle(Floor, Ceiling) + HeightFromBandMiddle(boss), 0.005f);
+            Assert.AreEqual(6.6875f, SpawnBand.Middle(Floor, Ceiling) + HeightFromBandMiddle(boss), 0.005f);
         }
 
         [TestCase(0f)]
@@ -98,15 +106,15 @@ namespace SurvivalChaos.Tests
         /// The ram's one counter is the dash because the hull is a wall: it spans
         /// the band, so climbing over it or diving under it is not an option.
         /// Pinned against the prefab's own hull box, its height and its overhang,
-        /// for bands moved and made taller - up to 20, which the authored 15.3
+        /// for bands moved and made taller - up to 24, which the authored 19.1
         /// hull cannot span without stretching.
         /// </summary>
-        [TestCase(0f, 8.897f)]
-        [TestCase(-1.7f, 8.897f)]
-        [TestCase(3f, 8.897f)]
-        [TestCase(0f, 12.46f)]
-        [TestCase(0f, 16f)]
-        [TestCase(2f, 20f)]
+        [TestCase(0f, 10.5f)]
+        [TestCase(-1.7f, 10.5f)]
+        [TestCase(3f, 10.5f)]
+        [TestCase(0f, 14f)]
+        [TestCase(0f, 18f)]
+        [TestCase(2f, 24f)]
         public void TheRam_CannotBeClimbedOverOrDivedUnder_WhereverTheBandGoes(float shift, float height)
         {
             GameObject boss = Boss();
