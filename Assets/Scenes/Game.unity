@@ -33947,7 +33947,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf482e4cde4ddc24bbbe152da1f10376, type: 3}
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.PlayerSlowMo
-  duration: 3
+  duration: 5
   slowScale: 0.4
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
