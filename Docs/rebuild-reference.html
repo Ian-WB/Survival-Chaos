@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 340 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 341 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>340</b><span>commits</span></div>
-      <div class="stat"><b>441</b><span>tests</span></div>
+      <div class="stat"><b>341</b><span>commits</span></div>
+      <div class="stat"><b>446</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -550,6 +550,9 @@
       own, so only the six pairs something answers to still meet. Measured before and after, the boss&rsquo;s last act
       went from about 235 trigger overlaps a frame to 2, and the rounds&rsquo; sweeps cost half what they did &mdash; a
       tenth of a millisecond, tidied rather than needed.</li>
+      <li><strong>A stick as quick as the keys</strong> &mdash; a pad pushed into a corner flew both axes at 71% of
+      full speed, because a stick reads in a circle; it is stretched to the keys&rsquo; square now, so a diagonal
+      is full speed both ways.</li>
     </ul>
   </section>
 
@@ -675,6 +678,16 @@ transform.LookAt(pos);</code></pre>
       <p>The debug bindings stay on the keyboard. F3, F4 and F7 exist to be deliberate, and there is no face
       button a player will not eventually press by accident.</p>
     </div>
+    <p><strong>A stick travels in a circle, and the keys cover a square.</strong> The ship&rsquo;s two axes are
+    separate speeds, round the ring and up or down, and two held keys give 1 on both. A stick pushed all the way
+    into a corner reads about 0.71 on each, because its gate and the deadzone processor both hold it to a circle,
+    so a diagonal on the pad flew both ways at 71% of the speed the same move gets on the keys &mdash; which is
+    how it felt in play on 25 September, far slower than a straight push. <code>StickShape</code> stretches the
+    reading along its own direction until the larger axis reads how far the stick is pushed: a straight push is
+    untouched, a full corner reads 1 on both, a half push reads half on both, and the direction never changes.
+    Through a virtual pad and the project&rsquo;s own deadzone, a full corner now reaches the ship as 1 and 1
+    where it reached it as 0.71 and 0.71. The dash is unaffected, since it normalises its heading whichever device
+    gave it.</p>
 
     <p><strong>A / D is throttle, not steering.</strong> The ship's nose already points along its direction of travel, so those keys accelerate it forward and backward along the lane. This tripped up the ship animation work and is worth remembering.</p>
     <p><strong>On keys, the ramp is the whole of the ship's handling.</strong> <code>PlayerMovement</code> has no acceleration of its own &mdash; it sets speed straight from input every frame &mdash; so how the ship answers a key is decided entirely by the smoothing above. It had copied the Input Manager's defaults of 3: a third of a second to full speed and another to stop. Sensitivity and gravity are 6 now, halving both, and sticks are untouched because they never ramped.</p>
@@ -2039,7 +2052,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>441 tests across 44 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>446 tests across 45 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2076,6 +2089,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>SalvageClockTests</code></td><td class="num">6</td><td>salvage paced by need: due after the set wait at half health, sooner the more is missing, never at full health or once dead, and one piece owed at a time</td></tr>
           <tr><td><code>FireflyFieldTests</code></td><td class="num">6</td><td>that a firefly is placed inside the tree it belongs to, on a footprint that is not round, and that the birth rate cannot divide by zero</td></tr>
           <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
+          <tr><td><code>StickShapeTests</code></td><td class="num">5</td><td>that a stick pushed into a corner flies both axes at full speed, as two held keys do, and that nothing else about a push changes</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
           <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
           <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
@@ -2121,7 +2135,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 441 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 446 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2327,7 +2341,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 340 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 341 commits
   </footer>
 
 </div>

@@ -32,6 +32,9 @@ namespace SurvivalChaos
     /// stickDeadzone processor, which on this project reads 0.125 to 0.925 from
     /// InputSettings; a second one stacked on top would rescale an already
     /// rescaled range and quietly cost the player the top of their stick travel.
+    /// What it gets instead is a change of shape: the processor's circle is
+    /// stretched to the keys' square by <see cref="StickShape"/>, so a stick
+    /// pushed into a corner flies both axes at full speed, as two keys do.
     ///
     /// The debug bindings stay on the keyboard. F3, F4 and F7 exist to be
     /// deliberate, and there is no face button a player will not eventually press
@@ -226,7 +229,7 @@ namespace SurvivalChaos
             Keyboard keyboard = Keyboard.current;
             Gamepad pad = Gamepad.current;
 
-            Vector2 stick = pad != null ? pad.leftStick.ReadValue() : Vector2.zero;
+            Vector2 stick = pad != null ? StickShape.ToSquare(pad.leftStick.ReadValue()) : Vector2.zero;
             Vector2 dpad = pad != null ? pad.dpad.ReadValue() : Vector2.zero;
 
             horizontal = Blend(
