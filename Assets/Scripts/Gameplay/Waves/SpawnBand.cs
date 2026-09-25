@@ -82,5 +82,14 @@ namespace SurvivalChaos
         {
             return lowest >= floor && highest <= ceiling;
         }
+
+        /// <summary>
+        /// Halfway between the floor and the ceiling. What the boss measures its
+        /// height from, so that moving the band moves the boss with it.
+        /// </summary>
+        public static float Middle(float floor, float ceiling)
+        {
+            return (floor + ceiling) * 0.5f;
+        }
     }
 }

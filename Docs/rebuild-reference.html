@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 342 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 343 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>342</b><span>commits</span></div>
-      <div class="stat"><b>453</b><span>tests</span></div>
+      <div class="stat"><b>343</b><span>commits</span></div>
+      <div class="stat"><b>467</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -559,6 +559,10 @@
       tuned by hand, were left alone. The lance, which had kept the direction of the fight&rsquo;s first shot, fires
       the way the boss is travelling on every shot; and the boss waits 3&nbsp;s between turns, so a ram that has passed
       the player carries on instead of sawing back over them.</li>
+      <li><strong>A ten-second dash, and Slow Mo in Piercing Rounds&rsquo; place</strong> &mdash; the dash comes back every
+      ten seconds where it came back every one, with Dash Recovery scaled to match; and the pick that let rounds pass
+      through enemies gave its slot to one that slows the whole game to 0.4 for three real seconds, once every thirty,
+      with a bar of its own on the HUD and a button on both devices.</li>
     </ul>
   </section>
 
@@ -655,6 +659,8 @@ transform.LookAt(pos);</code></pre>
           <tr><td><code>ToggleDirectionReleased</code></td><td>flip which way the ship faces</td><td>Shift (on release)</td><td>left shoulder (on release)</td></tr>
           <tr><td><code>PausePressed</code></td><td>open/close pause</td><td>Escape</td><td>Start</td></tr>
           <tr><td><code>BackPressed</code></td><td>back out of a menu screen</td><td>&mdash; (Esc is <code>PausePressed</code>)</td><td>B</td></tr>
+          <tr><td><code>DashPressed</code></td><td>dash</td><td>Space</td><td>A, right shoulder</td></tr>
+          <tr><td><code>SlowMoPressed</code></td><td>Slow Mo, once it has been picked</td><td>E</td><td>Y, left trigger</td></tr>
           <tr><td><code>DebugLevelUpPressed</code></td><td>force a level-up</td><td>F7</td><td>—</td></tr>
         </tbody>
       </table>
@@ -761,14 +767,21 @@ transform.LookAt(pos);</code></pre>
           <tr><td>Move Speed</td><td>+10% orbit and climb, flat per pick</td><td class="num">8</td><td>any</td></tr>
           <tr><td>Max Health</td><td>+5 to the ceiling</td><td class="num">8</td><td>any</td></tr>
           <tr><td>Shot Upgrade</td><td>advances double → triple → sextuple</td><td class="num">3</td><td>4, 10, 18</td></tr>
-          <tr><td>Dash Recovery</td><td>0.15&nbsp;s off the dash cooldown, down to 0.4</td><td class="num">3</td><td>6, 14, 22</td></tr>
-          <tr><td>Piercing Rounds</td><td>each round passes through one more enemy</td><td class="num">2</td><td>8, 18</td></tr>
+          <tr><td>Dash Recovery</td><td>1.5&nbsp;s off the dash&rsquo;s 10&nbsp;s cooldown, so three reach 5.5; never under 4</td><td class="num">3</td><td>6, 14, 22</td></tr>
+          <tr><td>Slow Mo</td><td>the whole game at 0.4 for 3 real seconds on its button, once every 30&nbsp;s, then 24, then 18</td><td class="num">3</td><td>8, 14, 20</td></tr>
           <tr><td>Magnet</td><td>pickups drift in from 4 units away, then 7</td><td class="num">2</td><td>5, 15</td></tr>
           <tr><td>Deflector</td><td>a charge that blocks one hit, back after 10&nbsp;s without one, then 6</td><td class="num">2</td><td>10, 20</td></tr>
         </tbody>
       </table>
     </div>
     <p>Skills depend on <code>ISkillTarget</code>, not on <code>Player</code> — which is what lets selection be tested without a scene. <code>SkillPool</code> takes an injectable random function for the same reason.</p>
+    <div class="note">
+      <div class="label">Slow Mo keeps a clock of its own</div>
+      <p>It took Piercing Rounds&rsquo; place on 25 September, the same day the dash went from every second to every ten, and it is the other answer that arrives late: E, or Y or the left trigger, slows the whole game to 0.4 for three seconds. Everything slows, the ship with it, so what it buys is time to see and steer rather than speed. The first pick grants it and the next two shorten the wait, 30 to 24 to 18.</p>
+      <p>Neither of Unity&rsquo;s clocks would do for timing it. Game time is the thing being slowed, so three seconds of it at 0.4 would last seven and a half; unscaled time runs on behind the pause menu, so a slowdown would expire and the wait run down while nothing was moving. <code>PlayerSlowMo</code> counts unpaused real seconds itself, clamped per frame the way Unity clamps game time, and hands them to <code>SlowMoCycle</code>, which holds the rules with no Unity object attached. The wait runs from the start of one use to the start of the next, where the dash&rsquo;s runs from the end of the burst, because &ldquo;every thirty seconds&rdquo; is what it promises.</p>
+      <p>The speed itself goes through <code>RunTime</code>, which multiplies the ability&rsquo;s share with the debug menu&rsquo;s rather than replacing it, so one ending cannot undo the other, and pause and the end of a run still win. The HUD&rsquo;s row above the hull bar is three bars now, dash, deflector and Slow Mo, a third each; the last stays hidden until the pick, drains over a slowdown and refills over the wait. In play the bot&rsquo;s slowdowns measured 3.01&nbsp;s of real time and 1.2 of game time, 30.4&nbsp;s apart.</p>
+      <p>Piercing Rounds went with nothing left over. The one thing it had added that was worth keeping, a round counting its hit only once when the sweep and the physics system both report it, stays as a flag on <code>ShootScript</code>, and <code>RoundLandingTests</code> holds it.</p>
+    </div>
 
     <div class="warn">
       <div class="label">Healing is no longer one of them</div>
@@ -2063,7 +2076,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>453 tests across 46 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>467 tests across 47 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2092,7 +2105,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>RingChaseTests</code></td><td class="num">13</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter, and a turn cooldown that holds course until it has run</td></tr>
           <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">12</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
-          <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
+          <tr><td><code>RunTimeTests</code></td><td class="num">16</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, that a retry starts at 1&times;, and that Slow Mo multiplies with the debug speed and cannot lift a pause or an ending either</td></tr>
+          <tr><td><code>SlowMoCycleTests</code></td><td class="num">8</td><td>three seconds of slowdown, a wait measured from start to start, a gauge that drains and refills, and a later pick shortening a wait already running</td></tr>
           <tr><td><code>DeflectorChargeTests</code></td><td class="num">7</td><td>the deflector&rsquo;s one charge: it blocks one hit, and comes back only to a player who stops being hit</td></tr>
           <tr><td><code>PlayerExperienceTests</code></td><td class="num">7</td><td>that the player earns experience whichever of it and <code>EXP</code> woke first, scales a kill once for the bar and the run&rsquo;s total, and carries what crosses a threshold into the next level</td></tr>
           <tr><td><code>ArenaLaneTests</code></td><td class="num">6</td><td>a shot eases onto the player's lane without overshooting, and gets there before it has missed its chance</td></tr>
@@ -2104,7 +2118,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
           <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
           <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
-          <tr><td><code>RoundPierceTests</code></td><td class="num">5</td><td>a piercing round passes through as many enemies as it has passes, and never strikes one twice</td></tr>
+          <tr><td><code>RoundLandingTests</code></td><td class="num">3</td><td>that a round counts its hit once, even when a second enemy reports it after the first has spent it</td></tr>
           <tr><td><code>ShadowLadderTests</code></td><td class="num">5</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, and that no tier defaults to Off</td></tr>
           <tr><td><code>MenuFocusTests</code></td><td class="num">4</td><td>where keyboard and pad focus lands when a screen opens &mdash; its first live control, or one authored and still live &mdash; and that a screen&rsquo;s horizontal sliders take left and right</td></tr>
           <tr><td><code>RunEndingTests</code></td><td class="num">4</td><td>that the first ending stands: once the run is over no hit reaches the player, and no round reaches the hull or an emplacement</td></tr>
@@ -2125,7 +2139,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h3>A pilot for whole runs</h3>
     <p>The suite checks rules; nothing in it plays a run. <code>SurvivalPlaytestBot</code> does. It is editor-only, written with ChatGPT and then reviewed and extended here. <em>Survival Chaos › Playtest Bot</em> takes over <code>GameInput.Source</code> in play mode and flies the ship through the same axes and buttons a player has, so nothing in the game knows it is there; it hands input back when stopped, and never skips a wave, grants an upgrade or touches health. It sees what the camera&rsquo;s frustum and physics occlusion let through, a quarter of a second late, and every fifth of a second it weighs nine ways to move over a 1.2-second horizon, dashes included when walking is dangerous.</p>
-    <p>Its first long run showed what it could not see. Enemy rounds fly at about 26 units a second, so by the time the delayed pilot had seen one twice it had covered 9 to 12 units, and 21 of 37 traceable hits had nothing seen within 1.5 units of the ship. It now watches the guns instead, treating the 45&deg; ahead of each at its height as a line of fire; forecasts <code>Enemy 2</code> closing on each candidate route&rsquo;s height at the game&rsquo;s own easing rate, where it had held them at the height they were seen; and tracks wreckage, which is tagged Boss and was none of the kinds it looked for. Against the boss it takes the emplacements rather than the armoured hull, goes the long way round to their side of it, keeps one until it falls, and turns on the hull once they are gone.</p>
+    <p>Its first long run showed what it could not see. Enemy rounds fly at about 26 units a second, so by the time the delayed pilot had seen one twice it had covered 9 to 12 units, and 21 of 37 traceable hits had nothing seen within 1.5 units of the ship. It now watches the guns instead, treating the 45&deg; ahead of each at its height as a line of fire; forecasts <code>Enemy 2</code> closing on each candidate route&rsquo;s height at the game&rsquo;s own easing rate, where it had held them at the height they were seen; and tracks wreckage, which is tagged Boss and was none of the kinds it looked for. Against the boss it takes the emplacements rather than the armoured hull, goes the long way round to their side of it, keeps one until it falls, and turns on the hull once they are gone. Since 25 September it presses Slow Mo when every route on the stick is a predicted hit and no dash is to be had, and counts its reaction, sampling and commitment in real seconds, so a slowdown buys it what it buys a person; the debug menu&rsquo;s speed still voids a run, the player&rsquo;s own Slow Mo does not.</p>
     <div class="warn">
       <div class="label">It could not see two of the four enemy kinds</div>
       <p>A review of the bot by ChatGPT, on 22 September, found that it looked for <code>Enemy</code> components &mdash; and the two shooting kinds carry <code>Enemy_1</code>, which is a separate class, on prefabs confusingly named <code>Enemy</code> and <code>Enemy 1</code>. So it saw their rounds once fired and never the ships. It did not aim at them, did not fly round them, and did not watch the guns the fix above was written for, since that code only ran for an object it had already recognised as an <code>Enemy</code>. Every run to that point was made half blind, the one that reached the second act included.</p>
@@ -2147,7 +2161,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 453 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 467 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2269,6 +2283,13 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       too much or too little, each is one number on the Boss prefab:
       <code>EnemyMovement</code>&rsquo;s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>,
       <code>Hull - Wreckage</code> and <code>Scuttle</code>.</li>
+      <li><strong>The ten-second dash and Slow Mo have been flown by the bot, not yet by you.</strong> A ram comes every
+      4&nbsp;s and the dash every 10.2 now, so the dash answers about two passes in five. With the balanced kit and Slow
+      Mo, from full health, the bot took 19 hits in 60.6&nbsp;s of the second act where the one-second dash had taken 15
+      in 62, and killed the boss with 7 health left; it dashed 5 times and slowed twice, each time with every route on
+      the stick a predicted hit. A run that began the act on 13 health died in the Scuttle. The dials are on the player:
+      <code>PlayerDash</code>&rsquo;s cooldown, Dash Recovery&rsquo;s step and floor and Slow Mo&rsquo;s three waits on
+      <code>Player</code>, and <code>PlayerSlowMo</code>&rsquo;s duration and speed.</li>
       <li><strong>The audit&rsquo;s fixes are checked in play, not yet in a run.</strong> A session on 24
       September drove each one in the running game, with god mode on and the waves stopped. The player was bound
       to experience exactly once; real kills paid the scaled reward to the bar, the rising number and the
@@ -2366,7 +2387,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 342 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 343 commits
   </footer>
 
 </div>

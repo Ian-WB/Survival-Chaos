@@ -22,11 +22,11 @@ namespace SurvivalChaos
         /// <summary>Raises how fast the player travels around the ring.</summary>
         void IncreaseMoveSpeed();
 
-        /// <summary>Lets every round pass through one more enemy.</summary>
-        void AddPierce();
-
         /// <summary>Shortens the wait between dashes.</summary>
         void QuickenDash();
+
+        /// <summary>Grants Slow Mo, or shortens the wait between uses once it is held.</summary>
+        void UpgradeSlowMo();
 
         /// <summary>Grants the deflector, or shortens its recharge once it is held.</summary>
         void UpgradeDeflector();

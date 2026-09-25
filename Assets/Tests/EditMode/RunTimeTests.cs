@@ -69,6 +69,73 @@ namespace SurvivalChaos.Tests
             Assert.That(PauseMenu.GameIsPaused, Is.False);
         }
 
+        [Test]
+        public void SlowMo_MultipliesWithTheDebugSpeed()
+        {
+            RunTime.SetSpeed(0.5f);
+            RunTime.SetAbilityScale(0.4f);
+
+            Assert.That(Time.timeScale, Is.EqualTo(0.2f).Within(1e-5f));
+        }
+
+        [Test]
+        public void SlowMoEnding_KeepsTheDebugSpeed()
+        {
+            RunTime.SetSpeed(0.5f);
+            RunTime.SetAbilityScale(0.4f);
+
+            RunTime.SetAbilityScale(1f);
+
+            Assert.That(Time.timeScale, Is.EqualTo(0.5f));
+        }
+
+        [Test]
+        public void SlowMo_DoesNotResumeAPause()
+        {
+            PauseMenu.GameIsPaused = true;
+            RunTime.Apply();
+
+            RunTime.SetAbilityScale(0.4f);
+            Assert.That(Time.timeScale, Is.Zero);
+
+            PauseMenu.GameIsPaused = false;
+            RunTime.Apply();
+            Assert.That(Time.timeScale, Is.EqualTo(0.4f).Within(1e-5f));
+        }
+
+        [Test]
+        public void SlowMoEnding_CannotRestartAFinishedRun()
+        {
+            RunTime.SetAbilityScale(0.4f);
+            RunOutcome.ReportRunEnded();
+
+            RunTime.SetAbilityScale(1f);
+
+            Assert.That(Time.timeScale, Is.Zero);
+        }
+
+        [Test]
+        public void NewRun_DropsSlowMo()
+        {
+            RunTime.SetAbilityScale(0.4f);
+
+            RunTime.ResetForNewRun();
+
+            Assert.That(RunTime.AbilityScale, Is.EqualTo(1f));
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+        }
+
+        [TestCase(0f)]
+        [TestCase(-1f)]
+        [TestCase(float.NaN)]
+        public void InvalidSlowMoScale_IsIgnored(float scale)
+        {
+            RunTime.SetAbilityScale(scale);
+
+            Assert.That(RunTime.AbilityScale, Is.EqualTo(1f));
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+        }
+
         [TestCase(0f)]
         [TestCase(-1f)]
         [TestCase(float.NaN)]

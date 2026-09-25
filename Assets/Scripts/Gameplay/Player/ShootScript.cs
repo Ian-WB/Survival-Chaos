@@ -247,36 +247,29 @@ namespace SurvivalChaos
         private BoxCollider torpedoTargetBox;
 
         /// <summary>
-        /// Enemies this round may still pass through, and what it has already
-        /// struck. Only the player's rounds are given passes - see
-        /// <see cref="Pierce"/> - so every other round stops at its first target.
+        /// Whether this round has already struck an enemy in this life. Set by
+        /// <see cref="Land"/> and cleared on every spawn.
         /// </summary>
-        private readonly RoundPierce pierce = new RoundPierce();
-
-        /// <summary>
-        /// Lets this round pass through <paramref name="count"/> enemies before
-        /// the next one stops it, for the Piercing Rounds upgrade. Called straight
-        /// after the spawn, the way <see cref="Throw"/> and <see cref="Home"/> are.
-        /// </summary>
-        public void Pierce(int count)
-        {
-            pierce.Reset(count);
-        }
+        private bool landed;
 
         /// <summary>
         /// What an enemy does with one of the player's rounds that has struck it,
-        /// in place of despawning the round outright: the round flies on if it has
-        /// a pass left, and goes back to the pool if not.
+        /// in place of despawning the round outright: the hit counts once, and the
+        /// round goes back to the pool.
         ///
-        /// Returns false when the hit should not count at all - this round has
-        /// struck this enemy already, or was spent earlier in the same physics
-        /// step and is only now being reported.
+        /// Returns false when the hit should not count at all: the round was spent
+        /// earlier in the same physics step and is only now being reported. The
+        /// sweep and the physics system both report contacts, so one round can
+        /// reach a second enemy's trigger after the first has spent it.
+        ///
+        /// Rounds used to be able to fly on through enemies, for the Piercing
+        /// Rounds upgrade, which Slow Mo replaced on 25 September 2026. The
+        /// once-only rule came in with it and stays.
         ///
         /// The boss's parts do not come through here and stop every round, as
-        /// they always have. The hull swallows rounds, and a pass that carried one
-        /// through an emplacement would only take it into the armour behind.
+        /// they always have.
         /// </summary>
-        public static bool Land(Collider round, GameObject target)
+        public static bool Land(Collider round)
         {
             if (!round.TryGetComponent(out ShootScript script))
             {
@@ -284,18 +277,14 @@ namespace SurvivalChaos
                 return true;
             }
 
-            switch (script.pierce.Strike(target))
+            if (script.landed)
             {
-                case StrikeResult.PassThrough:
-                    return true;
-
-                case StrikeResult.Stop:
-                    ObjectPool.Despawn(round.gameObject);
-                    return true;
-
-                default:
-                    return false;
+                return false;
             }
+
+            script.landed = true;
+            ObjectPool.Despawn(round.gameObject);
+            return true;
         }
 
         /// <summary>
@@ -478,8 +467,8 @@ namespace SurvivalChaos
             torpedoTarget = null;
             torpedoTargetBox = null;
 
-            // Nor the passes it had left, or the enemies it had already struck.
-            pierce.Reset(0);
+            // Nor the hit it was spent on.
+            landed = false;
 
             // A deterministic starting point, not the final orientation: every
             // frame of Update ends by facing the arena axis, and FaceOrbitCentre
@@ -625,7 +614,8 @@ namespace SurvivalChaos
 
                 // The hit usually sends this round back to the pool, and a round
                 // that has already landed does not carry on to a second target.
-                // A piercing round is still active here, and goes on down the list.
+                // One the hit did not spend is still active here, and goes on
+                // down the list.
                 if (!gameObject.activeInHierarchy)
                 {
                     return;

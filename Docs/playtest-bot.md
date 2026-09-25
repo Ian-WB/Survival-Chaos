@@ -14,7 +14,8 @@ and its success rate is not a difficulty verdict.
 
 The tool never starts Play mode itself, skips waves, grants upgrades, changes
 health or restarts a run. It refuses god mode and invalidates a run if god mode
-is enabled later. A positive nonstandard time scale also ends the session.
+is enabled later. A debug-menu speed other than 1 also ends the session; the
+player's own Slow Mo does not, since that is the game being played, not changed.
 Pausing suspends gameplay decisions. Stopping the bot does not pause the game.
 
 Reports are written automatically to `Logs/PlaytestBot/`, outside `Assets`, when
@@ -56,6 +57,14 @@ routes. Each captures the smoothed heading on the press frame, uses the live
 duration and separate orbit/climb boosts, and splits integration at dash expiry.
 It accounts for dash invincibility but penalises danger immediately after landing.
 An in-progress dash retains its committed heading and remaining time.
+
+Slow Mo, once collected, is pressed when every walking route is a predicted hit
+and no dash is taken - the dash not ready, or no dash route better - and it is
+ready. Reports log each as a `SLOWMO` line and count them as `slowMoUses` in the
+summary. The pilot's reaction delay, sampling interval and commitment are
+counted in real time, so under Slow Mo each takes the slowed fraction of game
+seconds: that is the whole of what the ability buys a person, and the pilot gets
+the same. Added on 25 September 2026 with the ability.
 
 Visible prow-pod growth can trigger a height dodge. Crown and keel growth are no
 longer treated as laser warnings. This reads the drawn glow's scale, not the boss

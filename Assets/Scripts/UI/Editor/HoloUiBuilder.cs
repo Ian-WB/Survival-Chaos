@@ -62,6 +62,7 @@ namespace SurvivalChaos.EditorTools
             BuildHealth(root.transform, bar);
             BuildDash(root.transform, bar);
             BuildDeflector(root.transform, bar);
+            BuildSlowMo(root.transform, bar);
             BuildExperience(root.transform, bar);
             BuildTimer(root.transform, bar);
             BuildBossBar(root.transform, bar);
@@ -150,19 +151,20 @@ namespace SurvivalChaos.EditorTools
         /// things that answer them should not be interleaved. That is what pushes
         /// the experience group up the screen.
         ///
-        /// Half the width of the hull bar. It is a smaller thing than the hull
-        /// and should not compete with it - and unlike every other bar here, this
-        /// one is full almost all of the time, so what has to read at a glance is
-        /// the exception rather than the value.
+        /// A third of the width of the hull bar, the first of the row of three
+        /// things that can get you out of the next hit: dash, deflector and Slow
+        /// Mo. It was half, beside the deflector, until Slow Mo took the last
+        /// third on 25 September 2026. It is a smaller thing than the hull and
+        /// should not compete with it.
         /// </summary>
         private static void BuildDash(Transform parent, Material bar)
         {
             HoloUiFactory.CreateText(parent, "Dash Label", Vector2.zero, Vector2.zero,
-                new Vector2(52f, 138f), new Vector2(300f, 24f), 14f, TextAlignmentOptions.Left)
+                RowLabelAt(0), RowLabelSize, 14f, TextAlignmentOptions.Left)
                 .text = "Dash";
 
             Image image = HoloUiFactory.CreateBarImage(parent, "Dash Bar", Vector2.zero,
-                Vector2.zero, new Vector2(48f, 120f), new Vector2(220f, 12f), bar,
+                Vector2.zero, RowBarAt(0), RowBarSize, bar,
                 HoloUiFactory.Accent, 0f);
 
             image.type = Image.Type.Simple;
@@ -228,9 +230,30 @@ namespace SurvivalChaos.EditorTools
         private const string DeflectorName = "Deflector";
 
         /// <summary>
-        /// The deflector's charge, beside the dash bar and the same height, so
-        /// the row reads as the two things that can save you from the next hit.
-        /// It ends where the hull bar does.
+        /// The row above the hull bar: dash, deflector, Slow Mo, each a third of
+        /// the hull bar's 440 with 22 between, so the row starts and ends where
+        /// the hull bar does.
+        /// </summary>
+        private static readonly Vector2 RowBarSize = new Vector2(132f, 12f);
+
+        /// <summary>Labels sit 4 in from their bar and stop short of the next one.</summary>
+        private static readonly Vector2 RowLabelSize = new Vector2(128f, 24f);
+
+        /// <summary>Where the <paramref name="slot"/>th bar of the row sits, 0 to 2.</summary>
+        private static Vector2 RowBarAt(int slot)
+        {
+            return new Vector2(48f + (slot * 154f), 120f);
+        }
+
+        /// <summary>Where the label over the <paramref name="slot"/>th bar sits.</summary>
+        private static Vector2 RowLabelAt(int slot)
+        {
+            return RowBarAt(slot) + new Vector2(4f, 18f);
+        }
+
+        /// <summary>
+        /// The deflector's charge, beside the dash bar and the same height, the
+        /// middle of the row of three things that can save you from the next hit.
         ///
         /// Built under a parent of its own that stays active: DeflectorBar hides
         /// the bar and its label until the upgrade is taken, and it cannot switch
@@ -246,12 +269,12 @@ namespace SurvivalChaos.EditorTools
             HoloUiFactory.Stretch(group);
 
             TextMeshProUGUI label = HoloUiFactory.CreateText(group, "Deflector Label", Vector2.zero,
-                Vector2.zero, new Vector2(292f, 138f), new Vector2(200f, 24f), 14f,
+                Vector2.zero, RowLabelAt(1), RowLabelSize, 14f,
                 TextAlignmentOptions.Left);
             label.text = "Deflector";
 
             Image image = HoloUiFactory.CreateBarImage(group, "Deflector Bar", Vector2.zero,
-                Vector2.zero, new Vector2(288f, 120f), new Vector2(200f, 12f), bar,
+                Vector2.zero, RowBarAt(1), RowBarSize, bar,
                 HoloUiFactory.Edge, 0f);
 
             image.type = Image.Type.Simple;
@@ -279,6 +302,121 @@ namespace SurvivalChaos.EditorTools
 
             HoloUiFactory.Assign(meter, "player",
                 Object.FindAnyObjectByType<Player>(FindObjectsInactive.Include));
+            return 1;
+        }
+
+        /// <summary>
+        /// Adds Slow Mo's bar to a HUD that is already built, replacing it if it
+        /// is there, and closes the dash and deflector bars up to make the row
+        /// of three. Leaves everything else as it is, as Add Deflector Bar does.
+        /// </summary>
+        [MenuItem("Survival Chaos/UI/Add Slow Mo Bar", priority = 22)]
+        public static void AddSlowMoBar()
+        {
+            Canvas canvas = FindCanvas();
+            Transform root = canvas != null ? canvas.transform.Find(RootName) : null;
+            if (root == null)
+            {
+                EditorUtility.DisplayDialog("No HUD",
+                    "Open the Game scene and build the HUD first (Survival Chaos/UI/Rebuild HUD).", "OK");
+                return;
+            }
+
+            Material bar = HoloUiFactory.EnsureBaseMaterial("HoloBar", "Survival Chaos/Holo Bar");
+            if (bar == null)
+            {
+                return;
+            }
+
+            Transform existing = root.Find(SlowMoName);
+            if (existing != null)
+            {
+                Undo.DestroyObjectImmediate(existing.gameObject);
+            }
+
+            Place(root, "Dash Label", RowLabelAt(0), RowLabelSize);
+            Place(root, "Dash Bar", RowBarAt(0), RowBarSize);
+            Place(root, "Deflector Label", RowLabelAt(1), RowLabelSize);
+            Place(root, "Deflector Bar", RowBarAt(1), RowBarSize);
+
+            BuildSlowMo(root, bar);
+            WireSlowMo(root);
+
+            AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);
+            Debug.Log("Slow Mo bar added to the HUD. Ctrl+Z removes it.", root);
+        }
+
+        /// <summary>Moves and sizes one element of an existing HUD, with undo.</summary>
+        private static void Place(Transform root, string name, Vector2 position, Vector2 size)
+        {
+            RectTransform rect = HoloUiFactory.Find<RectTransform>(root, name);
+            if (rect == null)
+            {
+                Debug.LogWarning("The HUD has no " + name + " to move; the row will not line up.", root);
+                return;
+            }
+
+            Undo.RecordObject(rect, "Place " + name);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+        }
+
+        private const string SlowMoName = "Slow Mo";
+
+        /// <summary>
+        /// A pale violet, apart from the row's two blues. Time rather than
+        /// shields, and not the red of the Slow Mo pickup, which on this HUD is
+        /// the colour of taking a hit.
+        /// </summary>
+        private static readonly Color SlowMoFill = new Color(0.80f, 0.62f, 1.00f, 1.00f);
+
+        /// <summary>
+        /// Slow Mo's gauge, last in the row, built like the deflector's: under
+        /// a parent that stays active, hidden until the ability is taken.
+        ///
+        /// Without the loss trail, like the dash bar: it drains every time it is
+        /// used, which is the ability working, not a hit.
+        /// </summary>
+        private static void BuildSlowMo(Transform parent, Material bar)
+        {
+            RectTransform group = HoloUiFactory.CreateRect(parent, SlowMoName, Vector2.zero,
+                Vector2.zero, Vector2.zero, Vector2.zero);
+            HoloUiFactory.Stretch(group);
+
+            TextMeshProUGUI label = HoloUiFactory.CreateText(group, "Slow Mo Label", Vector2.zero,
+                Vector2.zero, RowLabelAt(2), RowLabelSize, 14f, TextAlignmentOptions.Left);
+            label.text = "Slow Mo";
+
+            Image image = HoloUiFactory.CreateBarImage(group, "Slow Mo Bar", Vector2.zero,
+                Vector2.zero, RowBarAt(2), RowBarSize, bar, SlowMoFill, 0f);
+
+            image.type = Image.Type.Simple;
+            image.fillAmount = 1f;
+            image.material.SetColor("_GhostColor", HoloUiFactory.TrackDark);
+            EditorUtility.SetDirty(image.material);
+
+            HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
+
+            // No low pulse: empty means "just used".
+            HoloUiFactory.ConfigureBar(holo, null, 0f);
+
+            SlowMoBar meter = Undo.AddComponent<SlowMoBar>(group.gameObject);
+            HoloUiFactory.Assign(meter, "fill", image);
+            HoloUiFactory.Assign(meter, "label", label.gameObject);
+        }
+
+        /// <summary>Points Slow Mo's bar at the ability. Returns how many were wired.</summary>
+        private static int WireSlowMo(Transform root)
+        {
+            SlowMoBar meter = HoloUiFactory.Find<SlowMoBar>(root, SlowMoName);
+            if (meter == null)
+            {
+                return 0;
+            }
+
+            HoloUiFactory.Assign(meter, "slowMo",
+                Object.FindAnyObjectByType<PlayerSlowMo>(FindObjectsInactive.Include));
             return 1;
         }
 
@@ -399,6 +537,7 @@ namespace SurvivalChaos.EditorTools
             }
 
             wired += WireDeflector(root);
+            wired += WireSlowMo(root);
 
             foreach (SkillSelect target in Object.FindObjectsByType<SkillSelect>(FindObjectsInactive.Include))
             {

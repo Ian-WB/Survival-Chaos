@@ -721,8 +721,10 @@
             flag is still set is skipped &mdash; so the interval is 4, and anything under it would not
             fire more often, it would just stop meaning anything. The half second of hull that 4.5 left
             between passes is gone: the next charge starts as the last pass ends, so the flashing hull
-            is the only rest, against a dash that comes back in 1.2. Checked in play: a pass every
-            4.0&thinsp;s, 3.0 of them at three times cruise and 1.0 of charge.
+            is the only rest. Checked in play: a pass every 4.0&thinsp;s, 3.0 of them at three times
+            cruise and 1.0 of charge. Against it the dash came back in 1.2 &mdash; until the same
+            evening, when it went to one every ten seconds at your call, so it answers about two passes
+            in five and the rest are flown round or taken.
           </p>
           <p class="dim">
             <span class="em">It waits 3&thinsp;s between turns</span>, since 25 September. The boss turns round
@@ -733,6 +735,15 @@
             carries on 80 to 130&deg; past before it comes back; the same setup took 15 hits in
             62&thinsp;s and was still flying when the Scuttle began. It is <code>EnemyMovement</code>&rsquo;s
             Turn Cooldown Seconds on the boss, 0 on every other enemy.
+          </p>
+          <p class="dim">
+            <span class="em">Then the dash went to ten seconds</span>, and Slow Mo arrived to cover the
+            gaps. The bot flew the act again from full health with the same kit and Slow Mo: 19 hits in
+            60.6&thinsp;s, where the one-second dash had taken 15 in 62, and it <em>killed</em> the boss,
+            with 7 health left &mdash; 5 dashes, 11 to 15&thinsp;s apart, and Slow Mo twice, 30.4&thinsp;s
+            apart, each time with every route on the stick a predicted hit and no dash to take. A run
+            that started the act on 13 health took 18 hits and died in the Scuttle at 55&thinsp;s.
+            About a quarter more hits a second, then; a bot, not a verdict.
           </p>
         </div>
 
@@ -793,7 +804,8 @@
     <h2>The dash</h2>
     <p class="lede">
       Space, or the right shoulder / south button on a pad. A committed burst along the heading
-      captured at the moment it starts, invincible for its whole length.
+      captured at the moment it starts, invincible for its whole length &mdash; once every ten
+      seconds, since 25 September.
     </p>
 
     <div class="card scroll">
@@ -804,7 +816,7 @@
         <tbody>
           <tr><td>Burst length</td><td class="num">0.22 s</td><td class="dim">measured at 0.225 in play &mdash; one frame of quantisation</td></tr>
           <tr><td>Speed</td><td class="num">&times;5</td><td class="dim">on top of Move Speed picks, so it stays worth taking late</td></tr>
-          <tr><td>Cooldown</td><td class="num">1.0 s</td><td class="dim">from the end of the burst, not the start</td></tr>
+          <tr><td>Cooldown</td><td class="num">10 s</td><td class="dim">from the end of the burst, not the start &mdash; 1.0 until 25 September; three Dash Recovery picks at 1.5 each bring it to 5.5</td></tr>
           <tr><td>Distance</td><td class="num">about 6 units</td><td class="dim"><span class="em">the boss hull is 7.05 along the ring</span> &mdash; 7.45 was measured with the ship at 7, and cleared it; this is worked out for 5.6, not remeasured</td></tr>
           <tr><td>Arc</td><td class="num">about 18&deg;</td><td class="dim">31.1&deg; was measured on the old 13.72 lane at 7; this is the same burst on the 18.72 lane at 5.6</td></tr>
           <tr><td>Climb rate</td><td class="num">16.2 u/s</td><td class="dim">2.9 &times; the ship&rsquo;s 5.6 &mdash; the climb has had its own multiplier since 11 September, and a dash now carries about 3.6 of the 4.45 between banks</td></tr>
@@ -863,6 +875,13 @@
           answered <em>now</em>. That is why nothing in the fight was worth telegraphing. The dash
           is the answer that arrives late, and it is what makes a 1.2&thinsp;s Lance charge a
           decision rather than a countdown.
+        </p>
+        <p class="dim">
+          Since 25 September it arrives every ten seconds, and <span class="em">Slow Mo</span> is
+          the other late answer: a pick from level 8, in Piercing Rounds&rsquo; old place, that slows
+          the whole game to 0.4 for three real seconds on E, or Y or the left trigger, once every 30
+          &mdash; 24 and 18 with the next two picks. Everything slows, the ship with it, so what it
+          buys is time to see, not speed.
         </p>
       </div>
       <div class="card">
@@ -1212,6 +1231,12 @@
           it is too much, or not enough, each is one number on the Boss prefab:
           <code>EnemyMovement</code>&rsquo;s rotation speed, and the intervals of
           <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>.
+        </p>
+        <p class="dim">
+          The same evening the dash went from every second to every ten, which makes it the answer to
+          about two rams in five rather than to each one; the bot&rsquo;s runs with it are under the
+          Ram. If that is the part that is too much, the dial is <code>PlayerDash</code>&rsquo;s
+          cooldown on the player, not anything on the boss.
         </p>
       </div>
       <div class="card">

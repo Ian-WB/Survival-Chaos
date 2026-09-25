@@ -24,6 +24,9 @@ namespace SurvivalChaos
 
         public bool DashPressed => Input.GetKeyDown(KeyCode.Space);
 
+        /// <summary>Button 3 is Y on the pads the legacy manager maps as a joystick.</summary>
+        public bool SlowMoPressed => Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.JoystickButton3);
+
         public bool DebugLevelUpPressed => Input.GetKeyDown(KeyCode.F7);
 
         public bool DebugOverlayTogglePressed => Input.GetKeyDown(KeyCode.F3);

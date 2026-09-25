@@ -46,6 +46,8 @@ namespace SurvivalChaos
 
         public static bool DashPressed => source.DashPressed;
 
+        public static bool SlowMoPressed => source.SlowMoPressed;
+
         public static bool DebugLevelUpPressed => source.DebugLevelUpPressed;
 
         public static bool DebugOverlayTogglePressed => source.DebugOverlayTogglePressed;

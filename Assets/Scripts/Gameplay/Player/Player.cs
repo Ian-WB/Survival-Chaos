@@ -373,6 +373,11 @@ namespace SurvivalChaos
                 TryGetComponent(out dash);
             }
 
+            if (slowMo == null)
+            {
+                TryGetComponent(out slowMo);
+            }
+
             // Captured before any pick can move it, so each Attack Speed pick is
             // measured against the gun's starting rate rather than against whatever
             // the previous pick left behind.
@@ -440,17 +445,10 @@ namespace SurvivalChaos
 
             foreach (float offset in offsets)
             {
-                GameObject round = ObjectPool.Spawn(
+                ObjectPool.Spawn(
                     prefab,
                     shootPivot.position + new Vector3(0f, offset * shotSpacing, 0f),
                     Quaternion.Euler(0f, 0f, 90f));
-
-                // Given after the spawn because the spawn is what clears it: a
-                // pooled round resets its passes in OnEnable.
-                if (pierceUpgrades > 0 && round != null && round.TryGetComponent(out ShootScript script))
-                {
-                    script.Pierce(pierceUpgrades);
-                }
             }
         }
 
@@ -590,27 +588,33 @@ namespace SurvivalChaos
                  "or it falls behind the ship.")]
         private float moveSpeedStep = 0.10f;
 
-        [Header("Piercing rounds")]
-        [SerializeField]
-        [Min(0)]
-        [Tooltip("How many enemies each round passes through before the next one stops it. One per " +
-                 "Piercing Rounds pick. Serialized so it can be tried from here without playing up " +
-                 "to it, like the shot pattern stage.")]
-        private int pierceUpgrades;
-
         [Header("Dash recovery")]
         [SerializeField]
-        [Range(0.05f, 0.5f)]
-        [Tooltip("Seconds taken off the dash cooldown per Dash Recovery pick. From 1.0, three " +
-                 "picks at 0.15 reach 0.55.")]
-        private float dashCooldownStep = 0.15f;
+        [Range(0.05f, 5f)]
+        [Tooltip("Seconds taken off the dash cooldown per Dash Recovery pick. From 10, three " +
+                 "picks at 1.5 reach 5.5. Scaled with the cooldown on 25 September 2026: it was " +
+                 "0.15 off a 1 second dash, the same share of it.")]
+        private float dashCooldownStep = 1.5f;
 
         [SerializeField]
-        [Range(0f, 1f)]
+        [Range(0f, 10f)]
         [Tooltip("The shortest the dash cooldown may get. A balance cap, like Shot Interval Floor: " +
                  "the burst is invincible, so a dash with no gap behind it is most of the way to " +
                  "god mode.")]
-        private float dashCooldownFloor = 0.4f;
+        private float dashCooldownFloor = 4f;
+
+        [Header("Slow Mo")]
+        [SerializeField]
+        [Tooltip("Seconds from one Slow Mo to the next, one entry per pick: the first pick grants " +
+                 "it, the later ones shorten the wait. The last entry holds for any pick past the end.")]
+        private float[] slowMoCooldown = { 30f, 24f, 18f };
+
+        [SerializeField]
+        [Tooltip("The Slow Mo ability, which reads its button and slows the game. Found on this " +
+                 "object when left empty.")]
+        private PlayerSlowMo slowMo;
+
+        private int slowMoPicks;
 
         [Header("Deflector")]
         [SerializeField]
@@ -702,12 +706,6 @@ namespace SurvivalChaos
             PlayerMovement.AddSpeedBonus(moveSpeedStep);
         }
 
-        /// <summary>Every round fired from now on passes through one more enemy.</summary>
-        public void AddPierce()
-        {
-            pierceUpgrades++;
-        }
-
         /// <summary>
         /// Shortens the dash cooldown by one step. The dash owns the cooldown,
         /// and the bar reading it follows along without being told.
@@ -744,6 +742,23 @@ namespace SurvivalChaos
         public void ExtendMagnet()
         {
             magnetPicks++;
+        }
+
+        /// <summary>
+        /// Grants Slow Mo ready to use, or shortens the wait between uses once
+        /// it is held. Like a Deflector pick, a later one does not refill a wait
+        /// already running; it ends it sooner.
+        /// </summary>
+        public void UpgradeSlowMo()
+        {
+            if (slowMo == null)
+            {
+                Debug.LogWarning("Player has no PlayerSlowMo, so the Slow Mo pick did nothing.", this);
+                return;
+            }
+
+            slowMoPicks++;
+            slowMo.Grant(PerPick(slowMoCooldown, slowMoPicks, 30f));
         }
 
         /// <summary>Whether a Deflector pick has been taken this run. Read by the HUD.</summary>

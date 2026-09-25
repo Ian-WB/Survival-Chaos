@@ -149,6 +149,32 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// E on the keyboard, beside the movement keys; the north face button
+        /// or the left trigger on a pad.
+        ///
+        /// Two pad bindings for the dash's reason: the trigger sits under the
+        /// flip's shoulder for a player holding the pad by its shoulders, and
+        /// the north button beside the dash's south one for a player on the
+        /// face buttons. Neither is bound to anything else in play.
+        /// </summary>
+        public bool SlowMoPressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+
+                if (keyboard != null && keyboard.eKey.wasPressedThisFrame)
+                {
+                    return true;
+                }
+
+                Gamepad pad = Gamepad.current;
+                return pad != null
+                    && (pad.buttonNorth.wasPressedThisFrame || pad.leftTrigger.wasPressedThisFrame);
+            }
+        }
+
         public bool DebugLevelUpPressed
         {
             get

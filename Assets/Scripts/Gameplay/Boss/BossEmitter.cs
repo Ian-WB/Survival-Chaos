@@ -40,6 +40,15 @@ namespace SurvivalChaos
                  "travelling and to drive the ram.")]
         private GameObject enemyShip;
 
+        [SerializeField]
+        [Tooltip("The height the boss flies at, measured from the middle of the player's band " +
+                 "(PlayerBounds) - below it when negative. The boss takes this height as it " +
+                 "arrives, so moving the band moves the boss and its three banks with it. -1.08 " +
+                 "puts the prow's lance 0.3 above the band's middle with the keel and crown pods " +
+                 "near the floor and ceiling, which is 6.09 on the band as it is. The boss spawn " +
+                 "stream's own height is not used.")]
+        private float heightFromBandMiddle = -1.08f;
+
         /// <summary>
         /// The tag every hostile projectile carries, and so the tag of the light
         /// pool whose look the lance beam borrows.
@@ -226,6 +235,7 @@ namespace SurvivalChaos
         private void OnEnable()
         {
             Active = this;
+            FlyAtBandHeight();
             health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
             phase = new BossPhaseState(emplacements != null ? emplacements.Length : 0, scuttleThreshold);
 
@@ -715,6 +725,35 @@ namespace SurvivalChaos
         /// clamps the ship. Found once; a miss is said out loud, because the
         /// failure is quiet - thrown volleys simply fly flat.
         /// </summary>
+        /// <summary>
+        /// Puts the boss at its height against the player's band as it arrives.
+        /// It keeps that height for the whole fight - its movement has no height
+        /// chase - so this is the one place its altitude is decided.
+        ///
+        /// It used to be the spawn stream's height, a number in the wave asset
+        /// with nothing tying it to the band. On 21 September 2026 the band moved
+        /// down 1.7 and the boss did not, which lifted the crown emplacement above
+        /// the ceiling: the hull stays armoured while any emplacement stands, so
+        /// in most runs the boss could not be killed, and the spawn check passed,
+        /// because the boss itself still appeared inside the band. Measured from
+        /// the band, the banks go wherever the band goes.
+        ///
+        /// Runs in OnEnable, which the pool calls after placing the boss, and
+        /// before anything reads the muzzles. With no band to measure from, the
+        /// stream's height stands.
+        /// </summary>
+        private void FlyAtBandHeight()
+        {
+            if (!TryGetBand(out float floor, out float ceiling))
+            {
+                return;
+            }
+
+            Vector3 position = transform.position;
+            position.y = SpawnBand.Middle(floor, ceiling) + heightFromBandMiddle;
+            transform.position = position;
+        }
+
         private bool TryGetBand(out float floor, out float ceiling)
         {
             floor = 0f;
@@ -745,8 +784,9 @@ namespace SurvivalChaos
             {
                 warnedAboutBand = true;
                 Debug.LogWarning(
-                    "BossEmitter found no bounds on the player, so its thrown volleys have no floor " +
-                    "or ceiling to bounce off and will fly flat.", this);
+                    "BossEmitter found no bounds on the player, so the boss flies at its spawn " +
+                    "stream's height rather than against the band, and its thrown volleys have no " +
+                    "floor or ceiling to bounce off and will fly flat.", this);
             }
 
             return false;

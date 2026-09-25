@@ -38,6 +38,12 @@ namespace SurvivalChaos
         /// </summary>
         bool DashPressed { get; }
 
+        /// <summary>
+        /// True on the frame the Slow Mo key is pressed. The press edge, like
+        /// the dash: it is reached for when something is already arriving.
+        /// </summary>
+        bool SlowMoPressed { get; }
+
         /// <summary>True on the frame the debug "force level up" key is pressed.</summary>
         bool DebugLevelUpPressed { get; }
 

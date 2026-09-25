@@ -75,10 +75,12 @@ namespace SurvivalChaos
         private float climbMultiplier = 2.9f;
 
         [SerializeField]
-        [Range(0f, 5f)]
+        [Range(0f, 15f)]
         [Tooltip("Seconds after a burst ends before another may start. Measured from the end of " +
-                 "the dash, so this is the gap between dashes rather than the gap between starts.")]
-        private float cooldown = 1f;
+                 "the dash, so this is the gap between dashes rather than the gap between starts. " +
+                 "10 since 25 September 2026, when it was 1: a dash is a thing to save now, not a " +
+                 "thing to spend on every ram.")]
+        private float cooldown = 10f;
 
         [SerializeField]
         [Tooltip("Player whose flip decides which way a dash goes when no direction is held. " +

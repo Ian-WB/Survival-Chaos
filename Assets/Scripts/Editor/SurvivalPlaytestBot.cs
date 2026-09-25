@@ -133,6 +133,7 @@ namespace SurvivalChaos.EditorTools
             private readonly Player player;
             private readonly PlayerMovement movement;
             private readonly PlayerDash dash;
+            private readonly PlayerSlowMo slowMo;
             private readonly ApplyBounds band;
             private readonly Transform centre;
             private readonly Queue<Snapshot> pending = new Queue<Snapshot>();
@@ -145,7 +146,7 @@ namespace SurvivalChaos.EditorTools
             private Vector2 axes, desired = Vector2.right;
             private Vector2 lastLoggedInput;
             private int stepped = -1, health, maxHealth, level;
-            private bool dashEdge, flipEdge, released;
+            private bool dashEdge, flipEdge, slowEdge, released;
             private float nextObserve, nextDecision, nextFlip, nextAim;
             // The target being worked on, kept so a nearer distraction has to beat
             // it by a margin rather than by a hair, and whether the pilot is on its
@@ -156,7 +157,7 @@ namespace SurvivalChaos.EditorTools
             private string reason = "Searching", cameraName = "unknown";
             private string bossPhase = "not encountered";
             private float bossStarted = -1;
-            private int injuries, healed, dashRequests;
+            private int injuries, healed, dashRequests, slowMoUses;
             private float lastFailureDump = -10;
             private string lastPlan = "No plan yet";
             private readonly MaterialPropertyBlock observedBlock = new MaterialPropertyBlock();
@@ -211,6 +212,7 @@ namespace SurvivalChaos.EditorTools
                 if (player.Invulnerable) throw new InvalidOperationException("Turn god mode off first.");
                 movement = player.GetComponent<PlayerMovement>();
                 dash = player.GetComponent<PlayerDash>();
+                slowMo = player.GetComponent<PlayerSlowMo>();
                 band = player.GetComponent<ApplyBounds>();
                 centre = Read<Transform>(movement, "center");
                 if (movement == null || centre == null || band == null || !band.TryGetBand(out _, out _))
@@ -238,14 +240,14 @@ namespace SurvivalChaos.EditorTools
             public void Release()
             {
                 axes = desired = Vector2.zero;
-                dashEdge = flipEdge = false;
+                dashEdge = flipEdge = slowEdge = false;
                 released = true;
                 if (ReferenceEquals(GameInput.Source, this)) GameInput.Source = previous;
             }
             public string Export(string end)
             {
                 Log("END " + end);
-                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={Time.time - started:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={(player != null ? player.CurrentHealth : 0)} bossSeconds={(bossStarted < 0 ? 0 : Time.time - bossStarted):F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests}");
+                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={Time.time - started:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={(player != null ? player.CurrentHealth : 0)} bossSeconds={(bossStarted < 0 ? 0 : Time.time - bossStarted):F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses}");
                 foreach (string skill in RunStats.SkillOrder) Log($"UPGRADE {skill}: {RunStats.PicksOf(skill)}");
                 string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/PlaytestBot"));
                 Directory.CreateDirectory(dir);
@@ -330,18 +332,17 @@ namespace SurvivalChaos.EditorTools
             {
                 if (stepped == Time.frameCount || released) return;
                 stepped = Time.frameCount;
-                dashEdge = flipEdge = false;
+                dashEdge = flipEdge = slowEdge = false;
                 try
                 {
                     if (player == null || RunOutcome.RunEnded || player.CurrentHealth <= 0)
                     { EndReason = "Run ended"; axes = Vector2.zero; return; }
                     if (player.Invulnerable) { EndReason = "God mode enabled; run invalidated"; axes = Vector2.zero; return; }
-                    if (!Mathf.Approximately(Time.timeScale, 1f))
-                    {
-                        axes = Vector2.zero;
-                        if (Time.timeScale > 0f) EndReason = "Nonstandard time scale; run invalidated";
-                        return;
-                    }
+                    // Paused: hold still. The debug menu's speed voids the run; Slow Mo,
+                    // the player's own ability, does not.
+                    if (Time.timeScale <= 0f) { axes = Vector2.zero; return; }
+                    if (!Mathf.Approximately(RunTime.RequestedSpeed, 1f))
+                    { axes = Vector2.zero; EndReason = "Nonstandard time scale; run invalidated"; return; }
                     RecordHealth();
                     foreach (string skill in RunStats.SkillOrder)
                     {
@@ -350,9 +351,13 @@ namespace SurvivalChaos.EditorTools
                         { Log($"COLLECTED {skill} count={count}"); upgradeCounts[skill] = count; }
                     }
                     if (level != player.currentLevel) { Log($"LEVEL {level}->{player.currentLevel}"); level = player.currentLevel; }
-                    if (Time.time >= nextObserve) { Observe(); nextObserve = Time.time + ObserveEvery; }
-                    while (pending.Count > 0 && pending.Peek().time + delay <= Time.time) known = pending.Dequeue();
-                    if (Time.time >= nextDecision) { Decide(); nextDecision = Time.time + CommitFor; }
+                    // A person's looking, reacting and committing happen in real time,
+                    // so under Slow Mo they take a fraction of the game's seconds. That
+                    // is the whole of what the ability buys, and the pilot gets it too.
+                    float real = RunTime.AbilityScale;
+                    if (Time.time >= nextObserve) { Observe(); nextObserve = Time.time + ObserveEvery * real; }
+                    while (pending.Count > 0 && pending.Peek().time + delay * real <= Time.time) known = pending.Dequeue();
+                    if (Time.time >= nextDecision) { Decide(); nextDecision = Time.time + CommitFor * real; }
                     axes.x = Smooth(axes.x, desired.x, Time.deltaTime);
                     axes.y = Smooth(axes.y, desired.y, Time.deltaTime);
                 }
@@ -680,14 +685,23 @@ namespace SurvivalChaos.EditorTools
             /// overshot it by as much as staying put missed it: on 22 Sep the pilot
             /// sat 2.86 above the Prow for 40 seconds, shooting over it into the
             /// Crown. The pilot replans every decision, so passing through the
-            /// height is what counts; the end still weighs a little, so that once
-            /// there, holding the height beats flying through it.
+            /// height is what counts; where the ship is at the next decision still
+            /// weighs a little, so that once there, holding the height beats flying
+            /// through it.
+            ///
+            /// That second term used to be the end of the horizon, 1.2 s out, which
+            /// no route ever reaches: the pilot re-decides after CommitFor. From
+            /// close under a target, a climb held to the horizon passes it and ends
+            /// five or six units over, and a quarter of that cost more than staying
+            /// a unit short, so on 25 Sep the pilot sat on the floor 0.96 under the
+            /// keel pod for whole fights, twice, every round passing under it.
             /// </summary>
             private static float HeightMiss(Vector3[] route, float target)
             {
                 float closest = float.PositiveInfinity;
                 foreach (var point in route) closest = Mathf.Min(closest, Mathf.Abs(point.y - target));
-                return closest + .25f * Mathf.Abs(route[route.Length - 1].y - target);
+                int next = Mathf.Clamp(Mathf.RoundToInt(CommitFor / PredictStep), 1, route.Length) - 1;
+                return closest + .25f * Mathf.Abs(route[next].y - target);
             }
             /// <summary>
             /// How far a route stays from a pickup: the closest it comes, plus a
@@ -927,6 +941,10 @@ namespace SurvivalChaos.EditorTools
                 desired = best;
                 dashEdge = selectedDash;
                 if(dashEdge) dashRequests++;
+                // Slow Mo is reached for when no route on the stick gets clear and
+                // the dash is not there to take - the moment a person would.
+                slowEdge = !selectedDash && bestWalkDanger >= 1 && slowMo != null && slowMo.Ready;
+                if (slowEdge) { slowMoUses++; Log($"SLOWMO bestWalkDanger={bestWalkDanger:F2} dashReady={(dash != null && dash.ReadyFraction >= 1)}"); }
                 lastPlan=$"age={age:F3} input={desired} dash={dashEdge} bestWalkDanger={bestWalkDanger:F2} chosenDanger={selectedDanger:F2} landingRisk={selectedLanding:F2} predictedEnd={selectedEnd}";
                 recentDecisions.Enqueue($"{Time.time-started:F3} {lastPlan}");
                 while(recentDecisions.Count>15) recentDecisions.Dequeue();
@@ -949,6 +967,7 @@ namespace SurvivalChaos.EditorTools
             public float Horizontal { get { Step(); return axes.x; } }
             public float Vertical { get { Step(); return axes.y; } }
             public bool DashPressed { get { Step(); return dashEdge; } }
+            public bool SlowMoPressed { get { Step(); return slowEdge; } }
             public bool ToggleDirectionReleased { get { Step(); return flipEdge; } }
             public bool PausePressed => previous.PausePressed;
             public bool BackPressed => previous.BackPressed;

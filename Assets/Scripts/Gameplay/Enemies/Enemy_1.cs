@@ -55,9 +55,9 @@ namespace SurvivalChaos
             {
                 Vector3 impact = other.transform.position;
 
-                // Spends the round, or lets a piercing one fly on. A round that
-                // has already struck this enemy is not a second hit.
-                if (!ShootScript.Land(other, gameObject))
+                // Spends the round. One already spent on another enemy in this
+                // physics step is not a second hit.
+                if (!ShootScript.Land(other))
                 {
                     return;
                 }

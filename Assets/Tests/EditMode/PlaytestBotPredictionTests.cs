@@ -182,5 +182,25 @@ namespace SurvivalChaos.Tests
             Assert.That(Miss(Held(target,Vector2.zero)),Is.LessThan(Miss(Held(target,Vector2.down))),
                 "once there, it holds the height");
         }
+
+        [Test]
+        public void HeightMiss_FromJustUnderAPod_ClimbingBeatsSittingUnderIt()
+        {
+            // 25 Sep, twice: on the band's floor 0.96 under the keel pod, at the
+            // game's own climb of 5.6. A climb held to the horizon passes the pod
+            // and ends near the ceiling, and scored on that end it lost to sitting
+            // still, so the pilot shot under the pod for whole fights.
+            var method=Pilot.GetMethod("HeightMiss",BindingFlags.NonPublic|BindingFlags.Static);
+            const float floor=5.72f, ceiling=14.62f, pod=6.68f;
+            Vector3[] Held(Vector2 request) =>
+                (Vector3[])Pilot.GetMethod("PredictRoute",BindingFlags.NonPublic|BindingFlags.Static)
+                    .Invoke(null,new object[]{ new Vector3(18.72f,floor,0), Vector3.zero, Vector2.zero, request,
+                        5.6f, 5.6f, 18.72f, floor, ceiling, Vector2.zero, 0f, 5f, 2.9f });
+            float Miss(Vector3[] route) => (float)method.Invoke(null,new object[]{route,pod});
+
+            Assume.That(.25f*Mathf.Abs(Held(Vector2.up).Last().y-pod),Is.GreaterThan(1.25f*(pod-floor)),
+                "scored on the horizon's end, sitting still would win");
+            Assert.That(Miss(Held(Vector2.up)),Is.LessThan(Miss(Held(Vector2.zero))));
+        }
     }
 }

@@ -99,6 +99,14 @@ namespace SurvivalChaos
                     continue;
                 }
 
+                // The boss sets its own height against the band as it arrives
+                // (BossEmitter.FlyAtBandHeight), so its stream's height is not
+                // where it flies and would only be reported wrongly.
+                if (stream.Prefab.GetComponent<BossEmitter>() != null)
+                {
+                    continue;
+                }
+
                 SpawnBand.RangeOf(
                     stream.Position.y, stream.YOffsetRange, out float lowest, out float highest);
 

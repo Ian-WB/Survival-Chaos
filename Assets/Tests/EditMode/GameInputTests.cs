@@ -18,6 +18,7 @@ namespace SurvivalChaos.Tests
             public bool PausePressed { get; set; }
             public bool BackPressed { get; set; }
             public bool DashPressed { get; set; }
+            public bool SlowMoPressed { get; set; }
             public bool DebugLevelUpPressed { get; set; }
             public bool DebugOverlayTogglePressed { get; set; }
             public bool DebugCopyReportPressed { get; set; }
