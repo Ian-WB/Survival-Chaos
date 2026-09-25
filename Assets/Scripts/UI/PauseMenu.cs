@@ -29,11 +29,42 @@ namespace SurvivalChaos
         private static void ResetOnEnterPlayMode()
         {
             GameIsPaused = false;
+            active = null;
+        }
+
+        private static PauseMenu active;
+
+        /// <summary>
+        /// True while a pause menu is in the scene to answer the back keys.
+        ///
+        /// Esc, Start and the pad's B step a menu back one screen, and at the
+        /// root of the pause menu's screens they mean resume, which only this can
+        /// do. So where one exists it answers them for every screen, and
+        /// MenuScreen leaves them alone rather than stepping back a second time
+        /// on the same press. The title scene has none, and its screens answer
+        /// the keys themselves.
+        /// </summary>
+        public static bool InScene => active != null;
+
+        void OnEnable()
+        {
+            active = this;
+        }
+
+        void OnDisable()
+        {
+            if (active == this){
+                active = null;
+            }
         }
 
         void Update()
         {
-            if (!GameInput.PausePressed){
+            // B backs out as Esc and Start do, but only from a menu. In play it
+            // is a free button, and one that paused the game would be a surprise.
+            bool back = GameIsPaused && GameInput.BackPressed;
+
+            if (!GameInput.PausePressed && !back){
                 return;
             }
 

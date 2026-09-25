@@ -20,6 +20,16 @@ namespace SurvivalChaos
         bool PausePressed { get; }
 
         /// <summary>
+        /// True on the frame the pad's back button is pressed - B, the east face
+        /// button.
+        ///
+        /// Separate from <see cref="PausePressed"/>, which already backs out of a
+        /// menu, because the two differ in play: Esc and Start pause the game, and
+        /// B pausing it would be a surprise. Nothing reads this outside the menus.
+        /// </summary>
+        bool BackPressed { get; }
+
+        /// <summary>
         /// True on the frame the dash key is pressed.
         ///
         /// The press edge, not the release edge the direction flip uses. A dash

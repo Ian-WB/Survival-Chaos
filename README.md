@@ -39,6 +39,8 @@ Start from `Assets/Scenes/Menu.unity`. The game scene is `Game.unity`.
 | Dash | Space | Right shoulder or A |
 | Turn round to fire the other way | Left Shift | Left shoulder |
 | Pause | Esc | Start |
+| Move through a menu, and choose | Arrow keys, Enter | D-pad or left stick, A |
+| Back out of a menu | Esc | B, or Start in a run |
 
 The ship fires on its own. Each level-up puts a few upgrades out on the ring:
 fly into one and the others from that level-up disappear, or leave them and

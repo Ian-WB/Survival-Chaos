@@ -121,6 +121,17 @@ namespace SurvivalChaos
                 return;
             }
 
+            // Esc, Start and the pad's B step back one screen. In a run the
+            // pause menu answers them, since at its root they mean resume; on the
+            // title screens nothing else does. At the title's own root there is
+            // nowhere to go, and nothing happens - backing out of a game is Quit,
+            // chosen on purpose rather than pressed by mistake.
+            if (!PauseMenu.InScene && (GameInput.PausePressed || GameInput.BackPressed))
+            {
+                Back();
+                return;
+            }
+
             GameObject selected = events.currentSelectedGameObject;
             if (selected != null && selected.activeInHierarchy)
             {

@@ -105,6 +105,20 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// The pad's east button only. The keyboard's back key is Esc, which
+        /// <see cref="PausePressed"/> already reports, and answering it here too
+        /// would step a menu back twice on one press.
+        /// </summary>
+        public bool BackPressed
+        {
+            get
+            {
+                Gamepad pad = Gamepad.current;
+                return pad != null && pad.buttonEast.wasPressedThisFrame;
+            }
+        }
+
+        /// <summary>
         /// Space on the keyboard; the right shoulder or the south face button on
         /// a pad.
         ///

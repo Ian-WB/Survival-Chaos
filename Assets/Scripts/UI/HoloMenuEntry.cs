@@ -88,11 +88,13 @@ namespace SurvivalChaos
 
         /// <summary>
         /// Hovering selects, as it does on the framed buttons, so the pointer and
-        /// the keys or pad share one highlight - see HoloButtonHighlight.
+        /// the keys or pad share one highlight - and only a moving pointer, so a
+        /// screen opening under a still cursor keeps its own first choice. See
+        /// HoloButtonHighlight.
         /// </summary>
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (button == null || button.interactable)
+            if ((button == null || button.interactable) && eventData.IsPointerMoving())
             {
                 eventData.selectedObject = gameObject;
             }

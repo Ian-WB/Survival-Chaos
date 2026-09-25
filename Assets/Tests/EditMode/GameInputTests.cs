@@ -16,6 +16,7 @@ namespace SurvivalChaos.Tests
             public float Vertical { get; set; }
             public bool ToggleDirectionReleased { get; set; }
             public bool PausePressed { get; set; }
+            public bool BackPressed { get; set; }
             public bool DashPressed { get; set; }
             public bool DebugLevelUpPressed { get; set; }
             public bool DebugOverlayTogglePressed { get; set; }
@@ -62,11 +63,13 @@ namespace SurvivalChaos.Tests
             {
                 ToggleDirectionReleased = true,
                 PausePressed = true,
+                BackPressed = true,
                 DebugLevelUpPressed = true
             };
 
             Assert.IsTrue(GameInput.ToggleDirectionReleased);
             Assert.IsTrue(GameInput.PausePressed);
+            Assert.IsTrue(GameInput.BackPressed);
             Assert.IsTrue(GameInput.DebugLevelUpPressed);
         }
 

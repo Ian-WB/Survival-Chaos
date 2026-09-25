@@ -951,6 +951,7 @@ namespace SurvivalChaos.EditorTools
             public bool DashPressed { get { Step(); return dashEdge; } }
             public bool ToggleDirectionReleased { get { Step(); return flipEdge; } }
             public bool PausePressed => previous.PausePressed;
+            public bool BackPressed => previous.BackPressed;
             public bool DebugLevelUpPressed => false;
             public bool DebugOverlayTogglePressed => previous.DebugOverlayTogglePressed;
             public bool DebugCopyReportPressed => previous.DebugCopyReportPressed;

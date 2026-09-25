@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -1284416036959649923}
   - component: {fileID: 4338439029050199374}
   - component: {fileID: 6629138651888844002}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: boss_shoot 5
   m_TagString: enemy_Shoot
   m_Icon: {fileID: 0}

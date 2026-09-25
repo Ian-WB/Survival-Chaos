@@ -7,8 +7,8 @@ namespace SurvivalChaos.Tests
     /// <summary>
     /// The query behind a round's sweep between physics steps - see
     /// ShootScript.FixedUpdate. A round that stops at its first target has to
-    /// stop at the nearest one, and a crowded stretch must not push the target
-    /// out of the answer: every other round in the air is in it too.
+    /// stop at the nearest one, a crowded stretch must not push the target out
+    /// of the answer, and a layer the round does not ask for stays out of it.
     /// </summary>
     public class RoundSweepTests
     {
@@ -79,6 +79,29 @@ namespace SurvivalChaos.Tests
 
             Assert.AreEqual(21, count, "hits were dropped when the buffer filled");
             Assert.AreSame(target, hits[count - 1].collider);
+        }
+
+        [Test]
+        public void ALayerOutsideTheMask_IsNotInTheAnswer()
+        {
+            // What a round's sweep relies on to stop hearing about other rounds:
+            // a thing on a layer it does not ask for is not reported at all.
+            int enemies = LayerMask.NameToLayer("Enemies");
+            int rounds = LayerMask.NameToLayer("EnemyRounds");
+            Assert.That(enemies, Is.GreaterThanOrEqualTo(0), "the Enemies layer is not defined");
+            Assert.That(rounds, Is.GreaterThanOrEqualTo(0), "the EnemyRounds layer is not defined");
+
+            Collider target = Box(6f);
+            target.gameObject.layer = enemies;
+            Collider round = Box(3f);
+            round.gameObject.layer = rounds;
+
+            Physics.SyncTransforms();
+            int count = ShootScript.SweepBox(new Vector3(0f, 5000f, 0f), Vector3.one * 0.05f, Vector3.right,
+                Quaternion.identity, 10f, out RaycastHit[] hits, 1 << enemies);
+
+            Assert.AreEqual(1, count);
+            Assert.AreSame(target, hits[0].collider);
         }
     }
 }

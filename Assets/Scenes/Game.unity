@@ -1721,6 +1721,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 0}
+  firstSelected: {fileID: 0}
 --- !u!114 &74571088
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6791,6 +6792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 885703630}
+  firstSelected: {fileID: 0}
 --- !u!114 &235039906
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9796,6 +9798,10 @@ MonoBehaviour:
   source: {fileID: 501978594}
   lowThreshold: 0.2
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &501978594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10273,6 +10279,10 @@ MonoBehaviour:
   source: {fileID: 533569764}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &533569764
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12245,6 +12255,10 @@ MonoBehaviour:
   source: {fileID: 687378784}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &687378784
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14325,6 +14339,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 0}
+  firstSelected: {fileID: 0}
 --- !u!114 &885703631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14985,6 +15000,10 @@ MonoBehaviour:
   source: {fileID: 0}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &934030579
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16656,6 +16675,10 @@ MonoBehaviour:
   source: {fileID: 1042722596}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &1042722596
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16825,6 +16848,10 @@ MonoBehaviour:
   source: {fileID: 0}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &1049687028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17103,6 +17130,10 @@ MonoBehaviour:
   source: {fileID: 1059922904}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &1059922904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20436,6 +20467,10 @@ MonoBehaviour:
   source: {fileID: 0}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &1307770284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22247,6 +22282,10 @@ MonoBehaviour:
   source: {fileID: 1390241631}
   lowThreshold: 0.3
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &1390241631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25815,6 +25854,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 235039905}
+  firstSelected: {fileID: 0}
 --- !u!114 &1732504401
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29222,6 +29262,10 @@ MonoBehaviour:
   source: {fileID: 1926145303}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &1926145303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30284,6 +30328,10 @@ MonoBehaviour:
   source: {fileID: 2021078271}
   lowThreshold: 0
   ghostHold: 0.45
+  selectedGlowBoost: 1.6
+  selectedBorderBoost: 2
+  selectedFillLift: 0.35
+  selectedResponse: 16
 --- !u!114 &2021078271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32504,6 +32552,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 235039905}
+  firstSelected: {fileID: 0}
 --- !u!114 &2116640641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32781,6 +32830,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 0}
+  firstSelected: {fileID: 0}
 --- !u!114 &2118327357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33364,6 +33414,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MenuScreen
   previous: {fileID: 235039905}
+  firstSelected: {fileID: 0}
 --- !u!114 &2134356251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33459,7 +33510,7 @@ GameObject:
   - component: {fileID: 919132148744893765}
   - component: {fileID: 919132148744893766}
   - component: {fileID: 919132148744893767}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}

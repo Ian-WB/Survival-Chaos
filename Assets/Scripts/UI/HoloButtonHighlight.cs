@@ -137,10 +137,16 @@ namespace SurvivalChaos
         /// MenuScreen), and with the two kept apart, a pointer resting on another
         /// button would light a second one - and Enter would press the one it was
         /// not on.
+        ///
+        /// Only a pointer that is moving, though. A screen that opens under a
+        /// cursor left lying over the game also sends an enter, and taking focus
+        /// from that put a pad player's pause on Quit rather than Resume - one
+        /// press of A from leaving the game. Found in play on 25 September 2026
+        /// with a virtual pad and the mouse resting where Quit appears.
         /// </summary>
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (Interactable)
+            if (Interactable && eventData.IsPointerMoving())
             {
                 eventData.selectedObject = gameObject;
             }

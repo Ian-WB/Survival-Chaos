@@ -141,14 +141,54 @@ namespace SurvivalChaos
         private static RaycastHit[] sweepHits = new RaycastHit[16];
 
         /// <summary>
-        /// Where growing the buffer stops. Other rounds can be in the answer
-        /// too - they share the Default layer with everything they can hit, so
-        /// no mask can leave them out - though only the ones in this round's
-        /// path. Played on 24 September 2026, the boss's last act put 96 in the
-        /// air at once and no sweep filled the first sixteen, so growing is a
-        /// guard against a full buffer rather than a size the fight needs.
+        /// Where growing the buffer stops. Played on 24 September 2026, the
+        /// boss's last act put 96 rounds in the air at once and no sweep filled
+        /// the first sixteen - and that was while every round still shared the
+        /// Default layer with everything else, so other rounds were in the answer
+        /// too. Each sweep asks only for the layers its own collides with now
+        /// (see <see cref="CollisionMask"/>), so growing is a guard against a full
+        /// buffer rather than a size the fight needs.
         /// </summary>
         private const int MaxSweepHits = 256;
+
+        private static readonly int[] collisionMasks = new int[32];
+        private static bool collisionMasksBuilt;
+
+        /// <summary>
+        /// Every layer that <paramref name="layer"/> collides with, read from the
+        /// physics settings' matrix, as a mask for a query.
+        ///
+        /// The sweep asks for these and nothing else, so it no longer hears about
+        /// what the physics system would never report either: other rounds, the
+        /// pickups, the boss's own hull under its own fire. Each of those used to
+        /// come back and cost a lookup to throw away - and a SendMessage for the
+        /// ones that were not rounds, answered by a tag check on the far side.
+        /// Built once, because the matrix does not change while the game runs.
+        /// </summary>
+        public static int CollisionMask(int layer)
+        {
+            if (!collisionMasksBuilt)
+            {
+                for (int a = 0; a < collisionMasks.Length; a++)
+                {
+                    int mask = 0;
+
+                    for (int b = 0; b < collisionMasks.Length; b++)
+                    {
+                        if (!Physics.GetIgnoreLayerCollision(a, b))
+                        {
+                            mask |= 1 << b;
+                        }
+                    }
+
+                    collisionMasks[a] = mask;
+                }
+
+                collisionMasksBuilt = true;
+            }
+
+            return collisionMasks[layer];
+        }
 
         private static readonly IComparer<RaycastHit> NearestFirst = new ByDistance();
 
@@ -557,7 +597,7 @@ namespace SurvivalChaos
             Vector3 halfExtents = Vector3.Scale(hitBox.size, transform.lossyScale) * 0.5f;
 
             int count = SweepBox(from + centreOffset, halfExtents, travel / distance, rotation, distance,
-                out RaycastHit[] hits);
+                out RaycastHit[] hits, CollisionMask(gameObject.layer));
 
             for (int i = 0; i < count; i++)
             {
@@ -569,12 +609,9 @@ namespace SurvivalChaos
                 }
 
                 // Rounds pass through rounds, as they do in the physics system.
+                // Their layers already keep them out of each other's answer; this
+                // holds for one left on Default, as a new prefab would be.
                 if (other.GetComponentInParent<ShootScript>() != null)
-                {
-                    continue;
-                }
-
-                if (Physics.GetIgnoreLayerCollision(gameObject.layer, other.gameObject.layer))
                 {
                     continue;
                 }
@@ -606,19 +643,22 @@ namespace SurvivalChaos
         /// could take the one behind, when two enemies sat in one step's stretch.
         ///
         /// Grown when full, because a full buffer may have dropped hits, and the
-        /// dropped one can be the target: other rounds are in the answer too.
+        /// dropped one can be the target.
+        ///
+        /// <paramref name="layerMask"/> is what to ask about; a round passes
+        /// <see cref="CollisionMask"/> for its own layer.
         /// </summary>
         public static int SweepBox(Vector3 origin, Vector3 halfExtents, Vector3 direction,
-            Quaternion rotation, float distance, out RaycastHit[] hits)
+            Quaternion rotation, float distance, out RaycastHit[] hits, int layerMask = Physics.AllLayers)
         {
             int count = Physics.BoxCastNonAlloc(origin, halfExtents, direction, sweepHits, rotation,
-                distance, Physics.AllLayers, QueryTriggerInteraction.Collide);
+                distance, layerMask, QueryTriggerInteraction.Collide);
 
             while (count == sweepHits.Length && sweepHits.Length < MaxSweepHits)
             {
                 sweepHits = new RaycastHit[sweepHits.Length * 2];
                 count = Physics.BoxCastNonAlloc(origin, halfExtents, direction, sweepHits, rotation,
-                    distance, Physics.AllLayers, QueryTriggerInteraction.Collide);
+                    distance, layerMask, QueryTriggerInteraction.Collide);
             }
 
             System.Array.Sort(sweepHits, 0, count, NearestFirst);
@@ -751,6 +791,10 @@ namespace SurvivalChaos
             sharedCenter = null;
             warnedAboutMissingCenter = false;
             live.Clear();
+
+            // Rebuilt on first use, so a matrix edited between two play sessions
+            // is read afresh when domain reload is off.
+            collisionMasksBuilt = false;
         }
     }
 }

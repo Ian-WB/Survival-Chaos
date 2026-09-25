@@ -496,7 +496,7 @@ GameObject:
   - component: {fileID: 3739524942993881563}
   - component: {fileID: 5674187079602527405}
   - component: {fileID: 7826158454896474063}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Crown Emplacement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -679,7 +679,7 @@ GameObject:
   - component: {fileID: 4020032344993825383}
   - component: {fileID: 8752330439326372042}
   - component: {fileID: 782800684810090552}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Boss
   m_TagString: Boss
   m_Icon: {fileID: 0}
@@ -1076,7 +1076,7 @@ GameObject:
   - component: {fileID: 8184481442403112052}
   - component: {fileID: 8632156366912391826}
   - component: {fileID: 6829961655437106985}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Prow Emplacement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2209,7 +2209,7 @@ GameObject:
   - component: {fileID: 8491265061158259332}
   - component: {fileID: 8007053549864760791}
   - component: {fileID: 316975757239019495}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Keel Emplacement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
