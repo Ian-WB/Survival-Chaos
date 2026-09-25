@@ -1381,22 +1381,31 @@ namespace SurvivalChaos.EditorTools
                 Muzzles = new int[0],
                 InitialDelay = 1f,
 
-                // 4.5, and it cannot usefully go lower. A ram is a 1s charge plus
-                // a 3s pass, and Tick skips any attack whose running flag is still
-                // set - so an interval under 4 does not fire more often, it just
-                // stops meaning anything and the ram runs back to back. This
-                // leaves half a second of hull between passes.
+                // 4, back to back, and it cannot usefully go lower. A ram is a 1s
+                // charge plus a 3s pass, and Update skips any attack whose running
+                // flag is still set - so an interval under 4 does not fire more
+                // often, it just stops meaning anything. It was 4.5, half a second
+                // of hull between passes, until the player asked for a more
+                // aggressive boss on 25 September 2026: the next charge now starts
+                // as the last pass ends, and the charge is the only rest.
                 //
                 // The dash comes back in 1.2s, so the counterplay still answers
                 // comfortably; what changed is that it is no longer idle for most
                 // of the act.
-                Interval = 4.5f,
+                Interval = 4f,
                 ChargeSeconds = 1f,
                 BurstSeconds = 3f,
 
                 // Untouched. The dash is the answer to this, and a faster ram is
                 // not a harder version of the same question - it is a different
                 // one, about whether the dash can catch it at all.
+                //
+                // The ram still got faster on 25 September 2026, because this
+                // multiplies the cruise and the cruise went from 12 to 20 degrees
+                // a second, faster than the player's 17.1: 36 to 60. Head-on that
+                // helps the dash rather than hurting it - the two close about 10.3
+                // units in its 0.22s, where they closed 8.5, against a hull 7.05
+                // wide.
                 RamSpeedScale = 3f,
             },
             new Volley
@@ -1417,11 +1426,12 @@ namespace SurvivalChaos.EditorTools
                 // once been on screen.
                 //
                 // BossWreckage.lifeSeconds is 11 now so the steady state arrives
-                // inside the act, and 11 over 0.7 holds about sixteen plates -
-                // five of them at the player's own altitude, against a player
-                // lapping the ring every 12.3 seconds. That is a forced move
-                // roughly every two and a half seconds.
-                Interval = 0.7f,
+                // inside the act. 11 over 0.7 held about sixteen plates, five at
+                // the player's own altitude. 0.5 since the player asked for a more
+                // aggressive boss on 25 September 2026 holds about twenty-two,
+                // seven at any one height, which against a player lapping the
+                // ring every 21 seconds is a forced move about every three.
+                Interval = 0.5f,
             },
             new Volley
             {
@@ -1429,7 +1439,10 @@ namespace SurvivalChaos.EditorTools
                 Pattern = BossFirePattern.Simultaneous,
                 Phases = BossPhaseMask.Scuttle,
                 InitialDelay = 0f,
-                Interval = 1.2f,
+
+                // Every gun at once, every 0.8s since the player asked for a more
+                // aggressive boss on 25 September 2026. It was 1.2.
+                Interval = 0.8f,
             },
         };
 

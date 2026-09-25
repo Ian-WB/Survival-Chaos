@@ -80,5 +80,27 @@ namespace SurvivalChaos
             // therefore what asks for it.
             return delta > 0f;
         }
+
+        /// <summary>
+        /// Whether an enemy that last turned round at <paramref name="lastTurn"/>
+        /// may turn round again at <paramref name="now"/>.
+        ///
+        /// The deadband above decides how far past the player an enemy goes
+        /// before it turns; this decides how soon after one turn it may make the
+        /// next. They are different questions. A boss faster than the player,
+        /// with only the band, passes them, goes 20 degrees on, turns, passes
+        /// them again and turns again - at 20 degrees a second, a turn every two
+        /// seconds for as long as the player holds still, and the player is
+        /// never out from under it. A cooldown longer than that carries it
+        /// further on after each pass, which is the room a player who got past
+        /// it has earned.
+        ///
+        /// An enemy that has never turned passes <see cref="float.NegativeInfinity"/>,
+        /// and may turn at once.
+        /// </summary>
+        public static bool MayTurn(float now, float lastTurn, float cooldownSeconds)
+        {
+            return now - lastTurn >= Mathf.Max(0f, cooldownSeconds);
+        }
     }
 }

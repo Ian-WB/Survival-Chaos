@@ -28,6 +28,21 @@ namespace SurvivalChaos
                  "sitting on the player; the default is about what the old trigger volumes imposed.")]
         private float turnDeadbandDegrees = RingChase.DefaultDeadbandDegrees;
 
+        [SerializeField]
+        [Tooltip("Seconds after turning round before this enemy may turn round again. 0 turns " +
+                 "whenever the chase asks, which is what every enemy but the boss wants. On the " +
+                 "boss it is the room a player who gets past it has: faster than the player, it " +
+                 "would otherwise pass them, turn 20 degrees on and come straight back.")]
+        private float turnCooldownSeconds;
+
+        /// <summary>
+        /// When this enemy last turned round, in scaled time, so a pause does not
+        /// count towards the cooldown. Negative infinity until the first turn,
+        /// and again on every spawn, so a pooled enemy does not arrive still
+        /// cooling down from its last life.
+        /// </summary>
+        private float lastTurnTime = float.NegativeInfinity;
+
         /// <summary>
         /// Which way round the ring this enemy is currently travelling.
         ///
@@ -127,6 +142,7 @@ namespace SurvivalChaos
         private void OnEnable()
         {
             leftOrRight = authoredDirection;
+            lastTurnTime = float.NegativeInfinity;
 
             // Belongs to an attack rather than to the enemy, and an attack
             // interrupted by death leaves it set. A pooled boss brought back
@@ -162,11 +178,17 @@ namespace SurvivalChaos
 
             // Before anything moves, because Enemy_1 and EnemySpaceShip read
             // TravellingLeft to pick which side their shot leaves from.
-            leftOrRight = RingChase.ShouldTravelLeft(
+            bool wanted = RingChase.ShouldTravelLeft(
                 PickupPlacement.BearingOf(transform.position, center),
                 PickupPlacement.BearingOf(player.position, center),
                 leftOrRight,
                 turnDeadbandDegrees);
+
+            if (wanted != leftOrRight && RingChase.MayTurn(Time.time, lastTurnTime, turnCooldownSeconds))
+            {
+                leftOrRight = wanted;
+                lastTurnTime = Time.time;
+            }
 
             Vector3 pos = center;
             pos.y = transform.position.y;

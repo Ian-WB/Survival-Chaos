@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 341 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 342 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>341</b><span>commits</span></div>
-      <div class="stat"><b>446</b><span>tests</span></div>
+      <div class="stat"><b>342</b><span>commits</span></div>
+      <div class="stat"><b>453</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -553,6 +553,12 @@
       <li><strong>A stick as quick as the keys</strong> &mdash; a pad pushed into a corner flew both axes at 71% of
       full speed, because a stick reads in a circle; it is stretched to the keys&rsquo; square now, so a diagonal
       is full speed both ways.</li>
+      <li><strong>A more aggressive boss, and a lance that fires forward</strong> &mdash; it cruises round the ring at
+      20&deg; a second where it was 12, faster than the player, and its ram rises with it to 60; the ram runs back to
+      back, a plate sheds every half second, and the last act fires every 0.8&nbsp;s. The first act&rsquo;s cadences,
+      tuned by hand, were left alone. The lance, which had kept the direction of the fight&rsquo;s first shot, fires
+      the way the boss is travelling on every shot; and the boss waits 3&nbsp;s between turns, so a ram that has passed
+      the player carries on instead of sawing back over them.</li>
     </ul>
   </section>
 
@@ -939,8 +945,8 @@ transform.LookAt(pos);</code></pre>
           <tr><td>Curtain</td><td>Keel &middot; 12</td><td class="num">8s</td><td>every row but one, the gap stepping up a row per volley and wrapping &mdash; learnable rather than random. Throws <strong>discs</strong>, a disc every 2&nbsp;s, each climbing or diving and bouncing off the floor and ceiling</td></tr>
           <tr><td>Torpedo</td><td>Crown &middot; 16</td><td class="num">3s</td><td>one steering torpedo at a time, the muzzles taken in the order the old rake fired them; it was a staircase of sixteen until 21 September</td></tr>
           <tr><td>Lance</td><td>Prow &middot; 1 laser</td><td class="num">2.6s</td><td>charges for 1.2&nbsp;s, three quarters of a crossing of the band at the player's 5.6, then fires a laser 160&deg; round the ring from the prow and holds it half a second; owns the middle, which nothing else reaches</td></tr>
-          <tr><td>Ram</td><td>&mdash;</td><td class="num">4.5s</td><td>the ship itself at three times cruise; countered by the dash and only by the dash</td></tr>
-          <tr><td>Wreckage</td><td>&mdash;</td><td class="num">0.7s</td><td>a plate of the boss's own hull, torn off a wrecked emplacement and left in the lane</td></tr>
+          <tr><td>Ram</td><td>&mdash;</td><td class="num">4s</td><td>the ship itself at three times cruise, 60&deg; a second, back to back since 25 September &mdash; a 1&nbsp;s charge and a 3&nbsp;s pass with no rest between; countered by the dash and only by the dash</td></tr>
+          <tr><td>Wreckage</td><td>&mdash;</td><td class="num">0.5s</td><td>a plate of the boss's own hull, torn off a wrecked emplacement and left in the lane</td></tr>
         </tbody>
       </table>
     </div>
@@ -989,6 +995,11 @@ transform.LookAt(pos);</code></pre>
     <h3>The lance is a laser</h3>
     <p>From 8 September the lance was one drawn arc where it had been forty rounds: a 12.8-unit square tube, 24 segments bent along the ring, growing out of the prow and sliding round the band at the rounds&rsquo; own 80&deg; a second for two seconds. In play it read as a bent log. A material of its own &mdash; a hot core, a fade toward the tail, a pulse &mdash; improved the look and not the reading, because the throw was as much of it as the shape: a chunk that leaves the prow and slides away is a projectile, whatever it is drawn with. A laser stays attached to what fired it.</p>
     <p>So <code>BossLanceBeam</code> fires one now. After the 1.2&nbsp;s charge it flashes out from the prow 160&deg; round the ring in 0.15&nbsp;s &mdash; the stretch the thrown arc used to cross &mdash; holds for 0.5&nbsp;s and thins out over 0.15&nbsp;s, hurting no one as it thins. It follows the prow&rsquo;s bearing as the boss moves round the ring and keeps the height it fired at, because that height is what the charge warned about. Caught in it costs four hits at the far end and five by the prow, against about four for a pass of the thrown arc, on the same 0.15&nbsp;s tick and the same 0.2 hit width. Shooting the prow emplacement out while it is on puts it out, as it already cancelled the charge.</p>
+    <div class="warn">
+      <div class="label">It fired out of the boss&rsquo;s tail after every turn</div>
+      <p>The beam takes its direction from the round it replaced &mdash; the sign of that round&rsquo;s speed, which is where left and right have always been encoded on this attack &mdash; and until 25 September it took it once, when the beam was built on the fight&rsquo;s first lance. <code>RingChase</code> turns the boss round whenever the player crosses it, and the prow and its muzzles turn with it, so after the first turn every lance fired the other way left the prow backwards, across the boss&rsquo;s own hull and away from the player it was chasing. The thrown arc before the laser read its speed the same way, so it had been true since 8 September. A faster boss turning more is what made it seen.</p>
+      <p><code>BossLanceBeam.Fire</code> takes the round for the way the boss is travelling on every shot now. <code>BossLanceBeamTests</code> fires one beam left, right and left again, and pins the pairing it depends on: the lance&rsquo;s travelling-left round flies the positive way round, which is the way <code>EnemyMovement</code> turns the boss while it travels left. Two playtest-bot runs the same day logged 41 lances, the first before a turn and the rest after it, every one leaving the front of the ship the way it was going.</p>
+    </div>
     <div class="note">
       <div class="label">The charge is the whole warning now, which is what it was sized for</div>
       <p>The thrown arc could be watched coming, so a player far round the ring had more warning than the charge gave; the laser arrives in a sixth of a second, so everyone has exactly the charge. That is the number the charge was built on &mdash; 1.2&nbsp;s was about one full crossing of the band at the player&rsquo;s 7&nbsp;u/s &mdash; so the laser makes the design&rsquo;s promise literal rather than generous. At 5.6 since 22 September the charge is three quarters of a crossing, which still leaves plenty: leaving the beam&rsquo;s height takes about half a unit.</p>
@@ -1002,7 +1013,7 @@ transform.LookAt(pos);</code></pre>
     <h3>The second act had lost what the first one was about</h3>
     <p>Armoured is a fight about height. Exposed threw that away: with the hull spanning the whole band, any height is as good as another, and what was left was holding the trigger through 120 hit points and dashing once every seven seconds.</p>
     <p><strong>Wreckage puts the three heights back with their meaning reversed.</strong> The boss sheds plates of its own hull from the emplacements the player themselves destroyed, at those emplacements' own heights. The places that were worth flying to become the places worth avoiding, and the player already knows where they are.</p>
-    <p>The plates do not move. Everything else in this arena rides the ring; these are the one thing that does not, which is what makes them read as debris rather than as another attacker &mdash; and it means the boss, cruising at 12&deg; a second while it sheds, leaves a wake of its own hull and eventually comes back round into it. Life over cadence is the tuning: 11 seconds against 0.7 holds about sixteen plates, five at any one height, which against a player lapping the ring every 21 seconds is a forced move every four seconds or so. It was 16 over 1.8 &mdash; about nine plates &mdash; but that density only exists in a steady state that takes a whole plate lifetime to build, and the act used to be over before it arrived, so the number it was tuned for had never once been on screen. Three shots break one. It earns no experience &mdash; clearing a lane is most of its reward &mdash; but since 22 September a broken plate counts as a wreck for salvage, which is what keeps healing alive once the waves have stopped.</p>
+    <p>The plates do not move. Everything else in this arena rides the ring; these are the one thing that does not, which is what makes them read as debris rather than as another attacker &mdash; and it means the boss, cruising at 20&deg; a second while it sheds, leaves a wake of its own hull and eventually comes back round into it. Life over cadence is the tuning: 11 seconds against 0.5 holds about twenty-two plates, seven at any one height, which against a player lapping the ring every 21 seconds is a forced move about every three seconds; 20 to 21 were standing when it was checked in play. It was 0.7 and about sixteen plates until 25 September, and 16 over 1.8 before that &mdash; about nine plates &mdash; but that density only exists in a steady state that takes a whole plate lifetime to build, and the act used to be over before it arrived, so the number it was tuned for had never once been on screen. Three shots break one. It earns no experience &mdash; clearing a lane is most of its reward &mdash; but since 22 September a broken plate counts as a wreck for salvage, which is what keeps healing alive once the waves have stopped.</p>
     <div class="warn">
       <div class="label">One collision has to cost one hit, and the obvious fix was the wrong one</div>
       <p>Contact was billing far more than a hit. The first guess was the plate's shape, on the theory that a tumbling box sweeps the player in and out of itself; the collider became a sphere and it changed nothing. What turns is <em>the player</em> &mdash; <code>PlayerMovement</code> aims the ship at the arena's axis every frame and <code>SpaceShipPitch</code> rolls it, so a ship inside a stationary trigger keeps carrying its own collider back out through the surface and in again, and every one of those is a fresh <code>OnTriggerEnter</code>.</p>
@@ -2052,7 +2063,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>446 tests across 45 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>453 tests across 46 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2078,7 +2089,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>SpawnMathTests</code></td><td class="num">9</td><td>the spawn curve at shipped values</td></tr>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
           <tr><td><code>CameraFramingTests</code></td><td class="num">9</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
-          <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
+          <tr><td><code>RingChaseTests</code></td><td class="num">13</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter, and a turn cooldown that holds course until it has run</td></tr>
           <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">12</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
           <tr><td><code>RunTimeTests</code></td><td class="num">8</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, and that a retry starts at 1&times;</td></tr>
@@ -2098,6 +2109,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>MenuFocusTests</code></td><td class="num">4</td><td>where keyboard and pad focus lands when a screen opens &mdash; its first live control, or one authored and still live &mdash; and that a screen&rsquo;s horizontal sliders take left and right</td></tr>
           <tr><td><code>RunEndingTests</code></td><td class="num">4</td><td>that the first ending stands: once the run is over no hit reaches the player, and no round reaches the hull or an emplacement</td></tr>
           <tr><td><code>BossRoundLaneTests</code></td><td class="num">2</td><td>that every round the boss fires eases onto the player&rsquo;s lane, read off the prefabs the boss&rsquo;s attacks point at &mdash; the one suite that checks an asset rather than a rule, because the value that went to 0 lives in one</td></tr>
+          <tr><td><code>BossLanceBeamTests</code></td><td class="num">2</td><td>that the lance runs the way the boss is travelling on every shot, not the way it was travelling on the first &mdash; read off the boss&rsquo;s own lance rounds</td></tr>
           <tr><td><code>CloudCombineShaderTests</code></td><td class="num">2</td><td>that the clouds are still combined by the project&rsquo;s own copy of HDRP&rsquo;s shader, and that the copy compiles</td></tr>
           <tr><td><code>CollisionLayersTests</code></td><td class="num">3</td><td>that only the six pairs something handles collide, that a round&rsquo;s sweep asks for exactly its layer&rsquo;s row, and that every prefab collider sits on the layer its role needs</td></tr>
           <tr><td><code>RoundSweepTests</code></td><td class="num">3</td><td>that a round&rsquo;s sweep answers nearest first, loses nothing when a crowded stretch fills its buffer, and leaves out a layer it does not ask for</td></tr>
@@ -2135,7 +2147,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 446 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 453 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2241,9 +2253,22 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       boss&rsquo;s rounds kept their speeds. Worked out, not played: the lance&rsquo;s charge is three quarters of a
       band crossing, which is plenty, since leaving the beam takes half a unit; a vertical dash carries 3.6 of the 4.45
       between banks; and a dash covers about 6 units of a 7.05-unit hull, so it gets through the ram only because the
-      ram closes head-on &mdash; about 8.5 units of travel between them in the 0.22&nbsp;s, against 10.7 before. If the
+      ram closes head-on &mdash; about 10.3 units of travel between them in the 0.22&nbsp;s since the boss&rsquo;s cruise
+      went to 20&deg; a second on 25 September, against 8.5 at 12 and 10.7 with the ship at 7. If the
       ram becomes a wall, <code>PlayerDash</code>&rsquo;s speed multiplier at 6.25 puts the dash back where it was.
       Its tooltips and comments give these figures too, since 25 September.</li>
+      <li><strong>The more aggressive boss has been flown by the bot, not yet by you.</strong> Since 25 September it
+      cruises at 20&deg; a second where it was 12 &mdash; faster than the player&rsquo;s 17.1, so it takes two Move Speed
+      picks to outrun it &mdash; rams back to back at 60, sheds a plate every half second and ends on a volley every
+      0.8&nbsp;s. The playtest bot flew it twice without god mode. With the balanced boss kit it stayed just ahead, took
+      two hits in 136&nbsp;s and had the prow and crown down in 43, then sat on the floor under the keel pod, which is
+      its own height choice. At base speed and level 1 it dashed 28 times to stay 24&ndash;50&deg; ahead and took none
+      in 105&nbsp;s. Chased, it was never caught. Flown into the second act with the kit, it met a ram that passed it,
+      turned 20&deg; on and came back, every half second to a second and a half, and died in 21&nbsp;s with 24 hits; with
+      the boss waiting 3&nbsp;s between turns the same setup took 15 hits in 62&nbsp;s and reached the Scuttle. If it is
+      too much or too little, each is one number on the Boss prefab:
+      <code>EnemyMovement</code>&rsquo;s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>,
+      <code>Hull - Wreckage</code> and <code>Scuttle</code>.</li>
       <li><strong>The audit&rsquo;s fixes are checked in play, not yet in a run.</strong> A session on 24
       September drove each one in the running game, with god mode on and the waves stopped. The player was bound
       to experience exactly once; real kills paid the scaled reward to the bar, the rising number and the
@@ -2341,7 +2366,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 341 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 342 commits
   </footer>
 
 </div>

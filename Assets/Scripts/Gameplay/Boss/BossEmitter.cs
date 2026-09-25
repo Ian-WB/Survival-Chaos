@@ -1116,7 +1116,9 @@ namespace SurvivalChaos
         /// The round prefab is still read even though nothing spawns it any more:
         /// it is where the beam takes its materials and its direction from, so
         /// the weapon's art lives in one place and left and right stay encoded in
-        /// exactly one place instead of two.
+        /// exactly one place instead of two. The direction is handed over with
+        /// every shot, from the round for the way the boss is travelling now -
+        /// see <see cref="BossLanceBeam.Fire"/> for what reading it once did.
         /// </summary>
         private void FireLanceBeam(BossAttack attack)
         {
@@ -1164,7 +1166,7 @@ namespace SurvivalChaos
 
             // Attached to the boss so it stays on the prow while it is on, and to
             // the prow's emplacement so shooting that out puts the beam out too.
-            lanceBeam.Fire(sum / found, centre, transform, attack.WeakPoint);
+            lanceBeam.Fire(sum / found, centre, transform, attack.WeakPoint, round);
             PlayVolleySound();
         }
 
@@ -1209,8 +1211,9 @@ namespace SurvivalChaos
         /// invincible travel against a hull 7.05 units wide along the ring. Since
         /// the 22 September 2026 slow-down that is about 6, less than the hull,
         /// and a dash gets through only because the ram closes head-on as well:
-        /// about 8.5 units between the two in the dash's 0.22s. PlayerDash's
-        /// speedMultiplier at 6.25 puts the 7.45 back.
+        /// about 10.3 units between the two in the dash's 0.22s, since the boss's
+        /// cruise went from 12 to 20 degrees a second on 25 September - it was
+        /// 8.5 at 12. PlayerDash's speedMultiplier at 6.25 puts the 7.45 back.
         ///
         /// The telegraph is the hull flashing, because by this act there are no
         /// emplacements left to light up.

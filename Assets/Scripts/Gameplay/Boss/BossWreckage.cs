@@ -22,9 +22,9 @@ namespace SurvivalChaos
     /// are.
     ///
     /// It does not move. Everything else in this game rides the ring; a boss
-    /// bullet laps it in 4.5 seconds and the player in 12.3. This is the one
+    /// bullet laps it in 4.5 seconds and the player in 21. This is the one
     /// thing that does not, which is what makes it read as debris rather than as
-    /// another attacker, and it means the boss - cruising at 15 degrees a second
+    /// another attacker, and it means the boss - cruising at 20 degrees a second
     /// while it sheds - leaves a wake of its own hull behind it and eventually
     /// comes back round into it. The player is navigating a map that grows rather
     /// than tracking one more moving part.
@@ -46,8 +46,9 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Seconds a plate lasts. With the shed interval this sets how crowded the ring " +
                  "gets: life over interval is how many are up at once, and a third of those sit " +
-                 "at any one height. 16 against a 1.8 second cadence holds about nine plates, " +
-                 "which works out at one forced move every four seconds or so.")]
+                 "at any one height. 11 against the boss's 0.5 second cadence holds about " +
+                 "twenty-two plates, seven at any one height: a forced move about every three " +
+                 "seconds against a player lapping the ring in 21.")]
         private float lifeSeconds = 11f;
 
         [SerializeField]

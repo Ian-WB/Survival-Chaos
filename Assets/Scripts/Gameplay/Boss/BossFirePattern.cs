@@ -24,7 +24,7 @@ namespace SurvivalChaos
         /// volley.
         ///
         /// Built on the fact the arena hands over for free: a boss bullet laps the
-        /// ring in 4.5 seconds and the player in 12.3, so nothing the boss fires
+        /// ring in 4.5 seconds and the player in 21, so nothing the boss fires
         /// is ever really gone - it comes back round and arrives from behind.
         /// Cycled slower than a lap, the previous curtain returns just before the
         /// next one leaves, and the gap the player is threading is the gap in a

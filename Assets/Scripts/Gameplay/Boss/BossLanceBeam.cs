@@ -150,6 +150,14 @@ namespace SurvivalChaos
         private float startAngle;
         private float direction = 1f;
 
+        /// <summary>
+        /// Which way round the ring the beam runs: +1 the way RotateAround takes
+        /// a positive angle, which is the way the boss travels while
+        /// TravellingLeft. Taken from the round on every shot - see
+        /// <see cref="Fire"/>.
+        /// </summary>
+        public float Direction => direction;
+
         private float elapsed;
         private float fadeStart;
         private float contactTimer;
@@ -158,9 +166,8 @@ namespace SurvivalChaos
 
         /// <summary>
         /// Builds the beam object, taking its look from the round it replaces so
-        /// the weapon's art lives in one place, and its direction from that
-        /// round's own speed - which is where left and right have always been
-        /// encoded on this attack.
+        /// the weapon's art lives in one place. Its direction comes from the round
+        /// as well, but per shot rather than here - see <see cref="Fire"/>.
         /// </summary>
         public static BossLanceBeam Create(GameObject roundPrefab, Light lightTemplate, int lightCount)
         {
@@ -218,14 +225,9 @@ namespace SurvivalChaos
                 {
                     body.sharedMaterials = art.sharedMaterials;
                 }
-
-                ShootScript round = roundPrefab.GetComponentInChildren<ShootScript>(includeInactive: true);
-
-                if (round != null && round.Speed != 0f)
-                {
-                    direction = Mathf.Sign(round.Speed);
-                }
             }
+
+            direction = DirectionOf(roundPrefab, direction);
 
             // Shadows off deliberately. A beam is a light source in the fiction and
             // the thing it would shadow is the arena it is lighting, which reads as
@@ -234,6 +236,20 @@ namespace SurvivalChaos
 
             BuildTopology();
             BuildLights(lightTemplate, lightCount);
+        }
+
+        /// <summary>
+        /// The way a round flies round the ring, from the sign of its own speed -
+        /// which is where left and right have always been encoded on this attack -
+        /// or <paramref name="fallback"/> when it has none to read.
+        /// </summary>
+        private static float DirectionOf(GameObject roundPrefab, float fallback)
+        {
+            ShootScript round = roundPrefab != null
+                ? roundPrefab.GetComponentInChildren<ShootScript>(includeInactive: true)
+                : null;
+
+            return round != null && round.Speed != 0f ? Mathf.Sign(round.Speed) : fallback;
         }
 
         /// <summary>
@@ -324,9 +340,20 @@ namespace SurvivalChaos
         /// firing and the beam goes out with it, as the charge already does.
         /// Either may be null, and a beam with no owner simply stays where it was
         /// fired.
+        ///
+        /// The round is the one the boss would fire the way it is travelling now,
+        /// and the beam runs the way that round flies. It is read on every shot.
+        /// Until 25 September 2026 it was read once, when the beam was built on the
+        /// first lance, and kept for the rest of the fight - and the boss turns
+        /// round every time the player crosses it. So whenever the boss was
+        /// travelling the other way from its first lance, the beam ran out of its
+        /// tail, back across its own hull and away from the player it was chasing.
+        /// Reported from play that day.
         /// </summary>
-        public void Fire(Vector3 origin, Transform arenaCentre, Transform owner, BossWeakPoint mounting)
+        public void Fire(Vector3 origin, Transform arenaCentre, Transform owner, BossWeakPoint mounting,
+                         GameObject round)
         {
+            direction = DirectionOf(round, direction);
             centre = arenaCentre;
 
             if (centre == null)

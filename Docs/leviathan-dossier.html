@@ -351,7 +351,7 @@
           <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">26.1 u/s at the lane, 4.5 s per lap</td></tr>
           <tr><td>Keel discs</td><td class="num">40&deg;/s</td><td class="dim">13.1 u/s, 9 s per lap</td></tr>
           <tr><td>Crown torpedoes</td><td class="num">8.5 u/s</td><td class="dim">half again the player&rsquo;s 5.6; turn at 90&deg;/s</td></tr>
-          <tr><td>Boss orbit</td><td class="num">12&deg;/s</td><td class="dim">30 s per lap &mdash; you lap it every 70 s</td></tr>
+          <tr><td>Boss orbit</td><td class="num">20&deg;/s</td><td class="dim">18 s per lap &mdash; faster than your 17.1, so it gains on you until you have two Move Speed picks, or dash; 15 until 22 September and 12 after it, 20 since 25 September to make it chase</td></tr>
           <tr><td>Boss health</td><td class="num">600</td><td class="dim">1 damage per bullet</td></tr>
           <tr><td>Hittable lane</td><td class="num">18.52 &rarr; 18.92</td><td class="dim">where a bullet has to be born to reach the player at all; a disc, 18.55 &rarr; 18.89</td></tr>
           <tr><td>Muzzle spread</td><td class="num">17.92 &rarr; 19.54</td><td class="dim">across a hull 3 units deep &mdash; four times wider than the lane</td></tr>
@@ -658,8 +658,9 @@
             So on 21 September it became one. After the charge it flashes out
             <span class="mono">160&deg;</span> round the ring in <span class="mono">0.15&thinsp;s</span>
             &mdash; the stretch the thrown arc used to cross &mdash; holds for half a second, and
-            thins out over another 0.15, hurting no one as it does. It follows the prow&rsquo;s bearing
-            as the boss moves and keeps the height it fired at, because that height is what the charge
+            thins out over another 0.15, hurting no one as it does. It runs the way the boss is
+            travelling when it fires, follows the prow&rsquo;s bearing as the boss moves, and keeps the
+            height it fired at, because that height is what the charge
             warned about. It is drawn as a thin white-hot core inside a soft orange glow: two ribbons
             turned to face the camera, the core opaque, the glow additive and writing its own motion
             vectors for FSR, so there is no face or edge to see from any angle.
@@ -692,12 +693,12 @@
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-cut">Hull</span><strong>Ram</strong>
-            <span class="timing">telegraph 1.0 s &middot; charge 3.0 s &middot; cycle 4.5 s</span>
+            <span class="timing">telegraph 1.0 s &middot; charge 3.0 s &middot; cycle 4.0 s, back to back</span>
           </div>
           <p class="dim">
             The hull flashes &mdash; by this act there are no emplacements left to light up
             &mdash; then it triples its orbit speed to
-            <span class="mono">36&deg;/s</span> and sweeps around the ring at you. That is faster
+            <span class="mono">60&deg;/s</span> and sweeps around the ring at you. That is faster
             than the player&rsquo;s 17.1&deg;/s, so running the same way loses. The hull spans the
             whole band so climbing loses too. <span class="em">The counter is to dash straight
             through it</span> &mdash; Doomsphere&rsquo;s bull-fight, played as Resogun plays it.
@@ -705,26 +706,40 @@
             against a 7.05-unit hull, with the ship at 7.
           </p>
           <p class="dim">
-            <span class="em">Since 22 September a dash is shorter than the hull.</span> The ship and
-            the boss both slowed by a fifth, so a dash covers about 6 units and the ram runs at
-            36&deg;/s where it ran at 45. Met head-on the ram closes as well, so the two still pass
-            about 8.5 units through each other in the 0.22&thinsp;s, against 10.7 before &mdash; enough
-            to clear the hull and the ship&rsquo;s own width, with about a third of the margin it had. A
-            dash into a hull that is standing still now ends inside it. Worked out, not yet played.
+            <span class="em">Since 22 September a dash is shorter than the hull.</span> The ship
+            slowed by a fifth, so a dash covers about 6 units. The boss slowed with it for three days
+            and the ram ran at 36&deg;/s; on 25 September its cruise went to 20&deg;/s, faster than the
+            player, to make it chase, and the ram to 60. Met head-on the ram closes as well, so the two
+            pass about 10.3 units through each other in the 0.22&thinsp;s, against 8.5 at 36&deg;/s and
+            10.7 with the ship at 7 &mdash; enough to clear the hull and the ship&rsquo;s own width,
+            with nearly nine tenths of the margin it had. A dash into a hull that is standing still
+            still ends inside it. Worked out, not yet played.
           </p>
           <p class="dim">
-            4.5&thinsp;s is its floor rather than a preference. A ram is a 1&thinsp;s charge plus a
-            3&thinsp;s pass, and an attack whose running flag is still set is skipped &mdash; so an
-            interval under four does not fire more often, it just stops meaning anything and the ram
-            runs back to back. This leaves half a second of hull between passes, against a dash that
-            comes back in 1.2.
+            <span class="em">Since 25 September it runs back to back</span>, which is as often as
+            it can. A ram is a 1&thinsp;s charge plus a 3&thinsp;s pass, and an attack whose running
+            flag is still set is skipped &mdash; so the interval is 4, and anything under it would not
+            fire more often, it would just stop meaning anything. The half second of hull that 4.5 left
+            between passes is gone: the next charge starts as the last pass ends, so the flashing hull
+            is the only rest, against a dash that comes back in 1.2. Checked in play: a pass every
+            4.0&thinsp;s, 3.0 of them at three times cruise and 1.0 of charge.
+          </p>
+          <p class="dim">
+            <span class="em">It waits 3&thinsp;s between turns</span>, since 25 September. The boss turns round
+            when the player is 20&deg; past it, and faster than the player that meant a ram passing
+            through them, turning 20&deg; on and coming straight back &mdash; every half second to a
+            second and a half, a hit every pass. The playtest bot, flown into this act with the balanced
+            kit, took 24 hits and died in 21&thinsp;s that way. With a turn cooldown of 3&thinsp;s the boss
+            carries on 80 to 130&deg; past before it comes back; the same setup took 15 hits in
+            62&thinsp;s and was still flying when the Scuttle began. It is <code>EnemyMovement</code>&rsquo;s
+            Turn Cooldown Seconds on the boss, 0 on every other enemy.
           </p>
         </div>
 
         <div class="attack">
           <div class="attack-head">
             <span class="tag t-cut">Arena</span><strong>Wreckage</strong>
-            <span class="timing">a plate every 0.7 s &middot; each lasts 11 s</span>
+            <span class="timing">a plate every 0.5 s &middot; each lasts 11 s</span>
           </div>
           <p class="dim">
             Armoured is a fight about height; Exposed threw that away, because the hull spans the
@@ -737,11 +752,12 @@
           <p class="dim">
             They do not drift. Everything else here rides the ring; these are the one thing that does
             not, which is what makes them read as debris rather than as another attacker &mdash; and
-            it means the boss, cruising at 12&deg;/s while it sheds, leaves a wake of its own hull and
+            it means the boss, cruising at 20&deg;/s while it sheds, leaves a wake of its own hull and
             eventually comes back round into it. Life over cadence is the tuning: 11&thinsp;s against
-            0.7 holds about sixteen plates, five at any one height, which against a 21&thinsp;s lap
-            is a forced move every four seconds or so. It was 16 over 1.8 &mdash; about
-            nine plates &mdash; but that density only exists in a steady state that takes a whole
+            0.5 holds about twenty-two plates, seven at any one height, which against a 21&thinsp;s lap
+            is a forced move about every three seconds &mdash; 20 to 21 were standing when it was
+            checked in play on 25 September. It was 0.7 and about sixteen plates until that day, and
+            before that 16 over 1.8 &mdash; about nine plates &mdash; but that density only exists in a steady state that takes a whole
             plate lifetime to build, and the act used to be over before it arrived, so the number it
             was tuned for had never once been on screen. Three shots break one. It earns no experience
             &mdash; clearing a lane is most of its reward &mdash; but since 22 September a broken plate
@@ -761,7 +777,7 @@
         <h3>SCUTTLE &mdash; last 90 HP</h3>
         <p class="dim">
           Every magazine on the ship cooks off at once: all 32 muzzles fire simultaneous volleys on
-          a 1.2&thinsp;s cycle regardless of which emplacements are wrecked, until it dies. Loud,
+          a 0.8&thinsp;s cycle &mdash; 1.2 until 25 September &mdash; regardless of which emplacements are wrecked, until it dies. Loud,
           short, and survivable if you keep moving. It exists so the kill has a crescendo instead
           of a health bar quietly reaching zero. Plates already in the air ride into it on their own
           clocks, so the last act starts inside the mess the second one made.
@@ -894,7 +910,7 @@
 
   <section>
     <div class="eyebrow">Found while measuring</div>
-    <h2>Eleven things the build turned up</h2>
+    <h2>Twelve things the build turned up</h2>
     <p class="lede">
       Every one of them but the crown was invisible from the outside, and none of those would have
       been found by playing.
@@ -1058,6 +1074,23 @@
     </div>
 
     <div class="card">
+      <h3>The lance fired out of the tail &mdash; <span class="em">fixed</span></h3>
+      <p class="dim">
+        The beam took its direction from the round it replaced, and it took it once: when the beam
+        was built, on the first lance of the fight, from the round for whichever way the boss was
+        travelling then. The boss turns round every time the player crosses it, and the prow turns
+        with it, so from the first turn on every lance fired the other way was a beam leaving the
+        prow backwards &mdash; across the boss&rsquo;s own hull and away from the player it was
+        chasing. The thrown arc before it read its speed the same way, so this had been true since
+        8 September; it was seen in play on 25 September, with a faster boss turning more. The beam
+        reads the direction from the round on every shot now. <code>BossLanceBeamTests</code> fires
+        one beam left, right and left again and checks each, and two playtest-bot runs the same day
+        logged 41 lances, the first before a turn and the rest after it, every one leaving the front
+        of the ship the way it was travelling.
+      </p>
+    </div>
+
+    <div class="card">
       <h3>The orphaned trigger volume &mdash; <span class="em">deleted</span></h3>
       <p class="dim">
         <code>27b8a93</code> added a &ldquo;Laser Trigger&rdquo; sphere to the prefab;
@@ -1155,6 +1188,30 @@
           3.6 of the 4.45 between banks. If the ram starts to feel like a wall, the dash&rsquo;s speed
           multiplier is the dial: 6.25 would put a dash back where it was. It is all in
           <span class="mono">26_0924-0845_salvage</span>.
+        </p>
+      </div>
+      <div class="card">
+        <h3>A more aggressive boss</h3>
+        <p class="dim">
+          Asked for on 25 September, and three of the four steps offered were taken; then, played, the
+          boss was still slow, so it went on to 20&deg;/s. That is faster than the player&rsquo;s 17.1,
+          so it catches a ship that only runs, and it takes two Move Speed picks to outrun it. It stays
+          on you, the lance&rsquo;s 160&deg; and its plates reach you more, and the ram rises with it to
+          60. The ram runs back to back, a plate sheds every 0.5&thinsp;s, and the Scuttle fires every
+          0.8. <span class="em">The first act&rsquo;s cadences were left as you tuned them.</span> And it
+          waits 3&thinsp;s between turns, so a ram that passes you carries on rather than sawing back
+          over you.
+        </p>
+        <p class="dim">
+          The playtest bot flew it twice that day, without god mode. With the balanced boss kit, two
+          Move Speed picks, it stayed just ahead of the boss, took two hits in 136&thinsp;s, and had the
+          prow and crown down in 43&thinsp;s; then it sat on the floor a unit under the keel pod for 45&thinsp;s,
+          which is its own height choice rather than the fight. At base speed and level 1 it dashed 28
+          times to stay 24&ndash;50&deg; ahead and took no hits in 105&thinsp;s. So chased, the bot was never
+          caught. A bot sees more than a player and acts on it, so this is a reading, not a verdict. If
+          it is too much, or not enough, each is one number on the Boss prefab:
+          <code>EnemyMovement</code>&rsquo;s rotation speed, and the intervals of
+          <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>.
         </p>
       </div>
       <div class="card">

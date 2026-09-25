@@ -764,9 +764,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0.5
-  rotationSpeed: 12
+  rotationSpeed: 20
   leftOrRight: 0
   turnDeadbandDegrees: 20
+  turnCooldownSeconds: 3
   spawnSpeed: 0.1
   chaseRadiusFraction: 0
 --- !u!114 &782800684810090552
@@ -922,7 +923,7 @@ MonoBehaviour:
     projectileWhenLeft: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
     projectileWhenRight: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
     initialDelay: 1
-    interval: 4.5
+    interval: 4
     stepSeconds: 0.12
     singleShot: 0
     openRows: 1
@@ -951,7 +952,7 @@ MonoBehaviour:
     projectileWhenLeft: {fileID: 8717013474816945748, guid: 1c562ba59c0a57849b00ccc9688424f6, type: 3}
     projectileWhenRight: {fileID: 8717013474816945748, guid: 1c562ba59c0a57849b00ccc9688424f6, type: 3}
     initialDelay: 0.5
-    interval: 0.7
+    interval: 0.5
     stepSeconds: 0.12
     singleShot: 0
     openRows: 1
@@ -1012,7 +1013,7 @@ MonoBehaviour:
     projectileWhenLeft: {fileID: 6051693256502410095, guid: ffafaae6ccf4f654b82f46ef7b64c741, type: 3}
     projectileWhenRight: {fileID: 6051693256502410095, guid: 6926912da59c5564ebae34bce48e8987, type: 3}
     initialDelay: 0
-    interval: 1.2
+    interval: 0.8
     stepSeconds: 0.12
     singleShot: 0
     openRows: 1

@@ -22,8 +22,9 @@ namespace SurvivalChaos
     /// against a boss hull 7.05 units wide along the ring. It was 7.7, all the way
     /// through the hull, until the 22 September 2026 slow-down took the ship from
     /// 7 to 5.6 and the burst with it. The ram is still dodged because it closes
-    /// head-on as well, about two and a half units more in the burst; if that
-    /// ever reads as a wall, a speedMultiplier of 6.25 puts the 7.7 back.
+    /// head-on as well, about four more units in the burst at the boss's 20
+    /// degrees a second; if that ever reads as a wall, a speedMultiplier of 6.25
+    /// puts the 7.7 back.
     ///
     /// The climb is sized separately, and against something else. It used to
     /// share that multiplier, which made a vertical dash 7.7 units too - 87% of

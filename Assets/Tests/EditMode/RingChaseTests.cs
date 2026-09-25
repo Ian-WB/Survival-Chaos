@@ -138,5 +138,39 @@ namespace SurvivalChaos.Tests
             // volumes covered between them.
             Assert.Greater(decided, 250);
         }
+
+        [Test]
+        public void AnEnemyThatHasNeverTurned_MayTurnAtOnce()
+        {
+            Assert.IsTrue(RingChase.MayTurn(0f, float.NegativeInfinity, 3f));
+        }
+
+        [Test]
+        public void InsideTheCooldown_ItHoldsCourse()
+        {
+            Assert.IsFalse(RingChase.MayTurn(12.9f, 10f, 3f));
+        }
+
+        [Test]
+        public void OnceTheCooldownHasRun_ItMayTurn()
+        {
+            Assert.IsTrue(RingChase.MayTurn(13f, 10f, 3f));
+        }
+
+        /// <summary>
+        /// Every enemy but the boss carries 0, and has to turn exactly as it did
+        /// before the cooldown existed - on the frame the chase asks.
+        /// </summary>
+        [Test]
+        public void NoCooldown_TurnsOnTheFrameAfterTheLastTurn()
+        {
+            Assert.IsTrue(RingChase.MayTurn(10f, 10f, 0f));
+        }
+
+        [Test]
+        public void ANegativeCooldown_CountsAsNone()
+        {
+            Assert.IsTrue(RingChase.MayTurn(10f, 10f, -2f));
+        }
     }
 }
