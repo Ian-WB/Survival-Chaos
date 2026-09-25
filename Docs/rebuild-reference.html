@@ -287,9 +287,9 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 338 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 340 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>338</b><span>commits</span></div>
+      <div class="stat"><b>340</b><span>commits</span></div>
       <div class="stat"><b>441</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
@@ -2212,8 +2212,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       blend of 0.8 is the dial. The Player's lane offset stays at 5; waves spawn from 21.45 out, so anything up to about
       +7.7 keeps every arrival outside the lane.</li>
       <li><strong>The torpedoes at one every three seconds have had no verdict, and are faster now.</strong> Their
-      cruise went from 7.5 to 8.5 on 22 September, asked for as the player slowed to 5.6, and that is in
-      <code>26_0924-0845_salvage</code>, unplayed. At two with a 12&nbsp;s
+      cruise went from 7.5 to 8.5 on 22 September, asked for as the player slowed to 5.6, and it is still
+      unplayed; <code>26_0925-1214_afterFixes</code> carries it. At two with a 12&nbsp;s
       life, most hits came from torpedoes over four seconds old coming round again. If that feels cheap the fuel
       is the dial &mdash; six seconds would keep the second pass and lose most of the circling.</li>
       <li><strong>The lance is a laser, and has had no verdict yet.</strong> The thrown arc read as a
@@ -2229,7 +2229,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       between banks; and a dash covers about 6 units of a 7.05-unit hull, so it gets through the ram only because the
       ram closes head-on &mdash; about 8.5 units of travel between them in the 0.22&nbsp;s, against 10.7 before. If the
       ram becomes a wall, <code>PlayerDash</code>&rsquo;s speed multiplier at 6.25 puts the dash back where it was.
-      Its tooltips still quote the old 7.7 and 4.47.</li>
+      Its tooltips and comments give these figures too, since 25 September.</li>
       <li><strong>The audit&rsquo;s fixes are checked in play, not yet in a run.</strong> A session on 24
       September drove each one in the running game, with god mode on and the waves stopped. The player was bound
       to experience exactly once; real kills paid the scaled reward to the bar, the rising number and the
@@ -2327,7 +2327,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 338 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 340 commits
   </footer>
 
 </div>

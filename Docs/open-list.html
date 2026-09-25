@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true}, "updated": "24 September 2026"}</script>
+<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true, "camera-framing": true, "readme": true, "dash-tooltips": true, "codex-doc": true}, "updated": "25 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,19 +327,20 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-0922",
-    title: "Play the 22 September state with god mode off: slower, faster torpedoes, salvage",
+    id: "play-0925",
+    title: "Play the 25 September build with god mode off",
     effort: "one run, ~25 min",
-    lede: "<strong>It is built:</strong> <code>Builds/26_0924-0845_salvage</code>, debug menu in as always, at commit <code>005945c</code>. Nothing in the game has changed since 22 September; the build is 985 MB because the lightmaps are uncompressed now, as you set them on the new machine.</p><p><strong>Everything moves a fifth slower.</strong> Your note was that the game ran too fast, so the ship, the camera, every enemy and the boss are at 0.8 of their speed: you fly at 5.6 where you flew at 7. The boss’s rounds kept their speeds, so its fire is quicker against you than it was.</p><p><strong>The torpedoes are faster.</strong> 8.5 units a second against your 5.6, at your call, where they were 7.5 against 7. Simulated, not played: hold still and one hits, move two units in its last 0.3 to 0.7 s and it passes where you were, and a dive to the floor gets away if you start it half a second to a second before it arrives. Run flat out along the ring and it gains on you but never catches you.</p><p><strong>Health comes from wrecks.</strong> The +2 every second level is gone. When you are hurt, destroying something can leave a small green piece worth 1 HP where it died, more often the more you are missing: every 24 s with a quarter gone, every 12 s at half, every 8 s with three quarters gone, never at full health. In the boss fight broken hull plates and leftover wave enemies count; emplacements do not. A piece lasts 15 s, and a green +1 HP floats up when you take one.</p><p><strong>Upgrades wait longer.</strong> An offer stays on the ring for 28 s instead of 14.</p><p><strong>Your hitbox cut is in.</strong> Enemy and Enemy 2 are 0.34 and 0.24 tall now, from 0.60, so a shot reaches about 0.15 either side of an Enemy 2 where it reached 0.27, and fewer of them run into you.",
+    lede: "<strong>It is built, by you:</strong> <code>Builds/26_0925-1214_afterFixes</code>, finished after your last commit, so it carries everything. It was built as Release, so it has no debug menu: no god mode and no skip to the boss, which makes it a real run. Say if you want a copy with the menu in.</p><p><strong>Nothing from 22 September has been played yet.</strong> Everything moves a fifth slower, so you fly at 5.6 where you flew at 7, while the boss\u2019s rounds kept their speeds. The torpedoes cruise at 8.5. Health comes from wrecks: when you are hurt, destroying something can leave a small green piece worth 1 HP, every 12 s at half health and never at full. An offer stays on the ring for 28 s.</p><p><strong>Since then, from the two audits and your picks.</strong> Experience past a level\u2019s threshold carries into the next level, and a big reward pays every level it covers. An upgrade left on the ring is re-checked after each pick. Rounds fired at something right on your nose hit now; they used to miss more than half the time. Every run starts on the whole-band camera from 10 out, and you hear the game from the ship rather than the camera. The menus work from the keys and a pad, B backs out, and once a run has ended, a hit in the same instant can no longer change how it ended.",
     watch: [
-      "Turn god mode off. Does the game feel the right speed now? And is the boss still a threat, and the fight the right length? This is still the run that answers both.",
-      "Get hurt, and watch for green pieces where things die. Is a piece every 12 s at half health too generous, or too stingy? It is one number, Salvage Seconds At Half Health on the PickupSpawner.",
-      "Dash through the ram head-on. At the slower speed a dash is shorter than the hull and gets you through only because the ram closes too \u2014 say if it starts to feel like a wall.",
-      "Notice the last two minutes before the boss. The bot, now that it sees every enemy, took 7 hits in its first eight minutes and 36 between eight and ten. Does the end of the waves feel like a wall to you too?",
-      "Let the torpedoes come: hold still for one, dodge one late, and dive to the floor with one on your tail about a second before it arrives. Do they feel fast enough now?",
-      "Watch the lance fire. Does it read as a laser, and is the charge alone warning enough now that you cannot watch the beam come?",
-      "Look for the curtain\u2019s gap row in the glow, then let a curtain reach you: can you read a disc\u2019s path in time to be out of it?",
-      "Cycle the cameras during the boss fight (F8, then 9) and tell me which one reads heights best, by name. It becomes the default."
+      "Play from the start with no god mode. Does the game feel the right speed now, and is the boss still a threat and the fight the right length?",
+      "Notice the last two minutes before the boss. The bot took about one hit a minute for eight minutes, then twenty a minute. Does the end of the waves feel like a wall to you too?",
+      "Get hurt, and watch for green pieces where things die. Is a piece every 12 s at half health too generous, or too stingy?",
+      "Watch how fast you level. Carried-over experience should bring levels a little sooner; say if the upgrades now come too fast.",
+      "Dash through the ram head-on. A dash is shorter than the hull now and gets you through only because the ram closes too \u2014 say if it feels like a wall.",
+      "Let the torpedoes come: hold still for one, dodge one late, and dive to the floor with one on your tail about a second before it arrives. Fast enough?",
+      "Watch the lance fire and the curtain\u2019s discs. Does the lance read as a laser with its charge as enough warning, and can you read a disc\u2019s path in time to be out of it?",
+      "Listen to enemies dying close to you. Sound comes from the ship now, so nearby deaths are louder than they were; say if they crowd the mix.",
+      "If a controller is handy, use it in the menus: Start to pause, the d-pad and stick to move, A to choose, B to back out."
     ]
   };
 
@@ -470,7 +471,8 @@
             "Four sounds are partly positional — the lance and ram charges, the boss’s shot and an enemy dying — so from further back they are a little quieter. If a far preset wins, the audio listener moves to the ship.",
             "You are tuning this by hand, and the numbers have moved several times since the ships were halved: field of view 65 → 75 → 70 → 80 → 75, camera offset 10 → 5 → 6 → 5, and the player’s offset 2 → 5. The 18 September build is the first to carry 75.",
             "The player’s radius offset now moves the whole lane, so it is a real design dial rather than a way to strand the ship. Waves spawn from 21.45 out, so offsets up to about +7.7 keep every arrival outside the lane. At +5 the boss’s emplacements sit about 0.17 inside it, well within their hitboxes.",
-            "Tick this once the view feels right. Nothing else waits on it."
+            "Tick this once the view feels right. Nothing else waits on it.",
+            "<strong>Settled on 24 September, by playing: the whole band from 10 out at 54\u00b0</strong> (commit <code>6caf224</code>). Every run starts on it and nothing picked from the menu is saved; the other six presets stay on the debug menu. The audio listener moved to the ship with it, so where the camera sits no longer changes what you hear."
           ]
         },
         {
@@ -717,7 +719,8 @@
           title: "Bring the dash’s tooltips down to the slower ship",
           effort: "5 min",
           why: [
-            "<code>PlayerDash</code>’s tooltips still say a dash covers about 7.7 units, just wider than the boss hull, and a climb about 4.47, one bank to the next. Both were true at 7 u/s; at 5.6 they are about 6.2 and 3.6. Words only: whether the numbers themselves are still right is the question in ‘Check the boss against the slower ship’."
+            "<code>PlayerDash</code>’s tooltips still say a dash covers about 7.7 units, just wider than the boss hull, and a climb about 4.47, one bank to the next. Both were true at 7 u/s; at 5.6 they are about 6.2 and 3.6. Words only: whether the numbers themselves are still right is the question in ‘Check the boss against the slower ship’.",
+            "<strong>Done on 25 September.</strong> The tooltips say about 6.2 units round the ring, less than the hull\u2019s 7.05, and about 3.6 for a climb, most of the 4.45 between the boss\u2019s heights. The class comment and the ram\u2019s own comment say the same, and name 6.25 as the multiplier that puts the old distance back."
           ]
         },
         {
@@ -789,7 +792,8 @@
           effort: "20 min",
           why: [
             "<code>README.md</code> is sixteen bytes: the repository name and nothing else. It is the first and often only thing anyone opening the project sees.",
-            "Everything a reader would want already exists and none of it is linked from the front door — the rebuild reference, the agent guide, the boss dossier, the graphics and audio notes. This is mostly a matter of pointing at what is already written, plus the two things nowhere records: what the game is, and that it was a five-person 2023 jam project rebuilt solo."
+            "Everything a reader would want already exists and none of it is linked from the front door — the rebuild reference, the agent guide, the boss dossier, the graphics and audio notes. This is mostly a matter of pointing at what is already written, plus the two things nowhere records: what the game is, and that it was a five-person 2023 jam project rebuilt solo.",
+            "<strong>Written on 24 September</strong> (commit <code>073b441</code>): what the game is and where it came from, the Unity version and Git LFS, opening a fresh clone and baking before you judge the look, the controls for keys and pad, the tests, building, and links to the rest. The menu rows joined it on 25 September."
           ]
         },
         {
@@ -798,7 +802,8 @@
           effort: "10 min",
           why: [
             "<code>Docs/rebuild-lessons-codex.html</code> still teaches <code>OrbitRadius</code> as 137.2 in two places, and its bearing calculator computes from that same literal in the script — so the page hands the reader a linear speed ten times the game’s.",
-            "Every other document was converted when the world came back to 1×. This one was written by the other agent, which said it would fix its own page, so it may already be handled — it wants confirming, or doing."
+            "Every other document was converted when the world came back to 1×. This one was written by the other agent, which said it would fix its own page, so it may already be handled — it wants confirming, or doing.",
+            "<strong>Done on 25 September; it had not been handled.</strong> The orbit chapter teaches 13.72 for <code>OrbitRadius</code> and 18.72 for the lane, and the calculator works from the lane, so 80\u00b0 a second is 26.1 units a second rather than 191.6. The quoted code stays the 8 September text the page\u2019s manifest pins, with a note that its 75-unit camera comes from the ten-times world, and the lance paragraph says it is a laser now."
           ]
         },
         {
@@ -878,7 +883,7 @@
             "The boss was tuned against a ship at 7, and on 22 September you went to 5.6 while its rounds kept their speeds. Worked out, not played:",
             "<strong>The ram.</strong> A dash covers about 6 units now, less than the boss’s 7.05-unit hull, so a dash into a hull that is standing still ends inside it. Head-on the ram closes as well, about 8.5 units between you in the dash’s 0.22 s against 10.7 before, so the dodge should still work, with about a third of the margin. If it starts to feel like a wall, <code>PlayerDash</code>’s speed multiplier at 6.25 puts the dash back where it was.",
             "<strong>The rest.</strong> The lance’s 1.2 s charge is three quarters of a band crossing where it was one; leaving the beam takes only half a unit, so that should hold. A vertical dash carries 3.6 of the 4.45 between the boss’s banks where it carried one. The torpedoes are half again your speed; the tests say a runner is never caught and a timed dive escapes.",
-            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. All of it is in <code>Builds/26_0924-0845_salvage</code>."
+            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. All of it is in <code>Builds/26_0925-1214_afterFixes</code>, the build at the top."
           ]
         },
         {
@@ -908,6 +913,33 @@
           why: [
             "Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. The seven lava lights lost their shadows entirely on 10 September, which takes more out of the same budget.",
             "But that measurement is submitted work from a paused editor frame with GPU timing unavailable. It proves the mechanism was large; it doesn’t prove it was the spike. A capture from a real run closes it."
+          ]
+        },
+        {
+          id: "xp-carry",
+          title: "Check whether carried-over experience speeds up levelling",
+          effort: "one run",
+          why: [
+            "Since 24 September experience past a level\u2019s threshold carries into the next level, where it used to be thrown away, and a reward big enough to cover two levels pays both (commit <code>073b441</code>). Checked in play with god mode on: real kills paid the scaled reward to the bar, the floating number and the run\u2019s total alike, and a boss-sized reward crossed two thresholds and kept what was left.",
+            "What that cannot say is whether upgrades now come noticeably sooner. If they come too fast, the level curve is the dial, in the Player Inspector since 24 September."
+          ]
+        },
+        {
+          id: "listener-mix",
+          title: "Hear the mix from the ship",
+          effort: "one run",
+          why: [
+            "The audio listener moved from the camera to the ship on 24 September, with the whole-band camera. Four sounds are partly positional, and an enemy dying three units away now plays at about 0.47 of full, against 0.34 from the old camera 5 out and 0.28 from 10 out. The boss\u2019s charges and shot barely move, since 40% of each was never positional.",
+            "Worked out, not heard. If nearby deaths crowd the mix, <code>EnemyDeath</code>\u2019s spatial blend of 0.8 is the dial."
+          ]
+        },
+        {
+          id: "real-pad",
+          title: "Use the menus with a real controller",
+          effort: "5 min",
+          why: [
+            "Every menu works from the keys and a pad since 25 September, tested in both scenes through the real input path with a virtual pad: Start paused onto Resume, the d-pad moved, A opened Options, B came back to the button you left, and a second B resumed. That test also caught a pause opening with Quit selected under a resting mouse, one press of A from leaving the game, and it is fixed.",
+            "What a virtual pad cannot say is how it feels in the hand: the stick\u2019s repeat speed, and whether B lands where you expect."
           ]
         },
         {

@@ -1206,7 +1206,11 @@ namespace SurvivalChaos
         /// player's own orbit speed, so running the same way loses; the hull spans
         /// more than the whole playable band, so climbing loses. What is left is
         /// going through it, which the dash was measured against - 7.45 units of
-        /// invincible travel against a hull 7.05 units wide along the ring.
+        /// invincible travel against a hull 7.05 units wide along the ring. Since
+        /// the 22 September 2026 slow-down that is about 6, less than the hull,
+        /// and a dash gets through only because the ram closes head-on as well:
+        /// about 8.5 units between the two in the dash's 0.22s. PlayerDash's
+        /// speedMultiplier at 6.25 puts the 7.45 back.
         ///
         /// The telegraph is the hull flashing, because by this act there are no
         /// emplacements left to light up.

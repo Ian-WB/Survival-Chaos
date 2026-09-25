@@ -17,12 +17,13 @@ namespace SurvivalChaos
     /// make the identical move. The split is why the dash cannot simply add to
     /// this transform.
     ///
-    /// Sized against the arena rather than by feel. At the authored orbit speed
-    /// the ship covers 29.2 degrees a second, so a 0.22s burst at five times that
-    /// is 32 degrees of arc - about 7.7 world units at the orbit radius, against a
-    /// boss hull 7.05 units wide along the ring. That is the number that matters:
-    /// one dash carries you all the way through the boss rather than into the
-    /// middle of it.
+    /// Sized against the arena rather than by feel. At the authored 5.6 units a
+    /// second a 0.22s burst at five times that covers about 6.2 units of arc,
+    /// against a boss hull 7.05 units wide along the ring. It was 7.7, all the way
+    /// through the hull, until the 22 September 2026 slow-down took the ship from
+    /// 7 to 5.6 and the burst with it. The ram is still dodged because it closes
+    /// head-on as well, about two and a half units more in the burst; if that
+    /// ever reads as a wall, a speedMultiplier of 6.25 puts the 7.7 back.
     ///
     /// The climb is sized separately, and against something else. It used to
     /// share that multiplier, which made a vertical dash 7.7 units too - 87% of
@@ -32,8 +33,8 @@ namespace SurvivalChaos
     /// over at any distance, since its hull is taller than the band, and the
     /// lance is left by clearing its height by about half a unit. What the climb
     /// does answer to is the boss's three banks, which sit on the band's floor,
-    /// middle and ceiling about 4.45 units apart - so one climb moves you one
-    /// height.
+    /// middle and ceiling about 4.45 units apart - so one climb was sized to move
+    /// you one height, 4.47 units at 7. At 5.6 it is about 3.6, most of one.
     ///
     /// Runs before everything at the default order, PlayerMovement included.
     /// The ship and the camera each run their own PlayerMovement off the one
@@ -52,8 +53,9 @@ namespace SurvivalChaos
         [SerializeField]
         [Range(0.05f, 1f)]
         [Tooltip("How long one burst lasts, in seconds. With the multiplier below this decides " +
-                 "the distance covered - 0.22s at 5x is roughly 7.7 world units of arc, which is " +
-                 "just wider than the boss hull.")]
+                 "the distance covered - 0.22s at 5x a 5.6 ship is about 6.2 world units of arc, " +
+                 "less than the boss hull's 7.05, so a dash gets through the ram only because the " +
+                 "ram closes head-on too.")]
         private float duration = 0.22f;
 
         [SerializeField]
@@ -67,8 +69,8 @@ namespace SurvivalChaos
         [Range(1f, 12f)]
         [Tooltip("Speed of the burst's vertical half, as a multiple of the player's current climb " +
                  "speed. Separate from the multiplier above because the ring distance is sized " +
-                 "against the ram and the climb is not: 0.22s at 2.9x is about 4.47 units, one of " +
-                 "the boss's three heights to the next.")]
+                 "against the ram and the climb is not: 0.22s at 2.9x a 5.6 climb is about 3.6 " +
+                 "units, most of the 4.45 between the boss's three heights.")]
         private float climbMultiplier = 2.9f;
 
         [SerializeField]
