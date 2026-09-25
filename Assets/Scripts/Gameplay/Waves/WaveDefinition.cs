@@ -25,10 +25,45 @@ namespace SurvivalChaos
         [Tooltip("Seconds after which no further enemies spawn. This is when the boss takes over. 0 means never stop.")]
         private float stopSpawningAt = 602f;
 
+        /// <summary>
+        /// The player's band the stream heights were placed against, bottom and
+        /// top. Every spawn is carried from here into the live band, keeping its
+        /// place in it (<see cref="SpawnBand.Carry"/>), so PlayerBounds can move
+        /// or change size and the waves go with it.
+        ///
+        /// MainRun records 2.72 to 11.62, the band as it was on 25 September
+        /// 2026, which leaves every stream where it already flew. Its heights
+        /// were first placed against 4.42 to 13.32; the band came down 1.7 on
+        /// 21 September and the streams did not, and the runs since were played
+        /// against where they ended up, so that is what was kept.
+        /// </summary>
+        [SerializeField]
+        [Tooltip("The bottom of the player's band (PlayerBounds) the stream heights below were placed against. Each spawn keeps its place in the band wherever PlayerBounds goes - a stream a third of the way up this band spawns a third of the way up the live one. Change this and the ceiling only when re-placing the streams against a different band by hand.")]
+        private float authoredFloor = 2.721233f;
+
+        [SerializeField]
+        [Tooltip("The top of the player's band the stream heights were placed against. See the floor above.")]
+        private float authoredCeiling = 11.618166f;
+
         [SerializeField]
         private List<SpawnStream> streams = new List<SpawnStream>();
 
         public float StopSpawningAt => stopSpawningAt;
+
+        /// <summary>The bottom of the band the stream heights were placed against.</summary>
+        public float AuthoredFloor => authoredFloor;
+
+        /// <summary>The top of the band the stream heights were placed against.</summary>
+        public float AuthoredCeiling => authoredCeiling;
+
+        /// <summary>
+        /// Where a height placed in this wave spawns against the given band: the
+        /// same place in it, measured from the band the wave records.
+        /// </summary>
+        public float HeightIn(float authored, float floor, float ceiling)
+        {
+            return SpawnBand.Carry(authored, authoredFloor, authoredCeiling, floor, ceiling);
+        }
 
         public IReadOnlyList<SpawnStream> Streams => streams;
 
@@ -77,10 +112,14 @@ namespace SurvivalChaos
         /// a wave asset has no scene to look in - it may be inspected with no
         /// scene open at all. The caller knows which arena it is asking about.
         ///
+        /// Each stream is measured where it really spawns, carried into the given
+        /// band by <see cref="HeightIn"/>. Since the waves follow the band, moving
+        /// PlayerBounds no longer strands anything; what still lands a stream
+        /// here is a height placed outside the recorded band, or the recorded
+        /// band edited without re-placing the streams.
+        ///
         /// Reports rather than repairs. A stream outside the band is sometimes
-        /// deliberate, and the fix depends on which of the two numbers is wrong:
-        /// moving the streams suits a bounds change, moving the bounds suits a
-        /// deliberately taller arena. Guessing between them would be worse than
+        /// deliberate, and guessing which number was meant would be worse than
         /// saying so.
         /// </summary>
         public int DescribeStreamsOutside(float floor, float ceiling, StringBuilder into)
@@ -109,6 +148,9 @@ namespace SurvivalChaos
 
                 SpawnBand.RangeOf(
                     stream.Position.y, stream.YOffsetRange, out float lowest, out float highest);
+
+                lowest = HeightIn(lowest, floor, ceiling);
+                highest = HeightIn(highest, floor, ceiling);
 
                 if (SpawnBand.IsFullyInside(lowest, highest, floor, ceiling))
                 {

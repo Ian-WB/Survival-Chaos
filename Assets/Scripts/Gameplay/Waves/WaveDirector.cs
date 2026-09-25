@@ -25,6 +25,14 @@ namespace SurvivalChaos
 
         private float startTime;
 
+        /// <summary>
+        /// The player's band, which every spawn height is carried into. Found on
+        /// the player at Start, the way the boss and the pickups find it, and
+        /// read at each spawn rather than once, so a band that moves mid-run is
+        /// followed from the next arrival on.
+        /// </summary>
+        private ApplyBounds band;
+
         /// <summary>Seconds since spawning began.</summary>
         public float Elapsed => Time.time - startTime;
 
@@ -121,6 +129,15 @@ namespace SurvivalChaos
                 return;
             }
 
+            band = FindBand();
+
+            if (band == null || !band.TryGetBand(out _, out _))
+            {
+                Debug.LogWarning(
+                    "WaveDirector found no bounds on the player, so enemies spawn at the wave's "
+                    + "heights as written rather than carried into the player's band.", this);
+            }
+
             foreach (SpawnStream stream in wave.Streams)
             {
                 if (stream == null || stream.Prefab == null)
@@ -141,12 +158,12 @@ namespace SurvivalChaos
         /// <summary>
         /// Reports streams that spawn where the player cannot follow.
         ///
-        /// Two authored numbers have to agree for an enemy to be reachable and
-        /// neither knows about the other: the heights in the wave asset, and the
-        /// bounds box that clamps how high and low the player may fly. Moving the
-        /// box is the easy half to forget, because nothing in the scene looks
-        /// wrong afterwards - the enemies still arrive, still orbit, still show
-        /// on screen. They are simply beneath the floor.
+        /// Moving the bounds box used to be the way in: the heights in the wave
+        /// asset and the box that clamps the player never knew about each other,
+        /// and nothing in the scene looked wrong afterwards - the enemies still
+        /// arrived, still orbited, still showed on screen, simply beneath the
+        /// floor. Spawns are carried into the band now, so what is left to catch
+        /// is a stream placed outside the band the wave records.
         ///
         /// Editor-only, and at Start rather than OnValidate, because OnValidate
         /// fires when this component is touched and not when either of the two
@@ -156,9 +173,7 @@ namespace SurvivalChaos
         /// </summary>
         private void WarnAboutUnreachableStreams()
         {
-            ApplyBounds bounds = FindAnyObjectByType<ApplyBounds>();
-
-            if (bounds == null || !bounds.TryGetBand(out float floor, out float ceiling))
+            if (band == null || !band.TryGetBand(out float floor, out float ceiling))
             {
                 return;
             }
@@ -183,6 +198,19 @@ namespace SurvivalChaos
 #endif
 
         private Vector3 Center => arenaCenter != null ? arenaCenter.position : Vector3.zero;
+
+        private static ApplyBounds FindBand()
+        {
+            Player player = FindAnyObjectByType<Player>();
+
+            if (player == null)
+            {
+                return null;
+            }
+
+            ApplyBounds found = player.GetComponentInParent<ApplyBounds>();
+            return found != null ? found : player.GetComponentInChildren<ApplyBounds>();
+        }
 
         /// <summary>
         /// The shortest gap the loop will honour, whatever a stream asks for.
@@ -223,10 +251,18 @@ namespace SurvivalChaos
         {
             float offsetX = Random.Range(stream.XOffsetRange.x, stream.XOffsetRange.y);
             float offsetY = Random.Range(stream.YOffsetRange.x, stream.YOffsetRange.y);
+            float height = stream.Position.y + offsetY;
+
+            // The same place in the player's band as it had in the band the wave
+            // was placed against, so moving PlayerBounds moves the waves too.
+            if (band != null && band.TryGetBand(out float floor, out float ceiling))
+            {
+                height = wave.HeightIn(height, floor, ceiling);
+            }
 
             Vector3 position = new Vector3(
                 stream.Position.x + offsetX,
-                stream.Position.y + offsetY,
+                height,
                 stream.Position.z);
 
             if (!stream.LockBearing)

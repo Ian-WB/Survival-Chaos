@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: MainRun
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.WaveDefinition
   stopSpawningAt: 602
+  authoredFloor: 2.721233
+  authoredCeiling: 11.618166
   streams:
   - label: Enemy -> Enemy 2
     prefab: {fileID: 2752971980227408059, guid: 778f3559fb4e69141b81f3753e36c18d, type: 3}

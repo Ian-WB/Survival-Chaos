@@ -7,16 +7,21 @@ namespace SurvivalChaos
     ///
     /// The player's vertical travel is clamped by <see cref="ApplyBounds"/> to a
     /// box authored in the scene. The heights enemies arrive at are authored in a
-    /// wave asset. Nothing connects the two, and moving the box does not move the
-    /// streams - so raising the floor by 3.3 units once left four streams
-    /// spawning entirely beneath it, and nothing said so.
+    /// wave asset. Until 25 September 2026 nothing connected the two, and moving
+    /// the box did not move the streams - so raising the floor by 3.3 units once
+    /// left four streams spawning entirely beneath it, and nothing said so, and
+    /// lowering it 1.7 on 21 September left every stream but the boss's 1.7
+    /// higher in the band than it was placed. Now the wave records the band its
+    /// heights were placed against and <see cref="Carry"/> takes each spawn into
+    /// the live one.
     ///
-    /// Whether that strands an enemy or merely inconveniences it depends on what
-    /// the prefab carries, which is why this reports rather than corrects.
-    /// EnemyMovement climbs towards the player once inside its chase radius, so
-    /// it recovers on its own within a few seconds. ObstacleScript has no chase
-    /// branch and never changes height at all, so it holds its spawn height for
-    /// its whole life - out of reach, unkillable, and still drawn.
+    /// What the checks here still catch is a stream placed outside that
+    /// recorded band. Whether that strands an enemy or merely inconveniences it
+    /// depends on what the prefab carries. EnemyMovement climbs towards the
+    /// player once inside its chase radius, so it recovers on its own within a
+    /// few seconds. ObstacleScript has no chase branch and never changes height
+    /// at all, so it holds its spawn height for its whole life - out of reach,
+    /// unkillable, and still drawn.
     ///
     /// Kept free of scene and asset types so the arithmetic can be tested
     /// directly, in the same way as <see cref="SpawnMath"/>.
@@ -90,6 +95,35 @@ namespace SurvivalChaos
         public static float Middle(float floor, float ceiling)
         {
             return (floor + ceiling) * 0.5f;
+        }
+
+        /// <summary>
+        /// Carries a height from one band to another, keeping its place in it: a
+        /// height a third of the way up the first band lands a third of the way
+        /// up the second. What the waves use, so that moving PlayerBounds moves
+        /// every stream with it and resizing it spreads or packs them to fit.
+        /// </summary>
+        /// <remarks>
+        /// Proportional rather than a plain shift, which is what the boss uses,
+        /// because a stream is a place in the band and the boss is a fixed hull.
+        /// Shifted, a band made shorter would push its top and bottom streams
+        /// out of it, and one made taller would leave its edges empty to hide
+        /// in. Anything inside the first band lands inside the second.
+        ///
+        /// A first band with no height has no places to keep, so the height
+        /// moves with its middle instead.
+        /// </remarks>
+        public static float Carry(float height, float fromFloor, float fromCeiling,
+            float toFloor, float toCeiling)
+        {
+            float from = fromCeiling - fromFloor;
+
+            if (from <= 0.0001f)
+            {
+                return height + (Middle(toFloor, toCeiling) - Middle(fromFloor, fromCeiling));
+            }
+
+            return toFloor + ((height - fromFloor) * ((toCeiling - toFloor) / from));
         }
     }
 }

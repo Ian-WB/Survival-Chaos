@@ -27,7 +27,7 @@ namespace SurvivalChaos
 
         [Header("Placement")]
         [SerializeField]
-        [Tooltip("World position the enemy spawns at, before the random offsets below.")]
+        [Tooltip("World position the enemy spawns at, before the random offsets below. The height is placed against the wave's authored band and carried into the player's live band, so it keeps its place in the band if PlayerBounds moves.")]
         private Vector3 position;
 
         [SerializeField]

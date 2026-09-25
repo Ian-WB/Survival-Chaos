@@ -10,8 +10,10 @@ namespace SurvivalChaos.EditorTools
     ///
     /// The same sweep runs from <see cref="WaveDirector"/> at Start, which is the
     /// one that will catch this in practice. This exists for the other half of
-    /// the loop: after moving the bounds box, when the question is whether the
-    /// wave still fits and pressing play to find out costs a domain reload.
+    /// the loop: after editing a wave's heights, when the question is whether it
+    /// still fits and pressing play to find out costs a domain reload. Moving the
+    /// bounds box no longer needs it, since the waves are carried into the band
+    /// wherever it goes; see <see cref="WaveDefinition.HeightIn"/>.
     /// </summary>
     public static class SpawnHeightCheck
     {
