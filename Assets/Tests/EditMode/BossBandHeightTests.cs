@@ -9,8 +9,9 @@ namespace SurvivalChaos.Tests
     /// moves the boss. On 21 September 2026 the band moved and the boss did not,
     /// and the crown emplacement ended up above the ceiling, where most runs
     /// could not reach it - so what is pinned here is that every emplacement
-    /// stays inside the band wherever the band goes. Read off the Boss prefab,
-    /// its pods and its authored height, rather than off numbers copied here.
+    /// stays inside the band wherever the band goes, and that the hull still
+    /// walls off the whole band for the ram. Read off the Boss prefab, its pods,
+    /// its hull and its authored height, rather than off numbers copied here.
     /// </summary>
     public class BossBandHeightTests
     {
@@ -71,6 +72,83 @@ namespace SurvivalChaos.Tests
             {
                 Assert.That(PodHeight(boss, pod, floor, ceiling), Is.InRange(floor, ceiling), pod.name);
             }
+        }
+
+        [Test]
+        public void HullStretch_IsOne_WhenTheHullAlreadyReaches()
+        {
+            Assert.AreEqual(1f, BossEmitter.HullStretch(-10f, 10f, -4f, 4f, 1f), 1e-5f);
+        }
+
+        [Test]
+        public void HullStretch_ReachesPastBothEdgesOfATallBand()
+        {
+            // A hull 5 each side of 0 against a band 8 each side, with 1 to spare: 9 of 5.
+            Assert.AreEqual(1.8f, BossEmitter.HullStretch(-5f, 5f, -8f, 8f, 1f), 1e-5f);
+        }
+
+        [Test]
+        public void HullStretch_ReachesTheFartherEdge_OfAnOffCentreHull()
+        {
+            // Middle 5, half 5; the floor's -1 with 1 to spare is 7 below the middle.
+            Assert.AreEqual(1.4f, BossEmitter.HullStretch(0f, 10f, -1f, 9f, 1f), 1e-5f);
+        }
+
+        /// <summary>
+        /// The ram's one counter is the dash because the hull is a wall: it spans
+        /// the band, so climbing over it or diving under it is not an option.
+        /// Pinned against the prefab's own hull box, its height and its overhang,
+        /// for bands moved and made taller - up to 20, which the authored 15.3
+        /// hull cannot span without stretching.
+        /// </summary>
+        [TestCase(0f, 8.897f)]
+        [TestCase(-1.7f, 8.897f)]
+        [TestCase(3f, 8.897f)]
+        [TestCase(0f, 12.46f)]
+        [TestCase(0f, 16f)]
+        [TestCase(2f, 20f)]
+        public void TheRam_CannotBeClimbedOverOrDivedUnder_WhereverTheBandGoes(float shift, float height)
+        {
+            GameObject boss = Boss();
+            HullOf(boss, out BoxCollider box, out float overhang);
+
+            float floor = Floor + shift;
+            float ceiling = floor + height;
+            float middle = SpawnBand.Middle(floor, ceiling) + HeightFromBandMiddle(boss) + box.center.y;
+            float half = 0.5f * box.size.y;
+            float stretch = BossEmitter.HullStretch(middle - half, middle + half, floor, ceiling, overhang);
+
+            Assert.That(middle - (half * stretch), Is.LessThanOrEqualTo(floor - overhang + 1e-3f), "under the floor");
+            Assert.That(middle + (half * stretch), Is.GreaterThanOrEqualTo(ceiling + overhang - 1e-3f), "over the ceiling");
+        }
+
+        [Test]
+        public void OnTheBandAsItIs_TheHullKeepsItsSize()
+        {
+            GameObject boss = Boss();
+            HullOf(boss, out BoxCollider box, out float overhang);
+
+            float middle = SpawnBand.Middle(Floor, Ceiling) + HeightFromBandMiddle(boss) + box.center.y;
+            float half = 0.5f * box.size.y;
+
+            Assert.AreEqual(1f, BossEmitter.HullStretch(middle - half, middle + half, Floor, Ceiling, overhang));
+            // Centred on the band's middle, which is what makes any shift of the band safe.
+            Assert.AreEqual(SpawnBand.Middle(Floor, Ceiling), middle, 0.01f);
+        }
+
+        /// <summary>The box the ram hits with, off the prefab, and the model that stretches with it.</summary>
+        private static void HullOf(GameObject boss, out BoxCollider box, out float overhang)
+        {
+            var emitter = new SerializedObject(boss.GetComponent<BossEmitter>());
+            box = emitter.FindProperty("hullBox").objectReferenceValue as BoxCollider;
+            var model = emitter.FindProperty("hullModel").objectReferenceValue as Transform;
+            overhang = emitter.FindProperty("hullOverhang").floatValue;
+
+            Assert.IsNotNull(box, "BossEmitter has no hull box");
+            Assert.AreSame(boss, box.gameObject, "the hull box is not the one on the boss itself");
+            Assert.IsNotNull(model, "BossEmitter has no hull model");
+            Assert.IsNotNull(model.GetComponentInChildren<MeshRenderer>(), "the hull model draws nothing");
+            Assert.Greater(overhang, 0f);
         }
 
         [Test]

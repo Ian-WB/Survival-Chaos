@@ -92,16 +92,34 @@ namespace SurvivalChaos
         public static float ClassicHeight => VisibleHeight(ClassicDistance, ClassicFieldOfView);
 
         /// <summary>
-        /// Room shown above the ceiling and below the floor by the whole-band
-        /// preset, so a ship on an edge is not drawn on the edge of the screen.
+        /// Room the whole-band presets show between the ceiling and the HUD
+        /// across the top, and the same again between the floor and the
+        /// matching share kept clear at the bottom - so a ship on either edge
+        /// is drawn clear of what is there.
         /// </summary>
         public const float BandMargin = 0.65f;
 
         /// <summary>
+        /// The share of the screen's height, from the top, that the whole-band
+        /// presets leave to the HUD. The countdown bar and the boss's health
+        /// bar sit across the top, centred, and the ship is always drawn at the
+        /// screen's centre left to right - so until 25 September 2026, when
+        /// the frame gave the ceiling only 0.65, a ship on the ceiling was
+        /// drawn 6.4% down, under both bars. Measured then on a 16:9 screen,
+        /// the countdown ends 6.1% down and the boss bar 8.1%.
+        ///
+        /// The same share is kept clear at the bottom, although the corner HUD
+        /// there is never in the ship's column, so the room above the band and
+        /// below it are equal and the band sits in the middle of the screen -
+        /// asked for the same day, once the top alone had it.
+        /// </summary>
+        public const float TopHudShare = 0.08f;
+
+        /// <summary>
         /// The band's height the preset table is written for: 8.9, the height of
-        /// the player's bounds box (4.42 to 13.32, and 2.72 to 11.62 since it
-        /// came down on 21 September 2026). The stored lenses
-        /// use it; the camera itself frames the live band, through
+        /// the player's bounds box when the presets were picked (4.42 to 13.32,
+        /// then 2.72 to 11.62 from 21 September 2026). The stored lenses use
+        /// it; the camera itself frames the live band, through
         /// <see cref="CameraPreset.FieldOfViewOn"/>, so resizing PlayerBounds
         /// resizes the view with it.
         /// </summary>
@@ -118,13 +136,16 @@ namespace SurvivalChaos
 
         /// <summary>
         /// How tall a whole-band preset frames, at the ship, on a band
-        /// <paramref name="bandHeight"/> tall: the band and a margin each side.
-        /// The margin stays the same whatever the band, because it is room for
-        /// a ship on the edge and the ship does not change size.
+        /// <paramref name="bandHeight"/> tall: the band, a margin each side,
+        /// and <see cref="TopHudShare"/> of the screen at the top and again at
+        /// the bottom. The margin stays the same whatever the band, because it
+        /// is room for a ship on the edge and the ship does not change size;
+        /// the HUD's share stays the same because the HUD is sized to the
+        /// screen. The band is in the middle, so the camera holds its middle.
         /// </summary>
         public static float WholeBandHeightOf(float bandHeight)
         {
-            return Mathf.Max(0f, bandHeight) + 2f * BandMargin;
+            return (Mathf.Max(0f, bandHeight) + 2f * BandMargin) / (1f - 2f * TopHudShare);
         }
 
         /// <summary>How far out the whole-band presets sit, closest first.</summary>
@@ -142,11 +163,13 @@ namespace SurvivalChaos
         };
 
         /// <summary>
-        /// The preset every run starts on: the whole band from 10 out, at 54
-        /// degrees on the band as it is, picked by playing on 24 September 2026.
-        /// CameraPresetSwitcher applies it as a run starts, and the Game scene's
-        /// camera is authored at the same distance and lens, so the editor
-        /// frames the arena the way the game does.
+        /// The preset every run starts on: the whole band from 10 out, picked by
+        /// playing on 24 September 2026 at 54 degrees. Since 25 September it is
+        /// 62.5 on an 8.9 band, the rest being the HUD's share across the top
+        /// and the same at the bottom (<see cref="TopHudShare"/>). CameraPresetSwitcher applies it
+        /// as a run starts; the Game scene's camera is authored at the same
+        /// distance, and at the 54 it was picked at, which only the editor's
+        /// view before play shows.
         /// </summary>
         public const int DefaultIndex = 4;
 
@@ -155,7 +178,7 @@ namespace SurvivalChaos
 
         /// <summary>
         /// A preset that frames the whole band from <paramref name="distance"/>
-        /// outside the lane and holds its middle. Named with its distance,
+        /// outside the lane and holds still at its middle. Named with its distance,
         /// because four of them in a row are otherwise told apart only by
         /// looking. The name carried the lens as well until 25 September 2026,
         /// when the lens began following the band's live height and a number

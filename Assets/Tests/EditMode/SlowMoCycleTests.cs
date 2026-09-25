@@ -58,6 +58,35 @@ namespace SurvivalChaos.Tests
             Assert.IsFalse(cycle.IsSlowing(20f));
         }
 
+        /// <summary>
+        /// The slowdown's length is tuned from the inspector in play, so a new
+        /// one applies to the slowdown already running, from where it began.
+        /// </summary>
+        [Test]
+        public void ALongerDuration_CarriesARunningSlowdownOn()
+        {
+            SlowMoCycle cycle = Cycle();
+            cycle.TryBegin(10f);
+
+            cycle.SetDuration(5f);
+
+            Assert.IsTrue(cycle.IsSlowing(14.9f));
+            Assert.IsFalse(cycle.IsSlowing(15f));
+            Assert.AreEqual(0.5f, cycle.Gauge(12.5f), 1e-5f);
+        }
+
+        [Test]
+        public void AShorterDuration_EndsARunningSlowdownSooner()
+        {
+            SlowMoCycle cycle = Cycle();
+            cycle.TryBegin(10f);
+
+            cycle.SetDuration(1f);
+
+            Assert.IsFalse(cycle.IsSlowing(11.5f));
+            Assert.IsTrue(cycle.TryBegin(40f), "the wait still runs from the start");
+        }
+
         [Test]
         public void AWaitShorterThanTheSlowdown_CannotStartOneInsideAnother()
         {

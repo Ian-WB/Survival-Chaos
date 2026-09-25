@@ -17,7 +17,8 @@ namespace SurvivalChaos
     /// have moved it each frame, which is why this is LateUpdate. Holding the
     /// band, it also fits its lens to the band's live height each frame, so
     /// PlayerBounds made taller or shorter is framed whole from the same
-    /// distance (<see cref="CameraPreset.FieldOfViewOn"/>).
+    /// distance (<see cref="CameraPreset.FieldOfViewOn"/>), with equal room
+    /// above and below the band for the HUD (<see cref="CameraFraming.TopHudShare"/>).
     ///
     /// Nothing here touches what is heard. The audio listener is on the ship,
     /// not the camera, since the default went from 5 out to 10 on 24 September

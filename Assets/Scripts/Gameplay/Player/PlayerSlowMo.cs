@@ -27,7 +27,9 @@ namespace SurvivalChaos
     {
         [SerializeField]
         [Range(0.5f, 10f)]
-        [Tooltip("How long one slowdown lasts, in real seconds.")]
+        [Tooltip("How long one slowdown lasts, in real seconds - 3 is 1.2 seconds of game time at " +
+                 "0.4. Changing it in play takes effect at once, even on a slowdown already running. " +
+                 "The wait between slowdowns is Slow Mo Cooldown on the Player component.")]
         private float duration = 3f;
 
         [SerializeField]
@@ -96,6 +98,18 @@ namespace SurvivalChaos
             RunTime.SetAbilityScale(slowScale);
             return true;
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Hands an inspector change to a cycle already running. Until 25
+        /// September 2026 the cycle kept the duration it was granted with, so
+        /// retuning it in play did nothing until the next run.
+        /// </summary>
+        private void OnValidate()
+        {
+            cycle?.SetDuration(duration);
+        }
+#endif
 
         /// <summary>Puts the game back to speed if this goes while a slowdown runs.</summary>
         private void OnDisable()

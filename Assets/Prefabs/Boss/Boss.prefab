@@ -786,6 +786,9 @@ MonoBehaviour:
   healthPoints: 600
   enemyShip: {fileID: 2752971980227408059}
   heightFromBandMiddle: -1.08
+  hullBox: {fileID: 4020032344993825383}
+  hullModel: {fileID: 5370075884527340666}
+  hullOverhang: 1
   beamLightTemplate: {fileID: 0}
   beamLights: 4
   hullSpark: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}

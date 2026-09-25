@@ -19,7 +19,7 @@ namespace SurvivalChaos
     /// </summary>
     public sealed class SlowMoCycle
     {
-        private readonly float duration;
+        private float duration;
         private float cooldown;
 
         /// <summary>
@@ -40,6 +40,17 @@ namespace SurvivalChaos
 
         /// <summary>Seconds from the start of one use to the start of the next.</summary>
         public float Cooldown => cooldown;
+
+        /// <summary>
+        /// Changes how long a slowdown lasts, for tuning it from the inspector
+        /// in play. Applies to a slowdown already running, which is measured
+        /// from a start that does not move, the way <see cref="SetCooldown"/>
+        /// treats the wait: longer carries it on, shorter may end it at once.
+        /// </summary>
+        public void SetDuration(float seconds)
+        {
+            duration = Mathf.Max(0f, seconds);
+        }
 
         /// <summary>
         /// Changes the wait, for a Slow Mo pick. Applies to a wait already

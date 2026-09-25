@@ -606,7 +606,8 @@ namespace SurvivalChaos
         [Header("Slow Mo")]
         [SerializeField]
         [Tooltip("Seconds from one Slow Mo to the next, one entry per pick: the first pick grants " +
-                 "it, the later ones shorten the wait. The last entry holds for any pick past the end.")]
+                 "it, the later ones shorten the wait. The last entry holds for any pick past the end. " +
+                 "How long each slowdown lasts is Duration on the Player Slow Mo component.")]
         private float[] slowMoCooldown = { 30f, 24f, 18f };
 
         [SerializeField]

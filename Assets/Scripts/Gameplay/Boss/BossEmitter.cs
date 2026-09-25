@@ -45,9 +45,32 @@ namespace SurvivalChaos
                  "(PlayerBounds) - below it when negative. The boss takes this height as it " +
                  "arrives, so moving the band moves the boss and its three banks with it. -1.08 " +
                  "puts the prow's lance 0.3 above the band's middle with the keel and crown pods " +
-                 "near the floor and ceiling, which is 6.09 on the band as it is. The boss spawn " +
+                 "near the floor and ceiling, which was 6.09 on the 2.72-11.62 band. The boss spawn " +
                  "stream's own height is not used.")]
         private float heightFromBandMiddle = -1.08f;
+
+        [SerializeField]
+        [Tooltip("The hull's hit box - what the ram hits the player with. Stretched upright with " +
+                 "the model below when the band is too tall for it; see hullOverhang.")]
+        private BoxCollider hullBox;
+
+        [SerializeField]
+        [Tooltip("The hull's model, stretched upright with its box so what is drawn is what hits.")]
+        private Transform hullModel;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How far past the band's floor and ceiling the hull must reach, so the ram cannot " +
+                 "be climbed over or dived under. The hull stretches upright to reach it on a band " +
+                 "too tall for it - from a band of about 13.3 at 1. A band of 8.9 needs nothing: " +
+                 "the hull reaches 3.2 past both edges.")]
+        private float hullOverhang = 1f;
+
+        /// <summary>The hull as the prefab has it, before any stretch - see FitHullToBand.</summary>
+        private bool hullAuthored;
+        private float authoredHullHeight;
+        private Vector3 authoredModelScale;
+        private float authoredModelHeight;
 
         /// <summary>
         /// The tag every hostile projectile carries, and so the tag of the light
@@ -721,11 +744,6 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// The floor and ceiling of the player's band, off the ApplyBounds that
-        /// clamps the ship. Found once; a miss is said out loud, because the
-        /// failure is quiet - thrown volleys simply fly flat.
-        /// </summary>
-        /// <summary>
         /// Puts the boss at its height against the player's band as it arrives.
         /// It keeps that height for the whole fight - its movement has no height
         /// chase - so this is the one place its altitude is decided.
@@ -740,20 +758,141 @@ namespace SurvivalChaos
         ///
         /// Runs in OnEnable, which the pool calls after placing the boss, and
         /// before anything reads the muzzles. With no band to measure from, the
-        /// stream's height stands.
+        /// stream's height stands, and the hull its authored height.
         /// </summary>
         private void FlyAtBandHeight()
         {
             if (!TryGetBand(out float floor, out float ceiling))
             {
+                StretchHull(1f);
                 return;
             }
 
             Vector3 position = transform.position;
             position.y = SpawnBand.Middle(floor, ceiling) + heightFromBandMiddle;
             transform.position = position;
+
+            FitHullToBand(floor, ceiling);
         }
 
+        /// <summary>
+        /// Makes the hull tall enough to reach past the band's floor and ceiling,
+        /// so the ram cannot be climbed over or dived under whatever height the
+        /// band is.
+        ///
+        /// The ram's one counter is the dash, and that rests on the hull being a
+        /// wall: three times cruise beats running, and the hull spans the band,
+        /// so climbing loses (see <see cref="RunRam"/>). Authored, the hull is
+        /// 15.3 tall and centred on the band's middle, so it reaches 3.2 past
+        /// both edges of an 8.9 band and any shift of the band is covered
+        /// by the boss following it. What it could not survive was the band
+        /// growing past about 15.5, where a ship on the ceiling would fly over
+        /// the hull and the ram would miss.
+        ///
+        /// So on a band that needs it, the hull stretches upright about its own
+        /// middle - the model and its box together, so what is drawn is what
+        /// hits. The emplacements and the muzzles stay where they are: it is a
+        /// taller wall, not a bigger boss, and a wider one would outlast the
+        /// dash. On the band as it was on 25 September 2026, and on any band
+        /// under about 13.3, it needs nothing and nothing changes.
+        /// </summary>
+        private void FitHullToBand(float floor, float ceiling)
+        {
+            if (hullBox == null)
+            {
+                return;
+            }
+
+            RememberAuthoredHull();
+
+            float scale = Mathf.Abs(transform.lossyScale.y);
+            float middle = transform.TransformPoint(hullBox.center).y;
+            float half = 0.5f * authoredHullHeight * scale;
+
+            StretchHull(HullStretch(middle - half, middle + half, floor, ceiling, hullOverhang));
+        }
+
+        /// <summary>
+        /// Puts the hull at <paramref name="stretch"/> times its authored height,
+        /// about the middle of its box. Works from the authored numbers every
+        /// time, because the boss comes back from the pool with whatever the last
+        /// life left on it.
+        /// </summary>
+        private void StretchHull(float stretch)
+        {
+            if (hullBox == null)
+            {
+                return;
+            }
+
+            RememberAuthoredHull();
+
+            Vector3 size = hullBox.size;
+            size.y = authoredHullHeight * stretch;
+            hullBox.size = size;
+
+            if (hullModel == null)
+            {
+                return;
+            }
+
+            // The model hangs off this object, which turns only about the upright,
+            // so its own upright is the world's and scaling it there stretches the
+            // hull straight up without shearing it. Its pivot moves out from the
+            // box's middle by the same stretch, so the two stay centred together.
+            Vector3 modelScale = authoredModelScale;
+            modelScale.y *= stretch;
+            hullModel.localScale = modelScale;
+
+            Vector3 modelPosition = hullModel.localPosition;
+            float centre = hullBox.center.y;
+            modelPosition.y = centre + ((authoredModelHeight - centre) * stretch);
+            hullModel.localPosition = modelPosition;
+        }
+
+        private void RememberAuthoredHull()
+        {
+            if (hullAuthored)
+            {
+                return;
+            }
+
+            hullAuthored = true;
+            authoredHullHeight = hullBox.size.y;
+
+            if (hullModel != null)
+            {
+                authoredModelScale = hullModel.localScale;
+                authoredModelHeight = hullModel.localPosition.y;
+            }
+        }
+
+        /// <summary>
+        /// How many times taller a hull spanning <paramref name="hullBottom"/> to
+        /// <paramref name="hullTop"/> has to be, stretched about its middle, to
+        /// reach <paramref name="overhang"/> past both the band's floor and its
+        /// ceiling. Never less than 1: a hull that already reaches keeps its size.
+        /// </summary>
+        public static float HullStretch(float hullBottom, float hullTop, float floor, float ceiling,
+            float overhang)
+        {
+            float half = 0.5f * (hullTop - hullBottom);
+
+            if (half <= 0.0001f)
+            {
+                return 1f;
+            }
+
+            float middle = 0.5f * (hullBottom + hullTop);
+            float needed = Mathf.Max(ceiling + overhang - middle, middle - (floor - overhang));
+            return Mathf.Max(1f, needed / half);
+        }
+
+        /// <summary>
+        /// The floor and ceiling of the player's band, off the ApplyBounds that
+        /// clamps the ship. Found once; a miss is said out loud, because the
+        /// failure is quiet - thrown volleys simply fly flat.
+        /// </summary>
         private bool TryGetBand(out float floor, out float ceiling)
         {
             floor = 0f;
@@ -1246,7 +1385,8 @@ namespace SurvivalChaos
         ///
         /// Its counter is the dash and only the dash. Three times cruise beats the
         /// player's own orbit speed, so running the same way loses; the hull spans
-        /// more than the whole playable band, so climbing loses. What is left is
+        /// more than the whole playable band, and is stretched to on a band too
+        /// tall for it (<see cref="FitHullToBand"/>), so climbing loses. What is left is
         /// going through it, which the dash was measured against - 7.45 units of
         /// invincible travel against a hull 7.05 units wide along the ring. Since
         /// the 22 September 2026 slow-down that is about 6, less than the hull,

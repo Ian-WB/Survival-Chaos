@@ -96,7 +96,9 @@ namespace SurvivalChaos.Tests
 
             Assert.AreEqual(10f, preset.Distance);
             Assert.IsTrue(preset.HoldsBandMiddle);
-            Assert.AreEqual(54.04f, preset.FieldOfView, 0.01f);
+            // 54 as it was picked; the rest is the HUD's share at the top and
+            // the same at the bottom.
+            Assert.AreEqual(62.53f, preset.FieldOfView, 0.01f);
             Assert.AreEqual("Whole band, 10 out", preset.Name);
         }
 
@@ -120,9 +122,64 @@ namespace SurvivalChaos.Tests
                     continue;
                 }
 
-                Assert.AreEqual(bandHeight + 2f * CameraFraming.BandMargin,
+                Assert.AreEqual(CameraFraming.WholeBandHeightOf(bandHeight),
                     CameraFraming.VisibleHeight(preset.Distance, preset.FieldOfViewOn(bandHeight)), 1e-3f, preset.Name);
             }
+        }
+
+        /// <summary>The boss bar's lower edge, down from the top of a 16:9 screen, measured 25 September 2026.</summary>
+        private const float BossBarShare = 0.081f;
+
+        /// <summary>Half the ship's drawn height: its model is 0.21 tall.</summary>
+        private const float ShipHalfHeight = 0.11f;
+
+        /// <summary>
+        /// Where a whole-band preset draws a height, as a share of the screen
+        /// from the bottom, for a band from 0 to <paramref name="bandHeight"/>.
+        /// </summary>
+        private static float OnScreen(float height, float bandHeight)
+        {
+            float camera = 0.5f * bandHeight;
+            return 0.5f + ((height - camera) / CameraFraming.WholeBandHeightOf(bandHeight));
+        }
+
+        /// <summary>
+        /// 25 September 2026: a ship on the ceiling was drawn 6.4% down the
+        /// screen, under the countdown and the boss bar, which sit across the
+        /// top at the same place left to right as the ship. The frame now leaves
+        /// the HUD its share and a ship on the ceiling clears the lower of them.
+        /// 8.615 is the band Ian had in the scene when he saw it.
+        /// </summary>
+        [TestCase(6f)]
+        [TestCase(8.615f)]
+        [TestCase(8.9f)]
+        [TestCase(12f)]
+        public void AShipOnTheCeiling_IsDrawnBelowTheTopHud(float bandHeight)
+        {
+            float ceiling = OnScreen(bandHeight, bandHeight);
+            float frame = CameraFraming.WholeBandHeightOf(bandHeight);
+
+            Assert.Less(ceiling + ShipHalfHeight / frame, 1f - BossBarShare);
+            // The same clearance under the HUD as the floor has over the screen's edge.
+            Assert.AreEqual(CameraFraming.BandMargin / frame, 1f - CameraFraming.TopHudShare - ceiling, 1e-4f);
+        }
+
+        /// <summary>
+        /// Asked for the same day: the room above the ceiling and below the
+        /// floor are equal, so the band sits in the middle of the screen.
+        /// </summary>
+        [TestCase(6f)]
+        [TestCase(8.615f)]
+        [TestCase(8.9f)]
+        [TestCase(12f)]
+        public void TheRoomAboveAndBelowTheBand_IsEqual(float bandHeight)
+        {
+            float floor = OnScreen(0f, bandHeight);
+            float ceiling = OnScreen(bandHeight, bandHeight);
+
+            Assert.AreEqual(floor, 1f - ceiling, 1e-4f);
+            Assert.AreEqual(CameraFraming.TopHudShare + CameraFraming.BandMargin / CameraFraming.WholeBandHeightOf(bandHeight),
+                floor, 1e-4f);
         }
 
         [Test]
