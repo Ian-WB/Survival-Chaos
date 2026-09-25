@@ -12,7 +12,7 @@ namespace SurvivalChaos
     /// per scene wired to nothing, could not have carried a setting anywhere.
     ///
     /// Playback goes through a fixed pool of AudioSources with per-sound
-    /// throttling. That is not tidiness: the player fires up to ten projectiles
+    /// throttling. That is not tidiness: the player fires up to six projectiles
     /// per volley and the boss twenty-nine, so an AudioSource per shot would mean
     /// hundreds of them, and every copy starting in the same frame adds amplitude
     /// until the mix clips.

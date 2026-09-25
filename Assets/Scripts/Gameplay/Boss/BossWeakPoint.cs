@@ -187,7 +187,9 @@ namespace SurvivalChaos
 
         private void OnTriggerEnter(Collider other)
         {
-            if (Destroyed || !other.CompareTag("Shoot"))
+            // RunEnded: the first ending stands, as on the hull - see
+            // BossEmitter.OnTriggerEnter.
+            if (Destroyed || !other.CompareTag("Shoot") || RunOutcome.RunEnded)
             {
                 return;
             }

@@ -157,6 +157,11 @@ namespace SurvivalChaos
             EndDash();
         }
 
+        /// <summary>
+        /// At the default order, deliberately between the two that bracket it:
+        /// PlayerDash settles the burst before either copy of this reads it, and
+        /// ApplyBounds clamps the height after both have moved.
+        /// </summary>
         void Update()
         {
             if (center == null)

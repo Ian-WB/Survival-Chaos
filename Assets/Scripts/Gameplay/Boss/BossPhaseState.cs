@@ -12,8 +12,8 @@ namespace SurvivalChaos
     /// identical to one that cannot until the one frame where two bullets arrive
     /// together.
     ///
-    /// Health is not held here. The bar shows one 300-point pool and the
-    /// emplacements spend the first half of it, so there is only ever one number,
+    /// Health is not held here. The bar shows one 600-point pool and the
+    /// emplacements spend the first 240 of it, so there is only ever one number,
     /// and it lives with the emitter that owns the bar. This class is told what
     /// that number is rather than keeping a second copy of it.
     /// </summary>
@@ -49,8 +49,8 @@ namespace SurvivalChaos
         /// <summary>
         /// Whether shots that hit the hull do anything.
         ///
-        /// The gate the whole first act rests on: while this is false the 300
-        /// points on the bar can only be spent through the emplacements, so
+        /// The gate the whole first act rests on: while this is false the points
+        /// on the bar can only be spent through the emplacements, so
         /// "shoot the boss" stops being an answer and "shoot the right part of
         /// the boss" becomes one.
         /// </summary>

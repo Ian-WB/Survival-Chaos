@@ -6,8 +6,10 @@ namespace SurvivalChaos
     /// Retires an object a fixed time after it appears.
     ///
     /// Objects the pool created go back to it; anything else is destroyed, which is
-    /// what this always used to do. Enemies carry this component too and are not
-    /// pooled, so both paths are live.
+    /// what this always used to do. Enemies carry this component too, and they come
+    /// through the pool now like the rounds - WaveDirector spawns them with
+    /// ObjectPool - so the destroy path is left for anything placed in a scene by
+    /// hand or spawned around the pool.
     /// </summary>
     public class DestroyAfterTime : MonoBehaviour
     {

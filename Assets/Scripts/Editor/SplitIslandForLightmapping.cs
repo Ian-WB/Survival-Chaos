@@ -24,24 +24,21 @@ namespace SurvivalChaos.EditorTools
     /// counts eightfold never helped either - a bake starved of resolution is not
     /// a bake that is noisy, and samples only answer noise.
     ///
-    /// What makes a split worth doing is that the area is not spent where the
-    /// attention is. Measured per submesh:
+    /// A split lets the island's area be spent unevenly. Measured per submesh:
     ///
     ///     ilha         12,772 tris   1,706.76 units^2   the base, its sides, its underside
     ///     pedra         6,872 tris     780.16 units^2   the surrounding rock
     ///     METADE CIMA   1,096 tris     209.72 units^2   the cone
     ///     ponta           506 tris      49.36 units^2   the summit
     ///
-    /// The cone and the summit are 9.4% of the surface and very nearly all of what
-    /// anyone looks at closely - the lava runs down it and the boss fight happens
-    /// in front of it. The other 90.6% is largely underside and flank. So the two
-    /// go onto separate renderers and each gets its own scaleInLightmap, which
-    /// buys the cone about 100 texels per unit against the 60.2 it shared, and
-    /// spends the base down to 30 to pay for it. Net atlas use barely moves:
-    ///
-    ///     cone     259.08 x 145^2 =  5.45M texels
-    ///     base   2,486.92 x  46^2 =  5.26M texels
-    ///     total                     10.71M against the 9.97M the island held
+    /// The cone and the summit are 9.4% of the surface and the base 90.6%, and the
+    /// split puts them on separate renderers so that each gets its own
+    /// scaleInLightmap. It was made to sharpen the cone - the lava runs down it and
+    /// the boss fight happens in front of it - at about 100 texels per unit to the
+    /// base's 30, from requests of 145 and 46. That turned out to be the wrong
+    /// shape: the base is most of what is on screen, and 46 left it coarser than
+    /// no split at all. The pair it asks for now, and the arithmetic behind it,
+    /// are with <see cref="ConeTexelsPerUnit"/> below.
     ///
     /// Fresh lightmap UVs are generated for each half. That is not optional: the
     /// existing unwrap packs both halves into one [0,1] square, so a half carried
@@ -61,8 +58,8 @@ namespace SurvivalChaos.EditorTools
     /// fail, does not warn, and does not look wrong until you measure it. That
     /// happened during the rescale on 9 September 2026: two bakes ran with the
     /// cone and the base at the same density, 28.1 and 25.7 texels per unit
-    /// against the 100 and 30 intended, and the only outward symptom was a
-    /// smaller atlas.
+    /// against the 100 and 30 the first pair was meant to give, and the only
+    /// outward symptom was a smaller atlas.
     /// </summary>
     public static class SplitIslandForLightmapping
     {

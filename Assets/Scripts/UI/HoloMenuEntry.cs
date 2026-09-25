@@ -21,7 +21,7 @@ namespace SurvivalChaos
     [DisallowMultipleComponent]
     public sealed class HoloMenuEntry : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
-        IPointerClickHandler
+        IPointerClickHandler, ISubmitHandler
     {
         [SerializeField]
         [Tooltip("The text. Slides right when this entry is highlighted.")]
@@ -54,12 +54,15 @@ namespace SurvivalChaos
 
         private Graphic accentGraphic;
         private Graphic labelGraphic;
+        private Button button;
         private Vector2 labelRest;
         private float highlight;
         private float target;
 
         private void Awake()
         {
+            button = GetComponent<Button>();
+
             if (label != null)
             {
                 labelRest = label.anchoredPosition;
@@ -83,9 +86,26 @@ namespace SurvivalChaos
             Apply();
         }
 
-        public void OnPointerEnter(PointerEventData eventData) => Arrive();
+        /// <summary>
+        /// Hovering selects, as it does on the framed buttons, so the pointer and
+        /// the keys or pad share one highlight - see HoloButtonHighlight.
+        /// </summary>
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (button == null || button.interactable)
+            {
+                eventData.selectedObject = gameObject;
+            }
+        }
 
-        public void OnPointerExit(PointerEventData eventData) => target = 0f;
+        /// <summary>Stays lit while still selected: it is what Enter would press.</summary>
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (eventData.selectedObject != gameObject)
+            {
+                target = 0f;
+            }
+        }
 
         public void OnSelect(BaseEventData eventData) => Arrive();
 
@@ -97,7 +117,12 @@ namespace SurvivalChaos
         /// act — a menu where only half the things you click answer back reads as
         /// broken rather than as two styles.
         /// </summary>
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData) => PlayClick();
+
+        /// <summary>Enter and the pad's A press without clicking, so they need their own.</summary>
+        public void OnSubmit(BaseEventData eventData) => PlayClick();
+
+        private static void PlayClick()
         {
             if (GameSounds.Instance != null)
             {

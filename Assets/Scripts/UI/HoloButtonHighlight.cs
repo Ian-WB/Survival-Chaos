@@ -22,7 +22,7 @@ namespace SurvivalChaos
     [DisallowMultipleComponent]
     public sealed class HoloButtonHighlight : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
-        IPointerClickHandler
+        IPointerClickHandler, ISubmitHandler
     {
         [SerializeField]
         [Tooltip("The framed image. Its material is copied so this button's glow is its own.")]
@@ -131,13 +131,42 @@ namespace SurvivalChaos
             Apply();
         }
 
-        public void OnPointerEnter(PointerEventData eventData) => Highlight();
+        /// <summary>
+        /// Hovering selects, so the pointer and the keys or pad share one
+        /// highlight. Every screen opens with focus on a button now (see
+        /// MenuScreen), and with the two kept apart, a pointer resting on another
+        /// button would light a second one - and Enter would press the one it was
+        /// not on.
+        /// </summary>
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (Interactable)
+            {
+                eventData.selectedObject = gameObject;
+            }
+        }
 
-        public void OnPointerExit(PointerEventData eventData) => target = 0f;
+        /// <summary>
+        /// Leaving does not unlight a button that is still selected - it is still
+        /// what Enter would press. Moving onto another button deselects this one.
+        /// </summary>
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (eventData.selectedObject != gameObject)
+            {
+                target = 0f;
+            }
+        }
 
         public void OnSelect(BaseEventData eventData) => Highlight();
 
         public void OnDeselect(BaseEventData eventData) => target = 0f;
+
+        /// <summary>
+        /// The click sound for Enter and the pad's A, which press the button
+        /// without clicking it and so never reach <see cref="OnPointerClick"/>.
+        /// </summary>
+        public void OnSubmit(BaseEventData eventData) => PlayClick();
 
         /// <summary>
         /// The click sound. Here rather than on each button's onClick, because
@@ -148,7 +177,9 @@ namespace SurvivalChaos
         /// Menu sounds answer to the Interface channel, which until now had a
         /// working slider and nothing to attenuate.
         /// </summary>
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData) => PlayClick();
+
+        private void PlayClick()
         {
             // A disabled Selectable still delivers pointer events to the other
             // handlers on the object, so this has to decline for itself.

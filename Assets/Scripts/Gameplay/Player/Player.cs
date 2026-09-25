@@ -210,7 +210,9 @@ namespace SurvivalChaos
             // a silent, rewardless kill for every ship they dashed through, which
             // is a way of removing enemies from the game rather than of surviving
             // them.
-            if (Phased)
+            //
+            // Nor once the run is over, for the reason in TakeHit.
+            if (Phased || RunOutcome.RunEnded)
             {
                 return;
             }
@@ -294,9 +296,24 @@ namespace SurvivalChaos
 
         private void TakeHit(bool spawnHitEffect)
         {
+            // The run is over, won or lost, and the first ending stands. Stopping
+            // time does not stop the physics step the ending happened in: hits
+            // already queued in it - from the engine, and from the rounds' own
+            // sweeps - still arrive. A lethal one landing behind the boss's last
+            // point would open the death screen, and the two endings are sibling
+            // screens, so it would close the victory. Found by ChatGPT's scan on
+            // 25 September 2026, in the code rather than in play; BossEmitter and
+            // BossWeakPoint refuse the reverse.
+            if (RunOutcome.RunEnded)
+            {
+                return;
+            }
+
             // Already dead: the death screen is up and time has stopped, but queued
             // trigger events from the same physics step still arrive. Ignoring them
-            // is what stops the death sound stacking on itself.
+            // is what stops the death sound stacking on itself. The death screen
+            // reports the run ended, so the check above catches these first now;
+            // this one reads the player's own state rather than trusting that.
             if (health.IsDead)
             {
                 return;
@@ -394,7 +411,7 @@ namespace SurvivalChaos
 
         private void Shoot()
         {
-            // Once per volley, not once per bullet. The widest pattern fires nine at
+            // Once per volley, not once per bullet. The widest pattern fires six at
             // the same instant and should still read as one shot.
             if (GameSounds.Instance != null)
             {

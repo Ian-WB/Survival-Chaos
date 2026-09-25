@@ -17,12 +17,12 @@ namespace SurvivalChaos
     /// arena was already true about. The rule: the hull is not the target, the
     /// things bolted to it are, and wrecking one takes an attack out of the
     /// fight. The fact: a boss bullet laps the ring in 4.5 seconds and the player
-    /// in 12.3, so nothing the boss fires ever really leaves - it comes back
-    /// round and arrives from behind. Between them they turn 300 hit points from
+    /// in 21, so nothing the boss fires ever really leaves - it comes back
+    /// round and arrives from behind. Between them they turn 600 hit points from
     /// a number that has to be worn down into a fight with a shape.
     ///
     /// Health is one pool for all three acts. The emplacements spend the first
-    /// half of it and the hull the second, which is what keeps the bar moving
+    /// 240 of it and the hull the rest, which is what keeps the bar moving
     /// through a phase where the hull itself is taking nothing - and means
     /// retuning an emplacement cannot quietly change what the boss is worth.
     /// </summary>
@@ -1320,6 +1320,14 @@ namespace SurvivalChaos
                 return;
             }
 
+            // The player died earlier in this same physics step, and the first
+            // ending stands - a last point landing behind it would put the
+            // victory screen over the death one. See Player.TakeHit.
+            if (RunOutcome.RunEnded)
+            {
+                return;
+            }
+
             // Read before despawning, so sparks land where the bullet broke
             // rather than at the middle of a hull 15 units tall.
             Vector3 impact = other.transform.position;
@@ -1347,7 +1355,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            // Worth more here than anywhere else. The boss has three hundred hit
+            // Worth more here than anywhere else. The boss has six hundred hit
             // points and no spark prefab of its own, so without this the only
             // reading of progress is a health bar at the top of the screen -
             // which is not where the player is looking.

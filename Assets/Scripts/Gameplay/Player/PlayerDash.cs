@@ -34,8 +34,19 @@ namespace SurvivalChaos
     /// does answer to is the boss's three banks, which sit on the band's floor,
     /// middle and ceiling about 4.45 units apart - so one climb moves you one
     /// height.
+    ///
+    /// Runs before everything at the default order, PlayerMovement included.
+    /// The ship and the camera each run their own PlayerMovement off the one
+    /// shared burst, and Unity orders nothing between scripts unless told to: had
+    /// this run between the two, one would have travelled a frame of dash the
+    /// other did not, and nothing ever puts the camera back on the ship's
+    /// bearing, so the difference would have stayed. Found by ChatGPT's scan on
+    /// 25 September 2026. It also reads the pad's A - a dash, and the button
+    /// that presses Resume - before the EventSystem handles that same press, so
+    /// resuming does not dash as well.
     /// </summary>
     [DisallowMultipleComponent]
+    [DefaultExecutionOrder(-10)]
     public sealed class PlayerDash : MonoBehaviour
     {
         [SerializeField]

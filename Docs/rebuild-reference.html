@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 336 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 337 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>336</b><span>commits</span></div>
-      <div class="stat"><b>426</b><span>tests</span></div>
+      <div class="stat"><b>337</b><span>commits</span></div>
+      <div class="stat"><b>437</b><span>tests</span></div>
       <div class="stat"><b>112</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -540,6 +540,11 @@
       band&rsquo;s middle, in place of the close 75&deg; the game had always had, and the audio listener moved to
       the ship so that the camera&rsquo;s distance no longer changes what is heard; the other six presets stay on
       the debug menu.</li>
+      <li><strong>A second audit, answered</strong> &mdash; another outside read of the code found menus a keyboard
+      or pad could not use, an ending the last hit of a fight could swap, and a dash, a move and a height clamp with
+      no set order between them. All fixed on 25 September, with tests and a check in play; three overviews under
+      <code>Assets</code> that described a game this no longer is, two animation controllers pointing at clips that
+      no longer exist, and two dead texture slots on the round&rsquo;s streak are gone.</li>
     </ul>
   </section>
 
@@ -615,7 +620,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">The number the inspector was lying about</div>
       <p>The player's two speeds used to be authored in different units and shown side by side as though they were the same thing. <code>Speed</code> was <strong>32 degrees per second</strong> and <code>Up_Down_Speed</code> was <strong>5 world units per second</strong>, so 32 sat next to 5 looking six times larger while the ship was actually only about half again as quick sideways as it was vertically. There was no way to see that from the Inspector.</p>
       <p>Both are units per second now, named Orbit Speed and Climb Speed, and the conversion to the angle <code>RotateAround</code> wants happens in code. Set equal, the ship covers the same ground in both directions. Both are 5.6 since 22 September, when the whole game was slowed by a fifth; they were 7.</p>
-      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 5 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 17.14&nbsp;deg/s at today's lane from the same authored number, which is what stops them drifting apart.</p>
+      <p><strong>The conversion divides by the lane's radius, not by the object's own.</strong> That distinction is load-bearing rather than incidental: the Main Camera runs this same component 10 units further out, so measuring against its own distance from the axis would hand it a smaller angle than the ship and leave it trailing a little further behind every second. Both derive 17.14&nbsp;deg/s at today's lane from the same authored number, which is what stops them drifting apart.</p>
     </div>
     <div class="note">
       <div class="label">Why this matters practically</div>
@@ -674,6 +679,7 @@ transform.LookAt(pos);</code></pre>
 
     <h3>Movement</h3>
     <p><code>PlayerMovement</code> orbits and looks at the centre; <code>ApplyBounds</code> clamps height. The Main Camera runs the <em>same</em> <code>PlayerMovement</code> component with the same speed — that's how it stays in sync, rather than following the player.</p>
+    <p>That makes the order of one frame matter, and since 25 September it is set rather than left to Unity: <code>PlayerDash</code> settles the burst first, at &minus;10, both copies of <code>PlayerMovement</code> move at the default order, and <code>ApplyBounds</code> clamps last, at +10. Unity orders nothing between scripts unless told to, and nothing had told it. A dash switching on or off between the camera&rsquo;s move and the ship&rsquo;s would have carried one a frame of dash further than the other, and nothing ever puts the camera back on the ship&rsquo;s bearing, so the difference would have stayed; a clamp that ran before the move would have left the ship one frame&rsquo;s climb past the band while it pushed against an edge, about 0.09 at 60&nbsp;fps and 0.27 mid-dash. Which order the editor had actually been using was never measured. <code>UpdateOrderTests</code> pins the one it uses now.</p>
 
     <h3>Seven cameras, to settle the lens by playing</h3>
     <p>Until 24 September the camera sat 5 outside the lane at a vertical field of view of 75&deg;, level with the ship. At the ship&rsquo;s distance that frames <strong>7.7 units</strong> of a band 8.9 tall, so the band never fitted the screen at once, and the camera climbed with the ship &mdash; at the ceiling, everything below about 9.5 was off screen. And that lens is wide enough to matter: something ten units round the ring is half as far again from the camera as the ship, so it is drawn two thirds its size, and its height above or below the ship reads two thirds of what it is. Nearly every boss attack is dodged by reading heights.</p>
@@ -1228,6 +1234,11 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       <p><strong>Unity calls nothing on an inactive GameObject</strong> — not <code>Awake</code>, not <code>OnEnable</code>, not <code>Update</code>. The precise claim is about Unity's callbacks rather than about the object being frozen: an ordinary method call through a reference works exactly as it always does, and that distinction is the whole reason the two menus below differ. <code>DeathMenu</code> can live on the panel it shows, because <code>Player</code> calls it through a direct reference. <code>VictoryMenu</code> <em>cannot</em>, because it listens for an event: a component on an inactive object never subscribes. It must sit on something active, like the Canvas.</p>
     </div>
     <p>One related fix: <code>Time.timeScale</code> survives a scene load, and all three menus set it to 0. Restarting used to load a frozen game. <code>MainMenu</code> now resets it before loading.</p>
+    <div class="warn">
+      <div class="label">The last hit of a fight could swap the ending</div>
+      <p>Both endings are reached only through a hit: the player&rsquo;s death through <code>Player.TakeHit</code>, the boss&rsquo;s through its hull and its emplacements. Neither asked whether the run was already over, and stopping time does not stop the physics step an ending happens in &mdash; hits already queued in it, from the engine and from the rounds&rsquo; own sweeps, still arrive. The death and victory screens are sibling screens, so whichever ending landed second closed the first: a lethal round in the same step as the boss&rsquo;s last point would have put the death screen over the win, and the reverse was as possible. It was found by reading the code on 25 September, not in play.</p>
+      <p><strong>The first ending stands.</strong> Once <code>RunOutcome.RunEnded</code> is set the player takes no hit and consumes no ram, and neither the hull nor an emplacement takes a round. The boss&rsquo;s final experience and kill still count, because they are paid inside its own death after it has ended the run. <code>RunEndingTests</code> drives each of those handlers with the run already over, and in play a beam hit behind the death screen left the player&rsquo;s hull bar at 18.</p>
+    </div>
 
     <h3>What the run was, once it is over</h3>
     <p>Both endings used to stop time and put up a card carrying a title and two buttons, leaving a third of
@@ -1528,6 +1539,10 @@ float  edge  = HoloBand(d, _Border);</code></pre>
       <p>The obvious repair was to add the three new screens to the list <code>Resume</code> already hid. That fixes today and rebuilds the same trap for whoever adds the fourth. The <code>previous</code> link is set by the menu builder in the same call that wires each Back button, so the key and the button read one source and cannot drift apart — and closing everything is a sweep over every <code>MenuScreen</code> in the scene, which cannot fall behind the screens that exist.</p>
     </div>
 
+    <h3>Keys and a pad reach every button</h3>
+    <p>Unity&rsquo;s UI sends the arrows, the stick and Enter or A to whatever is <em>selected</em>, and until 25 September nothing selected anything: neither scene set a first selection and no script ever made one. The pad could fly the ship and pause it, and then could not reach Restart after dying. <code>MenuScreen</code> places focus now. A screen opened from play starts on its first live control &mdash; every pause begins on Resume &mdash; and one reached from another screen picks up where it was left, so backing out of Audio lands on Audio. It waits for <code>LateUpdate</code> to do it, because a screen&rsquo;s <code>OnEnable</code> runs before its children&rsquo;s, and a button selected before its own highlight has woken is lit and then reset.</p>
+    <p>Hovering selects, so the pointer and the keys share one highlight rather than lighting two buttons with Enter pressing the one the pointer is not on. Enter and A make the click sound, which lived in the pointer&rsquo;s click alone. Clicking empty space still clears the selection, and the first press of a direction brings it back. The volume and sharpness bars thicken their frames and pale their fill when selected, and take left and right for their value &mdash; a slider only does that when nothing is selectable that way, and the sharpness bar has a column of arrows to its left, so a pad&rsquo;s left walked off it. And the pad&rsquo;s A is both the dash and the button that presses Resume; the dash reads it before the menus do, so resuming does not dash as well.</p>
+
     <h3>A title screen is not a dialog</h3>
     <p>The main menu was first built the same way as the pause menu — a centred, framed panel — and it covered the logo the title video renders, while printing a second copy of the game's name underneath it. It is now a column of entries in the lower left with no panel and no title text, which is the usual arrangement precisely because it leaves the key art as the thing being looked at.</p>
     <p>The two button styles react in their own language. Title entries slide, because they have no frame; framed buttons lift their edge glow, extend their corner brackets and run a light up the panel. Unity's colour tint is not used for either — it fades the whole image at once, including the fill, which flattens a frame instead of sharpening it, and it cannot reach a shader property at all.</p>
@@ -1567,7 +1582,7 @@ if (clickRect != null &amp;&amp; clickRect.rect.size[(int)axis] &gt; 0) { /* onl
     <p><code>AudioDirector</code> creates itself before the first scene loads and survives scene changes, so a level set on the title screen is still in force in the game. The old per-scene slider could not have carried a setting anywhere even if it had been wired.</p>
 
     <h3>Why there is a voice pool</h3>
-    <p>Everything about playback follows from one fact: the player fires up to ten projectiles per volley and the boss twenty-nine. A clip per shot would mean hundreds of AudioSources, and every copy starting in the same frame adds amplitude until the mix clips.</p>
+    <p>Everything about playback follows from one fact: the player fires up to six projectiles per volley and the boss twenty-nine. A clip per shot would mean hundreds of AudioSources, and every copy starting in the same frame adds amplitude until the mix clips.</p>
     <p>So there are 24 pooled voices, and every <code>SoundDefinition</code> carries a <strong>minimum retrigger interval</strong> and a <strong>maximum concurrent voice count</strong>. Thirty bullets leaving together produce one shot. When every voice is busy, new requests are dropped rather than queued — a late sound is worse than a missing one.</p>
     <p>Sounds also hold several clips and a pitch range, and the clip picker chooses from <em>the others</em> rather than at random, because plain randomness produces audible repeats far more often than people expect.</p>
 
@@ -1577,7 +1592,7 @@ if (clickRect != null &amp;&amp; clickRect.rect.size[(int)axis] &gt; 0) { /* onl
       <table>
         <thead><tr><th>Event</th><th>Where</th><th>Detail</th></tr></thead>
         <tbody>
-          <tr><td>Player shot</td><td><code>Player.Shoot</code></td><td>once per volley, not per bullet — the widest spread fires ten at once</td></tr>
+          <tr><td>Player shot</td><td><code>Player.Shoot</code></td><td>once per volley, not per bullet — the widest spread fires six at once</td></tr>
           <tr><td>Hit and death</td><td><code>Player.PlayDamageSound</code></td><td>one method called from all three damage branches</td></tr>
           <tr><td>Level up, skill granted</td><td><code>Player</code>, <code>SkillSelect</code></td><td>the skill sound fires after <code>Apply</code>, so it marks one actually granted</td></tr>
           <tr><td>Enemy death</td><td><code>Enemy.Death</code></td><td>positional; per-<code>EnemyDefinition</code> with a shared fallback</td></tr>
@@ -1935,7 +1950,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <table>
         <thead><tr><th>Folder</th><th>Holds</th></tr></thead>
         <tbody>
-          <tr><td><code>Art/</code></td><td>models, materials, textures, shaders, skybox, animations</td></tr>
+          <tr><td><code>Art/</code></td><td>models, materials, textures, shaders, skybox</td></tr>
           <tr><td><code>Audio/</code></td><td>tracks, and the Sound definitions that describe them</td></tr>
           <tr><td><code>Data/</code></td><td>ScriptableObject content — enemies, skills, waves</td></tr>
           <tr><td><code>Prefabs/</code></td><td>by role: Player, Enemies, Boss, Projectiles, VFX</td></tr>
@@ -1996,7 +2011,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>426 tests across 40 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>437 tests across 43 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2021,7 +2036,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>SpawnBandTests</code></td><td class="num">9</td><td>spawn heights against the band the player can fly in</td></tr>
           <tr><td><code>SpawnMathTests</code></td><td class="num">9</td><td>the spawn curve at shipped values</td></tr>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
-          <tr><td><code>CameraFramingTests</code></td><td class="num">8</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
+          <tr><td><code>CameraFramingTests</code></td><td class="num">9</td><td>that the lens presets frame the band alike and the whole-band ones fit it, so a comparison compares only what it claims to</td></tr>
           <tr><td><code>RingChaseTests</code></td><td class="num">8</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter</td></tr>
           <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">12</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
@@ -2038,9 +2053,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
           <tr><td><code>RoundPierceTests</code></td><td class="num">5</td><td>a piercing round passes through as many enemies as it has passes, and never strikes one twice</td></tr>
           <tr><td><code>ShadowLadderTests</code></td><td class="num">5</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, and that no tier defaults to Off</td></tr>
+          <tr><td><code>MenuFocusTests</code></td><td class="num">4</td><td>where keyboard and pad focus lands when a screen opens &mdash; its first live control, or one authored and still live &mdash; and that a screen&rsquo;s horizontal sliders take left and right</td></tr>
+          <tr><td><code>RunEndingTests</code></td><td class="num">4</td><td>that the first ending stands: once the run is over no hit reaches the player, and no round reaches the hull or an emplacement</td></tr>
           <tr><td><code>BossRoundLaneTests</code></td><td class="num">2</td><td>that every round the boss fires eases onto the player&rsquo;s lane, read off the prefabs the boss&rsquo;s attacks point at &mdash; the one suite that checks an asset rather than a rule, because the value that went to 0 lives in one</td></tr>
           <tr><td><code>CloudCombineShaderTests</code></td><td class="num">2</td><td>that the clouds are still combined by the project&rsquo;s own copy of HDRP&rsquo;s shader, and that the copy compiles</td></tr>
           <tr><td><code>RoundSweepTests</code></td><td class="num">2</td><td>that a round&rsquo;s sweep answers nearest first, and loses nothing when a crowded stretch fills its buffer</td></tr>
+          <tr><td><code>UpdateOrderTests</code></td><td class="num">2</td><td>that the dash settles before either copy of <code>PlayerMovement</code> moves, and the height clamp comes after both &mdash; read from what Unity will use, so a value set by hand in Script Execution Order counts</td></tr>
         </tbody>
       </table>
     </div>
@@ -2074,7 +2092,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 426 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code> and <code>SalvageClock</code> — none of them are MonoBehaviours. That's what made 437 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2194,6 +2212,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       the lance beam&rsquo;s mesh, the deflector ring&rsquo;s and the graphics override profile all went with
       their owners. What none of that can say is whether carrying experience over moves the level curve enough
       to notice. That takes a run.</li>
+      <li><strong>The menus have not met a real pad.</strong> Focus was checked in play on 25 September by sending the
+      UI the same move and submit events a pad sends, with the pointer switched off so hovering could not move it:
+      every fresh pause opened on Resume, Audio on its first bar, the death screen on Restart and the title on Play;
+      backing out landed on the button it left from; left and right moved the music and sharpness bars; and hovering
+      moved the selection and leaving kept it. What that cannot say is how it feels with a controller in hand. B does
+      not back out of a screen &mdash; in a run Start does, and the Back buttons do everywhere.</li>
       <li><strong>Salvage has not been played.</strong> Its pace is one number, <em>Salvage Seconds At Half
       Health</em> on the <code>PickupSpawner</code>: 12 pays up to five hit points a minute at half health, and 18 would
       pay about three. The playtest bot reports what it healed as <code>healingObserved</code>: 8 against 38 hits in a run
@@ -2274,7 +2298,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 336 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 337 commits
   </footer>
 
 </div>

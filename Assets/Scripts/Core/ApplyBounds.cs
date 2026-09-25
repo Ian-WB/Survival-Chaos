@@ -12,7 +12,14 @@ namespace SurvivalChaos
     /// PlayerMovement.RotateAround. It never fired only because the authored box is
     /// 60.78 wide against an orbit radius of 13.72 - so it was a trap waiting for
     /// someone to narrow the box, rather than a feature.
+    ///
+    /// Runs after everything at the default order, PlayerMovement included, so
+    /// the clamp is the last word on the height each frame. Until 25 September
+    /// 2026 nothing ordered the two, and a clamp that ran first would have left
+    /// the ship one frame's climb past the band - about 0.09 units at 60 fps,
+    /// 0.27 mid-dash - whenever it pushed against an edge.
     /// </summary>
+    [DefaultExecutionOrder(10)]
     public class ApplyBounds : MonoBehaviour
     {
         [Header("Bounds")]

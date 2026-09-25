@@ -39,12 +39,14 @@ namespace SurvivalChaos
         public int MaxPicks => maxPicks;
 
         /// <summary>
-        /// What colour this skill's pickup glows.
+        /// What colour this skill's pickup glows, and its caption with it.
         ///
-        /// Colour is the only thing telling one pickup from another in flight -
-        /// there is no room for a label on an object the size of a bullet, and
-        /// no time to read one while dodging. Authored per skill asset so
-        /// retuning the palette stays a content change.
+        /// Colour is what tells one pickup from another at a glance, mid-dodge.
+        /// It used to be the only thing, on the argument that an object the size
+        /// of a bullet has no room for a label - but a level-up offer is a choice
+        /// that forfeits the other two, so offers are captioned now (PickupLabel,
+        /// drawn by PickupLabelBoard) and the caption is drawn in this colour.
+        /// Authored per skill asset so retuning the palette stays a content change.
         /// </summary>
         public Color PickupColor => pickupColor;
 
