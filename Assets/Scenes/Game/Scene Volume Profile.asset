@@ -353,13 +353,13 @@ MonoBehaviour:
     m_Value: 0.01
   altitudeRange:
     m_OverrideState: 1
-    m_Value: 5000
+    m_Value: 7000
   fadeInMode:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   fadeInStart:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 952.11
   fadeInDistance:
     m_OverrideState: 1
     m_Value: 300
