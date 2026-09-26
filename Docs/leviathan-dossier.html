@@ -300,8 +300,8 @@
         <h3>You cannot outrun a bullet</h3>
         <p class="dim">
           Boss bullets orbit at <span class="mono">80&deg;/s</span> and its discs at
-          <span class="mono">40&deg;/s</span>; the player at <span class="mono">17.1&deg;/s</span>.
-          A bullet laps the world in 4.5&thinsp;s and a disc in 9, the player in 21&thinsp;s.
+          <span class="mono">40&deg;/s</span>; the player at <span class="mono">16.3&deg;/s</span>.
+          A bullet laps the world in 4.5&thinsp;s and a disc in 9, the player in 22&thinsp;s.
           <span class="em">Everything the boss fires comes back around and hits you in the
           back.</span> Resogun calls this the Cylinder Wrap and treats it as a design rule. Here it
           was already true by accident, and the cadences below are set against it. The torpedoes are
@@ -314,11 +314,12 @@
         <p class="dim">
           Projectiles orbit with <code>RotateAround</code>, which preserves the distance from the
           axis they were born at &mdash; exactly, and for their whole life. The player is pinned to
-          the lane at <span class="mono">18.72</span>, and with both hitboxes a bullet can only touch
-          them if it was born within about <span class="mono">0.2</span> of it, and a disc, which is
-          0.1 thick, within <span class="mono">0.17</span>.
+          the lane at <span class="mono">19.72</span>, and with both hitboxes a bullet can only touch
+          them if it was born within about <span class="mono">0.23</span> of it, and a disc, which is
+          0.1 thick, within <span class="mono">0.19</span> &mdash; a little more than before 25 September,
+          when the ship&rsquo;s box grew a quarter.
           <span class="em">A shot fired off that lane misses forever.</span> The muzzles span
-          <span class="mono">17.92</span> to <span class="mono">19.54</span> across a hull 3 units
+          <span class="mono">18.72</span> to <span class="mono">20.75</span> across a hull 3.7 units
           deep, so this is the fact that decides how much of the boss&rsquo;s fire is real. Easing a
           round onto the lane over its first moments recovered three quarters of it on 1 September.
           The torpedoes need none of it; they close on the lane themselves.
@@ -327,9 +328,10 @@
       <div class="card">
         <h3>You cannot fly over it</h3>
         <p class="dim">
-          The hull trigger is <span class="mono">15.3</span> units tall against a playable band of
-          <span class="mono">8.9</span>. It spans <span class="mono">y&nbsp;&minus;0.5&ndash;14.8</span>;
-          you live in <span class="mono">y&nbsp;2.7&ndash;11.6</span>.
+          The hull trigger is <span class="mono">19.1</span> units tall against a playable band of
+          <span class="mono">10.5</span>. It spans <span class="mono">y&nbsp;&minus;1.5&ndash;17.6</span>;
+          you live in <span class="mono">y&nbsp;2.8&ndash;13.3</span>. It follows the band wherever the band
+          goes, and stretches upright to reach a unit past both edges of one too tall for it.
           <span class="em">The boss is a moving wall</span> &mdash; the Stormruler shape, already
           built. The only way past it is around, which makes the direction flip the most
           important key on the board.
@@ -343,18 +345,18 @@
           <tr><th>Quantity</th><th>Value</th><th>Reads as</th></tr>
         </thead>
         <tbody>
-          <tr><td>Lane radius</td><td class="num">18.72</td><td class="dim">the ring everything shares &mdash; the arena&rsquo;s 13.72, moved out 5 by the player&rsquo;s offset on 14 September</td></tr>
-          <tr><td>Playable band</td><td class="num">y 2.72 &rarr; 11.62</td><td class="dim">8.90 units tall &mdash; moved down 1.7 on 21 September, and the boss with it</td></tr>
-          <tr><td>Player orbit</td><td class="num">17.1&deg;/s</td><td class="dim">5.6 u/s, 21 s per lap &mdash; 7 until 22 September, when the whole game slowed by a fifth</td></tr>
-          <tr><td>Player climb</td><td class="num">5.6 u/s</td><td class="dim">1.59 s floor to ceiling</td></tr>
+          <tr><td>Lane radius</td><td class="num">19.72</td><td class="dim">the ring everything shares &mdash; the arena&rsquo;s 13.72, moved out by the player&rsquo;s offset: 5 from 14 September, 6 from 25 September</td></tr>
+          <tr><td>Playable band</td><td class="num">y 2.79 &rarr; 13.29</td><td class="dim">10.50 units tall since the evening of 25 September, to make room for a boss a quarter bigger &mdash; 8.90 before, after moving down 1.7 on 21 September; the boss follows it now</td></tr>
+          <tr><td>Player orbit</td><td class="num">16.3&deg;/s</td><td class="dim">5.6 u/s, 22 s per lap &mdash; 7 until 22 September, when the whole game slowed by a fifth, and 17.1&deg;/s until the lane moved out on 25 September</td></tr>
+          <tr><td>Player climb</td><td class="num">5.6 u/s</td><td class="dim">1.88 s floor to ceiling</td></tr>
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
-          <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">26.1 u/s at the lane, 4.5 s per lap</td></tr>
-          <tr><td>Keel discs</td><td class="num">40&deg;/s</td><td class="dim">13.1 u/s, 9 s per lap</td></tr>
+          <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">27.5 u/s at the lane, 4.5 s per lap</td></tr>
+          <tr><td>Keel discs</td><td class="num">40&deg;/s</td><td class="dim">13.8 u/s, 9 s per lap</td></tr>
           <tr><td>Crown torpedoes</td><td class="num">8.5 u/s</td><td class="dim">half again the player&rsquo;s 5.6; turn at 90&deg;/s</td></tr>
-          <tr><td>Boss orbit</td><td class="num">20&deg;/s</td><td class="dim">18 s per lap &mdash; faster than your 17.1, so it gains on you until you have two Move Speed picks, or dash; 15 until 22 September and 12 after it, 20 since 25 September to make it chase</td></tr>
+          <tr><td>Boss orbit</td><td class="num">20&deg;/s</td><td class="dim">18 s per lap &mdash; faster than your 16.3, so it gains on you until you have three Move Speed picks, or dash; 15 until 22 September and 12 after it, 20 since 25 September to make it chase. Two picks outran it until the lane moved out that evening</td></tr>
           <tr><td>Boss health</td><td class="num">600</td><td class="dim">1 damage per bullet</td></tr>
-          <tr><td>Hittable lane</td><td class="num">18.52 &rarr; 18.92</td><td class="dim">where a bullet has to be born to reach the player at all; a disc, 18.55 &rarr; 18.89</td></tr>
-          <tr><td>Muzzle spread</td><td class="num">17.92 &rarr; 19.54</td><td class="dim">across a hull 3 units deep &mdash; four times wider than the lane</td></tr>
+          <tr><td>Hittable lane</td><td class="num">19.49 &rarr; 19.95</td><td class="dim">where a bullet has to be born to reach the player at all; a disc, 19.53 &rarr; 19.91</td></tr>
+          <tr><td>Muzzle spread</td><td class="num">18.72 &rarr; 20.75</td><td class="dim">across a hull 3.7 units deep &mdash; four times wider than the lane</td></tr>
         </tbody>
       </table>
     </div>
@@ -373,43 +375,49 @@
 
     <figure class="band-fig">
       <svg class="band-svg" viewBox="0 0 300 430" role="img"
-           aria-label="Vertical section of the arena showing the playable band from y 2.7 to y 11.6, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
+           aria-label="Vertical section of the arena showing the playable band from y 2.8 to y 13.3, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
         <!-- band -->
         <rect x="86" y="30" width="128" height="360" fill="var(--ember-soft)" stroke="var(--line)"/>
 
         <!-- ceiling / floor labels -->
         <line x1="70" y1="30" x2="230" y2="30" stroke="var(--line)" stroke-dasharray="3 3"/>
         <line x1="70" y1="390" x2="230" y2="390" stroke="var(--line)" stroke-dasharray="3 3"/>
-        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">11.62</text>
-        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">2.72</text>
+        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">13.29</text>
+        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">2.79</text>
         <text x="238" y="27" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">CEILING</text>
         <text x="238" y="399" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">FLOOR</text>
 
-        <!-- CROWN rows: world y 11.71,11.67,11.18,10.72,10.31  -> map y=2.72..11.62 to 390..30.
-             The band and the boss moved down 1.7 together, so every line stays where it was. -->
+        <!-- CROWN rows: world y 13.71, 13.66, 13.65, 13.05, 13.03, 12.48, 12.46, 11.96 -> map y=2.79..13.29 to 390..30.
+             The boss grew a quarter on 25 September and the band 18% against the 8.9 it had been placed on,
+             so the outer rows sit a little further out than they did. -->
         <g stroke="var(--weak)" stroke-width="2">
-          <line x1="96" y1="26.4" x2="204" y2="26.4"/>
-          <line x1="96" y1="28.0" x2="204" y2="28.0"/>
-          <line x1="96" y1="47.8" x2="204" y2="47.8"/>
-          <line x1="96" y1="66.4" x2="204" y2="66.4"/>
-          <line x1="96" y1="83.4" x2="204" y2="83.4"/>
+          <line x1="96" y1="15.5" x2="204" y2="15.5"/>
+          <line x1="96" y1="17.2" x2="204" y2="17.2"/>
+          <line x1="96" y1="17.6" x2="204" y2="17.6"/>
+          <line x1="96" y1="38.1" x2="204" y2="38.1"/>
+          <line x1="96" y1="38.8" x2="204" y2="38.8"/>
+          <line x1="96" y1="57.7" x2="204" y2="57.7"/>
+          <line x1="96" y1="58.4" x2="204" y2="58.4"/>
+          <line x1="96" y1="75.5" x2="204" y2="75.5"/>
         </g>
         <text x="238" y="60" fill="var(--weak)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">CROWN</text>
         <text x="238" y="73" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">16 muzzles</text>
 
-        <!-- PROW: world y 7.47 -->
-        <line x1="96" y1="198.1" x2="204" y2="198.1" stroke="var(--ember)" stroke-width="3"/>
+        <!-- PROW: world y 8.41 -->
+        <line x1="96" y1="197.2" x2="204" y2="197.2" stroke="var(--ember)" stroke-width="3"/>
         <text x="238" y="196" fill="var(--ember)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">PROW</text>
         <text x="238" y="209" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">4 muzzles</text>
 
-        <!-- KEEL rows: world y 4.95, 4.93, 3.65, 3.58, 2.45, 2.42 -->
+        <!-- KEEL rows: world y 5.26, 5.23, 3.63, 3.55, 3.54, 2.13, 2.12, 2.10 -->
         <g stroke="var(--holo)" stroke-width="2">
-          <line x1="96" y1="299.9" x2="204" y2="299.9"/>
-          <line x1="96" y1="300.7" x2="204" y2="300.7"/>
-          <line x1="96" y1="352.4" x2="204" y2="352.4"/>
-          <line x1="96" y1="355.3" x2="204" y2="355.3"/>
-          <line x1="96" y1="401.1" x2="204" y2="401.1"/>
-          <line x1="96" y1="402.3" x2="204" y2="402.3"/>
+          <line x1="96" y1="305.2" x2="204" y2="305.2"/>
+          <line x1="96" y1="306.3" x2="204" y2="306.3"/>
+          <line x1="96" y1="361.1" x2="204" y2="361.1"/>
+          <line x1="96" y1="363.9" x2="204" y2="363.9"/>
+          <line x1="96" y1="364.2" x2="204" y2="364.2"/>
+          <line x1="96" y1="412.5" x2="204" y2="412.5"/>
+          <line x1="96" y1="412.9" x2="204" y2="412.9"/>
+          <line x1="96" y1="413.6" x2="204" y2="413.6"/>
         </g>
         <text x="238" y="330" fill="var(--holo)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">KEEL</text>
         <text x="238" y="343" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">12 muzzles</text>
@@ -418,12 +426,12 @@
               letter-spacing="1.5" transform="rotate(-90 10 215)" text-anchor="middle">PLAYABLE BAND</text>
       </svg>
       <figcaption>
-        Muzzle heights with the boss at its spawn height of 6.09. The outermost rows of each
-        bank sit fractionally outside the band &mdash; the top crown row 0.09 above the ceiling,
-        the bottom keel row 0.30 below the floor &mdash; which is close enough to read as
-        &ldquo;the guns reach the edges of the world&rdquo; and worth leaving alone. The band moved
-        down 1.7 on 21 September and the boss&rsquo;s spawn moved with it, from 7.79, so the banks
-        sit exactly where they did against it.
+        Muzzle heights with the boss at 6.69, where it flies on the 2.79&ndash;13.29 band. The outermost
+        rows of each bank sit outside the band &mdash; the top crown row 0.42 above the ceiling, the bottom
+        keel row 0.69 below the floor. They sat 0.09 and 0.30 out until 25 September, when the boss grew by a
+        quarter and the band, to make room for it, by 18% against the 8.9 the boss had been placed on; a disc
+        from a slot under the floor is still thrown up into the band. Since the same day the boss takes its
+        height from the band as it arrives, 1.35 under its middle, so moving the band moves every bank with it.
       </figcaption>
     </figure>
 
@@ -435,17 +443,17 @@
         <tbody>
           <tr>
             <td><span class="tag t-crown">Crown</span></td>
-            <td class="num">16</td><td class="num">10.31 &ndash; 11.71</td>
+            <td class="num">16</td><td class="num">11.96 &ndash; 13.71</td>
             <td class="dim">the upper wing, four rows of four</td>
           </tr>
           <tr>
             <td><span class="tag t-prow">Prow</span></td>
-            <td class="num">4</td><td class="num">7.47</td>
+            <td class="num">4</td><td class="num">8.41</td>
             <td class="dim">a single line at the furthest-forward point of the hull</td>
           </tr>
           <tr>
             <td><span class="tag t-keel">Keel</span></td>
-            <td class="num">12</td><td class="num">2.42 &ndash; 4.95</td>
+            <td class="num">12</td><td class="num">2.10 &ndash; 5.26</td>
             <td class="dim">three rows down the lower hull, both flanks</td>
           </tr>
         </tbody>
@@ -509,8 +517,9 @@
         <p class="dim">
           Each pod sits at the centroid of its own bank&rsquo;s muzzle heights, averaged from the
           model at build time rather than typed in, so it cannot drift away from the guns it stands
-          for &mdash; world y <span class="mono">3.68</span>, <span class="mono">7.47</span> and
-          <span class="mono">11.01</span>. They are mounted proud of the hull, which is not
+          for &mdash; world y <span class="mono">3.68</span>, <span class="mono">8.41</span> and
+          <span class="mono">12.83</span> on today&rsquo;s band, each 0.875 in radius since the boss grew a
+          quarter on 25 September. They are mounted proud of the hull, which is not
           decoration: the hull is a trigger that eats bullets, so a target inside it could never be
           hit at all.
         </p>
@@ -524,8 +533,8 @@
           before the wall leaves, and each glow goes out as its own disc does; the crown lights only
           the one muzzle about to fire, for <span class="mono">0.5&thinsp;s</span>. The glows are
           sized per bank &mdash; <span class="mono">0.9</span> across on the keel,
-          <span class="mono">0.42</span> on the crown, whose rows are 0.4 to 0.52 apart and would run
-          into one blob any wider.
+          <span class="mono">0.42</span> on the crown, whose rows were 0.4 to 0.52 apart and would run
+          into one blob any wider &mdash; 0.5 to 0.65 since the boss grew, with the glows left as they were.
         </p>
 
         <div class="attack">
@@ -561,7 +570,9 @@
             barrels should be throwing. At 0.7 units across they leave 0.615 units of clear gap
             against a ship 0.409 wide: passable, and only through the row that is meant to be open.
             The diameter is a difficulty dial rather than a look, and the first thing to lower if
-            the curtain reads as unfair rather than as tight.
+            the curtain reads as unfair rather than as tight. Since the boss grew a quarter on 25 September
+            the rows are 1.58 apart and the discs are still 0.7, so every gap is about 0.3 wider; discs
+            0.875 across would put the curtain back as it was.
           </p>
         </div>
 
@@ -591,8 +602,8 @@
           </p>
           <p class="dim">
             The dodge is a delay. Its idea of where the player is catches up over about 0.6&thinsp;s,
-            and a hit is an intercept &mdash; the player&rsquo;s box is 0.16 tall and a torpedo&rsquo;s
-            0.09. At today&rsquo;s speeds, simulated in <code>TorpedoSteerTests</code> rather than
+            and a hit is an intercept &mdash; the player&rsquo;s box is 0.20 tall since 25 September, 0.16
+            when this was simulated, and a torpedo&rsquo;s 0.09. At today&rsquo;s speeds, simulated in <code>TorpedoSteerTests</code> rather than
             played: hold still and it hits; move two units a second and a half early and it follows you
             in; move them in the last 0.3 to 0.7&thinsp;s and it passes where you were. Diving all the
             way to the floor is a timed escape now too &mdash; begun half a second to a second before it
@@ -617,9 +628,9 @@
             <span class="em">The design said the lance captured your height during the charge; it
             does not.</span> The boss holds altitude now, so what the lance actually does is own the
             middle of the band, which nothing else in the fight reaches. The 1.2&thinsp;s telegraph
-            was sized as one full band crossing at the player&rsquo;s old 7&nbsp;u/s. At 5.6 it is three
-            quarters of one, and leaving the beam&rsquo;s height takes about half a unit, so it is still
-            always escapable, never for free. <span class="em">Since 21 September it is the whole of the warning</span>
+            was sized as one full band crossing at the player&rsquo;s old 7&nbsp;u/s. At 5.6 it was three
+            quarters of one, and on the taller band of 25 September it is about two thirds; leaving the
+            beam&rsquo;s height takes about half a unit, so it is still always escapable, never for free. <span class="em">Since 21 September it is the whole of the warning</span>
             &mdash; the laser is at full length a sixth of a second after it fires, so there is no
             watching it come. Shoot the pod
             off mid-charge and the warning stops with it, rather than leaving the player dodging a
@@ -699,7 +710,7 @@
             The hull flashes &mdash; by this act there are no emplacements left to light up
             &mdash; then it triples its orbit speed to
             <span class="mono">60&deg;/s</span> and sweeps around the ring at you. That is faster
-            than the player&rsquo;s 17.1&deg;/s, so running the same way loses. The hull spans the
+            than the player&rsquo;s 16.3&deg;/s, so running the same way loses. The hull spans the
             whole band so climbing loses too. <span class="em">The counter is to dash straight
             through it</span> &mdash; Doomsphere&rsquo;s bull-fight, played as Resogun plays it.
             The dash was sized to it: 0.22&thinsp;s of invincibility that covered 7.45 world units
@@ -714,6 +725,17 @@
             10.7 with the ship at 7 &mdash; enough to clear the hull and the ship&rsquo;s own width,
             with nearly nine tenths of the margin it had. A dash into a hull that is standing still
             still ends inside it. Worked out, not yet played.
+          </p>
+          <p class="dim">
+            <span class="em">And clearing it was never the rule.</span> On 25 September the boss grew by a
+            quarter, which made the hull 8.81 wide against a dash of about 6, and measuring that showed what
+            the arithmetic above had assumed away: the hull hurts on first touch only, as the ship enters it, so
+            a dash that is up at that moment carries the ship through however much hull is left. The bot flew
+            the act against the bigger boss and met the hull 18 times; the 3 it dashed into cost nothing, twice
+            with the ship still inside when the dash ran out, and the 15 it did not cost 16 hits. The width
+            decides how long the ship is inside, not whether it is hit. On a band too tall for it the hull also
+            stretches upright, model and box together, to reach a unit past the floor and ceiling, so the ram
+            cannot be climbed over wherever the band is put.
           </p>
           <p class="dim">
             <span class="em">Since 25 September it runs back to back</span>, which is as often as
@@ -765,7 +787,7 @@
             not, which is what makes them read as debris rather than as another attacker &mdash; and
             it means the boss, cruising at 20&deg;/s while it sheds, leaves a wake of its own hull and
             eventually comes back round into it. Life over cadence is the tuning: 11&thinsp;s against
-            0.5 holds about twenty-two plates, seven at any one height, which against a 21&thinsp;s lap
+            0.5 holds about twenty-two plates, seven at any one height, which against a 22&thinsp;s lap
             is a forced move about every three seconds &mdash; 20 to 21 were standing when it was
             checked in play on 25 September. It was 0.7 and about sixteen plates until that day, and
             before that 16 over 1.8 &mdash; about nine plates &mdash; but that density only exists in a steady state that takes a whole
@@ -817,9 +839,9 @@
           <tr><td>Burst length</td><td class="num">0.22 s</td><td class="dim">measured at 0.225 in play &mdash; one frame of quantisation</td></tr>
           <tr><td>Speed</td><td class="num">&times;5</td><td class="dim">on top of Move Speed picks, so it stays worth taking late</td></tr>
           <tr><td>Cooldown</td><td class="num">10 s</td><td class="dim">from the end of the burst, not the start &mdash; 1.0 until 25 September; three Dash Recovery picks at 1.5 each bring it to 5.5</td></tr>
-          <tr><td>Distance</td><td class="num">about 6 units</td><td class="dim"><span class="em">the boss hull is 7.05 along the ring</span> &mdash; 7.45 was measured with the ship at 7, and cleared it; this is worked out for 5.6, not remeasured</td></tr>
-          <tr><td>Arc</td><td class="num">about 18&deg;</td><td class="dim">31.1&deg; was measured on the old 13.72 lane at 7; this is the same burst on the 18.72 lane at 5.6</td></tr>
-          <tr><td>Climb rate</td><td class="num">16.2 u/s</td><td class="dim">2.9 &times; the ship&rsquo;s 5.6 &mdash; the climb has had its own multiplier since 11 September, and a dash now carries about 3.6 of the 4.45 between banks</td></tr>
+          <tr><td>Distance</td><td class="num">about 6 units</td><td class="dim"><span class="em">the boss hull is 8.81 along the ring</span> since 25 September, 7.05 before &mdash; and it does not have to be cleared: it hurts on first touch, so a dash that is up when it arrives gets through, measured on the bigger boss</td></tr>
+          <tr><td>Arc</td><td class="num">about 17&deg;</td><td class="dim">31.1&deg; was measured on the old 13.72 lane at 7; this is the same burst on the 19.72 lane at 5.6</td></tr>
+          <tr><td>Climb rate</td><td class="num">16.2 u/s</td><td class="dim">2.9 &times; the ship&rsquo;s 5.6 &mdash; the climb has had its own multiplier since 11 September, and a dash carries about 3.6 of the 4.4 to 4.7 between banks</td></tr>
           <tr><td>Camera drift</td><td class="num">0.000&deg;</td><td class="dim">the burst is shared state, so the camera makes the identical move</td></tr>
           <tr><td>Invincible</td><td class="num">18 / 18 frames</td><td class="dim">the whole burst, no more and no less</td></tr>
         </tbody>
@@ -879,16 +901,17 @@
         <p class="dim">
           Since 25 September it arrives every ten seconds, and <span class="em">Slow Mo</span> is
           the other late answer: a pick from level 8, in Piercing Rounds&rsquo; old place, that slows
-          the whole game to 0.4 for three real seconds on E, or Y or the left trigger, once every 30
-          &mdash; 24 and 18 with the next two picks. Everything slows, the ship with it, so what it
+          the whole game to 0.4 for five real seconds on E, or Y or the left trigger, once every 30
+          &mdash; 24 and 18 with the next two picks. It was built at three; you set five the same evening,
+          and a change to its length in the Inspector now takes effect at once, even mid-slowdown. Everything slows, the ship with it, so what it
           buys is time to see, not speed.
         </p>
       </div>
       <div class="card">
         <h3>Upgrades read on the boss</h3>
         <p class="dim">
-          A pod is 0.7 units across, so the sextuple spread lands maybe four of six on a centred
-          volley and none on one aimed a body-length off. At stage 0 and 0.5&thinsp;s between volleys
+          A pod is 1.75 units across since the boss grew a quarter, and the sextuple spread is about a
+          unit tall, so a centred volley lands all six and one aimed a unit off lands two. At stage 0 and 0.5&thinsp;s between volleys
           that is a long minute per emplacement; fully upgraded it is a handful of seconds. The boss
           is where twenty picks of Attack Speed and Shot Upgrade finally show up as something other
           than a bigger number.
@@ -929,7 +952,7 @@
 
   <section>
     <div class="eyebrow">Found while measuring</div>
-    <h2>Twelve things the build turned up</h2>
+    <h2>Thirteen things the build turned up</h2>
     <p class="lede">
       Every one of them but the crown was invisible from the outside, and none of those would have
       been found by playing.
@@ -1085,10 +1108,12 @@
         six-shot upgrade&rsquo;s top round, flown at the ceiling, reached it at all &mdash; and the hull
         stays armoured while any emplacement stands, so <span class="em">in most runs the boss could
         not be killed</span>. The lance had drifted to the upper part of the band too, 2 above its
-        middle. The boss spawns 1.7 lower now, at 6.09, which puts every bank back where it sits
-        against the band. Nothing checks this: the spawn check tests where the boss appears, and it
-        still appeared inside the band &mdash; it was the guns that left. Found before the build, by
-        measuring the banks against the new band.
+        middle. The boss spawned 1.7 lower from then, at 6.09, which put every bank back where it sits against
+        the band; the spawn check had passed throughout, because the boss still appeared inside the band
+        &mdash; it was the guns that left. Found before the build, by measuring the banks against the new
+        band. <span class="em">Since 25 September it cannot happen again:</span> the boss takes its height
+        from the band as it arrives, 1.35 under its middle, and <code>BossBandHeightTests</code> holds every
+        emplacement inside the band for bands moved up and down.
       </p>
     </div>
 
@@ -1106,6 +1131,19 @@
         one beam left, right and left again and checks each, and two playtest-bot runs the same day
         logged 41 lances, the first before a turn and the rest after it, every one leaving the front
         of the ship the way it was travelling.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>The dash never had to clear the hull &mdash; <span class="em">measured</span></h3>
+      <p class="dim">
+        Everything written about the ram&rsquo;s counter, here and in the code, sized the dash against the
+        hull&rsquo;s width: 7.45 units of invincible travel against 7.05, then about 6 against 7.05 with the ram
+        closing head-on to make up the rest. Growing the boss to 8.81 wide on 25 September looked as if it would
+        close that for good, so it was measured before anything was retuned. The hull hurts through
+        <code>Player.OnTriggerEnter</code>, which fires once, when the ship first touches it: a dash that is up at
+        that moment carries the ship through whatever is left, and the bot&rsquo;s did exactly that, twice ending
+        with the ship still inside and nothing landing. The width was never the thing to size against.
       </p>
     </div>
 
@@ -1188,13 +1226,15 @@
         </p>
       </div>
       <div class="card">
-        <h3>Which camera the fight is read through</h3>
+        <h3>Which camera the fight is read through &mdash; <span class="em">settled</span></h3>
         <p class="dim">
           Nearly every attack here is dodged by reading heights, and the close camera draws something
-          ten units round the ring two thirds its size, heights included, and never shows the whole
-          band at once. The build carries seven camera presets on the debug menu (F8, then 9): the
-          classic 5 out at 75&deg;, the same framing from 9 and 14 out, and the whole band from 7,
-          10, 14 and 20 out. Undecided until played.
+          ten units round the ring two thirds its size and never shows the whole band at once. Settled on
+          24 September by playing: the whole band from 10 out, holding the band&rsquo;s middle. Since 25
+          September its lens fits the band&rsquo;s live height and keeps the top and bottom 8% of the screen
+          clear, so a ship on the ceiling is drawn below the countdown and the boss&rsquo;s bar &mdash; about
+          70&deg; on today&rsquo;s 10.5 band, where it was 54&deg; on 8.9. The other six presets stay on the
+          debug menu (F8, then 9).
         </p>
       </div>
       <div class="card">
@@ -1203,18 +1243,20 @@
           Everything here was tuned against a player at 7, and on 22 September the player went to 5.6
           while the boss&rsquo;s rounds kept their speeds. Worked out above and not yet played: the
           lance&rsquo;s charge is three quarters of a band crossing, a dash covers about 6 units of a
-          7.05 hull and relies on the ram closing head-on to get through, and a vertical dash carries
-          3.6 of the 4.45 between banks. If the ram starts to feel like a wall, the dash&rsquo;s speed
+          hull 8.81 wide since the boss grew, which turned out not to matter, since the hull hurts only on
+          first touch; and a vertical dash carries 3.6 of the 4.4 to 4.7 between banks. If the ram starts to feel like a wall, the dash&rsquo;s speed
           multiplier is the dial: 6.25 would put a dash back where it was. It is all in
-          <span class="mono">26_0924-0845_salvage</span>.
+          <span class="mono">26_0925-2101_bigShips</span>, with the debug menu.
         </p>
       </div>
       <div class="card">
         <h3>A more aggressive boss</h3>
         <p class="dim">
           Asked for on 25 September, and three of the four steps offered were taken; then, played, the
-          boss was still slow, so it went on to 20&deg;/s. That is faster than the player&rsquo;s 17.1,
-          so it catches a ship that only runs, and it takes two Move Speed picks to outrun it. It stays
+          boss was still slow, so it went on to 20&deg;/s. That is faster than the player&rsquo;s 16.3,
+          so it catches a ship that only runs, and it takes three Move Speed picks to outrun it &mdash; two
+          did until you moved the lane out to 19.72 the same evening, since the ship&rsquo;s speed is set in
+          units a second and the boss&rsquo;s in degrees. It stays
           on you, the lance&rsquo;s 160&deg; and its plates reach you more, and the ram rises with it to
           60. The ram runs back to back, a plate sheds every 0.5&thinsp;s, and the Scuttle fires every
           0.8. <span class="em">The first act&rsquo;s cadences were left as you tuned them.</span> And it
@@ -1237,6 +1279,19 @@
           about two rams in five rather than to each one; the bot&rsquo;s runs with it are under the
           Ram. If that is the part that is too much, the dial is <code>PlayerDash</code>&rsquo;s
           cooldown on the player, not anything on the boss.
+        </p>
+      </div>
+      <div class="card">
+        <h3>A boss a quarter bigger</h3>
+        <p class="dim">
+          At your call on 25 September the boss grew by a quarter with the player and the four enemies, its
+          weak points and guns with it, and you grew the band to 10.5 so the banks still land on its floor,
+          middle and ceiling: the crown sits 0.46 under the ceiling, as it did before. The bot took all three
+          weak points inside the band. Not all of it shows: the camera widens with the taller band, so on
+          screen everything is only about 5% bigger than it was; the curtain&rsquo;s gaps are about 0.3 wider,
+          since the discs did not grow; and pods 1.75 across are easier to hit. The boss needs a band of about
+          9.6 &mdash; any shorter and the crown leaves it again. It is in
+          <span class="mono">26_0925-2101_bigShips</span>, not yet played.
         </p>
       </div>
       <div class="card">

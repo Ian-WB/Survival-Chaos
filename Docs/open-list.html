@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true, "camera-framing": true, "readme": true, "dash-tooltips": true, "codex-doc": true}, "updated": "25 September 2026"}</script>
+<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true, "camera-framing": true, "readme": true, "dash-tooltips": true, "codex-doc": true, "band-follow": true, "hud-clearance": true, "slowmo-live": true, "scale-up": true, "bake-links": true}, "updated": "25 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,20 +327,20 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-0925",
-    title: "Play the 25 September build with god mode off",
+    id: "play-0925-evening",
+    title: "Play the 25 September evening build",
     effort: "one run, ~25 min",
-    lede: "<strong>It is built, by you:</strong> <code>Builds/26_0925-1214_afterFixes</code>, which carries everything up to midday but not the changes from the afternoon and evening at the end of this card. It was built as Release, so it has no debug menu: no god mode and no skip to the boss, which makes it a real run. Say if you want a copy with the menu in.</p><p><strong>Nothing from 22 September has been played yet.</strong> Everything moves a fifth slower, so you fly at 5.6 where you flew at 7, while the boss\u2019s rounds kept their speeds. The torpedoes cruise at 8.5. Health comes from wrecks: when you are hurt, destroying something can leave a small green piece worth 1 HP, every 12 s at half health and never at full. An offer stays on the ring for 28 s.</p><p><strong>Since then, from the two audits and your picks.</strong> Experience past a level\u2019s threshold carries into the next level, and a big reward pays every level it covers. An upgrade left on the ring is re-checked after each pick. Rounds fired at something right on your nose hit now; they used to miss more than half the time. Every run starts on the whole-band camera from 10 out, and you hear the game from the ship rather than the camera. The menus work from the keys and a pad, B backs out, and once a run has ended, a hit in the same instant can no longer change how it ended.</p><p><strong>Not in it yet, from the afternoon.</strong> A stick pushed into a corner flies both axes at full speed, as two keys do, where it flew at 71%. And the boss is more aggressive, at your call: it cruises at 20\u00b0 a second where it was 12, faster than you, rams back to back, sheds a plate every half second and ends on a volley every 0.8 s. Its lance fires forward after it turns now; it had kept the direction of the fight\u2019s first shot, so after a turn it fired out of the tail. And it waits 3 s between turns, so a ram that passes you carries on rather than sawing back over you.</p><p><strong>And from the evening.</strong> The dash comes back every 10 s where it came back every second, and Dash Recovery takes 1.5 s off a pick, so three bring it to 5.5. Piercing Rounds is gone; its place among the level-ups is Slow Mo, from level 8, which slows the whole game to 0.4 for three seconds on E, or Y or the left trigger on a pad, once every 30 s, and 24 and 18 with the next two picks. All of it wants a new build; say the word.",
+    lede: "<strong>It is built:</strong> <code>Builds/26_0925-2101_bigShips</code>, from everything committed on the 25th plus the lighting fix at the end of this card, with the debug menu in (F8), so god mode and the skip to the boss are there if you want them. Play at least one run without them.</p><p><strong>Nothing from 22 September has been played yet.</strong> Everything moves a fifth slower, so you fly at 5.6 where you flew at 7, while the boss\u2019s rounds kept their speeds. The torpedoes cruise at 8.5. Health comes from wrecks: when you are hurt, destroying something can leave a small green piece worth 1 HP, every 12 s at half health and never at full.</p><p><strong>Since the midday build.</strong> A stick pushed into a corner flies both axes at full speed. The boss is more aggressive: it cruises at 20\u00b0 a second, rams back to back, sheds a plate every half second and ends on a volley every 0.8 s; its lance fires forward after it turns, and it waits 3 s between turns. The dash comes back every 10 s, and Slow Mo, from level 8, slows everything to 0.4 for five seconds on E, or Y or the left trigger, once every 30 s.</p><p><strong>And from tonight.</strong> The boss, the waves, the camera and the ram\u2019s hull all follow the band now, and a ship on the ceiling is drawn clear of the top bars. You, the enemies and the boss are a quarter bigger, and you grew the band to 10.5 and moved the lane out to 19.72. On screen that nets out at only about 5% bigger, because the camera widens with the band. On the wider lane you fly at 16.3\u00b0 a second, so two Move Speed picks no longer outrun the boss; three do.</p><p><strong>One fix to commit.</strong> A build had emptied the lighting probe links in <code>Game Baking Set.asset</code>, and that copy went into your 11:52 commit. They are restored in your tree, and this build carries them.",
     watch: [
-      "Play from the start with no god mode. Does the game feel the right speed now, and is the boss still a threat and the fight the right length?",
-      "Notice the last two minutes before the boss. The bot took about one hit a minute for eight minutes, then twenty a minute. Does the end of the waves feel like a wall to you too?",
-      "Get hurt, and watch for green pieces where things die. Is a piece every 12 s at half health too generous, or too stingy?",
-      "Watch how fast you level. Carried-over experience should bring levels a little sooner; say if the upgrades now come too fast.",
-      "Dash through the ram head-on. A dash is shorter than the hull now and gets you through only because the ram closes too \u2014 say if it feels like a wall.",
-      "Let the torpedoes come: hold still for one, dodge one late, and dive to the floor with one on your tail about a second before it arrives. Fast enough?",
-      "Watch the lance fire and the curtain\u2019s discs. Does the lance read as a laser with its charge as enough warning, and can you read a disc\u2019s path in time to be out of it?",
-      "Listen to enemies dying close to you. Sound comes from the ship now, so nearby deaths are louder than they were; say if they crowd the mix.",
-      "If a controller is handy, use it in the menus: Start to pause, the d-pad and stick to move, A to choose, B to back out."
+      "Play from the start with no god mode. Is the game the right speed on the wider lane, and is the boss a threat for the right length of fight?",
+      "Look at the ships. They are a quarter bigger, but the band grew too, so they read only a little bigger; say if you want them bigger still, which means a shorter band or a bigger scale.",
+      "Notice the last two minutes before the boss. The bot took about one hit a minute for eight minutes, then twenty a minute. Does the end of the waves feel like a wall?",
+      "Get hurt, and watch for green pieces where things die. Is one every 12 s at half health too generous, or too stingy?",
+      "Dash into the ram head-on as it arrives. The dash only has to be up when the hull touches you, so it should carry you through even though the hull is wider than a dash now.",
+      "Keep an eye on the boss\u2019s speed: it cruises at 20\u00b0 a second and you at 16.3, so it catches you unless you have three Move Speed picks or dash.",
+      "Try Slow Mo when it gets dense. Five seconds at 0.4, once every 30: too long, too short, or right?",
+      "Watch the curtain\u2019s discs. Their rows are further apart on the bigger boss, so the gaps are wider; say if it has stopped feeling like a wall.",
+      "Listen to enemies dying close to you, and if a controller is handy, use it in the menus and to fly."
     ]
   };
 
@@ -446,7 +446,8 @@
             "Two prefabs were detached copies of their models, the trap that once collapsed the arena into a heap: <code>PlayerSpaceShip</code> and the base <code>Enemy</code>. Both were re-attached first, with the base enemy’s hand edits carried across as overrides (a flipped spike, a hidden one, a slight stretch). A snapshot proved nothing moved. Then everything the prefabs author themselves was halved: hitboxes, gun pivots, and where each model sits under its root. A second snapshot proved every mesh, hitbox and pivot came out at exactly half.",
             "<strong>Hitboxes shrank with the ships,</strong> so this is a difficulty change as well as a look. You are harder to hit, and the enemies are harder to hit too. Against the boss, the band where a round can touch you narrowed from about ±0.33 to ±0.21, so a round from its outermost gun takes about 0.36 s to become dangerous instead of 0.275. The boss’s own numbers are unchanged. <code>RoundLaneResponse</code> 6.6 would restore the old timing if the fight goes soft.",
             "On 14 September the rounds followed the ships to half size, and the player’s radius offset became an offset for the whole lane. Both are their own items.",
-            "<strong>On 18 September the four normal enemies went back up ×1.25</strong>, at your call, with the player and the boss left where they are. Same two halves as the halving: Scale Factor on the four models, then the same factor on everything the prefabs author themselves. Their hitboxes went up with them, so they are easier to hit than at any point since the halving — the deliberate height tolerance on Enemy and Enemy 2 scaled too, which makes them more forgiving rather than less."
+            "<strong>On 18 September the four normal enemies went back up ×1.25</strong>, at your call, with the player and the boss left where they are. Same two halves as the halving: Scale Factor on the four models, then the same factor on everything the prefabs author themselves. Their hitboxes went up with them, so they are easier to hit than at any point since the halving — the deliberate height tolerance on Enemy and Enemy 2 scaled too, which makes them more forgiving rather than less.",
+            "<strong>On 25 September everything went up \u00d71.25</strong>, at your call: the player, the four enemies and the boss, the boss\u2019s weak points and guns with it, the rounds left alone. You grew the band to 10.5 so the boss\u2019s banks still land on its floor, middle and ceiling. See \u2018Grow the player, the enemies and the boss by a quarter\u2019."
           ]
         },
         {
@@ -472,7 +473,8 @@
             "You are tuning this by hand, and the numbers have moved several times since the ships were halved: field of view 65 → 75 → 70 → 80 → 75, camera offset 10 → 5 → 6 → 5, and the player’s offset 2 → 5. The 18 September build is the first to carry 75.",
             "The player’s radius offset now moves the whole lane, so it is a real design dial rather than a way to strand the ship. Waves spawn from 21.45 out, so offsets up to about +7.7 keep every arrival outside the lane. At +5 the boss’s emplacements sit about 0.17 inside it, well within their hitboxes.",
             "Tick this once the view feels right. Nothing else waits on it.",
-            "<strong>Settled on 24 September, by playing: the whole band from 10 out at 54\u00b0</strong> (commit <code>6caf224</code>). Every run starts on it and nothing picked from the menu is saved; the other six presets stay on the debug menu. The audio listener moved to the ship with it, so where the camera sits no longer changes what you hear."
+            "<strong>Settled on 24 September, by playing: the whole band from 10 out at 54\u00b0</strong> (commit <code>6caf224</code>). Every run starts on it and nothing picked from the menu is saved; the other six presets stay on the debug menu. The audio listener moved to the ship with it, so where the camera sits no longer changes what you hear.",
+            "<strong>Since 25 September the lens follows the band.</strong> The whole-band cameras fit their field of view to the band\u2019s live height and keep the top and bottom 8% of the screen clear, so a ship on the ceiling is drawn below the countdown and the boss\u2019s bar. It is about 70\u00b0 on the 10.5 band."
           ]
         },
         {
@@ -563,7 +565,8 @@
           effort: "1 h",
           why: [
             "The offset used to move the ship alone, off the 13.72 lane everything else was hard-wired to, which left a ship nothing could hit and that could hit nothing. Now it moves <code>ArenaGeometry.LaneRadius</code>, and the enemies, the boss with its rounds and lance, the pickups and the ship’s speed all follow. The camera’s own offset counts from the moved lane.",
-            "Checked in play at offset 5: the ship, every orbiting enemy and all 24 boss rounds sampled sat at 18.72, and the boss hull at 18.70. Changing the offset during play re-snaps the ship and camera at once."
+            "Checked in play at offset 5: the ship, every orbiting enemy and all 24 boss rounds sampled sat at 18.72, and the boss hull at 18.70. Changing the offset during play re-snaps the ship and camera at once.",
+            "<strong>You moved it to 6 on 25 September</strong>, which puts the lane at 19.72. Your speed is set in units a second and the boss\u2019s in degrees, so you fly 16.3\u00b0 a second there against its 20, and two Move Speed picks no longer outrun it; three do."
           ]
         },
         {
@@ -664,7 +667,8 @@
           why: [
             "You moved <code>PlayerBounds</code> down 1.7 on 21 September, which took the band from 4.42\u201313.32 to 2.72\u201311.62. Everything that bounces, homes or frames reads the band live, so the curtain, the torpedoes and the whole-band cameras followed. The boss did not: its banks are fixed to the hull, and it spawned at 7.79 as before.",
             "That left <strong>the crown emplacement above your ceiling</strong>. It sits at 12.71 with a 0.7 radius, so its lowest edge was 12.01 against a ceiling of 11.62, and your rounds leave 0.045 below the ship’s centre. Only the six-shot upgrade’s top round, flown at the ceiling, could touch it, and the hull stays armoured while any emplacement stands. The lance had drifted to 2 above the band’s middle as well.",
-            "<strong>Moved at your call:</strong> the boss spawns at 6.09 in <code>MainRun</code>, exactly 1.7 lower, so the keel covers the bottom quarter again, the lance runs through the middle at 7.47 and the crown sits at 10.31\u201311.71 with its emplacement at 11.01. Every wave stream still spawns inside the band. Not committed yet; it is in <code>Builds/26_0921-1757_laser</code>."
+            "<strong>Moved at your call:</strong> the boss spawns at 6.09 in <code>MainRun</code>, exactly 1.7 lower, so the keel covers the bottom quarter again, the lance runs through the middle at 7.47 and the crown sits at 10.31\u201311.71 with its emplacement at 11.01. Every wave stream still spawns inside the band. Not committed yet; it is in <code>Builds/26_0921-1757_laser</code>.",
+            "<strong>Since 25 September the boss follows the band itself.</strong> It takes its height from the band as it arrives, 1.35 under its middle, so moving the box moves every bank with it. The waves, the whole-band cameras and the ram\u2019s hull follow it too; see \u2018Make the boss, the waves, the camera and the ram follow the band\u2019."
           ]
         },
         {
@@ -858,6 +862,50 @@
             "Unity 6.6 moved this off the Development Build checkbox and onto a dropdown in Player Settings, so ticking that box no longer brings the menu back. Ask for a debug build and I will flip it both ways around the build — the exe keeps its menu either way, since the setting only affects the next one.",
             "<strong>From 11 September it runs the other way round.</strong> You asked for every build to carry the debug menu unless you say otherwise, so Checked is the default and Release is the build you ask for by name. The committed setting still stays Release and is flipped around each build, so the repo itself never holds the menu."
           ]
+        },
+        {
+          id: "band-follow",
+          title: "Make the boss, the waves, the camera and the ram follow the band",
+          effort: "four passes, ~2 h",
+          why: [
+            "Your ask on 25 September, one at a time. Moving <code>PlayerBounds</code> on 21 September had left the boss behind, and only the throws, the torpedoes and the pickups read the box live. Now four more do.",
+            "<strong>The boss</strong> takes its height from the band as it arrives, 1.35 under its middle, so its three banks ride with the band. <strong>The waves</strong> carry their heights in proportion from the band <code>MainRun</code> was placed against, so a taller band spreads the obstacle rows. <strong>The whole-band cameras</strong> fit their lens to the band\u2019s live height from the same distance. <strong>The ram\u2019s hull</strong> stretches upright on a band too tall for it, so it cannot be climbed over. <code>BossBandHeightTests</code> and <code>WaveBandHeightTests</code> hold all four.",
+            "Checked with the bot on a band raised 3 and on bands made taller: every weak point was taken inside the band, the obstacle rows spawned exactly 3 higher, the lens widened to 69\u00b0 on a band 1.4 times taller, and over 15 rams on a band twice as tall the stretched hull never let the ship past."
+          ]
+        },
+        {
+          id: "hud-clearance",
+          title: "Keep the ship on the ceiling clear of the top bars",
+          effort: "30 min",
+          why: [
+            "Your screenshot on 25 September: a ship on the ceiling was drawn under the countdown and the boss\u2019s bar, which sit across the top of the screen in the ship\u2019s own column.",
+            "The whole-band cameras keep the top 8% of the screen for the HUD with the 0.65 margin below it, and, at your next ask, the same at the bottom, so the room above and below the band is equal and the band sits in the middle. The default lens went from 54\u00b0 to 62.5\u00b0 on an 8.9 band. Flown by the bot on your band of that afternoon: at least 64 pixels between the ship and the boss\u2019s bar all fight, and 93 under the countdown through the waves."
+          ]
+        },
+        {
+          id: "slowmo-live",
+          title: "Let Slow Mo\u2019s length be tuned in play",
+          effort: "15 min",
+          why: [
+            "It was already in the Inspector, as Duration on the Player Slow Mo component, but it was copied once, when Slow Mo was first picked, so a change in play did nothing until the next run. A change applies at once now, to a slowdown already running as well, counted from its start. Checked with the bot flying: set to 5, a slowdown lasted 4.97 s; cut to 1.5 part-way through, one ended at 1.49. You set it to 5."
+          ]
+        },
+        {
+          id: "scale-up",
+          title: "Grow the player, the enemies and the boss by a quarter",
+          effort: "1 h",
+          why: [
+            "Your call on 25 September, rounds left as they were. The player, the four enemies and the boss went up \u00d71.25 through their importers, then everything the prefabs place themselves: hit boxes, guns, the models\u2019 own offsets, the ship\u2019s thrusters and dash light, the Deflector ring, and the boss\u2019s three weak points with their glows and lights. A snapshot taken first showed every model box, hit box and gun at exactly 1.25 afterwards.",
+            "The boss could not grow alone: 25% taller put the crown above your ceiling again. You grew the band to 10.5, which keeps the crown 0.46 under it, as it was, and moved the lane out to 19.72. The bot took all three weak points inside the band. Growing the hull also looked as if it would stop a dash getting through the ram; measured, it does not, because the hull only hurts on first touch."
+          ]
+        },
+        {
+          id: "bake-links",
+          title: "Put back the lighting links the baking commit emptied",
+          effort: "5 min",
+          why: [
+            "A build had emptied the six probe-data links in <code>Game Baking Set.asset</code>, as builds sometimes do, and that copy went into your 11:52 commit on 25 September with the rest of the rebake, so the editor had lost its baked probe lighting. The six data files were still on disk under the same identifiers, so the six lines were restored from the commit before, and the editor reads all of them again. The fix is in your tree to commit; <code>26_0925-2101_bigShips</code> was built with it."
+          ]
         }
       ]
     },
@@ -881,9 +929,9 @@
           effort: "one run",
           why: [
             "The boss was tuned against a ship at 7, and on 22 September you went to 5.6 while its rounds kept their speeds. Worked out, not played:",
-            "<strong>The ram.</strong> A dash covers about 6 units now, less than the boss’s 7.05-unit hull, so a dash into a hull that is standing still ends inside it. Head-on the ram closes as well, about 10.3 units between you in the dash’s 0.22 s since the boss went to 20\u00b0 a second on 25 September, against 8.5 at 12 and 10.7 with the ship at 7, so the dodge should still work, with nearly all of the old margin. If it starts to feel like a wall, <code>PlayerDash</code>’s speed multiplier at 6.25 puts the dash back where it was. Since the evening of 25 September a dash comes only every ten seconds, so it answers about two rams in five; see \u2018Feel the ten-second dash and Slow Mo\u2019.",
-            "<strong>The rest.</strong> The lance’s 1.2 s charge is three quarters of a band crossing where it was one; leaving the beam takes only half a unit, so that should hold. A vertical dash carries 3.6 of the 4.45 between the boss’s banks where it carried one. The torpedoes are half again your speed; the tests say a runner is never caught and a timed dive escapes.",
-            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. The build at the top, <code>Builds/26_0925-1214_afterFixes</code>, has all of it except the faster boss."
+            "<strong>The ram.</strong> A dash covers about 6 units, less than the hull, which is 8.81 wide since the boss grew on 25 September. That turned out not to matter: the hull hurts only on first touch, so a dash that is up as it arrives carries you through whatever is left \u2014 measured with the bot, twice with the ship still inside when the dash ran out. Since the evening of 25 September a dash comes only every ten seconds, so it answers about two rams in five; see \u2018Feel the ten-second dash and Slow Mo\u2019.",
+            "<strong>The rest.</strong> The lance’s 1.2 s charge is about two thirds of a crossing of the 10.5 band where it was one; leaving the beam takes only half a unit, so that should hold. A vertical dash carries 3.6 of the 4.4 to 4.7 between the boss’s banks where it carried one. The torpedoes are half again your speed; the tests say a runner is never caught and a timed dive escapes.",
+            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. The build at the top, <code>Builds/26_0925-2101_bigShips</code>, has all of it."
           ]
         },
         {
@@ -903,7 +951,8 @@
           why: [
             "The half-size ship narrowed the band where a boss round can touch you from about ±0.33 to ±0.21, so a round from the boss’s outermost gun now takes about 0.36 s to become dangerous instead of 0.275.",
             "If the fight feels soft in a run with god mode off, <code>RoundLaneResponse</code> 6.6 restores the old timing. It is one number, but only a run says whether it is needed.",
-            "Live again. For one build on 21 September the discs and most bullets were not eased onto the lane at all; the easing is back at 5, so this question is back to what it was."
+            "Live again. For one build on 21 September the discs and most bullets were not eased onto the lane at all; the easing is back at 5, so this question is back to what it was.",
+            "Since 25 September your box is a quarter bigger, which widens that band to about ±0.23, and the boss\u2019s guns spread a quarter wider round a lane at 19.72. Worked out, the two roughly cancel: about 0.38 s, against about 0.37 the day before."
           ]
         },
         {
@@ -940,7 +989,7 @@
           why: [
             "Every menu works from the keys and a pad since 25 September, tested in both scenes through the real input path with a virtual pad: Start paused onto Resume, the d-pad moved, A opened Options, B came back to the button you left, and a second B resumed. That test also caught a pause opening with Quit selected under a resting mouse, one press of A from leaving the game, and it is fixed.",
             "What a virtual pad cannot say is how it feels in the hand: the stick\u2019s repeat speed, and whether B lands where you expect.",
-            "<strong>And fly with it.</strong> Since 25 September a stick pushed into a corner flies both axes at full speed, as two held keys do. Before, the stick\u2019s round gate held a corner to about 0.71 on each axis, which is the slow diagonal you felt. A virtual pad now reaches the ship as 1 and 1 in a corner; not in a build yet."
+            "<strong>And fly with it.</strong> Since 25 September a stick pushed into a corner flies both axes at full speed, as two held keys do. Before, the stick\u2019s round gate held a corner to about 0.71 on each axis, which is the slow diagonal you felt. A virtual pad now reaches the ship as 1 and 1 in a corner; it is in <code>Builds/26_0925-2101_bigShips</code>."
           ]
         },
         {
@@ -948,11 +997,11 @@
           title: "Feel the more aggressive boss",
           effort: "one run",
           why: [
-            "Asked for on 25 September, and you took three of the four steps offered; then, played, you found it still slow, so it went on to 20\u00b0 a second where it was 12. That is faster than your 17.1, so it catches you if you only run, and it takes two Move Speed picks to outrun it. It stays on you, and the lance\u2019s 160\u00b0 and its plates reach you more. The ram rides the cruise, 36 to 60\u00b0 a second, and runs back to back: the next charge starts as a pass ends. A plate sheds every 0.5 s where it was 0.7, and the last act fires every gun every 0.8 s where it was 1.2. The first act\u2019s cadences were left as you tuned them.",
+            "Asked for on 25 September, and you took three of the four steps offered; then, played, you found it still slow, so it went on to 20\u00b0 a second where it was 12. That was faster than your 17.1 then, and on the lane you moved out to 19.72 that evening you fly at 16.3, so it catches you if you only run, and it now takes three Move Speed picks to outrun it. It stays on you, and the lance\u2019s 160\u00b0 and its plates reach you more. The ram rides the cruise, 36 to 60\u00b0 a second, and runs back to back: the next charge starts as a pass ends. A plate sheds every 0.5 s where it was 0.7, and the last act fires every gun every 0.8 s where it was 1.2. The first act\u2019s cadences were left as you tuned them.",
             "<strong>You also saw the lance fire on the wrong side, and it was.</strong> The beam took its direction once, on the fight\u2019s first lance, and kept it; the boss turns round whenever you cross it, so after a turn every lance left the prow backwards, across its own hull. That had been true since 8 September. It reads the direction on every shot now, and <code>BossLanceBeamTests</code> checks it.",
             "<strong>The playtest bot flew it twice, without god mode.</strong> With the balanced boss kit it stayed just ahead of the boss, took two hits in 136 s and had the prow and crown down in 43, then sat on the floor under the keel pod, which is its own height choice. At base speed and level 1 it dashed 28 times to stay 24\u201350\u00b0 ahead and took none in 105 s. Of 41 lances, the first before a turn and the rest after it, every one left the front of the boss the way it was going.",
             "<strong>Then a turn cooldown, at your call.</strong> The boss turns round once you are 20\u00b0 past it, and faster than you that meant a ram passing through you, turning and coming straight back, every half second to a second and a half. The bot, flown into the second act with the kit, took 24 hits and died in 21 s that way. With 3 s between turns the boss carries on 80 to 130\u00b0 past before coming back, and the same setup took 15 hits in 62 s and reached the Scuttle. It is <code>EnemyMovement</code>\u2019s Turn Cooldown Seconds on the boss; every other enemy has 0.",
-            "A bot sees more than you do and acts on it, so that is a reading, not a verdict. If it is too much or too little, each is one number on the Boss prefab: <code>EnemyMovement</code>\u2019s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>. Not in a build yet."
+            "A bot sees more than you do and acts on it, so that is a reading, not a verdict. If it is too much or too little, each is one number on the Boss prefab: <code>EnemyMovement</code>\u2019s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>. It is in <code>Builds/26_0925-2101_bigShips</code>."
           ]
         },
         {
@@ -963,7 +1012,18 @@
             "Your call on 25 September. <strong>The dash comes back every 10 s</strong> where it came back every second, measured from the end of the burst as before. Dash Recovery was scaled with it: each pick takes 1.5 s off where it took 0.15, so three reach 5.5, and it never goes under 4. The ram comes every 4 s, so the dash now answers about two passes in five, and the rest are flown round or taken.",
             "<strong>Piercing Rounds is gone, and Slow Mo has its place</strong>, from level 8. E, or Y or the left trigger on a pad, slows the whole game to 0.4 for three real seconds, once every 30 s; the next two picks, at levels 14 and 20, make that 24 and then 18. Everything slows, your ship with it, so it buys time to see and steer rather than speed. A bar joins the dash and the deflector above the hull bar, hidden until the pick: it drains over a slowdown and refills over the wait. The pick\u2019s banner names the keys.",
             "<strong>Flown by the bot, not yet by you.</strong> From full health in the second act, with the balanced boss kit and Slow Mo, it took 19 hits in 60.6 s, where the one-second dash had taken 15 in 62, and killed the boss with 7 health left. It dashed 5 times, 11 to 15 s apart, and slowed twice, 30.4 s apart, each time with every route on the stick a predicted hit and no dash to take; each slowdown lasted 3.01 s of real time. A run that began the act on 13 health died in the Scuttle.",
-            "If the dash is too rare, it is <code>PlayerDash</code>\u2019s cooldown on the player, and Dash Recovery\u2019s step and floor on <code>Player</code>. Slow Mo\u2019s three waits are on <code>Player</code> too, and its length and speed on <code>PlayerSlowMo</code>. Not in a build yet."
+            "If the dash is too rare, it is <code>PlayerDash</code>\u2019s cooldown on the player, and Dash Recovery\u2019s step and floor on <code>Player</code>. Slow Mo\u2019s three waits are on <code>Player</code> too, and its length and speed on <code>PlayerSlowMo</code>. It is in <code>Builds/26_0925-2101_bigShips</code>.",
+            "<strong>Five seconds since that evening</strong>, set by you on <code>PlayerSlowMo</code>, and a change to its length in play now applies at once, even to a slowdown already running: set to 5, one lasted 4.97 s, and one cut to 1.5 part-way through ended at 1.49."
+          ]
+        },
+        {
+          id: "big-ships",
+          title: "See the bigger ships and boss in a run",
+          effort: "one run",
+          why: [
+            "Everything is a quarter bigger since 25 September, but the band grew with it, and a whole-band camera draws a ship at its size against the band, so on screen they read only about 5% bigger than that morning. If they should look bigger still, a shorter band or a bigger scale are the dials; the boss needs a band of about 9.6.",
+            "Two side effects to feel for. The curtain\u2019s rows spread with the boss and its discs did not, so every gap is about 0.3 wider; discs 0.875 across would put it back. And the lane you moved out to 19.72 turns the same 5.6 u/s into 16.3\u00b0 a second, so two Move Speed picks no longer outrun the boss at 20; three do.",
+            "It is in <code>Builds/26_0925-2101_bigShips</code>."
           ]
         },
         {
