@@ -104,9 +104,9 @@ namespace SurvivalChaos
                     ? "off"
                     : "every " + QualitySettings.vSyncCount + " blank")
                 .Append("  |  target ")
-                .AppendLine(Application.targetFrameRate < 0
-                    ? "uncapped"
-                    : Application.targetFrameRate + " FPS");
+                .AppendLine(FrameLimiter.TargetFps > 0
+                    ? FrameLimiter.TargetFps + " FPS"
+                    : QualitySettings.vSyncCount > 1 ? "held by VSync" : "uncapped");
 
             AppendReconstruction(text);
 

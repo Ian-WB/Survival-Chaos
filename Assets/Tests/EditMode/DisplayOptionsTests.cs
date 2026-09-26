@@ -215,6 +215,39 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual(30, DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, 30));
         }
 
+        [Test]
+        public void SyncInterval_HandsWholeFractionsOfTheRefreshToVSync()
+        {
+            Assert.AreEqual(2, DisplayOptions.SyncInterval(100, 200));
+            Assert.AreEqual(2, DisplayOptions.SyncInterval(60, 120));
+            Assert.AreEqual(4, DisplayOptions.SyncInterval(60, 240));
+            Assert.AreEqual(1, DisplayOptions.SyncInterval(144, 144));
+        }
+
+        [Test]
+        public void SyncInterval_LeavesEveryOtherCapToTheLimiter()
+        {
+            Assert.AreEqual(0, DisplayOptions.SyncInterval(60, 200), "200 is not a multiple of 60");
+            Assert.AreEqual(0, DisplayOptions.SyncInterval(240, 200), "above the refresh rate");
+            Assert.AreEqual(0, DisplayOptions.SyncInterval(30, 240), "eight refreshes is past what vSyncCount takes");
+            Assert.AreEqual(0, DisplayOptions.SyncInterval(0, 200), "uncapped");
+            Assert.AreEqual(0, DisplayOptions.SyncInterval(60, 0), "no usable refresh rate");
+        }
+
+        /// <summary>
+        /// Just under display sits below the refresh on purpose, to keep off the
+        /// vblank boundary. Handing it to VSync would put it back on one.
+        /// </summary>
+        [Test]
+        public void SyncInterval_NeverTakesJustUnderDisplay()
+        {
+            foreach (int rate in new[] { 50, 60, 75, 100, 120, 144, 165, 200, 240, 360 })
+            {
+                int cap = DisplayOptions.ResolveCap(DisplayOptions.MatchDisplay, rate);
+                Assert.AreEqual(0, DisplayOptions.SyncInterval(cap, rate), "at " + rate + " Hz");
+            }
+        }
+
         /// <summary>
         /// The one that would go wrong silently. NVIDIA's quality enum runs
         /// cheapest-first and AMD's runs best-first, so a straight cast hands the

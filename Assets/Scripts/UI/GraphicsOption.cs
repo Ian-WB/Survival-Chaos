@@ -546,7 +546,7 @@ namespace SurvivalChaos
 
         /// <summary>
         /// Says the things a settings screen normally leaves the player to
-        /// discover: that a frame cap does nothing while VSync is on, and that
+        /// discover: that VSync takes over a cap it can hold by itself, and that
         /// ray tracing needs hardware this machine may not have.
         /// </summary>
         private string Note(GraphicsDirector director)
@@ -582,15 +582,22 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Shadows when director.Shadows == EffectQuality.Off:
                     return "The sun, the lava and the clouds cast no shadows";
 
-                case GraphicsOptionKind.FrameCap when director.VSync:
-                    return "Ignored while VSync is on";
+                // A whole fraction of the refresh rate goes to VSync rather than
+                // the frame limiter (DisplayOptions.SyncInterval), which is worth
+                // saying: it is the one cap that paces on the display's clock.
+                case GraphicsOptionKind.FrameCap when director.CapSyncInterval == 1:
+                    return "Held by VSync on its own";
+
+                case GraphicsOptionKind.FrameCap when director.CapSyncInterval > 1:
+                    return "Held by VSync, one frame every " + director.CapSyncInterval + " refreshes";
 
                 case GraphicsOptionKind.FrameCap when director.FrameCap == DisplayOptions.MatchDisplay:
                     return "Stays clear of the refresh rate, where pacing gets rough";
 
                 // Sitting exactly on the display's rate is the one cap that paces
                 // badly, so the row says so rather than leaving it to be found.
-                case GraphicsOptionKind.VSync when director.VSync:
+                case GraphicsOptionKind.VSync
+                    when director.VSync && director.FrameCap != DisplayOptions.MatchDisplay:
                     return "If frames hitch, try Just Under Display instead";
 
                 // Ordered most specific first, because more than one of these can

@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 349 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 350 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>349</b><span>commits</span></div>
-      <div class="stat"><b>515</b><span>tests</span></div>
-      <div class="stat"><b>112</b><span>runtime scripts</span></div>
+      <div class="stat"><b>350</b><span>commits</span></div>
+      <div class="stat"><b>523</b><span>tests</span></div>
+      <div class="stat"><b>125</b><span>runtime scripts</span></div>
       <div class="stat"><b>11</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
@@ -576,6 +576,9 @@
       <li><strong>Everything a quarter bigger</strong> &mdash; the player, the four enemies and the boss up
       &times;1.25 through their importers, the boss&rsquo;s weak points and guns with it, and the band grown to 10.5
       and the lane moved out to 19.72 by hand the same evening to make room.</li>
+      <li><strong>A frame cap that keeps time</strong> &mdash; every cap the menu offered handed its number to
+      Unity&rsquo;s own limiter, which under a 60 cap swung frames between about 6 and 30&nbsp;ms; the game paces
+      the cap itself now, with VSync on or off, and hands VSync any cap that is a whole fraction of the refresh.</li>
     </ul>
   </section>
 
@@ -2023,7 +2026,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Render scale reaches HDRP through <code>SetDynamicResScaler</code> in the User slot. The earlier code called <code>ScalableBufferManager.ResizeBuffers</code> directly, which HDRP overwrites from the dynamic resolution handler every frame — so the row appeared to work and changed nothing that survived. The upscalers claim the System slot while they are active and HDRP reselects User at the top of each camera, which is what makes the row apply exactly when it claims to.</p>
     <div class="note">
       <div class="label">Controls that admit what they cannot do</div>
-      <p>Every row that would otherwise sit there inert says why: <em>"Ignored while VSync is on"</em> under the frame cap, <em>"This GPU has no ray tracing support"</em> on hardware without DXR, <em>"Set by the upscaler"</em> on render scale, <em>"Replaced by FSR"</em> on anti-aliasing, <em>"Ray traced levels need a DXR GPU"</em> where a ladder stops at High, <em>"Dynamic shadows are off at this level"</em> on the quality row itself. Three separate dead controls turned up in this project — a volume slider with no listeners, a quality dropdown backed by one asset, an attack-speed upgrade that never applied. This is the habit that came out of them.</p>
+      <p>Every row that would otherwise sit there inert says why: <em>"This GPU has no ray tracing support"</em> on hardware without DXR, <em>"Set by the upscaler"</em> on render scale, <em>"Replaced by FSR"</em> on anti-aliasing, <em>"Ray traced levels need a DXR GPU"</em> where a ladder stops at High, <em>"Dynamic shadows are off at this level"</em> on the quality row itself. Three separate dead controls turned up in this project — a volume slider with no listeners, a quality dropdown backed by one asset, an attack-speed upgrade that never applied. This is the habit that came out of them.</p>
       <p>A note was not enough on its own. An unavailable row still <em>looked</em> exactly like a working one and simply swallowed the click, which is the same failure in a quieter register. Rows now dim and refuse the click — including when a row is down to a single option, which is how the ray-traced rungs vanishing on a non-DXR machine can leave one with nothing to choose.</p>
       <p>That took three pieces, because the obvious one did nothing. <code>GraphicsOption</code> dims its label and value and clears <code>interactable</code> on both steppers — but these buttons are built with <code>Transition.None</code>, so <code>interactable</code> blocks the click and changes not one pixel. <code>HoloButtonHighlight</code> owns their visual language, so the dimming went there, along with refusing to highlight and declining both the hover and click sounds. A disabled <code>Selectable</code> still delivers pointer events to the other handlers on the object, so without that last check a dead stepper played a click sound for a click that did nothing — worse than silence, because it claims something happened.</p>
     </div>
@@ -2035,13 +2038,33 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
     <h3>VSync, and the frame cap that replaced it</h3>
     <p>A crash and two-second stalls, on one machine, only with VSync on. The cause turned out to be arithmetic rather than a bug: a <strong>200 Hz display is a 5 ms refresh interval, and the game renders a frame in 4.3–5.0 ms.</strong> Every single frame was a coin flip on whether it made the vblank, and the driver answered that by hanging for nearly two seconds at a time.</p>
-    <p>The fix cannot be "cap the frame rate and keep VSync": Unity ignores <code>targetFrameRate</code> entirely while <code>vSyncCount</code> is non-zero, so the two cannot be combined however much one would like to sit just below refresh <em>and</em> sync. The rows say so rather than letting one silently defeat the other.</p>
+    <p>The fix could not then be &ldquo;cap the frame rate and keep VSync&rdquo;: Unity ignores <code>targetFrameRate</code> entirely while <code>vSyncCount</code> is non-zero, so the two could not be combined however much one would have liked to sit just below refresh <em>and</em> sync, and the rows said so. Since 26 September the cap is the game&rsquo;s own and the two combine &mdash; see <em>The cap was the stutter</em> below.</p>
     <p>So the frame cap gained a <strong>Just under display</strong> option, derived from whichever monitor the game is on rather than typed — a fixed 144 is the boundary on a 144 Hz panel and nowhere near it on a 165 Hz one. Its margin is a proportion, about 4%, because a flat two frames is 3.3% at 60 Hz and 1% at 200 Hz, where the whole interval is 5 ms and that margin buys nothing at all.</p>
     <div class="note">
       <div class="label">A number derived once is a number that goes stale</div>
       <p>Unity's own documentation warns not to assume the refresh rate seen at startup persists: monitors change when a window moves between displays, laptops throttle when unplugged. The derived cap was computed only when a <em>setting</em> changed, never when the <em>display</em> did — so dragging the game to a second monitor would have kept capping to the first one's refresh rate. It is now re-derived when the display moves underneath it.</p>
     </div>
     <p>Separately, <code>vSyncCount</code> was stored per quality level as well as by the player's setting — Medium, High and Very High each turned VSync on independently. The director re-asserted after every quality change so it won in practice, but that is the same value in two places, and all three levels are now zero.</p>
+
+    <h3>The cap was the stutter</h3>
+    <p>Every frame cap made the game stutter, in every build and in the editor, from the day the caps went in. Nothing in the project&rsquo;s code was wrong. The menu handed the number to <code>Application.targetFrameRate</code>, whose own documentation calls it &ldquo;subject to microstuttering&rdquo; with VSync off &mdash; and VSync off was the only way the menu let a cap run.</p>
+    <p>Timed in play on 26 September on the 200&nbsp;Hz display, with the playtest bot flying and a stopwatch stamp at the start of every frame:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Capped at 60</th><th class="num">Frames, 1st to 99th percentile</th><th class="num">More than 2&nbsp;ms off 16.7</th></tr></thead>
+        <tbody>
+          <tr><td>Unity&rsquo;s <code>targetFrameRate</code></td><td class="num">about 6 to 25&ndash;29&nbsp;ms</td><td class="num">25&ndash;47%</td></tr>
+          <tr><td><code>FrameLimiter</code>, through the menu</td><td class="num">11.6&ndash;14.5 to 19.7&ndash;24.2&nbsp;ms</td><td class="num">3&ndash;7%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Three rounds of each, alternated in one run so the fight could not favour either. Unity&rsquo;s limiter swung long and short frames around the right average: the average held at 60 while a quarter to a half of the frames were more than 2&nbsp;ms off it, which is what a stutter is. The new one keeps the median on 16.67, and at a 30 cap it held 33.30 to 33.38&nbsp;ms. RivaTuner, the Radeon driver&rsquo;s own limiters and OptiScaler were all checked on the machine and had nothing switched on.</p>
+    <p><code>FrameLimiter</code> is a player-loop step placed first in <code>TimeUpdate</code>, ahead of the step that reads the clock for the frame, so <code>Time.deltaTime</code> is the paced interval and motion moves by what the screen is about to show. It sleeps while there is time in hand and spins through the last stretch, learning how long a one-millisecond sleep really takes on the machine, because a whole frame at 200&nbsp;FPS is 5&nbsp;ms. A frame that arrives late starts at once and the rhythm restarts from it, rather than rushing the next frames short to win the time back &mdash; <code>VolleyTimer</code>&rsquo;s rule, for the same reason. <code>targetFrameRate</code> stays at &minus;1 for good.</p>
+    <p>Two things change with it. <strong>A cap now works with VSync on</strong>, so sitting just under the refresh rate <em>and</em> syncing is possible. And a cap VSync can hold by itself goes to VSync: 100 on a 200&nbsp;Hz display is every second refresh, which the display&rsquo;s own clock paces better than any timer (<code>DisplayOptions.SyncInterval</code>, one to four refreshes); pacing it by the limiter with VSync on would put two clocks on one boundary. The row says <em>&ldquo;Held by VSync, one frame every 2 refreshes&rdquo;</em> where it used to say <em>&ldquo;Ignored while VSync is on&rdquo;</em>, and the overlay&rsquo;s VSync verdict leaves a chosen interval alone. Dynamic resolution takes the cap&rsquo;s wait out of the frame time it steers by, since that is the cap working rather than the frame costing anything.</p>
+    <div class="warn">
+      <div class="label">Even frames are not the same as even pictures</div>
+      <p>What was measured is when frames start, not what the panel shows. On a FreeSync or G-Sync display the panel follows the frames, so even frames are what is seen. On a fixed-refresh one, a cap with VSync off still tears, and VSync with a cap below the refresh rate shows some frames twice. Whole fractions of the refresh are the one cap that is smooth on any display, which is why those go to VSync. The monitor here supports FreeSync; whether it is on was not checked, and VSync with Just under display has not been tried on it since the stalls above.</p>
+    </div>
 
     <p>The interface also has a real typeface now. Chakra Petch, found by searching the font folder rather than by a hardcoded path — seven of those broke silently in the reorganisation, and they only fail at the moment somebody runs a tool.</p>
   </section>
@@ -2114,12 +2137,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>515 tests across 49 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>523 tests across 50 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
         <tbody>
-          <tr><td><code>DisplayOptionsTests</code></td><td class="num">29</td><td>resolution filtering, the inverted vendor quality enums, and the frame cap that must not land on the refresh rate</td></tr>
+          <tr><td><code>DisplayOptionsTests</code></td><td class="num">32</td><td>resolution filtering, the inverted vendor quality enums, the frame cap that must not land on the refresh rate, and the caps VSync can hold by itself</td></tr>
           <tr><td><code>SkillPoolTests</code></td><td class="num">26</td><td>both original skill bugs, that an offer is not a pick, and that each pick waits for its own level</td></tr>
           <tr><td><code>CameraFramingTests</code></td><td class="num">25</td><td>that the lens presets frame the band alike and the whole-band ones fit the band they are given, and that a ship on the ceiling clears the top of the HUD with equal room above and below the band</td></tr>
           <tr><td><code>TorpedoSteerTests</code></td><td class="num">22</td><td>that a torpedo hits a still player and misses a late dodge by the real hit boxes, lets a timed dive to the floor escape, gains on a player who runs without ever catching them, turns no faster than it may, never snaps its heading, and arrives at an edge running along it</td></tr>
@@ -2155,6 +2178,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>FireflyFieldTests</code></td><td class="num">6</td><td>that a firefly is placed inside the tree it belongs to, on a footprint that is not round, and that the birth rate cannot divide by zero</td></tr>
           <tr><td><code>GameInputTests</code></td><td class="num">6</td><td>the backend swap seam</td></tr>
           <tr><td><code>StickShapeTests</code></td><td class="num">5</td><td>that a stick pushed into a corner flies both axes at full speed, as two held keys do, and that nothing else about a push changes</td></tr>
+          <tr><td><code>FrameLimiterTests</code></td><td class="num">5</td><td>the frame cap&rsquo;s schedule: an early frame waits for its slot, a late one starts at once with no catch-up burst, and cheap frames keep an exact rhythm</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
           <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
           <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
@@ -2201,7 +2225,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 515 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 523 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2238,6 +2262,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h3>Size against what the code counts</h3>
     <p>The dash was sized, argued over and documented for weeks against the ram hull&rsquo;s width &mdash; how much of it one burst could cross &mdash; and the code never counted width at all. Contact damage fires once, when the ship first touches the hull, so what a dash has to cover is that moment, not the distance. It surfaced only when the hull grew and the arithmetic said the counter had gone; measuring before retuning found the rule had never been the rule. When a number is being tuned against a mechanism, read the line that applies the mechanism first.</p>
+
+    <h3>An engine feature is a claim until it is timed</h3>
+    <p>The frame cap stuttered in every build from the day it went in, and nothing in the project&rsquo;s code was wrong: it handed its number to <code>Application.targetFrameRate</code>, whose documentation says it microstutters with VSync off &mdash; the only way the menu ran it. A stopwatch at the start of every frame found 6&nbsp;ms and 30&nbsp;ms frames swinging around a correct average. An average frame rate would have passed it, and so would reading the menu&rsquo;s code; single frames are where a stutter lives.</p>
 
     <h3>Physics sees steps, not paths</h3>
     <p>A round that moves a unit between physics steps can pass straight through a hitbox two thirds of a unit wide, and it will do so for some positions and not others &mdash; which reads as randomness, or as a target that is slightly off its lane, rather than as a sampling gap. Tests of it are just as easy to spoil: a player ramming the target, a target phase-locked to the step, waves spawning into the measurement. Hold everything still, step the target through one gap, and count.</p>
@@ -2313,6 +2340,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       draws a ship at its size against the band, so a shorter band or a bigger ship are the only dials, and the boss
       needs a band of about 9.6. The curtain&rsquo;s gaps are about 0.3 wider, since the discs did not grow, and pods
       1.75 across are easier to hit. It is in <code>26_0925-2101_bigShips</code>, with the debug menu.</li>
+      <li><strong>The frame cap has been timed in the editor, not yet watched in a build.</strong> Under the new
+      limiter a 60 cap holds 16.67&nbsp;ms at the median where Unity&rsquo;s swung between about 6 and 30; whether
+      that reads as smooth on the panel is the part a stopwatch cannot say, and on a fixed-refresh display a cap
+      under the refresh rate still tears or repeats frames. VSync with Just under display is the FreeSync setup and
+      is untried on the 200&nbsp;Hz machine that stalled under VSync. It is in <code>26_0926-0845_frameCap</code>,
+      with the debug menu.</li>
       <li><strong>The more aggressive boss has been flown by the bot, not yet by you.</strong> Since 25 September it
       cruises at 20&deg; a second where it was 12 &mdash; faster than the player&rsquo;s 16.3 on today&rsquo;s 19.72 lane, so it takes three Move Speed
       picks to outrun it, where two did on the 18.72 lane &mdash; rams back to back at 60, sheds a plate every half second and ends on a volley every
@@ -2432,7 +2465,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 349 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 350 commits
   </footer>
 
 </div>

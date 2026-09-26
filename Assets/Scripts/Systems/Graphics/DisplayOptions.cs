@@ -253,6 +253,29 @@ namespace SurvivalChaos
             return refreshRate - headroom >= 30 ? refreshRate - headroom : refreshRate;
         }
 
+        /// <summary>
+        /// How many refreshes VSync should hold each frame for when that alone
+        /// gives the cap: 2 for 100 FPS on a 200 Hz display, 1 for a cap on the
+        /// refresh rate itself. 0 when the cap is no whole fraction of the
+        /// refresh and the frame limiter has to pace it.
+        ///
+        /// VSync paces on the display's own clock, and nothing is more even than
+        /// that. Pacing a whole fraction by the limiter's clock with VSync on
+        /// would put two clocks on one boundary, and every frame would be a coin
+        /// flip on which refresh it made, the thing Just under display exists to
+        /// avoid. Four is the most vSyncCount takes.
+        /// </summary>
+        public static int SyncInterval(int cap, int refreshRate)
+        {
+            if (cap <= 0 || refreshRate <= 0 || refreshRate % cap != 0)
+            {
+                return 0;
+            }
+
+            int interval = refreshRate / cap;
+            return interval <= 4 ? interval : 0;
+        }
+
         // ---------- dynamic resolution ----------
 
         /// <summary>

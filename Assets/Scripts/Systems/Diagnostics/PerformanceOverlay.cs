@@ -323,7 +323,10 @@ namespace SurvivalChaos
             float averageMs = stats.AverageMs;
             int multiple = FrameTimeStats.VSyncMultiple(averageMs, refreshHz);
 
-            if (multiple < 2)
+            // A frame cap can ask VSync for every second refresh or more on
+            // purpose. Holding to that is the cap working, not VSync costing
+            // anything.
+            if (multiple <= QualitySettings.vSyncCount)
             {
                 return;
             }

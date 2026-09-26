@@ -166,11 +166,13 @@ namespace SurvivalChaos
         /// Re-derives the frame cap when the display's refresh rate changes under
         /// us.
         ///
-        /// Only "just under display" is affected - a typed cap is a fixed number
-        /// and does not care what the monitor is doing. But that one is computed
-        /// in Apply, which runs when a *setting* changes and not when the *display*
-        /// does, so dragging the game to a second monitor or unplugging a laptop
-        /// would leave it capping to a refresh rate that is no longer there.
+        /// Any cap is affected. "Just under display" is computed from the refresh
+        /// rate, and with VSync on, whether VSync holds a typed cap by itself
+        /// depends on it too (<see cref="DisplayOptions.SyncInterval"/>). Both are
+        /// worked out in Apply, which runs when a *setting* changes and not when
+        /// the *display* does, so dragging the game to a second monitor or
+        /// unplugging a laptop would leave the cap set for a refresh rate that is
+        /// no longer there.
         ///
         /// Polled rather than event-driven because Unity offers no display-change
         /// callback, and throttled because nothing here needs to react within a
@@ -180,7 +182,7 @@ namespace SurvivalChaos
         {
             DriveDynamicResolution();
 
-            if (FrameCap != DisplayOptions.MatchDisplay || Time.unscaledTime < nextRefreshCheck)
+            if (FrameCap == 0 || Time.unscaledTime < nextRefreshCheck)
             {
                 return;
             }
@@ -208,7 +210,10 @@ namespace SurvivalChaos
                 return;
             }
 
-            float frameMs = Time.unscaledDeltaTime * 1000f;
+            // Less the time the frame cap held the frame at its start. That is
+            // the cap working, not the frame costing anything, and counted in it
+            // read a 60 cap as a 16.7 ms frame however cheap the scene was.
+            float frameMs = (Time.unscaledDeltaTime - FrameLimiter.LastWaitSeconds) * 1000f;
             float targetMs = DisplayOptions.TargetFrameMs(DynamicTarget);
 
             SetRequestedPercentage(
@@ -396,10 +401,17 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// The cap actually handed to Unity, with "just under display" resolved
-        /// against whichever monitor the game is on right now.
+        /// The cap in force, with "just under display" resolved against whichever
+        /// monitor the game is on right now.
         /// </summary>
         public int ResolvedFrameCap => DisplayOptions.ResolveCap(FrameCap, RefreshRate);
+
+        /// <summary>
+        /// Refreshes per frame when VSync holds the cap by itself, or 0 when the
+        /// frame limiter paces it (or there is no cap, or VSync is off).
+        /// </summary>
+        public int CapSyncInterval =>
+            VSync ? DisplayOptions.SyncInterval(ResolvedFrameCap, RefreshRate) : 0;
 
         /// <summary>Fraction of native resolution the game renders at, 0.5 to 1.</summary>
         public float RenderScale
@@ -800,17 +812,21 @@ namespace SurvivalChaos
                 Screen.SetResolution(size.Width, size.Height, ScreenMode);
             }
 
-            QualitySettings.vSyncCount = VSync ? 1 : 0;
-
-            // Unity ignores targetFrameRate entirely while vSyncCount is non-zero,
-            // so these cannot be combined however much one might want to cap just
-            // below the refresh rate *and* sync. The menu says so rather than
-            // letting one silently defeat the other.
-            int cap = ResolvedFrameCap;
-            Application.targetFrameRate = VSync ? -1 : (cap <= 0 ? -1 : cap);
+            // A cap VSync can hold by itself is left to VSync, which paces on the
+            // display's clock. Any other cap goes to FrameLimiter, with VSync on
+            // or off: capping just below the refresh rate *and* syncing is
+            // possible now, where Unity's targetFrameRate simply switched off
+            // under VSync.
+            //
+            // targetFrameRate stays off for good. It was the stutter under every
+            // cap - see FrameLimiter for the measurement.
+            int syncInterval = CapSyncInterval;
+            QualitySettings.vSyncCount = VSync ? Mathf.Max(1, syncInterval) : 0;
+            FrameLimiter.TargetFps = syncInterval > 0 ? 0 : ResolvedFrameCap;
+            Application.targetFrameRate = -1;
 
             // Recorded so Update can tell when the display has moved out from
-            // under a display-derived cap.
+            // under a cap that depends on it.
             appliedRefreshRate = RefreshRate;
 
             // Read every frame by the scaler registered in Awake. Not applied by
