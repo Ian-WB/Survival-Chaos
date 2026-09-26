@@ -1222,9 +1222,12 @@ namespace SurvivalChaos
         /// attacks are worth flying into: staying between them is not free
         /// either.
         ///
-        /// The 1.2s default is one full crossing of the band at the player's
-        /// climb rate, so the warning is always escapable and never escapable for
-        /// free.
+        /// The 1.2s default was sized as one full crossing of the band at the
+        /// player's climb rate, so the warning would always be escapable and
+        /// never free. Since 25 September 2026 the band is 10.5 and the climb 5.6,
+        /// so a full crossing takes 1.9s and the charge covers about two thirds
+        /// of it. That is still room, since leaving the beam's height takes about
+        /// half a unit, but it is no longer the sizing it was written with.
         /// </summary>
         private IEnumerator RunLance(BossAttack attack, int index)
         {

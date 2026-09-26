@@ -41,8 +41,8 @@ namespace SurvivalChaos
         private SoundDefinition playerDeath;
 
         [SerializeField]
-        [Tooltip("The dash burst. Short: it fires on a 1.2s cycle at the busiest moments in the " +
-                 "run, so anything with a tail will overlap itself.")]
+        [Tooltip("The dash burst. Keep it short: the burst itself is 0.22s, and anything with a " +
+                 "longer tail outlasts the move it belongs to.")]
         private SoundDefinition playerDash;
 
         [Header("Progression")]

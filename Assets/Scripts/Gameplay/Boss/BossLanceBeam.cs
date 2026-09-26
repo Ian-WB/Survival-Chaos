@@ -27,9 +27,9 @@ namespace SurvivalChaos
     /// goes out, drawn as a thin hot core inside a soft glow with no hard edge
     /// anywhere. That changed how it is dodged, on purpose. The thrown beam could
     /// be watched coming; this one arrives almost at once, so the charge before it
-    /// is the whole warning - which is what the charge was sized for. Its 1.2s is
-    /// one full crossing of the band at the player's climb rate (see
-    /// BossEmitter.RunLance).
+    /// is the whole warning - which is what the charge was sized for. Its 1.2s
+    /// was one full crossing of the band at the player's climb rate, and is two
+    /// thirds of one since the band grew (see BossEmitter.RunLance).
     ///
     /// It carries no collider. The arena is a ring, so every position in it is
     /// really a bearing, a radius and a height, and asking whether the player is

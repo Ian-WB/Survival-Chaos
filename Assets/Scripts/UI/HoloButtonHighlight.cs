@@ -21,7 +21,7 @@ namespace SurvivalChaos
     [RequireComponent(typeof(Button))]
     [DisallowMultipleComponent]
     public sealed class HoloButtonHighlight : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
+        IPointerEnterHandler, IPointerMoveHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
         IPointerClickHandler, ISubmitHandler
     {
         [SerializeField]
@@ -147,6 +147,27 @@ namespace SurvivalChaos
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (Interactable && eventData.IsPointerMoving())
+            {
+                eventData.selectedObject = gameObject;
+            }
+        }
+
+        /// <summary>
+        /// Moving inside a button selects it too. The enter above is the only
+        /// event a pointer sends on arriving, and a screen that opens under a
+        /// resting cursor sends it while nothing moves, which is rightly ignored -
+        /// but then nothing more comes until the pointer leaves. So nudging the
+        /// mouse on that button did nothing, and neither did picking the mouse up
+        /// again after the keys or the pad had moved focus off the button it sat
+        /// on. Found in the audit of 26 September 2026.
+        ///
+        /// Still only a moving pointer, and only when this is not already the
+        /// selection, so a still cursor takes nothing and a moving one does not
+        /// reselect every frame.
+        /// </summary>
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            if (Interactable && eventData.selectedObject != gameObject && eventData.IsPointerMoving())
             {
                 eventData.selectedObject = gameObject;
             }

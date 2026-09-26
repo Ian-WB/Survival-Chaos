@@ -131,8 +131,8 @@ namespace SurvivalChaos.EditorTools
         private const float PodOutboard = 4.9375f;
 
         /// <summary>
-        /// Pod radius in local units, so 0.875 world units across a playable band
-        /// of 10.5 - 0.7 across 8.9 until the boss grew by a quarter on 25
+        /// Pod radius in local units, so 1.75 world units across in a playable
+        /// band of 10.5 - 1.4 across in 8.9 until the boss grew by a quarter on 25
         /// September 2026, the same day the band grew to make room for it.
         ///
         /// A target the player has to line up with rather than one they cannot
@@ -650,6 +650,10 @@ namespace SurvivalChaos.EditorTools
             target.radius = PodRadius;
             target.center = Vector3.zero;
 
+            // A pod made fresh above is on Default, which the player's rounds
+            // would still hit but which meets everything else as well.
+            CollisionRoles.Assign(pod.gameObject, CollisionRoles.Boss);
+
             BuildGlow(pod, skin);
 
             HitFlash flash = pod.GetComponent<HitFlash>();
@@ -681,11 +685,10 @@ namespace SurvivalChaos.EditorTools
             properties.FindProperty("glow").objectReferenceValue = pod.Find(GlowName);
             properties.FindProperty("telegraphScale").floatValue = 1.7f;
 
-            // The same number the local position above was built from. The pod
-            // re-applies it every frame against the direction the arena's middle
-            // is really in, because the rig it hangs off mirrors and this must
-            // not - see BossWeakPoint.LateUpdate.
-            properties.FindProperty("curvature").floatValue = Curvature(root, bank.Outboard);
+            // The inward pull set on the local position above is a resting value
+            // only. The pod works it out again every frame, against the lane as
+            // it is and the side the arena's middle is really on, because the rig
+            // it hangs off mirrors and this must not - see BossWeakPoint.LateUpdate.
             properties.ApplyModifiedPropertiesWithoutUndo();
 
             return weakPoint;
@@ -693,20 +696,15 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>
         /// How far back towards the arena's middle a pod has to sit to stay in the
-        /// lane, given how far out along the ring it is mounted.
+        /// lane, given how far out along the ring it is mounted, in the root's
+        /// units. See <see cref="ArenaGeometry.InwardToStayOnCircle"/>.
         ///
-        /// The offset that puts a pod in front of the hull is measured along the
-        /// tangent, and the arena is a circle: 3.95 units along the tangent from a
-        /// point on a 13.7-unit ring leaves you 0.56 units outside the ring, not on
-        /// it. Player bullets orbit at a fixed radius and never leave it, so those
-        /// 0.56 units come straight off the target - a pod 0.7 units across loses
-        /// most of its height to a miss that is sideways rather than vertical, and
-        /// loses it invisibly, because from the camera the pod still looks like it
-        /// is where the shots are going.
-        ///
-        /// Pulling it back by the sagitta puts the pod's middle back on the lane.
-        /// It is a fraction of a local unit and it is the difference between a
-        /// target with a 0.7-unit window and one with about 0.4.
+        /// Against the lane as the open scene defines it, which is 19.72 with the
+        /// Game scene open and the bare 13.72 without. Either way it is only where
+        /// the pod rests in the prefab: BossWeakPoint works it out again in play.
+        /// This used to be taken against the 13.72 alone, and as how far the
+        /// offset left the circle rather than how far back onto it, which is
+        /// what left the pods short of the lane once it moved out.
         /// </summary>
         private static float Curvature(Transform root, float outboard)
         {
@@ -717,8 +715,7 @@ namespace SurvivalChaos.EditorTools
                 return 0f;
             }
 
-            float radius = ArenaGeometry.OrbitRadius / scale;
-            return Mathf.Sqrt(radius * radius + outboard * outboard) - radius;
+            return ArenaGeometry.InwardToStayOnCircle(ArenaGeometry.LaneRadius, outboard * scale) / scale;
         }
 
         /// <summary>
@@ -998,6 +995,9 @@ namespace SurvivalChaos.EditorTools
                 hit.isTrigger = true;
                 hit.radius = PlateRadius;
                 hit.center = Vector3.zero;
+
+                // The hull's layer, which a plate made fresh here is not.
+                CollisionRoles.Assign(plate, CollisionRoles.Boss);
 
                 Rigidbody body = plate.GetComponent<Rigidbody>();
 
@@ -1309,12 +1309,15 @@ namespace SurvivalChaos.EditorTools
                 //
                 // The delay is the dodge. A torpedo's idea of where the player
                 // is catches up over about 0.6s (perception 1.6). Worked through
-                // with the real hit boxes - the player's is 0.16 tall and a
-                // half-size torpedo's 0.09, so a hit is an intercept: hold still
+                // with the real hit boxes - the player's 0.20 tall and 0.41 long
+                // since the ships grew on 25 September 2026, a half-size
+                // torpedo's 0.09 and 0.52 - so a hit is an intercept: hold still
                 // and it hits; dodge a couple of units a second and a half or
-                // more early and it follows you in; move a unit or more in the
-                // last second or so and it passes where you were, by 0.2 to 1;
-                // run to the floor or ceiling and it follows you there. A
+                // more early and it follows you in; move a couple of units in the
+                // last second or so and it passes where you were. A dive to the
+                // floor gets away only if started 0.8 to 1.15s before it arrives:
+                // earlier and it follows you down, later and you are still in its
+                // path. TorpedoSteerTests runs all of it on today's numbers. A
                 // torpedo that hits goes off.
                 //
                 // 10s of fuel and 2s of coast, then it is gone - asked for the
@@ -1401,9 +1404,11 @@ namespace SurvivalChaos.EditorTools
                 // aggressive boss on 25 September 2026: the next charge now starts
                 // as the last pass ends, and the charge is the only rest.
                 //
-                // The dash comes back in 1.2s, so the counterplay still answers
-                // comfortably; what changed is that it is no longer idle for most
-                // of the act.
+                // This leaned on the dash coming back in 1.2s, so that it could
+                // answer every pass. It has not since 25 September 2026: the dash
+                // is 10s now by default, and Dash picks take 1.5s off each down to
+                // 4, so at best it answers every pass and by default two in five.
+                // How the passes play without it has not been played through.
                 Interval = 4f,
                 ChargeSeconds = 1f,
                 BurstSeconds = 3f,

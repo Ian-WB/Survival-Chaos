@@ -368,7 +368,8 @@ namespace SurvivalChaos
         /// target's.
         ///
         /// Not the target's position. The dart's box hangs 0.27 above its pivot
-        /// with the art, and the player's is 0.16 tall, so a torpedo that flew its
+        /// with the art, and the player's was 0.16 tall (0.20 since the ships grew
+        /// on 25 September 2026), so a torpedo that flew its
         /// pivot into the player's passed clean over them - which is how every
         /// torpedo that reached a still player in play on 21 September 2026
         /// missed. Measured each frame, because the box swings with the roll.

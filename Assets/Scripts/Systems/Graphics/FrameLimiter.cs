@@ -52,17 +52,63 @@ namespace SurvivalChaos
         /// </summary>
         private static double sleepCost = 0.002d;
 
-        /// <summary>When the previous frame was let start, in seconds.</summary>
+        /// <summary>
+        /// How far past its slot a frame may be let go and still count as on
+        /// time. See <see cref="AnchorOf"/>.
+        ///
+        /// Measured on 26 September 2026, capped at 60 in the editor with the bot
+        /// fighting the boss: over 13,721 frames the release ran a median 0.2
+        /// microseconds past its slot, 0.08 ms at the 99.9th percentile, and past
+        /// 0.2 ms only three times, the worst by 0.45 ms. So this separates the
+        /// spin loop's ordinary overrun from a real late wake with room to spare.
+        /// </summary>
+        private const double LateRelease = 0.0002d;
+
+        /// <summary>When the previous frame's interval counts from, in seconds.</summary>
         private static double lastStart;
 
-        /// <summary>The cap in frames per second, or 0 for none.</summary>
-        public static int TargetFps { get; set; }
+        /// <summary>Whether the wait is in the player loop.</summary>
+        private static bool installed;
+
+        private static int targetFps;
+
+        /// <summary>
+        /// The cap in frames per second, or 0 for none.
+        ///
+        /// The finer system timer is asked for only while there is a cap to hold
+        /// and handed back as soon as there is not, so VSync holding the cap by
+        /// itself, or no cap at all, leaves the system timer as it found it.
+        /// </summary>
+        public static int TargetFps
+        {
+            get => targetFps;
+            set
+            {
+                targetFps = Math.Max(0, value);
+
+                if (installed && targetFps > 0)
+                {
+                    RaiseTimerResolution();
+                }
+                else
+                {
+                    RestoreTimerResolution();
+                }
+            }
+        }
 
         /// <summary>
         /// How long the cap held this frame at its start, in seconds. It is part
         /// of Time.unscaledDeltaTime without being part of what the frame cost.
         /// </summary>
         public static float LastWaitSeconds { get; private set; }
+
+        /// <summary>
+        /// How far past its slot the wait let this frame go, in seconds. A few
+        /// microseconds normally; more is a sleep that overran or the thread
+        /// losing the CPU. For measuring, nothing reads it in play.
+        /// </summary>
+        public static float LastLateSeconds { get; private set; }
 
         /// <summary>
         /// When a frame may start, given when the previous one was let start and
@@ -79,11 +125,28 @@ namespace SurvivalChaos
             return due > now ? due : now;
         }
 
+        /// <summary>
+        /// When the next frame's interval counts from, given when this one was
+        /// due and when the wait actually let it go.
+        ///
+        /// Normally the slot, so the rhythm stays on an exact grid rather than
+        /// drifting by the few microseconds a release always runs over. A release
+        /// well past its slot - a sleep that overran, or the thread losing the CPU
+        /// - counts from the release instead, for the reason a late arrival does
+        /// in <see cref="StartOf"/>: counted from the slot, the next frame would
+        /// be let go early by however late this one was, and one uneven frame
+        /// would become two.
+        /// </summary>
+        public static double AnchorOf(double due, double released)
+        {
+            return released - due > LateRelease ? released : due;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Install()
         {
-            TargetFps = 0;
             LastWaitSeconds = 0f;
+            LastLateSeconds = 0f;
             lastStart = 0d;
 
             PlayerLoopSystem root = PlayerLoop.GetCurrentPlayerLoop();
@@ -117,7 +180,11 @@ namespace SurvivalChaos
             root.subSystemList = top;
             PlayerLoop.SetPlayerLoop(root);
 
-            RaiseTimerResolution();
+            installed = true;
+
+            // Starts uncapped. GraphicsDirector sets the cap once it has read the
+            // settings.
+            TargetFps = 0;
 
             // Leaving play mode keeps the domain and the player loop, and the
             // editor has no business being capped.
@@ -125,17 +192,63 @@ namespace SurvivalChaos
             Application.quitting += Uninstall;
         }
 
+        /// <summary>
+        /// Takes the wait out of the player loop and hands the system timer back.
+        /// Safe to call when nothing is installed, and more than once.
+        /// </summary>
         private static void Uninstall()
         {
             Application.quitting -= Uninstall;
+            installed = false;
             TargetFps = 0;
 
             PlayerLoopSystem root = PlayerLoop.GetCurrentPlayerLoop();
             RemoveFrom(ref root);
             PlayerLoop.SetPlayerLoop(root);
-
-            RestoreTimerResolution();
         }
+
+#if UNITY_EDITOR
+        /// <summary>Where the cap waits out a recompile. Editor session only.</summary>
+        private const string HeldCapKey = "SurvivalChaos.FrameLimiter.HeldCap";
+
+        /// <summary>
+        /// A recompile in the middle of play, which the editor does by default
+        /// when a script is saved. It throws away every static here, and with
+        /// them the note that the system timer was raised - but not the raise,
+        /// which belongs to the editor's process and would then never be handed
+        /// back, and not the wait, which the player loop would go on calling into
+        /// code that no longer exists. So both are undone before the reload, the
+        /// cap is parked in SessionState, and afterwards, if the game is still
+        /// playing, the wait goes back in and the cap with it.
+        /// SubsystemRegistration only runs on entering play, so nothing else
+        /// would put it back.
+        /// </summary>
+        [UnityEditor.InitializeOnLoadMethod]
+        private static void SurviveRecompiles()
+        {
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= BeforeRecompile;
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += BeforeRecompile;
+
+            int held = UnityEditor.SessionState.GetInt(HeldCapKey, -1);
+            UnityEditor.SessionState.EraseInt(HeldCapKey);
+
+            if (held >= 0 && UnityEditor.EditorApplication.isPlaying)
+            {
+                Install();
+                TargetFps = held;
+            }
+        }
+
+        private static void BeforeRecompile()
+        {
+            if (installed && UnityEditor.EditorApplication.isPlaying)
+            {
+                UnityEditor.SessionState.SetInt(HeldCapKey, TargetFps);
+            }
+
+            Uninstall();
+        }
+#endif
 
         private static void RemoveFrom(ref PlayerLoopSystem system)
         {
@@ -162,10 +275,11 @@ namespace SurvivalChaos
 
         private static void Wait()
         {
-            int fps = TargetFps;
+            int fps = targetFps;
             if (fps <= 0)
             {
                 LastWaitSeconds = 0f;
+                LastLateSeconds = 0f;
                 return;
             }
 
@@ -196,8 +310,10 @@ namespace SurvivalChaos
                 }
             }
 
-            lastStart = start;
-            LastWaitSeconds = (float)(Now() - arrived);
+            double released = Now();
+            lastStart = AnchorOf(start, released);
+            LastWaitSeconds = (float)(released - arrived);
+            LastLateSeconds = (float)(released - start);
         }
 
         private static double Now()
@@ -207,7 +323,8 @@ namespace SurvivalChaos
 
         // Windows wakes sleepers on a 15.6 ms tick unless a process asks for a
         // finer one. Asking only saves spinning: the learned sleep cost keeps the
-        // pacing right either way.
+        // pacing right either way. Each request that succeeds is matched by
+        // exactly one release, which is what timeEndPeriod's contract asks for.
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         [System.Runtime.InteropServices.DllImport("winmm.dll")]
         private static extern uint timeBeginPeriod(uint milliseconds);

@@ -103,8 +103,9 @@ namespace SurvivalChaos.EditorTools
             // Frequent, and often several at once.
             { "EnemyDeath", -9.6f },
 
-            // The two that were most wrong. Both are player-caused, both repeat
-            // relentlessly - the dash on a 1.2s cycle - and both were sitting
+            // The two that were most wrong. Both are player-caused, both repeated
+            // relentlessly - the dash on a 1.2s cycle then, where it is 10s
+            // since 25 September 2026 - and both were sitting
             // above the sounds that carry threat. Their clips are also the two
             // hottest in the set once measured properly, which is why the numbers
             // are so large.

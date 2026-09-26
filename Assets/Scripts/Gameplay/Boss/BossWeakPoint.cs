@@ -66,12 +66,6 @@ namespace SurvivalChaos
                  "resting size.")]
         private float telegraphScale = 1.7f;
 
-        [SerializeField]
-        [Tooltip("How far back towards the middle of the arena this pod sits, in the boss's own " +
-                 "units, to undo the arena's curvature. Authored by the rig builder alongside the " +
-                 "outboard distance it is derived from - the two mean nothing apart.")]
-        private float curvature;
-
         /// <summary>
         /// The emitter this reports to. Found upward rather than assigned, because
         /// there is exactly one answer and it is the object this is parented to.
@@ -114,14 +108,20 @@ namespace SurvivalChaos
         /// is actually on, every frame.
         ///
         /// The offset that mounts this pod proud of the hull is measured along the
-        /// tangent, and the arena is a circle, so a pod pushed 3.95 units out along
-        /// the tangent from a point on a 13.7-unit ring ends up 0.56 units outside
-        /// the ring rather than on it. The rig builder takes that back off. What it
-        /// could not do is keep it taken off: the correction was authored as a
-        /// local offset on the mirroring rig, so it mirrored along with everything
-        /// else, and in the heading where the rig sits at yaw 270 it was being
-        /// added outward instead of subtracted inward - which does not cancel the
-        /// error, it doubles it.
+        /// tangent, and the arena is a circle, so a pod pushed out along the
+        /// tangent leaves the lane (see <see cref="ArenaGeometry.InwardToStayOnCircle"/>).
+        /// Pulling it back towards the middle puts its centre on the lane again.
+        /// The rig builder did that once, as a local offset on the mirroring rig,
+        /// so it mirrored along with everything else, and in the heading where the
+        /// rig sits at yaw 270 it was being added outward instead of subtracted
+        /// inward - which does not cancel the error, it doubles it.
+        ///
+        /// Worked out here from the lane as it is, rather than stored. The stored
+        /// number was the builder's, taken against the 13.72 base radius when the
+        /// lane had moved out to 19.72, and as the distance the offset left the
+        /// circle rather than the distance back onto it. Worked through with the
+        /// pod offsets, not measured, it left the pods' centres 0.23 to 0.29
+        /// inside the lane (audit of 26 September 2026).
         ///
         /// Measured on the keel pod across both headings before this existed:
         /// radius 13.73 travelling one way and 14.80 travelling the other, against
@@ -156,8 +156,28 @@ namespace SurvivalChaos
             }
 
             Vector3 local = transform.localPosition;
-            local.x = alignment > 0f ? curvature : -curvature;
+            float inward = InwardOffset(rig, local.z);
+            local.x = alignment > 0f ? inward : -inward;
             transform.localPosition = local;
+        }
+
+        /// <summary>
+        /// How far towards the middle, in the rig's units, puts the centre of a
+        /// pod mounted <paramref name="outboard"/> along the rig's Z on the lane.
+        /// The lane is in world units, hence the rig's scale either way.
+        /// </summary>
+        private static float InwardOffset(Transform rig, float outboard)
+        {
+            Vector3 scale = rig.lossyScale;
+            float along = Mathf.Abs(scale.z);
+            float across = Mathf.Abs(scale.x);
+
+            if (along <= 0f || across <= 0f)
+            {
+                return 0f;
+            }
+
+            return ArenaGeometry.InwardToStayOnCircle(ArenaGeometry.LaneRadius, outboard * along) / across;
         }
 
         /// <summary>

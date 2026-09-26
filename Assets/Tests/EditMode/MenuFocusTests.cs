@@ -2,6 +2,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace SurvivalChaos.Tests
@@ -106,6 +107,64 @@ namespace SurvivalChaos.Tests
                 "a vertical slider takes up and down, and needs left and right to leave it");
             Assert.That(pinned.navigation.mode, Is.EqualTo(Navigation.Mode.Explicit),
                 "navigation someone wired by hand is theirs");
+        }
+
+        private EventSystem Events()
+        {
+            GameObject host = new GameObject("EventSystem");
+            host.transform.SetParent(root.transform, false);
+            return host.AddComponent<EventSystem>();
+        }
+
+        private static PointerEventData Pointer(EventSystem events, Vector2 delta)
+        {
+            return new PointerEventData(events) { delta = delta };
+        }
+
+        /// <summary>Edit mode sends no Awake, and Awake is where these find their button.</summary>
+        private static T Woken<T>(T component) where T : Component
+        {
+            typeof(T).GetMethod("Awake", Private).Invoke(component, null);
+            return component;
+        }
+
+        /// <summary>
+        /// A screen that opens under a still cursor keeps its own first choice,
+        /// and a nudge of the mouse inside that same button then takes focus -
+        /// which the pointer's enter alone never did, because it had already
+        /// been sent while nothing moved.
+        /// </summary>
+        [Test]
+        public void MovingInsideAButton_SelectsIt_AndAStillPointerDoesNot()
+        {
+            EventSystem events = Events();
+            Button quit = Control<Button>("Quit");
+            HoloButtonHighlight button = Woken(quit.gameObject.AddComponent<HoloButtonHighlight>());
+            Button entry = Control<Button>("Entry");
+            HoloMenuEntry menuEntry = Woken(entry.gameObject.AddComponent<HoloMenuEntry>());
+
+            button.OnPointerMove(Pointer(events, Vector2.zero));
+            menuEntry.OnPointerMove(Pointer(events, Vector2.zero));
+            Assert.That(events.currentSelectedGameObject, Is.Null, "a still pointer takes nothing");
+
+            button.OnPointerMove(Pointer(events, new Vector2(2f, 0f)));
+            Assert.That(events.currentSelectedGameObject, Is.SameAs(quit.gameObject));
+
+            menuEntry.OnPointerMove(Pointer(events, new Vector2(0f, 1f)));
+            Assert.That(events.currentSelectedGameObject, Is.SameAs(entry.gameObject));
+        }
+
+        [Test]
+        public void MovingInsideAGreyedOutButton_TakesNothing()
+        {
+            EventSystem events = Events();
+            Button greyed = Control<Button>("Greyed out");
+            greyed.interactable = false;
+            HoloMenuEntry entry = Woken(greyed.gameObject.AddComponent<HoloMenuEntry>());
+
+            entry.OnPointerMove(Pointer(events, new Vector2(2f, 0f)));
+
+            Assert.That(events.currentSelectedGameObject, Is.Null);
         }
     }
 }

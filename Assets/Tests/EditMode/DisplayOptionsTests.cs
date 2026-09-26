@@ -234,6 +234,39 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual(0, DisplayOptions.SyncInterval(60, 0), "no usable refresh rate");
         }
 
+        [Test]
+        public void PresentationRate_IsTheSlowerOfTheCapAndTheRefresh()
+        {
+            Assert.AreEqual(100, DisplayOptions.PresentationRate(100, true, 200), "VSync holding a 100 cap");
+            Assert.AreEqual(60, DisplayOptions.PresentationRate(60, true, 200), "the limiter under VSync");
+            Assert.AreEqual(200, DisplayOptions.PresentationRate(240, true, 200), "a cap above the refresh");
+            Assert.AreEqual(200, DisplayOptions.PresentationRate(0, true, 200), "VSync alone");
+            Assert.AreEqual(240, DisplayOptions.PresentationRate(240, false, 200), "no VSync, so the cap");
+            Assert.AreEqual(0, DisplayOptions.PresentationRate(0, false, 200), "nothing holds it");
+            Assert.AreEqual(100, DisplayOptions.PresentationRate(100, true, 0), "no usable refresh rate");
+        }
+
+        /// <summary>
+        /// The audit's case, on a 200 Hz display: VSync holding a 100 cap gives
+        /// 10 ms frames whatever they cost, and a 120 target wants 8.3. Asked for
+        /// 8.3, the controller read every frame as a miss and ran the resolution
+        /// to its floor.
+        /// </summary>
+        [Test]
+        public void DynamicTargetMs_NeverAsksForFramesTheScreenWillNotShow()
+        {
+            Assert.AreEqual(10f, DisplayOptions.DynamicTargetMs(120, 100), 1e-4f);
+            Assert.AreEqual(5f, DisplayOptions.DynamicTargetMs(240, 200), 1e-4f);
+        }
+
+        [Test]
+        public void DynamicTargetMs_KeepsATargetTheScreenCanShow()
+        {
+            Assert.AreEqual(1000f / 60f, DisplayOptions.DynamicTargetMs(60, 100), 1e-4f);
+            Assert.AreEqual(1000f / 144f, DisplayOptions.DynamicTargetMs(144, 0), 1e-4f, "nothing limits it");
+            Assert.AreEqual(0f, DisplayOptions.DynamicTargetMs(0, 100), "off stays off");
+        }
+
         /// <summary>
         /// Just under display sits below the refresh on purpose, to keep off the
         /// vblank boundary. Handing it to VSync would put it back on one.

@@ -11,12 +11,18 @@ namespace SurvivalChaos.Tests
     /// September 2026 they were world heights: raising the floor once left four
     /// streams beneath it, and lowering it 1.7 on 21 September left every stream
     /// 1.7 higher in the band than it was placed. What is pinned here is that
-    /// MainRun spawns where it always has on the band as it is, and inside the
-    /// band wherever the band goes. Read off MainRun itself.
+    /// MainRun spawns where it always has on the band it was authored in, inside
+    /// the band wherever the band goes, and inside the band the Game scene has
+    /// today. Read off MainRun itself.
     /// </summary>
     public class WaveBandHeightTests
     {
-        /// <summary>PlayerBounds in the Game scene on 25 September 2026.</summary>
+        /// <summary>
+        /// The band MainRun's heights were authored in: PlayerBounds in the Game
+        /// scene on the morning of 25 September 2026, before it grew to 10.5 the
+        /// same day. The wave keeps these as the coordinates its heights are
+        /// written in, so they are not today's band and are not meant to be.
+        /// </summary>
         private const float Floor = 2.721233f;
         private const float Ceiling = 11.618166f;
 
@@ -49,7 +55,7 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void MainRun_RecordsTheBandAsItIs()
+        public void MainRun_RecordsTheBandItWasAuthoredIn()
         {
             WaveDefinition wave = MainRun();
 
@@ -58,7 +64,7 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void OnTheBandAsItIs_EveryStreamSpawnsWhereItAlwaysHas()
+        public void OnTheBandItWasAuthoredIn_EveryStreamSpawnsWhereItAlwaysHas()
         {
             WaveDefinition wave = MainRun();
 
@@ -83,6 +89,19 @@ namespace SurvivalChaos.Tests
             var report = new StringBuilder();
 
             Assert.AreEqual(0, wave.DescribeStreamsOutside(floor, ceiling, report), report.ToString());
+        }
+
+        /// <summary>
+        /// Today's band, off the Game scene as saved: where the waves actually
+        /// spawn in a build.
+        /// </summary>
+        [Test]
+        public void EveryStream_StaysInsideTodaysBand()
+        {
+            SavedScene.Load("Assets/Scenes/Game.unity").Band("Player", out float floor, out float ceiling);
+            var report = new StringBuilder();
+
+            Assert.AreEqual(0, MainRun().DescribeStreamsOutside(floor, ceiling, report), report.ToString());
         }
 
         [Test]

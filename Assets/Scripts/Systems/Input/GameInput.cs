@@ -21,16 +21,21 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Picks the backend matching Player Settings' active input handling.
-        /// With "Both" selected, ENABLE_INPUT_SYSTEM wins - reading through the
-        /// legacy API when the new one is available offers nothing.
+        /// The Input System, which is the only backend the game has.
+        ///
+        /// There was a second, LegacyGameInput, for the old Input Manager. The
+        /// project stopped compiling it when Player Settings went to the Input
+        /// System alone, and by then it had fallen behind: pause only on Escape,
+        /// no left trigger for Slow Mo, no ninth debug shortcut, and no way for
+        /// menus to win focus back. Deleted on 26 September 2026 rather than
+        /// kept as a backend that looked equivalent and was not.
         /// </summary>
         private static IGameInput CreateDefault()
         {
 #if ENABLE_INPUT_SYSTEM
             return new InputSystemGameInput();
 #else
-            return new LegacyGameInput();
+#error Survival Chaos reads input through the Input System package only. Set Player Settings > Active Input Handling to Input System Package (New) or Both.
 #endif
         }
 

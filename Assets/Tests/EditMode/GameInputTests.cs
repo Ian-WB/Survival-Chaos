@@ -39,13 +39,9 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void DefaultBackend_MatchesActiveInputHandling()
+        public void DefaultBackend_IsTheInputSystem()
         {
-#if ENABLE_INPUT_SYSTEM
             Assert.IsInstanceOf<InputSystemGameInput>(GameInput.Source);
-#else
-            Assert.IsInstanceOf<LegacyGameInput>(GameInput.Source);
-#endif
         }
 
         [Test]

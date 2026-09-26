@@ -73,7 +73,8 @@ namespace SurvivalChaos.EditorTools
 
             // Far down the ladder, and it used to be near the top. Measured over
             // its loudest 300 ms this clip is the hottest in the whole set, it
-            // fires on a 1.2s cycle, and it was sitting eight decibels above the
+            // fired on a 1.2s cycle then (10s since 25 September 2026), and it
+            // was sitting eight decibels above the
             // sound of taking damage. It is player-caused and constant, so it
             // reads perfectly well from underneath.
             //

@@ -69,6 +69,10 @@ namespace SurvivalChaos.EditorTools
             {
                 Compose(root, glow);
 
+                // A fresh object is on Default, and Default meets every gameplay
+                // layer. The pickup only has business with the player.
+                CollisionRoles.Assign(root, CollisionRoles.Pickups);
+
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 AssetDatabase.SaveAssets();
 

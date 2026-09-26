@@ -298,6 +298,45 @@ namespace SurvivalChaos
             return targetFps <= 0 ? 0f : 1000f / targetFps;
         }
 
+        /// <summary>
+        /// The most frames a second the screen will be shown, or 0 for no limit.
+        /// A cap limits it, and so does VSync, to one frame a refresh.
+        /// </summary>
+        /// <param name="cap">The cap in force, already resolved (<see cref="ResolveCap"/>).</param>
+        public static int PresentationRate(int cap, bool vSync, int refreshRate)
+        {
+            int display = vSync && refreshRate > 0 ? refreshRate : 0;
+
+            if (cap <= 0)
+            {
+                return display;
+            }
+
+            return display > 0 && display < cap ? display : cap;
+        }
+
+        /// <summary>
+        /// How long a frame may take for dynamic resolution, which is the target's
+        /// frame time but never less than the screen allows a frame anyway.
+        ///
+        /// A target above the cap or the refresh rate cannot be reached by any
+        /// resolution: the frames are held back to the slower rate whatever they
+        /// cost. Chasing it only lowers the resolution for frames that will not
+        /// be shown any sooner, so the controller chases the rate that will.
+        /// </summary>
+        public static float DynamicTargetMs(int targetFps, int presentationRate)
+        {
+            float target = TargetFrameMs(targetFps);
+
+            if (target <= 0f || presentationRate <= 0)
+            {
+                return target;
+            }
+
+            float shown = TargetFrameMs(presentationRate);
+            return shown > target ? shown : target;
+        }
+
         public static string DescribeCap(int cap)
         {
             if (cap == MatchDisplay)

@@ -20,7 +20,7 @@ namespace SurvivalChaos
     [RequireComponent(typeof(Button))]
     [DisallowMultipleComponent]
     public sealed class HoloMenuEntry : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
+        IPointerEnterHandler, IPointerMoveHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
         IPointerClickHandler, ISubmitHandler
     {
         [SerializeField]
@@ -95,6 +95,19 @@ namespace SurvivalChaos
         public void OnPointerEnter(PointerEventData eventData)
         {
             if ((button == null || button.interactable) && eventData.IsPointerMoving())
+            {
+                eventData.selectedObject = gameObject;
+            }
+        }
+
+        /// <summary>
+        /// Moving inside an entry selects it too, for the same reason as on the
+        /// framed buttons: a screen that opens under a still cursor gets no second
+        /// enter until the pointer leaves. See HoloButtonHighlight.
+        /// </summary>
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            if ((button == null || button.interactable) && eventData.selectedObject != gameObject && eventData.IsPointerMoving())
             {
                 eventData.selectedObject = gameObject;
             }

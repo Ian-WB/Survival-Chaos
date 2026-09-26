@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace SurvivalChaos.Tests
@@ -6,30 +9,31 @@ namespace SurvivalChaos.Tests
     /// <summary>
     /// How a crown torpedo flies and chases.
     ///
-    /// The whole design is that it can miss, so these pin both halves of that
-    /// with the numbers BuildBossRig authors: it arrives on a player who holds
-    /// still or moves too soon, and it overshoots one who moves as it closes -
-    /// and then that it handles like a torpedo, with a turning circle, a motor
-    /// and a second pass.
+    /// The whole design is that it can miss, so these pin both halves of that:
+    /// it arrives on a player who holds still or moves too soon, and it
+    /// overshoots one who moves as it closes - and then that it handles like a
+    /// torpedo, with a turning circle, a motor and a second pass.
+    ///
+    /// The fight is run twice. Once on the numbers these were written against
+    /// (<see cref="AsWritten"/>), which pins the steering and cannot drift. And
+    /// once on the fight as it is today (<see cref="Current"/>): the band and
+    /// the player's hit box off the Game scene, the torpedo off the boss prefab.
+    /// Until 26 September 2026 there was only the first, and it went on passing
+    /// after the band grew to 10.5 and the ships by a quarter, while saying
+    /// nothing about the torpedo against the bigger player (audit of that day).
     /// </summary>
     public class TorpedoSteerTests
     {
+        /// <summary>
+        /// The band these were written in, on 22 September 2026. The steering
+        /// tests below that are not about the fight use it too: any band would
+        /// do for them.
+        /// </summary>
         private const float Floor = 4.42f;
         private const float Ceiling = 13.32f;
 
-        /// <summary>The player's speed each way.</summary>
-        private const float PlayerSpeed = 5.6f;
-
         /// <summary>The crown round the torpedo replaced: 80 degrees a second at the 18.72 lane.</summary>
         private const float OldRoundSpeed = 26.1f;
-
-        /// <summary>
-        /// Half the heights of the player's hit box (0.16) and a half-size
-        /// torpedo's (0.09) together, and half their lengths along the ring
-        /// (0.33 and 0.52): a hit is the two boxes overlapping, centre to centre.
-        /// </summary>
-        private const float HitHeight = 0.125f;
-        private const float HitLength = 0.425f;
 
         private const float Frame = 1f / 60f;
 
@@ -47,6 +51,94 @@ namespace SurvivalChaos.Tests
 
         private static readonly Vector2 Muzzle = new Vector2(0f, 8f);
 
+        /// <summary>Everything about the fight that decides whether a torpedo hits.</summary>
+        private sealed class Fight
+        {
+            public string Name;
+            public float Floor;
+            public float Ceiling;
+
+            /// <summary>The player's speed each way.</summary>
+            public float PlayerSpeed;
+
+            /// <summary>
+            /// Half the heights of the player's hit box and the torpedo's
+            /// together, and half their lengths along the ring: a hit is the two
+            /// boxes overlapping, centre to centre.
+            /// </summary>
+            public float HitHeight;
+            public float HitLength;
+
+            public TorpedoHandling Crown;
+        }
+
+        /// <summary>
+        /// The fight on 22 September 2026: the player's hit box 0.16 tall and
+        /// 0.33 long, a half-size torpedo's 0.09 and 0.52, in the 4.42 to 13.32
+        /// band, the player at 5.6.
+        /// </summary>
+        private static readonly Fight AsWritten = new Fight
+        {
+            Name = "as written",
+            Floor = Floor,
+            Ceiling = Ceiling,
+            PlayerSpeed = 5.6f,
+            HitHeight = 0.125f,
+            HitLength = 0.425f,
+            Crown = Crown,
+        };
+
+        /// <summary>
+        /// The fight as the project has it now. The player and the band live in
+        /// the Game scene rather than a prefab, and are read from the scene as
+        /// saved, which is what a build gets: see <see cref="SavedScene"/>.
+        /// </summary>
+        private static Fight Current()
+        {
+            SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
+            string player = scene.GameObjectNamed("Player");
+            Assert.That(player, Is.Not.Null, "no Player in the Game scene");
+
+            Vector3 ship = Vector3.Scale(
+                scene.Vector(scene.Component(player, "BoxCollider"), "m_Size"),
+                scene.WorldScale(scene.Component(player, "Transform")));
+            float climb = scene.Float(scene.ScriptWith(player, "climbSpeed"), "climbSpeed");
+            scene.Band("Player", out float floor, out float ceiling);
+
+            GameObject boss = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Boss/Boss.prefab");
+            var attacks = (List<BossAttack>)typeof(BossEmitter)
+                .GetField("attacks", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(boss.GetComponent<BossEmitter>());
+            BossAttack crown = attacks.Find(attack => attack.HomeSeconds > 0f);
+            Assert.That(crown, Is.Not.Null, "no attack on the boss fires torpedoes");
+
+            // A torpedo is its round at HomeScale, hit box and all.
+            Vector3 torpedo = Vector3.zero;
+            crown.EachProjectile(round =>
+            {
+                Vector3 size = Vector3.Scale(round.GetComponent<BoxCollider>().size, round.transform.localScale)
+                               * crown.HomeScale;
+                torpedo = Vector3.Max(torpedo, size);
+            });
+
+            Assert.That(ceiling > floor && ship.x > 0f && ship.y > 0f && torpedo.x > 0f && torpedo.y > 0f,
+                "read nonsense: band " + floor + " to " + ceiling + ", ship " + ship + ", torpedo " + torpedo);
+            TestContext.WriteLine("Today: band " + floor + " to " + ceiling + ", ship " + ship.x + " long and " +
+                                  ship.y + " tall at " + climb + ", torpedo " + torpedo.x + " by " + torpedo.y);
+
+            // The round flies nose along the ring: its box's X is its length.
+            return new Fight
+            {
+                Name = "today",
+                Floor = floor,
+                Ceiling = ceiling,
+                PlayerSpeed = climb,
+                HitHeight = (ship.y + torpedo.y) * 0.5f,
+                HitLength = (ship.x + torpedo.x) * 0.5f,
+                Crown = crown.Torpedo,
+            };
+        }
+
         private delegate Vector2 Mover(float time);
 
         /// <summary>
@@ -55,17 +147,22 @@ namespace SurvivalChaos.Tests
         /// </summary>
         private static float Closest(Mover player, float seconds, out float when, float frame = Frame)
         {
-            return Fly(player, seconds, out when, out _, frame);
+            return Fly(AsWritten, player, seconds, out when, out _, frame);
+        }
+
+        private static float Closest(Fight fight, Mover player, float seconds, out float when)
+        {
+            return Fly(fight, player, seconds, out when, out _, Frame);
         }
 
         /// <summary>Whether it hits within <paramref name="seconds"/>.</summary>
-        private static bool Hits(Mover player, float seconds)
+        private static bool Hits(Fight fight, Mover player, float seconds)
         {
-            Fly(player, seconds, out _, out bool hit);
+            Fly(fight, player, seconds, out _, out bool hit, Frame);
             return hit;
         }
 
-        private static float Fly(Mover player, float seconds, out float when, out bool hit, float frame = Frame)
+        private static float Fly(Fight fight, Mover player, float seconds, out float when, out bool hit, float frame)
         {
             Torpedo torpedo = Torpedo.Launch(Muzzle, 0f, player(0f));
             float closest = float.MaxValue;
@@ -74,10 +171,10 @@ namespace SurvivalChaos.Tests
 
             for (float time = 0f; time < seconds; time += frame)
             {
-                TorpedoSteer.Step(ref torpedo, player(time), Crown, Floor, Ceiling, frame);
+                TorpedoSteer.Step(ref torpedo, player(time), fight.Crown, fight.Floor, fight.Ceiling, frame);
 
                 Vector2 apart = player(time + frame) - torpedo.Position;
-                hit |= Mathf.Abs(apart.y) < HitHeight && Mathf.Abs(apart.x) < HitLength;
+                hit |= Mathf.Abs(apart.y) < fight.HitHeight && Mathf.Abs(apart.x) < fight.HitLength;
 
                 if (apart.magnitude < closest)
                 {
@@ -98,7 +195,7 @@ namespace SurvivalChaos.Tests
         private static Mover ClimbingFrom(float start, float direction = 1f)
         {
             return time => new Vector2(20f,
-                Mathf.Clamp(8f + direction * PlayerSpeed * Mathf.Max(0f, time - start), Floor, Ceiling));
+                Mathf.Clamp(8f + direction * AsWritten.PlayerSpeed * Mathf.Max(0f, time - start), Floor, Ceiling));
         }
 
         /// <summary>
@@ -106,54 +203,69 @@ namespace SurvivalChaos.Tests
         /// down, negative) at their full speed from <paramref name="start"/>, and
         /// then holds.
         /// </summary>
-        private static Mover MovingBy(float units, float start)
+        private static Mover MovingBy(Fight fight, float units, float start)
         {
             return time => new Vector2(20f, Mathf.Clamp(
-                8f + Mathf.Sign(units) * Mathf.Clamp(PlayerSpeed * (time - start), 0f, Mathf.Abs(units)),
-                Floor, Ceiling));
+                8f + Mathf.Sign(units) * Mathf.Clamp(fight.PlayerSpeed * (time - start), 0f, Mathf.Abs(units)),
+                fight.Floor, fight.Ceiling));
         }
 
         /// <summary>When the torpedo reaches a player who never moves from 20 along.</summary>
-        private static float Arrival()
+        private static float Arrival(Fight fight)
         {
-            Closest(StillAt(new Vector2(20f, 8f)), 5f, out float when);
+            Closest(fight, StillAt(new Vector2(20f, 8f)), 5f, out float when);
             return when;
         }
 
-        [Test]
-        public void HitsAPlayerWhoHoldsStill()
+        private static void HoldingStill_IsHit(Fight fight)
         {
-            Assert.IsTrue(Hits(StillAt(new Vector2(20f, 9.5f)), Crown.Fuel));
+            Assert.IsTrue(Hits(fight, StillAt(new Vector2(20f, 9.5f)), fight.Crown.Fuel), fight.Name);
         }
 
-        /// <summary>Moving too soon gives it time to follow you in, up or down.</summary>
         [Test]
-        public void HitsAPlayerWhoDodgesTooEarly()
+        public void HitsAPlayerWhoHoldsStill() => HoldingStill_IsHit(AsWritten);
+
+        [Test]
+        public void HitsAPlayerWhoHoldsStill_Today() => HoldingStill_IsHit(Current());
+
+        /// <summary>Moving too soon gives it time to follow you in, up or down.</summary>
+        private static void DodgingTooEarly_IsHit(Fight fight)
         {
-            float arrival = Arrival();
-            Assert.IsTrue(Hits(MovingBy(2f, arrival - 1.5f), arrival + 0.6f), "up");
-            Assert.IsTrue(Hits(MovingBy(-2f, arrival - 1.5f), arrival + 0.6f), "down");
+            float arrival = Arrival(fight);
+            Assert.IsTrue(Hits(fight, MovingBy(fight, 2f, arrival - 1.5f), arrival + 0.6f), fight.Name + ", up");
+            Assert.IsTrue(Hits(fight, MovingBy(fight, -2f, arrival - 1.5f), arrival + 0.6f), fight.Name + ", down");
         }
+
+        [Test]
+        public void HitsAPlayerWhoDodgesTooEarly() => DodgingTooEarly_IsHit(AsWritten);
+
+        [Test]
+        public void HitsAPlayerWhoDodgesTooEarly_Today() => DodgingTooEarly_IsHit(Current());
 
         /// <summary>
         /// The miss: moving a couple of units in the last half second or so
         /// leaves it heading for where the player was, and it cannot turn hard
         /// enough to follow - up or down.
         /// </summary>
-        [Test]
-        public void MissesAPlayerWhoDodgesAsItCloses()
+        private static void DodgingAsItCloses_Misses(Fight fight)
         {
-            float arrival = Arrival();
+            float arrival = Arrival(fight);
 
             foreach (float units in new[] { 2f, -2f })
             {
                 foreach (float lead in new[] { 0.7f, 0.5f, 0.3f })
                 {
-                    Assert.IsFalse(Hits(MovingBy(units, arrival - lead), arrival + 0.6f),
-                        "moving " + units + " from " + lead + "s before it arrives");
+                    Assert.IsFalse(Hits(fight, MovingBy(fight, units, arrival - lead), arrival + 0.6f),
+                        fight.Name + ": moving " + units + " from " + lead + "s before it arrives");
                 }
             }
         }
+
+        [Test]
+        public void MissesAPlayerWhoDodgesAsItCloses() => DodgingAsItCloses_Misses(AsWritten);
+
+        [Test]
+        public void MissesAPlayerWhoDodgesAsItCloses_Today() => DodgingAsItCloses_Misses(Current());
 
         /// <summary>
         /// Diving all the way to the floor is a timed escape, like the short
@@ -163,20 +275,40 @@ namespace SurvivalChaos.Tests
         /// half a second to a second before it arrives gets away. Too early and it
         /// follows you down; too late and you are still in its path.
         /// </summary>
-        [Test]
-        public void DivingToTheFloor_EscapesOnlyIfTimed()
+        private static void DivingToTheFloor(Fight fight, float[] escapes, float[] caught)
         {
-            float arrival = Arrival();
-            Assert.IsTrue(Hits(MovingBy(-10f, arrival - 1.5f), Crown.Fuel), "diving 1.5s before it arrives");
+            float arrival = Arrival(fight);
 
-            foreach (float lead in new[] { 1f, 0.7f, 0.5f })
+            foreach (float lead in escapes)
             {
-                Assert.IsFalse(Hits(MovingBy(-10f, arrival - lead), Crown.Fuel),
-                    "diving " + lead + "s before it arrives");
+                Assert.IsFalse(Hits(fight, MovingBy(fight, -10f, arrival - lead), fight.Crown.Fuel),
+                    fight.Name + ": diving " + lead + "s before it arrives");
             }
 
-            Assert.IsTrue(Hits(MovingBy(-10f, arrival - 0.3f), Crown.Fuel), "diving 0.3s before it arrives");
+            foreach (float lead in caught)
+            {
+                Assert.IsTrue(Hits(fight, MovingBy(fight, -10f, arrival - lead), fight.Crown.Fuel),
+                    fight.Name + ": diving " + lead + "s before it arrives");
+            }
         }
+
+        [Test]
+        public void DivingToTheFloor_EscapesOnlyIfTimed() =>
+            DivingToTheFloor(AsWritten, new[] { 1f, 0.7f, 0.5f }, new[] { 1.5f, 0.3f });
+
+        /// <summary>
+        /// Still a timed escape, but a later one. The band deepened on 25
+        /// September 2026 and the floor went 1.6 further down, which gives a
+        /// torpedo room to follow a diver down where it used to have to pull
+        /// out: a dive now has to start 0.8 to 1.15s before it arrives, against
+        /// 0.4 to 1.15s before (worked through in 0.05s steps on 26 September).
+        /// The bigger ship made no difference to it, and the short dodge above
+        /// barely moved. Nobody chose the change; whether to win the early half
+        /// of the window back is a tuning question.
+        /// </summary>
+        [Test]
+        public void DivingToTheFloor_EscapesOnlyIfTimed_Today() =>
+            DivingToTheFloor(Current(), new[] { 1.1f, 1f, 0.9f }, new[] { 1.5f, 0.7f, 0.5f, 0.3f });
 
         /// <summary>
         /// A player behind the muzzle at launch: it runs out, turns round along
@@ -185,7 +317,7 @@ namespace SurvivalChaos.Tests
         [Test]
         public void TurnsRoundForAPlayerBehindIt()
         {
-            Assert.IsTrue(Hits(StillAt(new Vector2(-15f, 8f)), Crown.Fuel));
+            Assert.IsTrue(Hits(AsWritten, StillAt(new Vector2(-15f, 8f)), Crown.Fuel));
         }
 
         /// <summary>
@@ -195,13 +327,13 @@ namespace SurvivalChaos.Tests
         [Test]
         public void ComesBackAfterAMiss()
         {
-            float arrival = Arrival();
+            float arrival = Arrival(AsWritten);
             float start = arrival - 0.5f;
 
             Mover player = time => new Vector2(20f,
-                Mathf.Min(Ceiling, 8f + PlayerSpeed * Mathf.Clamp(time - start, 0f, 0.3f)));
+                Mathf.Min(Ceiling, 8f + AsWritten.PlayerSpeed * Mathf.Clamp(time - start, 0f, 0.3f)));
 
-            Assert.IsFalse(Hits(player, arrival + 0.6f), "the first pass should miss");
+            Assert.IsFalse(Hits(AsWritten, player, arrival + 0.6f), "the first pass should miss");
 
             Torpedo torpedo = Torpedo.Launch(Muzzle, 0f, player(0f));
             bool turnedBack = false;
@@ -228,19 +360,24 @@ namespace SurvivalChaos.Tests
         /// passes that point and has to come about. Running buys time; it does
         /// not end the chase.
         /// </summary>
-        [Test]
-        public void GainsOnAPlayerWhoRuns_ButNeverCatchesThem()
+        private static void ARunner_IsGainedOn_ButNeverCaught(Fight fight)
         {
-            Assert.Less(Crown.CruiseSpeed, OldRoundSpeed);
-            Assert.Greater(Crown.CruiseSpeed, PlayerSpeed * 1.4f);
-            Assert.Less(Crown.CruiseSpeed, PlayerSpeed * 1.6f);
+            Assert.Less(fight.Crown.CruiseSpeed, OldRoundSpeed, fight.Name);
+            Assert.Greater(fight.Crown.CruiseSpeed, fight.PlayerSpeed * 1.4f, fight.Name);
+            Assert.Less(fight.Crown.CruiseSpeed, fight.PlayerSpeed * 1.6f, fight.Name);
 
-            Mover fleeing = time => new Vector2(20f + PlayerSpeed * time, 8f);
-            float closest = Closest(fleeing, Crown.Fuel, out _);
-            Assert.Less(closest, 5f, "it should gain on them");
-            Assert.Greater(closest, HitLength * 4f, "it should not reach them");
-            Assert.IsFalse(Hits(fleeing, Crown.Fuel));
+            Mover fleeing = time => new Vector2(20f + fight.PlayerSpeed * time, 8f);
+            float closest = Closest(fight, fleeing, fight.Crown.Fuel, out _);
+            Assert.Less(closest, 5f, fight.Name + ": it should gain on them");
+            Assert.Greater(closest, fight.HitLength * 4f, fight.Name + ": it should not reach them");
+            Assert.IsFalse(Hits(fight, fleeing, fight.Crown.Fuel), fight.Name);
         }
+
+        [Test]
+        public void GainsOnAPlayerWhoRuns_ButNeverCatchesThem() => ARunner_IsGainedOn_ButNeverCaught(AsWritten);
+
+        [Test]
+        public void GainsOnAPlayerWhoRuns_ButNeverCatchesThem_Today() => ARunner_IsGainedOn_ButNeverCaught(Current());
 
         [Test]
         public void Thrust_LightsLowAtLaunch_BurnsFullAtCruise_AndGoesOutWithTheFuel()

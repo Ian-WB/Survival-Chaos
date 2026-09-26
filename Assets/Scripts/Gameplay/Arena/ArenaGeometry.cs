@@ -33,6 +33,32 @@ namespace SurvivalChaos
         public static float LaneRadius => Mathf.Max(0f, OrbitRadius + SnapToOrbit.LaneOffset);
 
         /// <summary>
+        /// How far to pull a point back towards the axis so that, mounted
+        /// <paramref name="tangent"/> along the tangent from a point on a circle of
+        /// <paramref name="radius"/>, it sits on that circle again: R - sqrt(R² - t²).
+        ///
+        /// A tangent offset leaves the circle, since the arena curves away under
+        /// it: 4.94 along from a point on the 19.72 lane is 0.61 outside it. Shots
+        /// orbit at the lane radius and never leave it, so a target that far off
+        /// loses that much of its window to a sideways miss the camera cannot
+        /// show.
+        ///
+        /// 0 when the offset is as long as the radius or longer, because no point
+        /// that far along the tangent is on the circle at all.
+        /// </summary>
+        public static float InwardToStayOnCircle(float radius, float tangent)
+        {
+            float squared = radius * radius - tangent * tangent;
+
+            if (radius <= 0f || squared <= 0f)
+            {
+                return 0f;
+            }
+
+            return radius - Mathf.Sqrt(squared);
+        }
+
+        /// <summary>
         /// Eases a point toward the orbit circle, keeping its bearing around the
         /// axis and its height, at a rate independent of frame rate.
         ///

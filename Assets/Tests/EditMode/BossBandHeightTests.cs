@@ -23,6 +23,20 @@ namespace SurvivalChaos.Tests
         private const float Floor = 2.7875f;
         private const float Ceiling = 13.2875f;
 
+        /// <summary>
+        /// Keeps the band above the Game scene's. Written out rather than read
+        /// in every test so the heights below stay readable, and checked here so
+        /// the copy cannot quietly go stale when the band next moves.
+        /// </summary>
+        [Test]
+        public void TheBandHere_IsTheGameScenes()
+        {
+            SavedScene.Load("Assets/Scenes/Game.unity").Band("Player", out float floor, out float ceiling);
+
+            Assert.AreEqual(floor, Floor, 1e-3f, "floor");
+            Assert.AreEqual(ceiling, Ceiling, 1e-3f, "ceiling");
+        }
+
         private static GameObject Boss()
         {
             GameObject boss = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Boss/Boss.prefab");

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SurvivalChaos
 {
@@ -17,6 +18,10 @@ namespace SurvivalChaos
     /// hundreds of them, and every copy starting in the same frame adds amplitude
     /// until the mix clips.
     ///
+    /// Gameplay sounds run on game time: they pause with the pause menu and
+    /// slow down with Slow Mo, as the attacks they describe do. Menu sounds and
+    /// music do neither. See <see cref="GameSoundRate"/>.
+    ///
     /// Define SURVIVAL_CHAOS_NO_AUDIO_DIRECTOR to leave it out of a build.
     /// </summary>
     public sealed class AudioDirector : MonoBehaviour
@@ -28,6 +33,9 @@ namespace SurvivalChaos
         private const int VoiceCount = 24;
 
         private const string PrefsPrefix = "SurvivalChaos.Audio.";
+
+        /// <summary>The highest pitch an AudioSource takes.</summary>
+        private const float MaxPitch = 3f;
 
         public static AudioDirector Instance { get; private set; }
 
@@ -42,6 +50,15 @@ namespace SurvivalChaos
         private AudioSource[] voices;
         private SoundDefinition[] voiceOwner;
         private float[] voiceFreeAt;
+
+        /// <summary>The pitch each voice was started at, before game time is applied.</summary>
+        private float[] voicePitch;
+
+        /// <summary>How much of its clip each voice has still to play, in the clip's own seconds.</summary>
+        private float[] voiceRemaining;
+
+        /// <summary>How fast each voice has been playing its clip, 1 being as recorded and 0 paused.</summary>
+        private float[] voiceRate;
 
 #if !SURVIVAL_CHAOS_NO_AUDIO_DIRECTOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -67,10 +84,14 @@ namespace SurvivalChaos
             LoadLevels();
             BuildVoices();
             ApplyLevels();
+
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
         }
 
         private void OnDestroy()
         {
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
             if (Instance == this)
             {
                 Instance = null;
@@ -98,6 +119,9 @@ namespace SurvivalChaos
             voices = new AudioSource[VoiceCount];
             voiceOwner = new SoundDefinition[VoiceCount];
             voiceFreeAt = new float[VoiceCount];
+            voicePitch = new float[VoiceCount];
+            voiceRemaining = new float[VoiceCount];
+            voiceRate = new float[VoiceCount];
 
             for (int i = 0; i < VoiceCount; i++)
             {
@@ -274,20 +298,186 @@ namespace SurvivalChaos
                 return;
             }
 
+            float pitch = sound.PickPitch();
+            float rate = RateNow(sound, pitch);
+
             AudioSource source = voices[slot];
             source.clip = clip;
             source.outputAudioMixerGroup = sound.Output;
-            source.pitch = sound.PickPitch();
+            source.pitch = rate > 0f ? rate : pitch;
             source.spatialBlend = position.HasValue ? sound.SpatialBlend : 0f;
             source.transform.position = position ?? Vector3.zero;
             source.volume = sound.Volume * AudioLevels.ToAmplitude(GetLevel(sound.Channel));
             source.Play();
 
+            // Started under the pause menu. Nothing in the game should, but a
+            // gameplay sound that did would otherwise play through the pause.
+            if (rate <= 0f)
+            {
+                source.Pause();
+            }
+
             voiceOwner[slot] = sound;
-            // Pitch changes playback rate, so the clip's length is not how long
-            // it will actually take.
-            voiceFreeAt[slot] = now + clip.length / Mathf.Max(0.01f, Mathf.Abs(source.pitch));
+            voicePitch[slot] = pitch;
+            voiceRemaining[slot] = clip.length;
+            voiceRate[slot] = rate;
+            voiceFreeAt[slot] = FreeAt(slot, now);
             lastStarted[sound] = now;
+        }
+
+        // ---------- game time ----------
+
+        /// <summary>
+        /// How fast gameplay sounds play, against how they were recorded.
+        ///
+        /// The game's own speed, so a sound lasts as long as the thing it is
+        /// about. The boss's lance charge is the case that matters: it is the
+        /// warning, it is exactly as long as the wind-up, and the wind-up runs on
+        /// game time. At full speed under Slow Mo's 0.4 it finished at 40% of the
+        /// charge, so the warning went quiet with more than half the wind-up
+        /// still to come, and under the pause menu it carried on and ended
+        /// before the game resumed (audit of 26 September 2026). Slowed with the
+        /// game, a sound also drops in pitch, the usual sound of slow motion.
+        ///
+        /// Stopped under the pause menu. Not when the run has ended, though that
+        /// stops time as well: the last explosion is what the death and victory
+        /// screens open over, and freezing it would cut it off. It plays out at
+        /// its own speed.
+        /// </summary>
+        public static float GameSoundRate(bool paused, bool runEnded, float timeScale)
+        {
+            if (runEnded)
+            {
+                return 1f;
+            }
+
+            if (paused)
+            {
+                return 0f;
+            }
+
+            return timeScale > 0f ? timeScale : 1f;
+        }
+
+        private static bool FollowsGameTime(SoundDefinition sound)
+        {
+            return sound != null && sound.Channel == AudioChannel.Sfx;
+        }
+
+        /// <summary>The pitch a voice playing <paramref name="sound"/> should have now, 0 when paused.</summary>
+        private static float RateNow(SoundDefinition sound, float pitch)
+        {
+            float game = FollowsGameTime(sound)
+                ? GameSoundRate(PauseMenu.GameIsPaused, RunOutcome.RunEnded, Time.timeScale)
+                : 1f;
+
+            return Mathf.Min(MaxPitch, Mathf.Abs(pitch) * game);
+        }
+
+        /// <summary>
+        /// When a voice will be done, at the rate it is playing. Never while it
+        /// is paused: a paused voice still holds the rest of its clip.
+        /// </summary>
+        private float FreeAt(int slot, float now)
+        {
+            if (voiceRemaining[slot] <= 0f)
+            {
+                return now;
+            }
+
+            return voiceRate[slot] > 0f ? now + voiceRemaining[slot] / voiceRate[slot] : float.MaxValue;
+        }
+
+        /// <summary>
+        /// Brings each gameplay voice onto the game's current speed, and keeps
+        /// every voice's account of how much it has left to play. The pool's
+        /// idea of which voices are free is worked out from that, so a voice
+        /// slowed or paused is not handed to another sound while it is still
+        /// playing.
+        /// </summary>
+        private void Update()
+        {
+            if (voices == null)
+            {
+                return;
+            }
+
+            float now = Time.unscaledTime;
+            float elapsed = Time.unscaledDeltaTime;
+
+            for (int i = 0; i < voices.Length; i++)
+            {
+                if (voiceOwner[i] == null || voiceRemaining[i] <= 0f)
+                {
+                    continue;
+                }
+
+                voiceRemaining[i] -= elapsed * voiceRate[i];
+
+                if (voiceRemaining[i] <= 0f)
+                {
+                    voiceFreeAt[i] = now;
+                    continue;
+                }
+
+                if (FollowsGameTime(voiceOwner[i]))
+                {
+                    float rate = RateNow(voiceOwner[i], voicePitch[i]);
+                    AudioSource source = voices[i];
+
+                    if (rate <= 0f)
+                    {
+                        if (voiceRate[i] > 0f)
+                        {
+                            source.Pause();
+                        }
+                    }
+                    else
+                    {
+                        if (voiceRate[i] <= 0f)
+                        {
+                            source.UnPause();
+                        }
+
+                        source.pitch = rate;
+                    }
+
+                    voiceRate[i] = rate;
+                }
+
+                voiceFreeAt[i] = FreeAt(i, now);
+            }
+        }
+
+        /// <summary>
+        /// A run left from the pause menu leaves its gameplay sounds paused, and
+        /// the next scene is not paused, so they would pick up where they
+        /// stopped over the title screen. They belong to the run that is gone.
+        /// </summary>
+        private void OnSceneUnloaded(Scene scene)
+        {
+            if (voices == null)
+            {
+                return;
+            }
+
+            float now = Time.unscaledTime;
+
+            for (int i = 0; i < voices.Length; i++)
+            {
+                if (voiceOwner[i] != null && voiceRemaining[i] > 0f && voiceRate[i] <= 0f)
+                {
+                    Release(i, now);
+                }
+            }
+        }
+
+        private void Release(int slot, float now)
+        {
+            voices[slot].Stop();
+            voiceFreeAt[slot] = now;
+            voiceRemaining[slot] = 0f;
+            voiceOwner[slot] = null;
         }
 
         private int CountActive(SoundDefinition sound, float now)
@@ -343,14 +533,11 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                voices[i].Stop();
-
                 // Free the slot as well as the source. Without this the voice
                 // stays reserved until the clip it is no longer playing would
                 // have ended, and MaxVoices 1 - which every telegraph wants -
                 // would silently refuse the next charge.
-                voiceFreeAt[i] = now;
-                voiceOwner[i] = null;
+                Release(i, now);
             }
 
             // The retrigger guard is keyed on when a sound last started, and a

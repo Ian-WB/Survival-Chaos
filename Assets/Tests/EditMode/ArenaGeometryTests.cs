@@ -105,5 +105,44 @@ namespace SurvivalChaos.Tests
 
             Assert.AreEqual(0f, RadiusXZ(result, Vector3.zero), Tolerance);
         }
+
+        /// <summary>
+        /// The pods' own offsets on the 19.72 lane. Pulled back by this much and
+        /// then out along the tangent, a point is on the circle again.
+        /// </summary>
+        [Test]
+        public void InwardToStayOnCircle_PutsATangentOffsetBackOnTheCircle()
+        {
+            foreach (float tangent in new[] { 4.9375f, 5.75f, 0.5f })
+            {
+                float inward = ArenaGeometry.InwardToStayOnCircle(19.72f, tangent);
+                float radius = Mathf.Sqrt((19.72f - inward) * (19.72f - inward) + tangent * tangent);
+
+                Assert.AreEqual(19.72f, radius, Tolerance, "tangent " + tangent);
+            }
+        }
+
+        /// <summary>
+        /// The audit's figures: the stored 0.8614 and 1.1562 were how far these
+        /// offsets leave the 13.72 circle. Back onto the 19.72 lane is 0.628 and
+        /// 0.857.
+        /// </summary>
+        [Test]
+        public void InwardToStayOnCircle_MatchesTheAuditsFigures()
+        {
+            Assert.AreEqual(0.62813f, ArenaGeometry.InwardToStayOnCircle(19.72f, 4.9375f), 1e-4f);
+            Assert.AreEqual(0.85692f, ArenaGeometry.InwardToStayOnCircle(19.72f, 5.75f), 1e-4f);
+            Assert.AreEqual(0.62813f, ArenaGeometry.InwardToStayOnCircle(19.72f, -4.9375f), 1e-4f,
+                "the other side of the ship");
+        }
+
+        [Test]
+        public void InwardToStayOnCircle_WithNoPointOnTheCircle_LeavesItWhereItIs()
+        {
+            Assert.AreEqual(0f, ArenaGeometry.InwardToStayOnCircle(19.72f, 0f));
+            Assert.AreEqual(0f, ArenaGeometry.InwardToStayOnCircle(5f, 5f), "tangent as long as the radius");
+            Assert.AreEqual(0f, ArenaGeometry.InwardToStayOnCircle(5f, 8f), "longer");
+            Assert.AreEqual(0f, ArenaGeometry.InwardToStayOnCircle(0f, 1f), "no circle");
+        }
     }
 }

@@ -127,7 +127,15 @@ namespace SurvivalChaos
         /// <summary>The refresh rate the current frame cap was derived from.</summary>
         private int appliedRefreshRate;
 
+        /// <summary>
+        /// The most frames a second the screen is shown under the current cap and
+        /// VSync, or 0 for no limit. Set in Apply.
+        /// </summary>
+        private int presentationRate;
+
         private readonly DynamicResolutionController dynamic = new DynamicResolutionController();
+
+        private readonly FrameTiming[] frameTimings = new FrameTiming[1];
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Create()
@@ -168,11 +176,12 @@ namespace SurvivalChaos
         ///
         /// Any cap is affected. "Just under display" is computed from the refresh
         /// rate, and with VSync on, whether VSync holds a typed cap by itself
-        /// depends on it too (<see cref="DisplayOptions.SyncInterval"/>). Both are
-        /// worked out in Apply, which runs when a *setting* changes and not when
-        /// the *display* does, so dragging the game to a second monitor or
-        /// unplugging a laptop would leave the cap set for a refresh rate that is
-        /// no longer there.
+        /// depends on it too (<see cref="DisplayOptions.SyncInterval"/>). So does
+        /// the rate dynamic resolution may chase under VSync, capped or not. All
+        /// are worked out in Apply, which runs when a *setting* changes and not
+        /// when the *display* does, so dragging the game to a second monitor or
+        /// unplugging a laptop would leave them set for a refresh rate that is no
+        /// longer there.
         ///
         /// Polled rather than event-driven because Unity offers no display-change
         /// callback, and throttled because nothing here needs to react within a
@@ -182,7 +191,7 @@ namespace SurvivalChaos
         {
             DriveDynamicResolution();
 
-            if (FrameCap == 0 || Time.unscaledTime < nextRefreshCheck)
+            if (Time.unscaledTime < nextRefreshCheck)
             {
                 return;
             }
@@ -210,14 +219,60 @@ namespace SurvivalChaos
                 return;
             }
 
-            // Less the time the frame cap held the frame at its start. That is
-            // the cap working, not the frame costing anything, and counted in it
-            // read a 60 cap as a 16.7 ms frame however cheap the scene was.
-            float frameMs = (Time.unscaledDeltaTime - FrameLimiter.LastWaitSeconds) * 1000f;
-            float targetMs = DisplayOptions.TargetFrameMs(DynamicTarget);
+            // What the GPU spent on the frame, because that is the only part of it
+            // resolution changes. This was the whole frame time less the frame
+            // limiter's wait, which was wrong twice over. VSync holds frames as
+            // well, and nothing took that out: on a 200 Hz display, VSync holding
+            // a 100 cap made every frame 10 ms however cheap, a 120 target read
+            // each one as a miss, and the resolution ran to its floor and stayed.
+            // And a frame held up by the CPU read as slow, when lowering the
+            // resolution does nothing for it.
+            float frameMs = GpuFrameMs();
+
+            if (frameMs <= 0f)
+            {
+                // No GPU timings: a graphics API that does not report them,
+                // Frame Timing Stats switched off in the Player settings, or a
+                // reading too small to be the game (see LeastPlausibleGpuMs). Frame
+                // time less the limiter's wait is what is left. VSync's wait is
+                // still in it, so the target below keeps that from reading as a
+                // miss, but a scale lowered under VSync has no spare time to
+                // show it and will not climb back.
+                frameMs = (Time.unscaledDeltaTime - FrameLimiter.LastWaitSeconds) * 1000f;
+            }
+
+            float targetMs = DisplayOptions.DynamicTargetMs(DynamicTarget, presentationRate);
 
             SetRequestedPercentage(
                 dynamic.Update(frameMs, targetMs, Time.unscaledDeltaTime) * 100f);
+        }
+
+        /// <summary>
+        /// The least a real frame of this game costs the GPU, in ms. A reading
+        /// below it has not timed the game's rendering. In the editor on 26
+        /// September 2026 the timings read 0.04 ms for the first minute of a
+        /// boss fight and then 12 to 14 ms for the same scene, and a controller
+        /// taking 0.04 at its word would climb to native whatever the GPU was
+        /// really doing. Frame time is the safer guess then.
+        /// </summary>
+        private const double LeastPlausibleGpuMs = 0.5d;
+
+        /// <summary>
+        /// GPU time of the latest frame the GPU has finished, in ms, or 0 when
+        /// there is none to trust. A few frames old by the time it arrives, which
+        /// the controller's deadband and slow climb absorb.
+        /// </summary>
+        private float GpuFrameMs()
+        {
+            FrameTimingManager.CaptureFrameTimings();
+
+            if (FrameTimingManager.GetLatestTimings(1, frameTimings) < 1)
+            {
+                return 0f;
+            }
+
+            double gpu = frameTimings[0].gpuFrameTime;
+            return gpu >= LeastPlausibleGpuMs ? (float)gpu : 0f;
         }
 
         private void OnDestroy()
@@ -828,6 +883,7 @@ namespace SurvivalChaos
             // Recorded so Update can tell when the display has moved out from
             // under a cap that depends on it.
             appliedRefreshRate = RefreshRate;
+            presentationRate = DisplayOptions.PresentationRate(ResolvedFrameCap, VSync, RefreshRate);
 
             // Read every frame by the scaler registered in Awake. Not applied by
             // calling ScalableBufferManager directly: HDRP drives that itself from

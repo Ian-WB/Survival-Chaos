@@ -88,8 +88,9 @@ namespace SurvivalChaos
     /// early, because it has time to follow. A player who moves a unit or more
     /// in the last second or so leaves it heading for where they were, and too
     /// committed to the turn to follow. The hit boxes make it an intercept: the
-    /// player's is 0.16 tall and a half-size torpedo's 0.09, so one an eighth
-    /// of a unit high passes over.
+    /// player's is 0.20 tall and a half-size torpedo's 0.09, so one passing
+    /// 0.15 or more above or below misses. TorpedoSteerTests works all of this
+    /// through on today's numbers as well as the ones it was tuned on.
     ///
     /// Everything else in the band bounces off the floor and ceiling, which
     /// the player's centre is clamped to. A torpedo does not bounce, because
