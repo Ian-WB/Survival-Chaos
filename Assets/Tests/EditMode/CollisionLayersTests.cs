@@ -122,8 +122,9 @@ namespace SurvivalChaos.Tests
             }
 
             // Fewer than this and the search has stopped finding the prefabs, and
-            // the list above would pass on nothing.
-            Assert.That(checkedColliders, Is.GreaterThanOrEqualTo(24));
+            // the list above would pass on nothing. 22 since 28 September 2026,
+            // when the two unused boss_shoot prefabs went.
+            Assert.That(checkedColliders, Is.GreaterThanOrEqualTo(22));
             Assert.That(wrong, Is.Empty);
         }
 

@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true, "camera-framing": true, "readme": true, "dash-tooltips": true, "codex-doc": true, "band-follow": true, "hud-clearance": true, "slowmo-live": true, "scale-up": true, "bake-links": true}, "updated": "25 September 2026"}</script>
+<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true, "camera-framing": true, "readme": true, "dash-tooltips": true, "codex-doc": true, "band-follow": true, "hud-clearance": true, "slowmo-live": true, "scale-up": true, "bake-links": true}, "updated": "28 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -778,16 +778,8 @@
           effort: "15 min",
           why: [
             "Done. It was off with <code>m_IsActive: 0</code> because a bake needed it out of the way, and it never went back on — so the sparsity work you tuned wasn’t being rendered by anything.",
-            "It came back at 600×220×600 rather than the 2000 it had drifted to, tiling 2×1×2, against a mask rebaked at 128³ so the features are smaller than the tile. The first attempt at 6×2×6 had a pattern you could read. Those figures are pre-rescale; the bank divided with the world like everything else."
-          ]
-        },
-        {
-          id: "cloud-drift",
-          title: "Try the cloud bank with the drift switched off",
-          effort: "5 min",
-          why: [
-            "<code>ArenaCloudBank.driftSpeed</code> is 2.5 — it was 25, came down to 8 because the texture sliding was the thing you could see, and then divided again with the world. Slower is quieter, but it is the same tell.",
-            "At 0 the banks hold still and all the parallax comes from your own orbit instead — which is motion the player is causing rather than motion happening to them. Untried; it is one field."
+            "It came back at 600×220×600 rather than the 2000 it had drifted to, tiling 2×1×2, against a mask rebaked at 128³ so the features are smaller than the tile. The first attempt at 6×2×6 had a pattern you could read. Those figures are pre-rescale; the bank divided with the world like everything else.",
+            "<strong>Gone since 5 September, and deleted on 28 September.</strong> Your ‘light changes’ commit took the bank out of <code>Game.unity</code>, and on 24 September the arena moved up into the sky’s own clouds, which is what the bank was standing in for. At your call its script, its mask baker and the 19 MB mask went; git history keeps them."
           ]
         },
         {
@@ -1049,7 +1041,8 @@
     ["The world at ten times its size", "Tried on a branch, taken all the way to playable, and reversed on 9 September. It is not coming back: the scale bought nothing the importer could not, and the price was every number in the project and its documentation being wrong at once. What survives it is one piece of knowledge — a collider radius under a scaled root is a local number and rides the transform, a light range is handed to HDRP in world units and does not."],
     ["The boss HUD, the camera pull-back and the pink palette", "A readability pass on 8 September added a HUD naming the phase and the three targets, pulled the camera back during the fight, rewrote the dash tutorial and moved all hostile fire to pink with green pods. Reverted the same day; the four correctness fixes underneath it were kept. Only the colour half is still an open question — see “Decide whether the red pods actually read in play” above."],
     ["The wreckage plates stay dark", "Asked on 7 September and answered: no glow for now. They carry the boss’s hull material, which is nearly black, so one can vanish against the dark island — worth revisiting if the boss run shows it happening, but it is a deliberate no rather than an open question."],
-    ["Overlapping offers stack their captions", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned."],
+    ["Replacing an offer that is still out", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned. Since 28 September the new set turns clear of the ones already out, so the two no longer land on top of each other."],
+    ["The cloud bank’s drift, switched off", "Never tried. The bank was taken out of the scene on 5 September and deleted on 28 September, so there is nothing left to slow."],
     ["Salvage by a chance per kill", "The obvious way to pace it, passed over on 22 September for a clock. The bot’s two runs killed about two enemies a second and about one, so odds per kill would have paid one player twice what they paid the other for the same wounds."],
     ["Max Health is four ×5 instead of one ×20", "Same ceiling for a player who takes all four, lower for one who takes two. Whether that reads as a choice or a nerf is a question only playing answers."],
     ["Ray-traced rungs beyond reflections are unvalidated", "RT Reflections was confirmed in a build on DXR hardware. The rest are reachable and deliberately unused."],
