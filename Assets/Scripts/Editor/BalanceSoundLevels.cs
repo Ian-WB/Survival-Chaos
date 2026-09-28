@@ -75,6 +75,14 @@ namespace SurvivalChaos.EditorTools
         /// boss's fire a little under, and the sounds that repeat furthest down.
         /// Taking damage now sits above your own gun rather than seven decibels
         /// below it, which is the single thing that was most backwards.
+        ///
+        /// Measured again on 28 September 2026, the same way, and the -23.4 did
+        /// not come back: the three impact clips measured -15.9 to -18.4, while
+        /// the dash's -10.5 did. So the old hit was never the quietest clip, and
+        /// it sat level with the deaths rather than 5 and 6 under them. What it
+        /// lacked was body - a 20 ms strike that fell 16 dB at once - and that
+        /// is what the layered clips below fix. Nor is it what holds the ladder
+        /// down: Victory, at -1.3, leaves the only room there is to raise it.
         private static readonly Dictionary<string, float> IntentDb = new Dictionary<string, float>
         {
             // Rare, and the run is over - loud is the point.
@@ -82,8 +90,13 @@ namespace SurvivalChaos.EditorTools
             { "BossDeath", -7.4f },
             { "Victory", -1.3f },
 
-            // The anchor. An impact that has to be felt, from the quietest clip
-            // in the set, so it gets everything the volume field can give it.
+            // The anchor. An impact that has to be felt, so it gets everything
+            // the volume field can give it. Since 28 September 2026 each clip
+            // is a Kenney impactMetal strike over the matching forceField 9 dB
+            // down, mixed by hand: the same strike as before within 0.3 dB,
+            // about 4 dB fuller over its loudest 300 ms, which puts it 4 and
+            // 5 dB over the two deaths. If that is too much, 0.6 on the asset
+            // brings it back level with the old clip.
             { "PlayerHit", 0f },
 
             // Once a run, or once per level.

@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true},"updated":"28 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true},"updated":"28 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -330,7 +330,7 @@
     id: "play-0928",
     title: "Play the 28 September build",
     effort: "one run, ~25 min",
-    lede: "<strong>It is built:</strong> <code>Builds/26_0928-1136_scanFixes</code>, from commit <code>4034f12</code>, with the debug menu in (F8), so god mode and the skip to the boss are there if you want them. Play at least one run without them.</p><p><strong>It replaces the 25 September evening build, which was never played,</strong> so everything that card asked still stands and is carried over below. Nothing since 22 September has been played: the game a fifth slower, salvage, the more aggressive boss, the ten-second dash and Slow Mo, and the bigger ships on the 10.5 band with the lane at 19.72.</p><p><strong>Since that build.</strong> The frame cap is our own now, because Unity\u2019s stuttered; it only matters if you set one. Dynamic resolution steers by the GPU\u2019s own time. Gameplay sounds slow down under Slow Mo and hold under the pause menu. Moving the mouse over a menu button selects it. And the Graphics screen has a Volumetric Clouds row on the High and Ultra tiers: Low is the look you tuned, and on your card Medium costs about 2.4 ms more and High about 6.5.</p><p><strong>And from today\u2019s scan.</strong> A second level-up offer turns clear of one still out instead of landing on it. Shots on the boss\u2019s pods no longer throw the hull\u2019s armour spark as well. The lance and ram wind-ups go quiet when the attack is cut off, so a boss killed mid-charge no longer sounds over the victory screen. An Attack Speed pick no longer delays the next volley, and the Effects slider reaches sounds already playing.",
+    lede: "<strong>It is built:</strong> <code>Builds/26_0928-1234_hitClip</code>, from commit <code>9c75963</code> plus the new hit sound, which is in your tree to commit, with the debug menu in (F8), so god mode and the skip to the boss are there if you want them. Play at least one run without them.</p><p><strong>It replaces this morning\u2019s build and the 25 September evening one, neither of them played,</strong> so everything those cards asked still stands and is carried over below. Nothing since 22 September has been played: the game a fifth slower, salvage, the more aggressive boss, the ten-second dash and Slow Mo, and the bigger ships on the 10.5 band with the lane at 19.72.</p><p><strong>Since that build.</strong> The frame cap is our own now, because Unity\u2019s stuttered; it only matters if you set one. Dynamic resolution steers by the GPU\u2019s own time. Gameplay sounds slow down under Slow Mo and hold under the pause menu. Moving the mouse over a menu button selects it. And the Graphics screen has a Volumetric Clouds row on the High and Ultra tiers: Low is the look you tuned, and on your card Medium costs about 2.4 ms more and High about 6.5.</p><p><strong>And from today\u2019s scan.</strong> A second level-up offer turns clear of one still out instead of landing on it. Shots on the boss\u2019s pods no longer throw the hull\u2019s armour spark as well. The lance and ram wind-ups go quiet when the attack is cut off, so a boss killed mid-charge no longer sounds over the victory screen. An Attack Speed pick no longer delays the next volley, and the Effects slider reaches sounds already playing.</p><p><strong>And the hit is new:</strong> the same metal strike as before with a force-field hum under it, about 4 dB fuller.</p><p><strong>How to answer, as you asked on 28 September:</strong> say only what felt wrong. Every item under \u2018Waiting on a real run\u2019 carries the answer it gets if you say nothing, and is ticked with it.",
     watch: [
       "Play from the start with no god mode. Is the game the right speed on the wider lane, and is the boss a threat for the right length of fight?",
       "Look at the ships. They are a quarter bigger, but the band grew too, so they read only a little bigger; say if you want them bigger still, which means a shorter band or a bigger scale.",
@@ -343,7 +343,9 @@
       "Press F3 and read the GPU line. It should say several milliseconds, not 0.0; dynamic resolution steers by it, and it has only been seen working in the editor.",
       "On the High or Ultra tier, flip the Volumetric Clouds row between Low, Medium and High. High costs about 4 ms more than Medium for about 1% of the picture; say if you can see it.",
       "Take two level-ups close together: the second offer should land clear of the first.",
-      "Listen to enemies dying close to you, move the mouse over the menus, and if a controller is handy, use it in the menus and to fly."
+      "Listen to enemies dying close to you, move the mouse over the menus, and if a controller is handy, use it in the menus and to fly.",
+      "Get hit and listen. It is the old strike with a force-field hum under it, and now the loudest thing in a fight; say if it is too much, or if you want the old one back.",
+      "Watch whether enemies get lost against the island. If they do, a subtle rim light is the fix."
     ]
   };
 
@@ -389,7 +391,10 @@
           effort: "10 min",
           why: [
             "<code>PlayerHit</code> is the anchor of the whole mix and it is the weakest clip in the set — measured over its loudest 300ms it is the quietest thing there. Because <code>volume</code> caps at 1, everything else had to come down to sit under it, which is why the game is now about 6dB quieter overall.",
-            "A clip with more in it would let the whole ladder come back up. BalanceSoundLevels says this itself: something that hits the ceiling before reaching the target wants a different clip, not more gain."
+            "A clip with more in it would let the whole ladder come back up. BalanceSoundLevels says this itself: something that hits the ceiling before reaching the target wants a different clip, not more gain.",
+            "<strong>Done on 28 September, and not quite as this item framed it.</strong> Measured again the same way, the old hit was not the quietest clip: its three strikes read -15.9 to -18.4 dB over their loudest 300 ms, where this item said -23.4, and the dash\u2019s -10.5 did come back. So it sat level with the two deaths. What it lacked was body: a 20 ms strike that fell 16 dB at once.",
+            "Nothing in the hidden libraries is both short and full. The force-field hums are 5.5 dB fuller but swell in over about 80 ms, and the other impacts are quieter still. So each of the three strikes now plays over the matching force field 9 dB down, mixed into <code>Balanced/</code> as <code>impactMetal_forceField_000</code> to <code>_002</code>. The strike is the same within 0.3 dB, the whole is about 4 dB fuller, and the volume stayed at 1, which puts a hit 4 to 5 dB over the deaths. 563 tests pass.",
+            "<strong>The rest of the mix did not come up.</strong> What limits it is Victory at 0.86, not the hit: 1.3 dB of room, too little to hear. If the new hit is too loud, 0.6 on <code>PlayerHit</code> puts it level with the old one, and the old strikes are still in <code>Balanced/</code> for a straight swap back. Your ears decide; it is a watch point at the top."
           ]
         },
         {
@@ -397,7 +402,8 @@
           title: "Decide on the 18 stale 2023 jam branches",
           effort: "5 min",
           why: [
-            "They’re dead, but they’re also the only record of who did what on the original five-person project. Keep or delete — either is fine, it just wants deciding once."
+            "They’re dead, but they’re also the only record of who did what on the original five-person project. Keep or delete — either is fine, it just wants deciding once.",
+            "<strong>Done on 28 September, at your word.</strong> There were 17, not 18. Each is a tag now, <code>archive/</code> and its old name, pushed to GitHub and checked to point at the branch\u2019s last commit before the branch was deleted there and on your machine. The history and every author stay. <code>arena-100x</code> and the September backup branch were left alone."
           ]
         },
         {
@@ -454,18 +460,6 @@
           ]
         },
         {
-          id: "enemy3-silhouette",
-          title: "Decide how to lift enemy contrast against the island",
-          effort: "2 min to decide",
-          why: [
-            "This item was about Enemy 3 alone. The measurement says that was the wrong target.",
-            "Measured on 10 September by rendering each frame twice — once with a type hidden — and diffing, which yields the object’s exact pixels and the true background behind them. Two earlier attempts that sampled a patch against a ring of background pixels gave <em>opposite</em> answers depending on the ring radius, and were thrown out rather than reported.",
-            "<strong>Enemy 3 and Enemy 2 measure the same.</strong> Weber contrast 0.072 against 0.070. Mean absolute contrast 0.228 against 0.206. 42% of Enemy 3’s footprint under 0.10 contrast against 41% of Enemy 2’s. Enemy 3 is not the outlier — every enemy sits at roughly the same low contrast, with about two fifths of its area effectively invisible against whatever is behind it.",
-            "Which is why the magenta accent was wrong twice over: aimed at one enemy when the problem is general, and changing hue when the shortfall is luminance. The levers that reach all of them at once are a rim light, a shared floor on base value, or an outline. Which one is your call — the last attempt was rejected on look, and that judgement still stands.",
-            "One thing that is <em>not</em> causing it: the new fog. At the denser setting 30% of enemy pixels fall under 0.10 contrast, against 39% at the old one. Denser fog helps slightly, by lifting the distant background away from dark foreground shapes."
-          ]
-        },
-        {
           id: "camera-framing",
           title: "Settle the camera: pick one of the seven presets",
           effort: "one run",
@@ -494,17 +488,6 @@
           ]
         },
         {
-          id: "fireflies-decide",
-          title: "Decide whether the fireflies stay",
-          effort: "5 min to decide",
-          why: [
-            "Built on 17 September and archived the same day at your call, so this is a decision rather than a job. <code>Assets/Prefabs/VFX/Fireflies.prefab</code> holds all of it; dragging it into the scene brings it back, and it finds the trees on its own.",
-            "What it is: one particle system for all seventy-three <code>arvore</code> meshes, placing every birth by hand so the swarm sits in the canopies rather than over the lava \u2014 no shape Shuriken has describes seventy-three canopies round a ring, and a box over the island would put half of them above the crater, where glowing motes read as embers.",
-            "Two numbers came out of tuning it. <strong>Brightness and colour trade off directly:</strong> at <code>(3.5, 5.5, 0.8)</code> the lit pixels measure hue 51\u201360 at saturation 0.44, and one step up at <code>(5.5, 7.5, 1.2)</code> saturation collapses to 0.04 and they read white \u2014 so presence past that point has to be bought with size. And <strong>what keeps them in the trees is the noise strength rather than the placement</strong>: at the strength they started with they sat 2.06 units from the nearest tree with 11% of them within a unit of any tree, against 0.57 and 90% now.",
-            "Seen in play on 17 September at four per tree: 290 alive before the first frame, holding 282 to 297 across a minute at about 95 fps, and no ghosting through TAAU. You set it to two afterwards. They have never been in a build, so a still is the only look you have had at them."
-          ]
-        },
-        {
           id: "salvage",
           title: "Pick a better way to heal",
           effort: "2 min to decide",
@@ -521,7 +504,8 @@
           effort: "2 min to decide",
           why: [
             "Found by the 26 September audit. <code>TorpedoSteerTests</code> now flies a torpedo at you on the numbers the game has today as well as on the 22 September ones, and today a dive to the floor escapes only if you start it 0.8 to 1.15 s before the torpedo arrives, where it was 0.4 to 1.15 s.",
-            "The cause is the deeper band, which gives the torpedo room to follow you down, not the bigger ships. The sidestep of 2 either way is unchanged. Keep it harder, or tune the torpedo back towards the old window? Nothing has been tuned yet, and a run will tell you whether it feels unfair."
+            "The cause is the deeper band, which gives the torpedo room to follow you down, not the bigger ships. The sidestep of 2 either way is unchanged. Keep it harder, or tune the torpedo back towards the old window? Nothing has been tuned yet, and a run will tell you whether it feels unfair.",
+            "<strong>Decided on 28 September: the torpedoes are fine.</strong> The narrower window stays, and nothing is tuned."
           ]
         }
       ]
@@ -762,7 +746,8 @@
             "It is not only the radius. The placer lays down <strong>fourteen</strong> point lights; the scene now has <strong>six</strong>, hand-tuned, one of them removed by you during the rebake. Running the tool today would discard that set and rebuild the lava lighting from scratch, which is a much bigger action than its menu item suggests.",
             "Two honest ways out: mark the placer as superseded in its own doc comment so nobody reaches for it expecting a tweak, or treat it as the source of truth, bring its constants in line with the six lights that survived, and re-run it deliberately. Either is fine. Leaving it silent is the one option that eventually costs someone an afternoon.",
             "<strong>Half of this closed on 17 September, from an unexpected direction.</strong> The placer\u2019s intensity field never meant lumens. It went through <code>HDAdditionalLightData.SetIntensity</code>, which converts out of whatever unit the light is currently in, and a <code>Light</code> added four lines earlier has not initialised yet \u2014 so it was still in a point light\u2019s default candela, and the value was divided by 4\u03c0 on the way in. Every Lava Light in the scene reads 238.732, which is 3000/4\u03c0 to three decimals: placed when the field said 3000, and silently given eight per cent of it. The tooltip asserted the opposite, which was true of an older HDRP and is now backwards.",
-            "It sets <code>Light.lightUnit</code> and <code>Light.intensity</code> directly now, so the number means what it says, and the default became 238.7 at your call \u2014 re-running reproduces the arena you tuned rather than one ten times brighter. <strong>The fourteen-lights-against-six question is untouched</strong>, and is what is left of this item."
+            "It sets <code>Light.lightUnit</code> and <code>Light.intensity</code> directly now, so the number means what it says, and the default became 238.7 at your call \u2014 re-running reproduces the arena you tuned rather than one ten times brighter. <strong>The fourteen-lights-against-six question is untouched</strong>, and is what is left of this item.",
+            "<strong>Settled before it was asked.</strong> The placer was deleted on 24 September (commit <code>073b441</code>) with the other tools that overwrote tuned data, so the six lights you tuned by hand are the only truth left. Git history keeps the tool."
           ]
         },
         {
@@ -771,17 +756,8 @@
           effort: "20 min",
           why: [
             "The one pooling defect the soak could not reach. <code>EnemyMovement</code> restores <code>authoredDirection</code> in <code>OnEnable</code>, and that is the fix; what is unverified is that the restore actually holds, because the chase overwrites direction from bearings on the very next frame. Polling from outside can never see the difference.",
-            "It wants one temporary line recording <code>leftOrRight</code> inside <code>OnEnable</code> against the prefab’s authored value, a few minutes of run, and then taking the line back out. Small, and it closes the last third of a question the rest of which is now answered."
-          ]
-        },
-        {
-          id: "shot-bloom",
-          title: "Check whether enemy shots read against the lava",
-          effort: "20 min",
-          why: [
-            "A low-confidence observation from the 10 September run, written down so it is not lost. By render diff, an enemy projectile’s visible footprint is <strong>91% bloom halo</strong>, and that halo averages the same luminance as the background behind it. The solid core is the other 9% and peaks at 3.65× background — bright, but small.",
-            "Against the lava that is the pod problem in miniature: a warm glow on a warm glowing background. One frame and a handful of bullets is nowhere near enough to call it, which is why this is a measurement to repeat rather than a finding to act on. If it holds it lands next to the pod fix, because it has the same cause.",
-            "The pods passed in play on 11 September, which makes this less likely to matter. It is the same cause, and the bigger target turned out fine."
+            "It wants one temporary line recording <code>leftOrRight</code> inside <code>OnEnable</code> against the prefab’s authored value, a few minutes of run, and then taking the line back out. Small, and it closes the last third of a question the rest of which is now answered.",
+            "<strong>Done on 28 September.</strong> The temporary lines went in, the bot flew about four minutes of waves, and the lines came out again. 418 spawns of three enemy kinds, 302 of them a pooled enemy coming back, and 154 of those had last been heading the other way. Every one came back on its prefab\u2019s direction and still had it at its first Update, one frame later, where the chase takes over. The fix holds."
           ]
         },
         {
@@ -812,15 +788,6 @@
             "<code>Docs/rebuild-lessons-codex.html</code> still teaches <code>OrbitRadius</code> as 137.2 in two places, and its bearing calculator computes from that same literal in the script — so the page hands the reader a linear speed ten times the game’s.",
             "Every other document was converted when the world came back to 1×. This one was written by the other agent, which said it would fix its own page, so it may already be handled — it wants confirming, or doing.",
             "<strong>Done on 25 September; it had not been handled.</strong> The orbit chapter teaches 13.72 for <code>OrbitRadius</code> and 18.72 for the lane, and the calculator works from the lane, so 80\u00b0 a second is 26.1 units a second rather than 191.6. The quoted code stays the 8 September text the page\u2019s manifest pins, with a note that its 75-unit camera comes from the ten-times world, and the lance paragraph says it is a laser now."
-          ]
-        },
-        {
-          id: "loudness-metric",
-          title: "Match clips on windowed loudness, not gated RMS",
-          effort: "45 min",
-          why: [
-            "<code>BalanceSoundLevels</code> normalises every clip to the same gated RMS, and that is not what a listener hears: two clips both balanced to -16 dBFS measured 13dB apart over their loudest 300ms. That gap is why the mix drifted so far.",
-            "<code>IntentDb</code> is currently carrying both the design judgement it is for and a correction for that gap, which is written down as the compromise it is. Fixing the metric would let it go back to being purely about how often a sound fires — but it rewrites every file in <code>Balanced/</code>, so it wants doing deliberately rather than in passing."
           ]
         },
         {
@@ -973,7 +940,8 @@
           effort: "one run",
           why: [
             "From the first bot run that could see every enemy, on 22 September: 7 hits in its first eight minutes, then 14 between eight and nine and 22 between nine and ten, and it met the boss with 11 HP. The one half-blind run that lived that long had taken 3 and 8 over the same two minutes.",
-            "A bot is not a verdict: it reacts a quarter of a second late, and it ranks upgrades in a fixed order against how far away they are rather than by what its run needs. But a jump from about one hit a minute to twenty in the space of two minutes is the thing to watch for in your run. If you feel it too, the lever is the waves’ own ramp in <code>MainRun</code>, not the boss."
+            "A bot is not a verdict: it reacts a quarter of a second late, and it ranks upgrades in a fixed order against how far away they are rather than by what its run needs. But a jump from about one hit a minute to twenty in the space of two minutes is the thing to watch for in your run. If you feel it too, the lever is the waves’ own ramp in <code>MainRun</code>, not the boss.",
+            "<strong>If you do not flag it:</strong> the waves stay as they are."
           ]
         },
         {
@@ -984,7 +952,8 @@
             "The boss was tuned against a ship at 7, and on 22 September you went to 5.6 while its rounds kept their speeds. Worked out, not played:",
             "<strong>The ram.</strong> A dash covers about 6 units, less than the hull, which is 8.81 wide since the boss grew on 25 September. That turned out not to matter: the hull hurts only on first touch, so a dash that is up as it arrives carries you through whatever is left \u2014 measured with the bot, twice with the ship still inside when the dash ran out. Since the evening of 25 September a dash comes only every ten seconds, so it answers about two rams in five; see \u2018Feel the ten-second dash and Slow Mo\u2019.",
             "<strong>The rest.</strong> The lance’s 1.2 s charge is about two thirds of a crossing of the 10.5 band where it was one; leaving the beam takes only half a unit, so that should hold. A vertical dash carries 3.6 of the 4.4 to 4.7 between the boss’s banks where it carried one. The torpedoes are half again your speed; the tests say a runner is never caught and a timed dive escapes.",
-            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. The build at the top, <code>Builds/26_0928-1136_scanFixes</code>, has all of it."
+            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. The build at the top, <code>Builds/26_0928-1234_hitClip</code>, has all of it.",
+            "<strong>If you do not flag it:</strong> the boss stays as it is against the slower ship."
           ]
         },
         {
@@ -994,7 +963,8 @@
           why: [
             "One number: <code>Salvage Seconds At Half Health</code> on the <code>PickupSpawner</code>, 12 now. That is up to 5 HP a minute at half health if you take every piece, against about 2 a minute at best from the old drop and the 4 to 6 hits a minute the bot took before the boss. 18 would give about 3 a minute.",
             "Too generous shows as a run where you never drop below three quarters; too stingy as one where there is never a green piece around when you need it. I can run the bot through a full run first to measure it, since its report says what it healed, but that needs play mode, so say go.",
-            "<strong>Two bot runs since.</strong> The half-blind one healed 8 against 38 hits and died at level 11; going by its health, the clock had a piece ready about 14 times, so it took a bit over half. The one that sees everything healed 5 against 44, most of those hits in the last two minutes of waves, faster than any healing pace could answer. Neither says 12 is too generous; your run decides."
+            "<strong>Two bot runs since.</strong> The half-blind one healed 8 against 38 hits and died at level 11; going by its health, the clock had a piece ready about 14 times, so it took a bit over half. The one that sees everything healed 5 against 44, most of those hits in the last two minutes of waves, faster than any healing pace could answer. Neither says 12 is too generous; your run decides.",
+            "<strong>If you do not flag it:</strong> one piece every 12 s at half health stays."
           ]
         },
         {
@@ -1005,7 +975,8 @@
             "The half-size ship narrowed the band where a boss round can touch you from about ±0.33 to ±0.21, so a round from the boss’s outermost gun now takes about 0.36 s to become dangerous instead of 0.275.",
             "If the fight feels soft in a run with god mode off, <code>RoundLaneResponse</code> 6.6 restores the old timing. It is one number, but only a run says whether it is needed.",
             "Live again. For one build on 21 September the discs and most bullets were not eased onto the lane at all; the easing is back at 5, so this question is back to what it was.",
-            "Since 25 September your box is a quarter bigger, which widens that band to about ±0.23, and the boss\u2019s guns spread a quarter wider round a lane at 19.72. Worked out, the two roughly cancel: about 0.38 s, against about 0.37 the day before."
+            "Since 25 September your box is a quarter bigger, which widens that band to about ±0.23, and the boss\u2019s guns spread a quarter wider round a lane at 19.72. Worked out, the two roughly cancel: about 0.38 s, against about 0.37 the day before.",
+            "<strong>If you do not flag it:</strong> the easing stays at 5."
           ]
         },
         {
@@ -1014,7 +985,8 @@
           effort: "one build + a capture",
           why: [
             "Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. The seven lava lights lost their shadows entirely on 10 September, which takes more out of the same budget.",
-            "But that measurement is submitted work from a paused editor frame with GPU timing unavailable. It proves the mechanism was large; it doesn’t prove it was the spike. A capture from a real run closes it."
+            "But that measurement is submitted work from a paused editor frame with GPU timing unavailable. It proves the mechanism was large; it doesn’t prove it was the spike. A capture from a real run closes it.",
+            "<strong>If you do not flag it:</strong> closed, unless you see frame spikes on F3 in this build."
           ]
         },
         {
@@ -1023,7 +995,8 @@
           effort: "one run",
           why: [
             "Since 24 September experience past a level\u2019s threshold carries into the next level, where it used to be thrown away, and a reward big enough to cover two levels pays both (commit <code>073b441</code>). Checked in play with god mode on: real kills paid the scaled reward to the bar, the floating number and the run\u2019s total alike, and a boss-sized reward crossed two thresholds and kept what was left.",
-            "What that cannot say is whether upgrades now come noticeably sooner. If they come too fast, the level curve is the dial, in the Player Inspector since 24 September."
+            "What that cannot say is whether upgrades now come noticeably sooner. If they come too fast, the level curve is the dial, in the Player Inspector since 24 September.",
+            "<strong>If you do not flag it:</strong> carried experience stays."
           ]
         },
         {
@@ -1032,7 +1005,8 @@
           effort: "one run",
           why: [
             "The audio listener moved from the camera to the ship on 24 September, with the whole-band camera. Four sounds are partly positional, and an enemy dying three units away now plays at about 0.47 of full, against 0.34 from the old camera 5 out and 0.28 from 10 out. The boss\u2019s charges and shot barely move, since 40% of each was never positional.",
-            "Worked out, not heard. If nearby deaths crowd the mix, <code>EnemyDeath</code>\u2019s spatial blend of 0.8 is the dial."
+            "Worked out, not heard. If nearby deaths crowd the mix, <code>EnemyDeath</code>\u2019s spatial blend of 0.8 is the dial.",
+            "<strong>If you do not flag it:</strong> the mix stays heard from the ship, with <code>EnemyDeath</code> at 0.8."
           ]
         },
         {
@@ -1042,7 +1016,8 @@
           why: [
             "Every menu works from the keys and a pad since 25 September, tested in both scenes through the real input path with a virtual pad: Start paused onto Resume, the d-pad moved, A opened Options, B came back to the button you left, and a second B resumed. That test also caught a pause opening with Quit selected under a resting mouse, one press of A from leaving the game, and it is fixed.",
             "What a virtual pad cannot say is how it feels in the hand: the stick\u2019s repeat speed, and whether B lands where you expect.",
-            "<strong>And fly with it.</strong> Since 25 September a stick pushed into a corner flies both axes at full speed, as two held keys do. Before, the stick\u2019s round gate held a corner to about 0.71 on each axis, which is the slow diagonal you felt. A virtual pad now reaches the ship as 1 and 1 in a corner; it is in <code>Builds/26_0925-2101_bigShips</code>."
+            "<strong>And fly with it.</strong> Since 25 September a stick pushed into a corner flies both axes at full speed, as two held keys do. Before, the stick\u2019s round gate held a corner to about 0.71 on each axis, which is the slow diagonal you felt. A virtual pad now reaches the ship as 1 and 1 in a corner; it is in <code>Builds/26_0925-2101_bigShips</code>.",
+            "<strong>If you do not flag it:</strong> ticked once a pad has felt right in your hand, in the menus and flying. If none was handy, it stays open."
           ]
         },
         {
@@ -1054,7 +1029,8 @@
             "<strong>You also saw the lance fire on the wrong side, and it was.</strong> The beam took its direction once, on the fight\u2019s first lance, and kept it; the boss turns round whenever you cross it, so after a turn every lance left the prow backwards, across its own hull. That had been true since 8 September. It reads the direction on every shot now, and <code>BossLanceBeamTests</code> checks it.",
             "<strong>The playtest bot flew it twice, without god mode.</strong> With the balanced boss kit it stayed just ahead of the boss, took two hits in 136 s and had the prow and crown down in 43, then sat on the floor under the keel pod, which is its own height choice. At base speed and level 1 it dashed 28 times to stay 24\u201350\u00b0 ahead and took none in 105 s. Of 41 lances, the first before a turn and the rest after it, every one left the front of the boss the way it was going.",
             "<strong>Then a turn cooldown, at your call.</strong> The boss turns round once you are 20\u00b0 past it, and faster than you that meant a ram passing through you, turning and coming straight back, every half second to a second and a half. The bot, flown into the second act with the kit, took 24 hits and died in 21 s that way. With 3 s between turns the boss carries on 80 to 130\u00b0 past before coming back, and the same setup took 15 hits in 62 s and reached the Scuttle. It is <code>EnemyMovement</code>\u2019s Turn Cooldown Seconds on the boss; every other enemy has 0.",
-            "A bot sees more than you do and acts on it, so that is a reading, not a verdict. If it is too much or too little, each is one number on the Boss prefab: <code>EnemyMovement</code>\u2019s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>. It is in <code>Builds/26_0925-2101_bigShips</code>."
+            "A bot sees more than you do and acts on it, so that is a reading, not a verdict. If it is too much or too little, each is one number on the Boss prefab: <code>EnemyMovement</code>\u2019s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>. It is in <code>Builds/26_0925-2101_bigShips</code>.",
+            "<strong>If you do not flag it:</strong> 20\u00b0 a second and the 3 s turn cooldown stay."
           ]
         },
         {
@@ -1066,7 +1042,8 @@
             "<strong>Piercing Rounds is gone, and Slow Mo has its place</strong>, from level 8. E, or Y or the left trigger on a pad, slows the whole game to 0.4 for three real seconds, once every 30 s; the next two picks, at levels 14 and 20, make that 24 and then 18. Everything slows, your ship with it, so it buys time to see and steer rather than speed. A bar joins the dash and the deflector above the hull bar, hidden until the pick: it drains over a slowdown and refills over the wait. The pick\u2019s banner names the keys.",
             "<strong>Flown by the bot, not yet by you.</strong> From full health in the second act, with the balanced boss kit and Slow Mo, it took 19 hits in 60.6 s, where the one-second dash had taken 15 in 62, and killed the boss with 7 health left. It dashed 5 times, 11 to 15 s apart, and slowed twice, 30.4 s apart, each time with every route on the stick a predicted hit and no dash to take; each slowdown lasted 3.01 s of real time. A run that began the act on 13 health died in the Scuttle.",
             "If the dash is too rare, it is <code>PlayerDash</code>\u2019s cooldown on the player, and Dash Recovery\u2019s step and floor on <code>Player</code>. Slow Mo\u2019s three waits are on <code>Player</code> too, and its length and speed on <code>PlayerSlowMo</code>. It is in <code>Builds/26_0925-2101_bigShips</code>.",
-            "<strong>Five seconds since that evening</strong>, set by you on <code>PlayerSlowMo</code>, and a change to its length in play now applies at once, even to a slowdown already running: set to 5, one lasted 4.97 s, and one cut to 1.5 part-way through ended at 1.49."
+            "<strong>Five seconds since that evening</strong>, set by you on <code>PlayerSlowMo</code>, and a change to its length in play now applies at once, even to a slowdown already running: set to 5, one lasted 4.97 s, and one cut to 1.5 part-way through ended at 1.49.",
+            "<strong>If you do not flag it:</strong> the ten-second dash and five seconds of Slow Mo at 0.4, once every 30, stay."
           ]
         },
         {
@@ -1076,7 +1053,8 @@
           why: [
             "Everything is a quarter bigger since 25 September, but the band grew with it, and a whole-band camera draws a ship at its size against the band, so on screen they read only about 5% bigger than that morning. If they should look bigger still, a shorter band or a bigger scale are the dials; the boss needs a band of about 9.6.",
             "Two side effects to feel for. The curtain\u2019s rows spread with the boss and its discs did not, so every gap is about 0.3 wider; discs 0.875 across would put it back. And the lane you moved out to 19.72 turns the same 5.6 u/s into 16.3\u00b0 a second, so two Move Speed picks no longer outrun the boss at 20; three do.",
-            "It is in <code>Builds/26_0925-2101_bigShips</code>."
+            "It is in <code>Builds/26_0925-2101_bigShips</code>.",
+            "<strong>If you do not flag it:</strong> the size stays."
           ]
         },
         {
@@ -1085,7 +1063,22 @@
           effort: "one run",
           why: [
             "Both were timed in the editor, not in a build. Dynamic resolution now steers by the GPU time the player reports, and in the editor that read 0.04 ms for the first minute of one run before settling at 12 to 14, so readings under half a millisecond are ignored. F3\u2019s GPU line in the build at the top should read several milliseconds; 0.0 there means it is steering on the fallback.",
-            "If you use a frame cap, watch whether it paces evenly. Without FreeSync a cap with VSync off still tears, and VSync with a cap under the refresh rate repeats frames; that part the limiter cannot fix."
+            "If you use a frame cap, watch whether it paces evenly. Without FreeSync a cap with VSync off still tears, and VSync with a cap under the refresh rate repeats frames; that part the limiter cannot fix.",
+            "<strong>If you do not flag it:</strong> ticked if F3\u2019s GPU line read several milliseconds. If it said 0.0, tell me."
+          ]
+        },
+        {
+          id: "enemy3-silhouette",
+          title: "See whether enemies get lost against the island",
+          effort: "one run",
+          why: [
+            "This item was about Enemy 3 alone. The measurement says that was the wrong target.",
+            "Measured on 10 September by rendering each frame twice — once with a type hidden — and diffing, which yields the object’s exact pixels and the true background behind them. Two earlier attempts that sampled a patch against a ring of background pixels gave <em>opposite</em> answers depending on the ring radius, and were thrown out rather than reported.",
+            "<strong>Enemy 3 and Enemy 2 measure the same.</strong> Weber contrast 0.072 against 0.070. Mean absolute contrast 0.228 against 0.206. 42% of Enemy 3’s footprint under 0.10 contrast against 41% of Enemy 2’s. Enemy 3 is not the outlier — every enemy sits at roughly the same low contrast, with about two fifths of its area effectively invisible against whatever is behind it.",
+            "Which is why the magenta accent was wrong twice over: aimed at one enemy when the problem is general, and changing hue when the shortfall is luminance. The levers that reach all of them at once are a rim light, a shared floor on base value, or an outline. Which one is your call — the last attempt was rejected on look, and that judgement still stands.",
+            "One thing that is <em>not</em> causing it: the new fog. At the denser setting 30% of enemy pixels fall under 0.10 contrast, against 39% at the old one. Denser fog helps slightly, by lifting the distant background away from dark foreground shapes.",
+            "<strong>Decided on 28 September: nothing until your run.</strong> If enemies get lost against the island, a subtle rim light, since what they lack is brightness, not colour.",
+            "<strong>If you do not flag it:</strong> nothing is added."
           ]
         },
         {
@@ -1113,6 +1106,9 @@
     ["The wreckage plates stay dark", "Asked on 7 September and answered: no glow for now. They carry the boss’s hull material, which is nearly black, so one can vanish against the dark island — worth revisiting if the boss run shows it happening, but it is a deliberate no rather than an open question."],
     ["Replacing an offer that is still out", "Levelling again while an offer is still out puts a second set on the ring rather than replacing the first — deliberate, because replacing it would delete an upgrade you earned. Since 28 September the new set turns clear of the ones already out, so the two no longer land on top of each other."],
     ["The cloud bank’s drift, switched off", "Never tried. The bank was taken out of the scene on 5 September and deleted on 28 September, so there is nothing left to slow."],
+    ["The fireflies", "Built and archived on 17 September; on 28 September you left them out for good. Assets/Prefabs/VFX/Fireflies.prefab keeps all of it, and dragging it into the scene brings them back."],
+    ["Measuring enemy shots against the lava", "A low-confidence reading from one frame on 10 September. Dropped on 28 September: the pods, a bigger target with the same cause, passed in play, and no shot has gone missing in a run."],
+    ["Matching clips on windowed loudness", "Parked on 28 September. It would rewrite every file in Balanced/, and the mix is stable. Worth doing only if the mix drifts again; the new hit changed one sound and left the rest where they were."],
     ["Salvage by a chance per kill", "The obvious way to pace it, passed over on 22 September for a clock. The bot’s two runs killed about two enemies a second and about one, so odds per kill would have paid one player twice what they paid the other for the same wounds."],
     ["Max Health is four ×5 instead of one ×20", "Same ceiling for a player who takes all four, lower for one who takes two. Whether that reads as a choice or a nerf is a question only playing answers."],
     ["Ray-traced rungs beyond reflections are unvalidated", "RT Reflections was confirmed in a build on DXR hardware. The rest are reachable and deliberately unused."],

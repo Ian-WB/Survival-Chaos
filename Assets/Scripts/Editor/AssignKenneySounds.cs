@@ -67,6 +67,9 @@ namespace SurvivalChaos.EditorTools
             new Mapping("BossShot", SciFi, "large laser - heavier than the player's",
                 "laserLarge_000", "laserLarge_001", "laserLarge_002"),
 
+            // Superseded on 28 September 2026: PlayerHit plays these strikes
+            // layered over forceField_000 to _002, mixed into Balanced by hand,
+            // so a re-run puts the thin strikes back. See BalanceSoundLevels.
             new Mapping("PlayerHit", SciFi, "metal impact - something striking the ship",
                 "impactMetal_000", "impactMetal_001", "impactMetal_002"),
 

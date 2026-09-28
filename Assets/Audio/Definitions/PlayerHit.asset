@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: PlayerHit
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 984586c4626cd3141a911a5890d3003a, type: 3}
-  - {fileID: 8300000, guid: 2f6d9255abe37fa469d81de50e85c44a, type: 3}
-  - {fileID: 8300000, guid: b453fa097dc7ec445a6977af3bc32c93, type: 3}
+  - {fileID: 8300000, guid: abf516b86771b1b4fbc1711679a868a9, type: 3}
+  - {fileID: 8300000, guid: 6929071108558cb4b9b2fd1d68f5272d, type: 3}
+  - {fileID: 8300000, guid: 3b001bd8d592b3941b7d4b29a32c9215, type: 3}
   channel: 2
   volume: 1
   pitchRange: {x: 0.96, y: 1.04}
