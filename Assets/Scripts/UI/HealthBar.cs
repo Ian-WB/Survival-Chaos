@@ -40,8 +40,8 @@ namespace SurvivalChaos
         /// close together at the end of a run, and a second one starting while the
         /// first is still running would otherwise record the thrown position as
         /// the resting one - and the bar would walk out of its corner a few pixels
-        /// per hit with nothing to put it back. HitFlash reads its resting colour
-        /// from the shared material for the same reason.
+        /// per hit with nothing to put it back. HitFlash hands the hull back to
+        /// its shared material, rather than a remembered colour, for the same reason.
         /// </summary>
         private Vector2 resting;
 

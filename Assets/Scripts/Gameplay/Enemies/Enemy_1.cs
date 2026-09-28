@@ -1,27 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace SurvivalChaos
 {
-    public class Enemy_1 : MonoBehaviour
+    /// <summary>
+    /// The enemy that shoots: the Enemy and Enemy 1 prefabs. Health, hits, death
+    /// and the debug menu's exits are shared with the other enemies in
+    /// <see cref="EnemyBase"/>; this adds the guns.
+    /// </summary>
+    public class Enemy_1 : EnemyBase
     {
         [SerializeField]
         private GameObject childObject;
-        [SerializeField]
-        private GameObject enemyHit;
-        [SerializeField]
-        private GameObject explosion;
-
-        [SerializeField]
-        [Tooltip("Stats for this enemy. Falls back to the health value below when unset.")]
-        private EnemyDefinition definition;
-
-        [SerializeField]
-        private int healthPoints = 1;
-
-        [SerializeField]
-        private GameObject EnemyShip;
 
         [Header("Shoot")]
         [SerializeField]
@@ -45,79 +34,32 @@ namespace SurvivalChaos
         [Range(0f, 10f)]
         private float spawnDelay = 1;
 
-        private HealthState health;
         private EnemyMovement movement;
-        private HitFlash flash;
 
-        private void OnTriggerEnter(Collider other)
+        protected override int FallbackReward => 15;
+
+        protected override void Awake()
         {
-            if (other.CompareTag("Shoot"))
-            {
-                Vector3 impact = other.transform.position;
+            base.Awake();
 
-                // Spends the round. One already spent on another enemy in this
-                // physics step is not a second hit.
-                if (!ShootScript.Land(other))
-                {
-                    return;
-                }
-
-                // Death effects and the reward now fire here rather than from
-                // Update(), which only ever ran because Destroy is deferred.
-                //
-                // One effect per outcome, matching Enemy.cs. This used to play the
-                // spark on every hit including the fatal one, so a kill fired both
-                // and the two outcomes read as the same event.
-                if (health.TakeDamage(1))
-                {
-                    ObjectPool.Spawn(explosion, transform.position, transform.rotation);
-                    Death();
-                    ObjectPool.Despawn(gameObject);
-                }
-                else
-                {
-                    if (flash != null)
-                    {
-                        flash.Strike();
-                    }
-
-                    if (enemyHit != null)
-                    {
-                        ObjectPool.Spawn(enemyHit, impact, transform.rotation);
-                    }
-                }
-            }
-        }
-
-        private void Awake()
-        {
             // Once is enough: the reference is to a child of this same prefab, so it
             // survives a trip through the pool.
-            if (EnemyShip != null)
+            if (Ship != null)
             {
-                EnemyShip.TryGetComponent(out movement);
+                Ship.TryGetComponent(out movement);
             }
-
-            // On this object rather than on EnemyShip, so it gathers every
-            // renderer under the prefab rather than only the ship's own.
-            flash = HitFlash.On(gameObject);
         }
 
         /// <summary>
-        /// Everything that has to be true at the start of a life, rather than at the
-        /// start of the object's existence.
-        ///
-        /// Enemies are pooled, so Awake runs once and OnEnable runs on every spawn.
-        /// Health left in Awake would come back at zero on a reused enemy - it died
-        /// there - and it would fall to the next bullet whatever its definition says.
+        /// Arms the guns at the start of every life, after the shared reset.
         ///
         /// The firing invoke is cancelled before it is armed because a repeat left
         /// over from the previous life would stack: two invokes, then three, and an
         /// enemy that fires faster the more times it has been recycled.
         /// </summary>
-        private void OnEnable()
+        protected override void OnEnable()
         {
-            health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
+            base.OnEnable();
 
             CancelInvoke(nameof(Shoot));
             InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
@@ -151,75 +93,6 @@ namespace SurvivalChaos
 
             ObjectPool.Spawn(bullet, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
             ObjectPool.Spawn(bullet, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
-        }
-
-        /// <summary>
-        /// Kills this enemy outright, for the debug menu. The same exit as a
-        /// fatal shot - see Enemy.Kill.
-        ///
-        /// This type had neither this nor DebugDespawn, so Clear Arena, which
-        /// only looked for Enemy, left both of the ships that shoot on the ring
-        /// (scan of 28 September 2026).
-        /// </summary>
-        public void Kill()
-        {
-            if (health == null || health.IsDead)
-            {
-                return;
-            }
-
-            health.TakeDamage(health.Current);
-            ObjectPool.Spawn(explosion, transform.position, transform.rotation);
-            Death();
-            ObjectPool.Despawn(gameObject);
-        }
-
-#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
-        /// <summary>Returns a live enemy to its pool without XP, kill credit or effects.</summary>
-        public void DebugDespawn()
-        {
-            if (health != null && !health.IsDead)
-            {
-                health.TakeDamage(health.Current);
-                ObjectPool.Despawn(gameObject);
-            }
-        }
-#endif
-
-        private void Death()
-        {
-            int reward = definition != null ? definition.ExperienceReward : 15;
-
-            // Shown and totalled by the player, which scales it - see Enemy.Death.
-            if (EXP.Instance != null)
-            {
-                EXP.Instance.AddEXP(reward, transform.position);
-            }
-
-            RunStats.RecordKill();
-            PickupSpawner.ReportWreck(transform.position);
-
-            PlayDeathSound();
-        }
-
-        /// <summary>
-        /// This enemy's own death sound if it has one, otherwise the shared one.
-        ///
-        /// Matches Enemy.PlayDeathSound. This type had no death sound at all, which
-        /// also meant EnemyDefinition.DeathSound was only ever read on the other
-        /// enemy path - authoring one here looked wired and produced silence.
-        ///
-        /// Positional, because enemies die all around the ring and where a kill
-        /// happened is information the player can use.
-        /// </summary>
-        private void PlayDeathSound()
-        {
-            GameSounds sounds = GameSounds.Instance;
-            SoundDefinition sound = definition != null && definition.DeathSound != null
-                ? definition.DeathSound
-                : (sounds != null ? sounds.EnemyDeath : null);
-
-            GameSounds.PlayAt(sound, transform.position);
         }
     }
 }

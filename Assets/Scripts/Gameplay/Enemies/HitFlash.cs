@@ -22,6 +22,12 @@ namespace SurvivalChaos
     /// PickupLabelBoard documents paying for at the one place it cannot avoid it.
     /// Pickup.Tint takes the same route for the same reason.
     ///
+    /// The block is on only while the flash is. A renderer carrying one drops
+    /// out of the SRP Batcher onto the slower per-object path, and this used to
+    /// leave one on every hull for its whole life, writing the resting colour
+    /// back instead of taking the block away. Every enemy, the boss, its pods
+    /// and its wreckage paid for a 0.06 s flash on every frame they were drawn.
+    ///
     /// Added in code rather than authored on the prefabs, so nothing has to be
     /// re-wired on five enemy prefabs and a boss for the feature to exist.
     /// ObjectPool.MotionReset reaches for the same get-or-add.
@@ -98,7 +104,6 @@ namespace SurvivalChaos
         /// </summary>
         private int[] slots;
 
-        private Color[] resting;
         private MaterialPropertyBlock block;
         private Coroutine running;
 
@@ -118,7 +123,6 @@ namespace SurvivalChaos
         {
             var found = new System.Collections.Generic.List<Renderer>();
             var index = new System.Collections.Generic.List<int>();
-            var rest = new System.Collections.Generic.List<Color>();
 
             foreach (Renderer candidate in GetComponentsInChildren<Renderer>(includeInactive: true))
             {
@@ -146,18 +150,11 @@ namespace SurvivalChaos
 
                     found.Add(candidate);
                     index.Add(slot);
-
-                    // What to put back afterwards, read from the shared material
-                    // rather than remembered from before the flash - a second hit
-                    // landing inside the first flash would otherwise record the lit
-                    // colour as the resting one and leave the enemy glowing forever.
-                    rest.Add(material.GetColor(EmissiveColor));
                 }
             }
 
             targets = found.ToArray();
             slots = index.ToArray();
-            resting = rest.ToArray();
         }
 
         /// <summary>
@@ -221,8 +218,18 @@ namespace SurvivalChaos
                     continue;
                 }
 
+                // Off means no block at all, not one holding the resting colour:
+                // the material already has that, and the renderer goes back to
+                // the SRP Batcher. It also means a second hit landing inside the
+                // first flash cannot leave the lit colour behind as the resting one.
+                if (!lit)
+                {
+                    target.SetPropertyBlock(null, slots[i]);
+                    continue;
+                }
+
                 target.GetPropertyBlock(block, slots[i]);
-                block.SetColor(EmissiveColor, lit ? color : resting[i]);
+                block.SetColor(EmissiveColor, color);
                 target.SetPropertyBlock(block, slots[i]);
             }
         }

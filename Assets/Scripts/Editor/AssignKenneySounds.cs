@@ -40,6 +40,7 @@ namespace SurvivalChaos.EditorTools
         private const string DefinitionFolder = "Assets/Audio/Definitions";
         private const string SciFi = "Assets/Audio/SFX/kenney_sci-fi-sounds";
         private const string Interface = "Assets/Audio/SFX/kenney_interface-sounds";
+        private const string Balanced = "Assets/Audio/SFX/Balanced";
 
         private readonly struct Mapping
         {
@@ -67,11 +68,12 @@ namespace SurvivalChaos.EditorTools
             new Mapping("BossShot", SciFi, "large laser - heavier than the player's",
                 "laserLarge_000", "laserLarge_001", "laserLarge_002"),
 
-            // Superseded on 28 September 2026: PlayerHit plays these strikes
-            // layered over forceField_000 to _002, mixed into Balanced by hand,
-            // so a re-run puts the thin strikes back. See BalanceSoundLevels.
-            new Mapping("PlayerHit", SciFi, "metal impact - something striking the ship",
-                "impactMetal_000", "impactMetal_001", "impactMetal_002"),
+            // Not from the pack since 28 September 2026. Each clip is the pack's
+            // impactMetal strike over the matching forceField 9 dB down, mixed
+            // by hand and already balanced, so this points at the mix where it
+            // lives and a re-run leaves the hit alone. See BalanceSoundLevels.
+            new Mapping("PlayerHit", Balanced, "metal impact over a force-field hum - something striking the ship",
+                "impactMetal_forceField_000", "impactMetal_forceField_001", "impactMetal_forceField_002"),
 
             new Mapping("EnemyDeath", SciFi, "crunchy explosion - happens dozens of times a run",
                 "explosionCrunch_000", "explosionCrunch_001", "explosionCrunch_002", "explosionCrunch_003"),

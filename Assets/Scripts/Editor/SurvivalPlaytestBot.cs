@@ -423,8 +423,7 @@ namespace SurvivalChaos.EditorTools
                 Component owner = c.GetComponentInParent<BossWeakPoint>();
                 if (owner == null) owner = c.GetComponentInParent<BossEmitter>();
                 if (owner == null) owner = c.GetComponentInParent<BossWreckage>();
-                if (owner == null) owner = c.GetComponentInParent<Enemy>();
-                if (owner == null) owner = c.GetComponentInParent<Enemy_1>();
+                if (owner == null) owner = c.GetComponentInParent<EnemyBase>();
                 return owner;
             }
             private Vector3 At(float angle, float radius, float y)
@@ -475,14 +474,12 @@ namespace SurvivalChaos.EditorTools
                 var seen = new HashSet<Component>();
                 foreach (var shot in ShootScript.Live)
                     if (shot != null && shot.isActiveAndEnabled && shot.CompareTag("enemy_Shoot")) Add(shot, Kind.Threat, 0, shot.Volley, snapshot, seen);
-                foreach (var enemy in Object.FindObjectsByType<Enemy>(FindObjectsInactive.Exclude))
-                    if (enemy.GetComponent<BossEmitter>() == null) Add(enemy, Kind.Target, 0, 0, snapshot, seen);
-                // The two shooting kinds, Enemy and Enemy 1, carry Enemy_1, which is not
-                // an Enemy. Until 22 Sep the pilot never saw either ship, only its rounds
-                // once fired, so it neither aimed at them, flew round them, nor watched
+                // Both kinds through their shared base. Until 22 Sep the pilot looked
+                // for Enemy only and never saw the two shooting ships, which carry
+                // Enemy_1, so it neither aimed at them, flew round them, nor watched
                 // their guns.
-                foreach (var shooter in Object.FindObjectsByType<Enemy_1>(FindObjectsInactive.Exclude))
-                    if (shooter.GetComponent<Enemy>() == null) Add(shooter, Kind.Target, 0, 0, snapshot, seen);
+                foreach (var enemy in Object.FindObjectsByType<EnemyBase>(FindObjectsInactive.Exclude))
+                    if (enemy.GetComponent<BossEmitter>() == null) Add(enemy, Kind.Target, 0, 0, snapshot, seen);
                 foreach (var boss in Object.FindObjectsByType<BossEmitter>(FindObjectsInactive.Exclude)) Add(boss, Kind.Target, 1, 0, snapshot, seen);
                 foreach (var pod in Object.FindObjectsByType<BossWeakPoint>(FindObjectsInactive.Exclude))
                     if (!pod.Destroyed) Add(pod, Kind.Target, EmplacementPriority, 0, snapshot, seen);
@@ -601,7 +598,7 @@ namespace SurvivalChaos.EditorTools
                     item.radialRate = (radius - old.radius) / dt;
                 }
                 var track = new Track { position = p, angle = angle, height = p.y, radius = radius, time = s.time, generation = generation };
-                if ((obj is Enemy || obj is Enemy_1) && obj.GetComponent<BossEmitter>() == null)
+                if (obj is EnemyBase && obj.GetComponent<BossEmitter>() == null)
                 {
                     // What a practised player knows about each kind by sight: which
                     // ones come after your height, and how hard. Read from the enemy's

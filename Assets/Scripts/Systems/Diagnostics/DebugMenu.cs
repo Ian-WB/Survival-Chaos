@@ -218,19 +218,12 @@ namespace SurvivalChaos
         private void ClearArena(bool reward = false)
         {
             if (RunOutcome.RunEnded) { return; }
-            Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsInactive.Exclude);
-            foreach (Enemy enemy in enemies)
+            // Both kinds, the ships that shoot included: they share EnemyBase.
+            EnemyBase[] enemies = FindObjectsByType<EnemyBase>(FindObjectsInactive.Exclude);
+            foreach (EnemyBase enemy in enemies)
             {
                 if (reward) { enemy.Kill(); }
                 else { enemy.DebugDespawn(); }
-            }
-
-            // The two ships that shoot run on Enemy_1, not Enemy.
-            Enemy_1[] gunships = FindObjectsByType<Enemy_1>(FindObjectsInactive.Exclude);
-            foreach (Enemy_1 gunship in gunships)
-            {
-                if (reward) { gunship.Kill(); }
-                else { gunship.DebugDespawn(); }
             }
         }
 
