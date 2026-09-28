@@ -19,7 +19,7 @@ namespace SurvivalChaos
     /// rendered every dynamic object as a black silhouette.
     /// </summary>
     /// <remarks>
-    /// A readonly struct rather than four public fields. These three rows are
+    /// A readonly struct rather than public fields. These rows are
     /// the whole of what a tier decides, they are authored once in the table
     /// below and never anywhere else, and a preset that could be edited after
     /// the fact would be a tier quietly disagreeing with the asset it names.
@@ -31,13 +31,15 @@ namespace SurvivalChaos
             EffectQuality reflections,
             EffectQuality globalIllumination,
             EffectQuality volumetricFog,
-            EffectQuality shadows)
+            EffectQuality shadows,
+            EffectQuality clouds)
         {
             Name = name;
             Reflections = reflections;
             GlobalIllumination = globalIllumination;
             VolumetricFog = volumetricFog;
             Shadows = shadows;
+            Clouds = clouds;
         }
 
         public string Name { get; }
@@ -49,6 +51,8 @@ namespace SurvivalChaos
         public EffectQuality VolumetricFog { get; }
 
         public EffectQuality Shadows { get; }
+
+        public EffectQuality Clouds { get; }
     }
 
     /// <summary>
@@ -98,8 +102,10 @@ namespace SurvivalChaos
     ///
     /// **Volumetric clouds arrive at High.** Medium's asset ships
     /// `supportVolumetricClouds: false`, the same kind of hard gate as SSR on
-    /// Low. There is no row for clouds, so like SSR on transparents it simply
-    /// comes with the tier.
+    /// Low, so the Volumetric Clouds row greys itself out below High. The row
+    /// sets only how many steps the clouds take (see CloudLadder), and every
+    /// tier starts it on Low, the steps the scene was tuned with, so no tier
+    /// looks or costs any different for the row existing.
     ///
     /// **GI is off at every tier**, for the reason it has always been off: this
     /// scene's indirect light is baked, into lightmaps and Adaptive Probe
@@ -148,7 +154,8 @@ namespace SurvivalChaos
                 reflections: EffectQuality.Off,
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.Off,
-                shadows: EffectQuality.Low),
+                shadows: EffectQuality.Low,
+                clouds: EffectQuality.Low),
 
             // Unity's HDRP Balanced.
             new GraphicsPreset(
@@ -156,7 +163,8 @@ namespace SurvivalChaos
                 reflections: EffectQuality.Medium,
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.Low,
-                shadows: EffectQuality.Low),
+                shadows: EffectQuality.Low,
+                clouds: EffectQuality.Low),
 
             // A copy of High Fidelity with its budgets stepped down. First tier
             // to compile volumetric clouds, which is the visible difference from
@@ -166,7 +174,8 @@ namespace SurvivalChaos
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.Medium,
-                shadows: EffectQuality.Medium),
+                shadows: EffectQuality.Medium,
+                clouds: EffectQuality.Low),
 
             // Unity's HDRP High Fidelity, retuned. The fog and shadow rungs
             // separate this row from High's - reflections are already on their
@@ -177,7 +186,8 @@ namespace SurvivalChaos
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.High,
-                shadows: EffectQuality.High)
+                shadows: EffectQuality.High,
+                clouds: EffectQuality.Low)
         };
 
         /// <summary>

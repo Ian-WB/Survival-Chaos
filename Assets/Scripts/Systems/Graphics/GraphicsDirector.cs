@@ -715,6 +715,16 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// How many steps the volumetric clouds take, Low to High. Clamped into
+        /// that range, since the row has no Off and no ray-traced form.
+        /// </summary>
+        public EffectQuality CloudQuality
+        {
+            get => CloudLadder.Clamp(Effect("CloudQuality", CurrentPreset.Clouds));
+            set => SetRow("CloudQuality", (int)CloudLadder.Clamp(value));
+        }
+
+        /// <summary>
         /// The scene's authored shadow casters: the sun, the lava light that
         /// casts, and the volumetric clouds. Bullet lights are not among them -
         /// BulletLightPool budgets those itself.
@@ -808,6 +818,10 @@ namespace SurvivalChaos
         /// <summary>False in Performant, which ships supportVolumetrics off.</summary>
         public bool VolumetricFogSupported =>
             TryPipelineSettings(out RenderPipelineSettings s) && s.supportVolumetrics;
+
+        /// <summary>True on High and Ultra, the tiers that compile clouds.</summary>
+        public bool VolumetricCloudsSupported =>
+            TryPipelineSettings(out RenderPipelineSettings s) && s.supportVolumetricClouds;
 
         /// <summary>
         /// Whether the tier compiled dynamic resolution at all.
@@ -930,8 +944,8 @@ namespace SurvivalChaos
             globalIllumination = overrides.profile.Add<GlobalIllumination>();
             shadowSettings = overrides.profile.Add<HDShadowSettings>();
 
-            // Only the shadow parameters are overridden on it; whether the
-            // clouds exist at all stays the scene's call, and the tier's.
+            // Only the shadow and step parameters are overridden on it; whether
+            // the clouds exist at all stays the scene's call, and the tier's.
             clouds = overrides.profile.Add<VolumetricClouds>();
 
             // Set once rather than tiered, because this is a distance the arena
@@ -1317,15 +1331,16 @@ namespace SurvivalChaos
             ApplyReflections();
             ApplyGlobalIllumination();
             ApplyFog();
+            ApplyClouds();
             ApplyMotionBlur();
             ApplyShadows();
         }
 
         /// <summary>
         /// Clouds through the override volume, lights through the components that
-        /// mark them. Only the shadow half of the clouds is overridden, so a tier
-        /// that never compiled clouds is untouched and the scene still decides
-        /// whether there are any.
+        /// mark them. Only the clouds' shadow parameters are overridden here, so a
+        /// tier that never compiled clouds is untouched and the scene still
+        /// decides whether there are any.
         /// </summary>
         private void ApplyShadows()
         {
@@ -1405,6 +1420,24 @@ namespace SurvivalChaos
             // bare trees crawl through them as the camera orbits.
             fog.quality.overrideState = true;
             fog.quality.value = QualityLadder.ScalableLevel(quality);
+        }
+
+        /// <summary>
+        /// The clouds' step counts, and nothing else about them. Where the layer
+        /// sits, how dense it is and how it is lit stay as the scene authored
+        /// them; this is only how finely each ray samples it. More primary steps
+        /// cut the noise and carry the clouds further out; more light steps give
+        /// smoother lighting and self-shadowing.
+        /// </summary>
+        private void ApplyClouds()
+        {
+            EffectQuality quality = CloudQuality;
+
+            clouds.numPrimarySteps.overrideState = true;
+            clouds.numPrimarySteps.value = CloudLadder.PrimarySteps(quality);
+
+            clouds.numLightSteps.overrideState = true;
+            clouds.numLightSteps.value = CloudLadder.LightSteps(quality);
         }
 
         private void ApplyMotionBlur()
@@ -1546,7 +1579,7 @@ namespace SurvivalChaos
         /// </summary>
         private static readonly string[] RowKeys =
         {
-            "SSR", "GI", "Fog", "ShadowQuality"
+            "SSR", "GI", "Fog", "ShadowQuality", "CloudQuality"
 
             // MotionBlur is deliberately absent. It sits outside the tier
             // system, so picking a tier must not clear it - that is the whole

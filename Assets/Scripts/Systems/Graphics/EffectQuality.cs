@@ -115,6 +115,84 @@ namespace SurvivalChaos
     }
 
     /// <summary>
+    /// What the Volumetric Clouds row sets at each rung: how many steps each
+    /// cloud ray takes through the layer, and how many each of those takes
+    /// toward the sun for its lighting.
+    ///
+    /// Low is what the scene was tuned with: HDRP's own defaults, 64 and 6,
+    /// which Scene Volume Profile never overrode. Medium jumps straight to
+    /// 256/24, skipping the doubling in between, because 128/12 renders the
+    /// same image as 64/6 from the game camera. HDRP never lets a step run
+    /// longer than an eighth of the layer's altitude range (875 of 7000 here),
+    /// and the camera looks nearly level through the layer, so its rays are
+    /// long enough that both counts hit that cap; the extra steps only march
+    /// further out, where nothing shows. 256 is the first count whose steps
+    /// come out shorter, and the first that looks different.
+    ///
+    /// High is as far as HDRP goes on the light steps, which it clamps at 32.
+    /// It is the row's ceiling rather than a good trade: on a frozen frame on
+    /// Ultra (RX 6700 XT, 28 September 2026) the whole camera cost 9.9 ms on
+    /// Low, 12.3 on Medium and 16.4 on High, and High changed about 1% of the
+    /// picture over Medium where Medium changed 18% over Low. Ian asked for a
+    /// doubling ladder on 26 September and chose these three on 28 September.
+    ///
+    /// Low, Medium and High only. There is no Off: the arena sits up in the
+    /// cloud layer, and whether there are clouds at all is the scene's call and
+    /// the tier's.
+    /// </summary>
+    public static class CloudLadder
+    {
+        public const EffectQuality Lowest = EffectQuality.Low;
+
+        public const EffectQuality Highest = EffectQuality.High;
+
+        /// <summary>How many rungs the row offers.</summary>
+        public const int Count = Highest - Lowest + 1;
+
+        /// <summary>Primary steps, Low to High.</summary>
+        private static readonly int[] Primary = { 64, 256, 512 };
+
+        /// <summary>Light steps, Low to High. HDRP stops them at 32.</summary>
+        private static readonly int[] Light = { 6, 24, 32 };
+
+        /// <summary>
+        /// A stored rung pulled into Low..High. Off and the ray-traced rungs are
+        /// not the row's to offer, but a corrupt or foreign settings file can
+        /// carry any of them.
+        /// </summary>
+        public static EffectQuality Clamp(EffectQuality quality)
+        {
+            if (quality < Lowest)
+            {
+                return Lowest;
+            }
+
+            return quality > Highest ? Highest : quality;
+        }
+
+        /// <summary>The row's position, 0 for Low.</summary>
+        public static int IndexOf(EffectQuality quality)
+        {
+            return Clamp(quality) - Lowest;
+        }
+
+        public static EffectQuality At(int index)
+        {
+            return Clamp((EffectQuality)(index + (int)Lowest));
+        }
+
+        public static int PrimarySteps(EffectQuality quality)
+        {
+            return Primary[IndexOf(quality)];
+        }
+
+        public static int LightSteps(EffectQuality quality)
+        {
+            return Light[IndexOf(quality)];
+        }
+    }
+
+    /// <summary>
     /// Names and conversions for the quality ladders.
     ///
     /// Kept free of any render pipeline type so it can be read from the menu

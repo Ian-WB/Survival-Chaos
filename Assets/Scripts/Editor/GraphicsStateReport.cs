@@ -351,6 +351,7 @@ namespace SurvivalChaos.EditorTools
             sb.AppendLine($"  reflections     : {Row(director.Reflections, director.ReflectionsSupported)}");
             sb.AppendLine($"  global illum.   : {Row(director.GlobalIlluminationQuality, director.GlobalIlluminationSupported)}");
             sb.AppendLine($"  volumetric fog  : {Row(director.VolumetricFog, director.VolumetricFogSupported)}");
+            sb.AppendLine($"  volumetric cloud: {Row(director.CloudQuality, director.VolumetricCloudsSupported)}");
             sb.AppendLine($"  motion blur     : {QualityLadder.Describe(director.MotionBlurQuality)}");
             sb.AppendLine($"  dynamic res.    : {(director.DynamicResolutionSupported ? "available" : "gated")}");
             sb.AppendLine();
@@ -492,6 +493,12 @@ namespace SurvivalChaos.EditorTools
                 if (fog != null)
                 {
                     sb.AppendLine($"  Fog       : enabled={fog.enabled.value} volumetric={fog.enableVolumetricFog.value} quality={fog.quality.value}");
+                }
+
+                VolumetricClouds clouds = stack.GetComponent<VolumetricClouds>();
+                if (clouds != null)
+                {
+                    sb.AppendLine($"  Clouds    : enable={clouds.enable.value} primarySteps={clouds.numPrimarySteps.value} lightSteps={clouds.numLightSteps.value}");
                 }
 
                 MotionBlur blur = stack.GetComponent<MotionBlur>();

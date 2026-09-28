@@ -601,7 +601,7 @@ namespace SurvivalChaos.EditorTools
         /// Fills a panel with what is actually in the image, as opposed to how it
         /// gets drawn — that half now lives on the display screen.
         ///
-        /// Six rows, down from ten, and still two columns: the split is by what
+        /// Seven rows, down from ten, and still two columns: the split is by what
         /// the setting spends money on, left for how light is computed and right
         /// for what gets layered over the image afterwards.
         ///
@@ -637,6 +637,7 @@ namespace SurvivalChaos.EditorTools
             (GraphicsOptionKind kind, string label)[] image =
             {
                 (GraphicsOptionKind.VolumetricFog, "Volumetric Fog"),
+                (GraphicsOptionKind.VolumetricClouds, "Volumetric Clouds"),
                 (GraphicsOptionKind.MotionBlur, "Motion Blur")
             };
 

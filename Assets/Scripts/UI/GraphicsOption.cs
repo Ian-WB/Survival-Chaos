@@ -34,6 +34,11 @@ namespace SurvivalChaos
         // saved by the row that used to live here must not be read as a rung.
         Shadows = 22,
 
+        // A new number rather than 11, the old on/off Volumetric Clouds row
+        // described below: this one sets how many steps the clouds take, and a
+        // row still serialised as 11 must not come back as it.
+        VolumetricClouds = 23,
+
         // 15 was Sharpness, before it became a slider rather than a cycler. The
         // number stays retired rather than reused: a row serialised as 15 by an
         // older build would otherwise silently become whatever took its place.
@@ -43,8 +48,10 @@ namespace SurvivalChaos
         // ladder that carries the same choice plus how much to spend on it, so 6
         // is retired for the same reason.
         //
-        // 11 was Volumetric Clouds. There is no sky to cloud in an arena that
-        // sits inside a cubemap, so the row is gone and the tier is off.
+        // 11 was Volumetric Clouds, when there was no sky to cloud in an arena
+        // that sat inside a cubemap, so the row went and the tier was off. The
+        // clouds came back on 24 September 2026 with the arena lifted into them,
+        // and the row on 26 September as 23.
         //
         // 19 was Ray Traced Shadows, which could not work as built. HDRP delivers
         // ray-traced shadows per light and the row only set a pipeline flag, so
@@ -345,6 +352,9 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VolumetricFog:
                     return director.VolumetricFogSupported;
 
+                case GraphicsOptionKind.VolumetricClouds:
+                    return director.VolumetricCloudsSupported;
+
                 default:
                     return true;
             }
@@ -411,6 +421,10 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Shadows:
                     return QualityLadder.ScreenSpaceCount;
 
+                // No Off either: Low, Medium and High (see CloudLadder).
+                case GraphicsOptionKind.VolumetricClouds:
+                    return CloudLadder.Count;
+
                 case GraphicsOptionKind.Resolution: return director.Sizes.Count;
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
                 case GraphicsOptionKind.FrameCap: return DisplayOptions.FrameRateCaps.Length;
@@ -449,6 +463,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VolumetricFog: return (int)director.VolumetricFog;
                 case GraphicsOptionKind.MotionBlur: return (int)director.MotionBlurQuality;
                 case GraphicsOptionKind.Shadows: return (int)director.Shadows;
+                case GraphicsOptionKind.VolumetricClouds: return CloudLadder.IndexOf(director.CloudQuality);
                 default: return 0;
             }
         }
@@ -472,6 +487,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VolumetricFog: director.VolumetricFog = (EffectQuality)index; break;
                 case GraphicsOptionKind.MotionBlur: director.MotionBlurQuality = (EffectQuality)index; break;
                 case GraphicsOptionKind.Shadows: director.Shadows = (EffectQuality)index; break;
+                case GraphicsOptionKind.VolumetricClouds: director.CloudQuality = CloudLadder.At(index); break;
             }
         }
 
@@ -540,6 +556,9 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Shadows:
                     return QualityLadder.Describe(director.Shadows);
 
+                case GraphicsOptionKind.VolumetricClouds:
+                    return QualityLadder.Describe(director.CloudQuality);
+
                 default: return "-";
             }
         }
@@ -564,6 +583,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Reflections when !director.ReflectionsSupported:
                 case GraphicsOptionKind.GlobalIllumination when !director.GlobalIlluminationSupported:
                 case GraphicsOptionKind.VolumetricFog when !director.VolumetricFogSupported:
+                case GraphicsOptionKind.VolumetricClouds when !director.VolumetricCloudsSupported:
                     return "Not compiled into this quality tier";
 
                 case GraphicsOptionKind.RenderScale when !director.DynamicResolutionSupported:
