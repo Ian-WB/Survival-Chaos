@@ -91,6 +91,51 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual(Interval, next - released, 1e-12);
         }
 
+        /// <summary>
+        /// The scan's case: capped at 120, one sleep takes 9 ms, longer than any
+        /// frame has spare. The wait stops sleeping, and when forgetting happened
+        /// only after a sleep, it never slept again and spun a core for the rest
+        /// of the session. Forgotten once a frame, it is sleeping again inside
+        /// half a second.
+        /// </summary>
+        [Test]
+        public void OneSlowSleep_DoesNotStopTheSleepingForGood()
+        {
+            const double interval = 1d / 120d;
+            const double spare = 0.006d;
+
+            double cost = FrameLimiter.SleepCostAfter(0.001d, 0.009d);
+            Assert.IsFalse(FrameLimiter.SleepsWith(spare, cost), "the slow sleep is remembered at first");
+
+            int frames = 0;
+            while (!FrameLimiter.SleepsWith(spare, cost) && frames < 1000)
+            {
+                cost = FrameLimiter.SleepCostForgotten(cost);
+                frames++;
+            }
+
+            Assert.Less(frames * interval, 0.5d, frames + " frames");
+        }
+
+        /// <summary>
+        /// Sleeping as usual keeps the slowest sleep in mind but never goes below
+        /// the millisecond Windows never beats.
+        /// </summary>
+        [Test]
+        public void SleepCost_RemembersTheSlowestAndNeverFallsBelowAMillisecond()
+        {
+            Assert.AreEqual(0.004d, FrameLimiter.SleepCostAfter(0.002d, 0.004d), 1e-12);
+            Assert.AreEqual(0.002d * 0.99d, FrameLimiter.SleepCostAfter(0.002d, 0.0011d), 1e-12);
+
+            double cost = 0.0156d;
+            for (int frame = 0; frame < 10000; frame++)
+            {
+                cost = FrameLimiter.SleepCostForgotten(cost);
+            }
+
+            Assert.AreEqual(0.001d, cost, 1e-12);
+        }
+
         private static int WaitsInTheLoop(PlayerLoopSystem system)
         {
             int count = system.type == typeof(FrameLimiter) ? 1 : 0;

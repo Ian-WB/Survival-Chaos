@@ -284,6 +284,7 @@ namespace SurvivalChaos
             ReleaseMovement();
             ClearTelegraphs();
             ClearTells();
+            SilenceCharges();
         }
 
         /// <summary>
@@ -1513,6 +1514,24 @@ namespace SurvivalChaos
 
         private bool TravellingLeft => movement != null && movement.TravellingLeft;
 
+        private bool StruckEmplacement(Collider round)
+        {
+            if (emplacements == null)
+            {
+                return false;
+            }
+
+            foreach (BossWeakPoint pod in emplacements)
+            {
+                if (pod != null && pod.Touches(round))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Shoot"))
@@ -1528,11 +1547,29 @@ namespace SurvivalChaos
                 return;
             }
 
+            // Already spent in this physics step - by an emplacement it struck, or
+            // anything else. The armour would otherwise spark for it as well.
+            if (!other.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            // A round a standing emplacement is touching is the emplacement's,
+            // whichever of the two Unity tells first - see BossWeakPoint.Touches.
+            if (StruckEmplacement(other))
+            {
+                return;
+            }
+
             // Read before despawning, so sparks land where the bullet broke
             // rather than at the middle of a hull 15 units tall.
             Vector3 impact = other.transform.position;
 
-            ObjectPool.Despawn(other.gameObject);
+            // Spends the round, once: see ShootScript.Land.
+            if (!ShootScript.Land(other))
+            {
+                return;
+            }
 
             if (!phase.HullVulnerable)
             {
@@ -1668,6 +1705,7 @@ namespace SurvivalChaos
             ReleaseMovement();
             ClearTelegraphs();
             ClearTells();
+            SilenceCharges();
 
             for (int i = 0; i < running.Length; i++)
             {
@@ -1675,6 +1713,29 @@ namespace SurvivalChaos
             }
 
             RestartCadence(Time.time, phaseChangeSilence);
+        }
+
+        /// <summary>
+        /// Cuts the lance's and the ram's wind-up sounds.
+        ///
+        /// Each runs as long as its charge, and the coroutine that started it is
+        /// the only thing that knew to stop it. A phase change stops every
+        /// coroutine, and killing the boss disables it, so either one in the
+        /// middle of a charge left the warning sounding for an attack that was
+        /// never coming - after a kill, over the victory screen, since sounds
+        /// play out once the run has ended (scan of 28 September 2026). Nothing
+        /// happens to one that is not sounding.
+        /// </summary>
+        private static void SilenceCharges()
+        {
+            GameSounds sounds = GameSounds.Instance;
+            if (sounds == null)
+            {
+                return;
+            }
+
+            AudioDirector.Stop(sounds.BossChargeLance);
+            AudioDirector.Stop(sounds.BossChargeRam);
         }
 
         private void ReleaseMovement()

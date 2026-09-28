@@ -152,6 +152,98 @@ namespace SurvivalChaos.Tests
             }
         }
 
+        /// <summary>The nearest any of <paramref name="placed"/> comes to the player or to anything in <paramref name="others"/>.</summary>
+        private static float Room(float[] placed, float player, params float[][] others)
+        {
+            float room = 360f;
+
+            foreach (float bearing in placed)
+            {
+                room = Mathf.Min(room, PickupPlacement.Separation(bearing, player));
+
+                foreach (float[] set in others)
+                {
+                    foreach (float other in set)
+                    {
+                        room = Mathf.Min(room, PickupPlacement.Separation(bearing, other));
+                    }
+                }
+            }
+
+            return room;
+        }
+
+        /// <summary>Neighbours 120 apart, for a set of three: the short way round is 120 either way.</summary>
+        private static void AssertEvenlySpread(float[] bearings)
+        {
+            float step = 360f / bearings.Length;
+
+            for (int i = 1; i < bearings.Length; i++)
+            {
+                Assert.AreEqual(step, PickupPlacement.Separation(bearings[i], bearings[i - 1]), 0.01f, "pickup " + i);
+            }
+        }
+
+        [Test]
+        public void ClearOf_NothingLive_IsTheUsualPlacement()
+        {
+            Assert.AreEqual(
+                PickupPlacement.Bearings(20f, 3, 55f, clockwise: false),
+                PickupPlacement.BearingsClearOf(20f, 3, 55f, false, null));
+            Assert.AreEqual(
+                PickupPlacement.Bearings(20f, 3, 55f, clockwise: true),
+                PickupPlacement.BearingsClearOf(20f, 3, 55f, true, new float[0]));
+        }
+
+        [Test]
+        public void ClearOf_LivePickupsAlreadyClear_LeaveTheUsualPlacement()
+        {
+            // 60 degrees from the nearest two of the usual three, more than 55.
+            Assert.AreEqual(
+                PickupPlacement.Bearings(0f, 3, 55f, clockwise: true),
+                PickupPlacement.BearingsClearOf(0f, 3, 55f, true, new[] { 115f }));
+        }
+
+        /// <summary>
+        /// The scan's case: a second level-up before the player has moved. Placed
+        /// as before, it landed on the first offer (0 degrees) or 10 degrees off
+        /// it. Now each of its pickups is 32.5 degrees from anything, the most a
+        /// set spaced 120 apart can get with the player and three pickups
+        /// already on the ring, whichever way it was going to go.
+        /// </summary>
+        [Test]
+        public void ClearOf_ASecondOfferBeforeThePlayerMoves_LandsBetweenTheFirst()
+        {
+            float[] first = PickupPlacement.Bearings(0f, 3, 55f, clockwise: true);
+            Assert.AreEqual(0f, Room(PickupPlacement.Bearings(0f, 3, 55f, clockwise: true), 0f, first), 0.01f,
+                "as it was: on top of the first");
+
+            foreach (bool clockwise in new[] { true, false })
+            {
+                float[] second = PickupPlacement.BearingsClearOf(0f, 3, 55f, clockwise, first);
+
+                Assert.AreEqual(32.5f, Room(second, 0f, first), 0.01f, "clockwise " + clockwise);
+                AssertEvenlySpread(second);
+            }
+        }
+
+        [Test]
+        public void ClearOf_AThirdOffer_StillFindsTheWidestGap()
+        {
+            float[] first = PickupPlacement.Bearings(0f, 3, 55f, clockwise: true);
+            float[] second = PickupPlacement.BearingsClearOf(0f, 3, 55f, true, first);
+            float[] live = new float[first.Length + second.Length];
+            first.CopyTo(live, 0);
+            second.CopyTo(live, first.Length);
+
+            float[] third = PickupPlacement.BearingsClearOf(0f, 3, 55f, true, live);
+
+            // Folded onto one 120 degree gap, the player and the six live pickups
+            // sit at 0, 55 and 87.5, so the widest room left is half of 0 to 55.
+            Assert.AreEqual(27.5f, Room(third, 0f, live), 0.01f);
+            AssertEvenlySpread(third);
+        }
+
         [Test]
         public void Separation_TakesTheShortWayRoundThroughTheWrapPoint()
         {

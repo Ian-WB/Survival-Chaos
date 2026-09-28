@@ -54,11 +54,17 @@ namespace SurvivalChaos
         /// added at every site that reads Elapsed, and the one that got missed
         /// would be the bug.
         ///
-        /// What this does not do is shorten a WaitForSeconds already in flight.
-        /// A stream mid-gap still finishes that gap, then picks up the new rate.
-        /// So the ramp jumps immediately and the spawns catch up within one
-        /// interval, which is the honest behaviour for a testing tool - it does
-        /// not fabricate the enemies that would have arrived.
+        /// A stream that has not started yet starts as soon as the clock passes
+        /// its start time, so winding on brings the later enemy types sooner.
+        /// It used to wait out its start delay in real time, so the ships due at
+        /// 180 to 340 seconds kept their own schedule whatever the clock said
+        /// (scan of 28 September 2026).
+        ///
+        /// What this does not do is shorten a gap between spawns already in
+        /// flight. A stream mid-gap still finishes that gap, then picks up the
+        /// new rate. So the ramp jumps immediately and the spawns catch up within
+        /// one interval, which is the honest behaviour for a testing tool - it
+        /// does not fabricate the enemies that would have arrived.
         /// </summary>
         public void AdvanceBy(float seconds)
         {
@@ -74,12 +80,15 @@ namespace SurvivalChaos
         /// Spawns the boss immediately, for the debug menu. Returns false when
         /// there is no boss to spawn or one is already out.
         ///
-        /// Winding the clock on is not enough by itself. A stream's opening wait
-        /// is a WaitForSeconds already in flight, and moving the time the rest of
-        /// the run is measured against does not shorten it - so skipping to the
-        /// boss revealed the health bar, which reads the wave asset directly, and
-        /// then left you in an empty arena waiting out the original ten minutes.
-        /// The bar arriving without the boss is a worse state than either half.
+        /// Winding the clock on used to be not enough by itself. A stream's
+        /// opening wait was a WaitForSeconds already in flight, and moving the
+        /// time the rest of the run is measured against did not shorten it - so
+        /// skipping to the boss revealed the health bar, which reads the wave
+        /// asset directly, and then left you in an empty arena waiting out the
+        /// original ten minutes. The bar arriving without the boss is a worse
+        /// state than either half. Streams read the clock now, so the boss's own
+        /// would bring it a frame later; this still puts it out at once, and the
+        /// stream stands down for a boss that is already out.
         ///
         /// The stream is found by what it spawns rather than by name or index,
         /// which is the same rule WaveDefinition.BossArrivesAt uses. Two places
@@ -95,12 +104,7 @@ namespace SurvivalChaos
 
             foreach (SpawnStream stream in wave.Streams)
             {
-                if (stream == null || stream.Prefab == null)
-                {
-                    continue;
-                }
-
-                if (stream.Prefab.GetComponent<BossEmitter>() != null)
+                if (IsBoss(stream))
                 {
                     Spawn(stream);
                     return true;
@@ -223,9 +227,35 @@ namespace SurvivalChaos
         /// </summary>
         private const float HardMinimumInterval = 0.05f;
 
+        private static bool IsBoss(SpawnStream stream)
+        {
+            return stream != null && stream.Prefab != null && stream.Prefab.GetComponent<BossEmitter>() != null;
+        }
+
         private IEnumerator RunStream(SpawnStream stream)
         {
-            yield return new WaitForSeconds(stream.StartDelay);
+            // Read against the run's clock rather than waited out, so AdvanceBy
+            // moves it too.
+            while (Elapsed < stream.StartDelay)
+            {
+                yield return null;
+            }
+
+            // The boss comes once, when its time comes, however the clock got
+            // there. As an ordinary stream it spawned only while the clock sat
+            // between its start and the stop two seconds later, so winding the
+            // clock past that window lost the boss, and now that the start
+            // follows the clock, skipping to it would bring a second one beside
+            // the one SpawnBossNow put out.
+            if (IsBoss(stream))
+            {
+                if (!RunOutcome.RunEnded && FindAnyObjectByType<BossEmitter>() == null)
+                {
+                    Spawn(stream);
+                }
+
+                yield break;
+            }
 
             while (!HasStopped())
             {

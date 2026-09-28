@@ -224,6 +224,14 @@ namespace SurvivalChaos
                 if (reward) { enemy.Kill(); }
                 else { enemy.DebugDespawn(); }
             }
+
+            // The two ships that shoot run on Enemy_1, not Enemy.
+            Enemy_1[] gunships = FindObjectsByType<Enemy_1>(FindObjectsInactive.Exclude);
+            foreach (Enemy_1 gunship in gunships)
+            {
+                if (reward) { gunship.Kill(); }
+                else { gunship.DebugDespawn(); }
+            }
         }
 
         /// <summary>

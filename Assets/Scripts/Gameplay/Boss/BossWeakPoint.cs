@@ -96,6 +96,7 @@ namespace SurvivalChaos
             owner = GetComponentInParent<BossEmitter>();
             flash = GetComponent<HitFlash>();
             target = GetComponent<Collider>();
+            TakeOwnHits();
 
             if (glow != null)
             {
@@ -205,6 +206,55 @@ namespace SurvivalChaos
             Telegraph(0f);
         }
 
+        /// <summary>
+        /// Gives this pod a kinematic Rigidbody of its own, so the hits it takes
+        /// are its alone.
+        ///
+        /// The pods are trigger colliders under the boss, and the boss's root
+        /// carries the Rigidbody. Unity reports a trigger to the Rigidbody's
+        /// object as well as to the collider's, so every round that struck a pod
+        /// also reached the hull, which in the armoured act threw its armour
+        /// spark over the pod's own. Measured with the bot on 28 September 2026,
+        /// the pods' own sparks switched off: 64 pod hits, 66 sparks on the pods.
+        /// With this and <see cref="Touches"/>, and the hull's sparks marked: 143
+        /// pod hits, and none of the hull's 130 sparks on a pod as it was hit.
+        ///
+        /// Added here rather than in the prefab, so no rebuild of the rig can
+        /// drop it.
+        /// </summary>
+        private void TakeOwnHits()
+        {
+            if (TryGetComponent(out Rigidbody _))
+            {
+                return;
+            }
+
+            Rigidbody body = gameObject.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
+        }
+
+        /// <summary>
+        /// Whether a round is inside this pod while it stands.
+        ///
+        /// Asked by the hull. The Keel and Crown pods sit a third of a unit
+        /// into the hull's box, so a round can touch a pod and the hull in the
+        /// same physics step, and nothing decides which of the two hears first.
+        /// A pod shot is the one the player aimed, so the hull leaves any round
+        /// a standing pod is touching to the pod.
+        /// </summary>
+        public bool Touches(Collider round)
+        {
+            return !Destroyed
+                && target != null
+                && target.enabled
+                && round != null
+                && Physics.ComputePenetration(
+                    round, round.transform.position, round.transform.rotation,
+                    target, target.transform.position, target.transform.rotation,
+                    out _, out _);
+        }
+
         private void OnTriggerEnter(Collider other)
         {
             // RunEnded: the first ending stands, as on the hull - see
@@ -218,7 +268,12 @@ namespace SurvivalChaos
             // rather than at the middle of the pod.
             Vector3 impact = other.transform.position;
 
-            ObjectPool.Despawn(other.gameObject);
+            // Spends the round. One already spent elsewhere in this physics step
+            // is not a second hit.
+            if (!ShootScript.Land(other))
+            {
+                return;
+            }
 
             bool killed = health.TakeDamage(1);
 

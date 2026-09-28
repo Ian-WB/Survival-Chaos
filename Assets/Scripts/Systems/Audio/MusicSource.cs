@@ -40,7 +40,7 @@ namespace SurvivalChaos
 
             if (track != null && track.HasClips)
             {
-                int cursor = 0;
+                int cursor = -1;
                 source.clip = track.PickClip(ref cursor);
                 source.outputAudioMixerGroup = track.Output;
                 authoredVolume *= track.Volume;

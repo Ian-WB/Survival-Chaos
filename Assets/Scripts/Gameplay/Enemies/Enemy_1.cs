@@ -153,6 +153,39 @@ namespace SurvivalChaos
             ObjectPool.Spawn(bullet, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
         }
 
+        /// <summary>
+        /// Kills this enemy outright, for the debug menu. The same exit as a
+        /// fatal shot - see Enemy.Kill.
+        ///
+        /// This type had neither this nor DebugDespawn, so Clear Arena, which
+        /// only looked for Enemy, left both of the ships that shoot on the ring
+        /// (scan of 28 September 2026).
+        /// </summary>
+        public void Kill()
+        {
+            if (health == null || health.IsDead)
+            {
+                return;
+            }
+
+            health.TakeDamage(health.Current);
+            ObjectPool.Spawn(explosion, transform.position, transform.rotation);
+            Death();
+            ObjectPool.Despawn(gameObject);
+        }
+
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
+        /// <summary>Returns a live enemy to its pool without XP, kill credit or effects.</summary>
+        public void DebugDespawn()
+        {
+            if (health != null && !health.IsDead)
+            {
+                health.TakeDamage(health.Current);
+                ObjectPool.Despawn(gameObject);
+            }
+        }
+#endif
+
         private void Death()
         {
             int reward = definition != null ? definition.ExperienceReward : 15;

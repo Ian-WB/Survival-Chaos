@@ -142,6 +142,44 @@ namespace SurvivalChaos
             return released - due > LateRelease ? released : due;
         }
 
+        /// <summary>
+        /// Whether there is time left for another sleep, given the slowest one
+        /// lately. Otherwise the rest of the wait is spun.
+        /// </summary>
+        public static bool SleepsWith(double left, double cost)
+        {
+            return left > cost + SpinMargin;
+        }
+
+        /// <summary>
+        /// The sleep cost to remember after a sleep that took
+        /// <paramref name="slept"/> seconds: the slowest sleep lately, forgotten
+        /// slowly. One slow wake is remembered long enough to keep the next few
+        /// sleeps clear of the deadline.
+        /// </summary>
+        public static double SleepCostAfter(double cost, double slept)
+        {
+            return Math.Max(slept, SleepCostForgotten(cost));
+        }
+
+        /// <summary>
+        /// The sleep cost a little later, with nothing new learned.
+        ///
+        /// Also run once for every frame that never slept. A sleep cost larger
+        /// than a frame's spare time stops the sleeping, and sleeping was the
+        /// only place this used to be forgotten, so a single slow wake - the
+        /// thread losing the CPU, or the 15.6 ms timer Windows can fall back to
+        /// for a hidden window - left the wait spinning a core flat out for the
+        /// rest of the session (scan of 28 September 2026). Forgetting a
+        /// hundredth each frame, a 15.6 ms wake is let go in about a second at
+        /// 120 FPS. If the timer really is still coarse, the next sleep
+        /// relearns it.
+        /// </summary>
+        public static double SleepCostForgotten(double cost)
+        {
+            return Math.Max(MinimumSleepCost, cost * 0.99d);
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Install()
         {
@@ -285,6 +323,7 @@ namespace SurvivalChaos
 
             double arrived = Now();
             double start = StartOf(lastStart, arrived, 1d / fps);
+            bool slept = false;
 
             while (true)
             {
@@ -294,20 +333,22 @@ namespace SurvivalChaos
                     break;
                 }
 
-                if (left > sleepCost + SpinMargin)
+                if (SleepsWith(left, sleepCost))
                 {
                     double before = Now();
                     Thread.Sleep(1);
-
-                    // The slowest sleep lately, forgotten slowly. One slow wake is
-                    // remembered long enough to keep the next few sleeps clear of
-                    // the deadline.
-                    sleepCost = Math.Max(MinimumSleepCost, Math.Max(Now() - before, sleepCost * 0.99d));
+                    sleepCost = SleepCostAfter(sleepCost, Now() - before);
+                    slept = true;
                 }
                 else
                 {
                     Thread.SpinWait(20);
                 }
+            }
+
+            if (!slept)
+            {
+                sleepCost = SleepCostForgotten(sleepCost);
             }
 
             double released = Now();

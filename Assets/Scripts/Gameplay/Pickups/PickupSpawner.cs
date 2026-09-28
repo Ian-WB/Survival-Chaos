@@ -253,11 +253,12 @@ namespace SurvivalChaos
             float bearing = CurrentPlayerBearing();
             float height = player != null ? player.position.y : transform.position.y;
 
-            float[] bearings = PickupPlacement.Bearings(
+            float[] bearings = PickupPlacement.BearingsClearOf(
                 bearing,
                 Mathf.Max(1, skillCount),
                 offerSeparation,
-                clockwise: Random.value < 0.5f);
+                clockwise: Random.value < 0.5f,
+                LiveOfferBearings());
 
             // A level-up that puts nothing on the ring reads as broken pickups
             // rather than as a finished build, so a spent pool leaves salvage.
@@ -621,6 +622,32 @@ namespace SurvivalChaos
             // axis, the measurement is meaningless and the lane is better.
             return flat.sqrMagnitude < 0.01f ? ArenaGeometry.LaneRadius : flat.magnitude;
         }
+
+        /// <summary>
+        /// Where the upgrades already out on the ring are, so a new offer can
+        /// be turned clear of them. Salvage is left out: nothing keeps a list of
+        /// it, and it carries no label to collide with.
+        /// </summary>
+        private List<float> LiveOfferBearings()
+        {
+            liveBearings.Clear();
+            Vector3 center = arenaCenter != null ? arenaCenter.position : Vector3.zero;
+
+            foreach (SkillOffer offer in offers)
+            {
+                foreach (Pickup member in offer.Members)
+                {
+                    if (member != null && member.isActiveAndEnabled)
+                    {
+                        liveBearings.Add(PickupPlacement.BearingOf(member.transform.position, center));
+                    }
+                }
+            }
+
+            return liveBearings;
+        }
+
+        private readonly List<float> liveBearings = new List<float>();
 
         private float CurrentPlayerBearing()
         {

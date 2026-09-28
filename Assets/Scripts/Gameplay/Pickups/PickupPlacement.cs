@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SurvivalChaos
@@ -102,6 +103,103 @@ namespace SurvivalChaos
             }
 
             return bearings;
+        }
+
+        /// <summary>
+        /// <see cref="Bearings"/>, turned clear of pickups already on the ring.
+        ///
+        /// A level-up does not wait for the last one to be answered, and offers
+        /// stay out for 28 seconds, so a second one often lands while the first
+        /// is still there. Placed from the player's bearing alone, with the usual
+        /// 55 degree clearance, three pickups sit on the only three places that
+        /// clearance allows: a second offer before the player had moved landed
+        /// exactly on the first, or ten degrees off it when it went the other
+        /// way. Labels piled up, and flying through took one from each offer
+        /// (scan of 28 September 2026).
+        ///
+        /// The set keeps its even spacing, which is what makes it a choice, and
+        /// turns as a whole. Where the usual placement already leaves every live
+        /// pickup and the player the usual clearance, it stands. Otherwise the
+        /// turn is the one that leaves the most room to whichever is nearest,
+        /// counting the player as one more thing to keep clear of, and among
+        /// equally good turns the one nearest the usual placement.
+        /// </summary>
+        /// <param name="live">Bearings of the pickups already out. May be null or empty.</param>
+        public static float[] BearingsClearOf(
+            float playerBearing,
+            int count,
+            float minSeparationDegrees,
+            bool clockwise,
+            IReadOnlyList<float> live)
+        {
+            float[] usual = Bearings(playerBearing, count, minSeparationDegrees, clockwise);
+
+            if (usual.Length == 0 || live == null || live.Count == 0)
+            {
+                return usual;
+            }
+
+            // The most room worth asking for: what the player alone is given.
+            float wanted = Mathf.Clamp(minSeparationDegrees, 0f, 180f / count);
+            float step = 360f / count;
+
+            float bestTurn = 0f;
+            float bestRoom = RoomAfter(usual, 0f, playerBearing, live, wanted);
+
+            // Every half degree over one gap, nearest the usual placement first,
+            // so a later turn has to be strictly better to win.
+            for (int i = 1; i <= step; i++)
+            {
+                if (bestRoom >= wanted)
+                {
+                    break;
+                }
+
+                foreach (float turn in new[] { i * 0.5f, -i * 0.5f })
+                {
+                    float room = RoomAfter(usual, turn, playerBearing, live, wanted);
+                    if (room > bestRoom)
+                    {
+                        bestRoom = room;
+                        bestTurn = turn;
+                    }
+                }
+            }
+
+            var turned = new float[usual.Length];
+            for (int i = 0; i < usual.Length; i++)
+            {
+                turned[i] = Normalize(usual[i] + bestTurn);
+            }
+
+            return turned;
+        }
+
+        /// <summary>
+        /// How far the nearest of the player and the live pickups would sit from
+        /// the set turned by <paramref name="turn"/>, capped at the room wanted.
+        /// </summary>
+        private static float RoomAfter(
+            float[] usual,
+            float turn,
+            float playerBearing,
+            IReadOnlyList<float> live,
+            float wanted)
+        {
+            float room = wanted;
+
+            foreach (float bearing in usual)
+            {
+                float placed = bearing + turn;
+                room = Mathf.Min(room, Separation(placed, playerBearing));
+
+                for (int i = 0; i < live.Count; i++)
+                {
+                    room = Mathf.Min(room, Separation(placed, live[i]));
+                }
+            }
+
+            return room;
         }
 
         /// <summary>

@@ -383,6 +383,9 @@ namespace SurvivalChaos
             // the previous pick left behind.
             baseSpawnDelay = spawnDelay;
 
+            // Where the first volley would fall one interval after, so a pick
+            // before it keeps it where it is.
+            lastVolleyAt = Time.time + initialDelay - spawnDelay;
             InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
         }
         /// <summary>
@@ -416,6 +419,8 @@ namespace SurvivalChaos
 
         private void Shoot()
         {
+            lastVolleyAt = Time.time;
+
             // Once per volley, not once per bullet. The widest pattern fires six at
             // the same instant and should still read as one shot.
             if (GameSounds.Instance != null)
@@ -666,6 +671,9 @@ namespace SurvivalChaos
         /// <summary>How many Attack Speed picks have been taken.</summary>
         private int attackSpeedPicks;
 
+        /// <summary>When the gun last fired, so a pick can keep its rhythm.</summary>
+        private float lastVolleyAt;
+
         /// <summary>
         /// Speeds the gun up by one pick, and stops where the cap says to.
         ///
@@ -689,8 +697,15 @@ namespace SurvivalChaos
             float rate = 1f + (attackSpeedStep * attackSpeedPicks);
 
             spawnDelay = Mathf.Max(floor, baseSpawnDelay / rate);
+
+            // The next volley comes one new interval after the last one, not
+            // one new interval from now. Restarting the timer from the pick
+            // threw away however much of the current gap had already run, so
+            // taking a faster gun could cost up to a whole interval of silence
+            // (scan of 28 September 2026).
+            float untilNext = Mathf.Max(0f, lastVolleyAt + spawnDelay - Time.time);
             CancelInvoke(nameof(Shoot));
-            InvokeRepeating(nameof(Shoot), spawnDelay, spawnDelay);
+            InvokeRepeating(nameof(Shoot), untilNext, spawnDelay);
         }
 
         /// <summary>

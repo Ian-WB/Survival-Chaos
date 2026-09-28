@@ -72,7 +72,16 @@ namespace SurvivalChaos
 
         public bool HasClips => clips != null && clips.Length > 0;
 
-        /// <summary>A clip to play, avoiding an immediate repeat where possible.</summary>
+        /// <summary>
+        /// A clip to play, avoiding an immediate repeat where possible.
+        ///
+        /// Pass -1 for <paramref name="lastIndex"/> before the first play, or any
+        /// index outside the clips: then every clip can come up. The callers
+        /// used to start at 0, which read as clip 0 having just played, so the
+        /// first play of a sound was never its first clip - of the two UI
+        /// sounds, with two clips each, the first play was always the second
+        /// (scan of 28 September 2026).
+        /// </summary>
         public AudioClip PickClip(ref int lastIndex)
         {
             if (!HasClips)
@@ -85,12 +94,21 @@ namespace SurvivalChaos
                 return clips[0];
             }
 
-            // Choose from the others, so the same clip never lands twice running.
-            // Straight randomness produces audible repeats surprisingly often.
-            int index = Random.Range(0, clips.Length - 1);
-            if (index >= lastIndex)
+            int index;
+
+            if (lastIndex < 0 || lastIndex >= clips.Length)
             {
-                index++;
+                index = Random.Range(0, clips.Length);
+            }
+            else
+            {
+                // Choose from the others, so the same clip never lands twice running.
+                // Straight randomness produces audible repeats surprisingly often.
+                index = Random.Range(0, clips.Length - 1);
+                if (index >= lastIndex)
+                {
+                    index++;
+                }
             }
 
             lastIndex = index;

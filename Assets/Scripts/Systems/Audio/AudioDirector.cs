@@ -221,6 +221,26 @@ namespace SurvivalChaos
 
                 music[i].ApplyLevel(AudioLevels.ToAmplitude(GetLevel(AudioChannel.Music)));
             }
+
+            // Voices still sounding take the new level too. A voice's volume is
+            // set when it starts, so moving the Effects slider under the pause
+            // menu left a long sound - the lance's wind-up - at the old level
+            // until it ended (scan of 28 September 2026).
+            if (voices == null)
+            {
+                return;
+            }
+
+            float now = Time.unscaledTime;
+
+            for (int i = 0; i < voices.Length; i++)
+            {
+                SoundDefinition owner = voiceOwner[i];
+                if (owner != null && voiceFreeAt[i] > now && voices[i] != null)
+                {
+                    voices[i].volume = owner.Volume * AudioLevels.ToAmplitude(GetLevel(owner.Channel));
+                }
+            }
         }
 
         // ---------- music ----------
@@ -289,7 +309,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            int cursor = clipCursor.TryGetValue(sound, out int stored) ? stored : 0;
+            int cursor = clipCursor.TryGetValue(sound, out int stored) ? stored : -1;
             AudioClip clip = sound.PickClip(ref cursor);
             clipCursor[sound] = cursor;
 

@@ -171,7 +171,12 @@ namespace SurvivalChaos
             // rather than at the middle of the plate.
             Vector3 impact = other.transform.position;
 
-            ObjectPool.Despawn(other.gameObject);
+            // Spends the round. One already spent elsewhere in this physics step
+            // is not a second hit.
+            if (!ShootScript.Land(other))
+            {
+                return;
+            }
 
             if (health.TakeDamage(1))
             {

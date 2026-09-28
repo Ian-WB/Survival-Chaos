@@ -266,8 +266,9 @@ namespace SurvivalChaos
         /// Rounds upgrade, which Slow Mo replaced on 25 September 2026. The
         /// once-only rule came in with it and stays.
         ///
-        /// The boss's parts do not come through here and stop every round, as
-        /// they always have.
+        /// The boss's parts come through here as well since 28 September 2026:
+        /// its hull, emplacements and wreckage stop every round, and each counts
+        /// a round once, like the enemies.
         /// </summary>
         public static bool Land(Collider round)
         {

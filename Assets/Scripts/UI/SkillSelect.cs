@@ -268,6 +268,8 @@ namespace SurvivalChaos
                 return;
             }
 
+            // In the run summary like a collected pick.
+            RunStats.RecordSkill(skill.DisplayName);
             skill.Apply(player);
 
             if (GameSounds.Instance != null)
