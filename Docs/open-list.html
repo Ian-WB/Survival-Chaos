@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done": {"pool-soak": true, "fog-scale": true, "code-variant": true, "cloud-bank": true, "charge-sound": true, "enemy-shot-glow": true, "play-boss": true, "identity": true, "stray-log": true, "commit-files": true, "shadow-count": true, "play-islandsplit": true, "pod-visibility": true, "lance-legibility": true, "lane-tests": true, "scale-down": true, "fog-tiers": true, "dash-feel": true, "ship-handling": true, "player-round-look": true, "round-scale": true, "lane-offset": true, "enemy-landing": true, "hit-tunnelling": true, "enemy-height-hits": true, "shadows-row": true, "ship-thrusters": true, "boss-tells": true, "boss-routes": true, "lane-easing": true, "lance-energy": true, "band-boss": true, "salvage": true, "slow-down": true, "playtest-bot": true, "camera-framing": true, "readme": true, "dash-tooltips": true, "codex-doc": true, "band-follow": true, "hud-clearance": true, "slowmo-live": true, "scale-up": true, "bake-links": true}, "updated": "28 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true},"updated":"28 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,10 +327,10 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-0925-evening",
-    title: "Play the 25 September evening build",
+    id: "play-0928",
+    title: "Play the 28 September build",
     effort: "one run, ~25 min",
-    lede: "<strong>It is built:</strong> <code>Builds/26_0925-2101_bigShips</code>, from everything committed on the 25th plus the lighting fix at the end of this card, with the debug menu in (F8), so god mode and the skip to the boss are there if you want them. Play at least one run without them.</p><p><strong>Nothing from 22 September has been played yet.</strong> Everything moves a fifth slower, so you fly at 5.6 where you flew at 7, while the boss\u2019s rounds kept their speeds. The torpedoes cruise at 8.5. Health comes from wrecks: when you are hurt, destroying something can leave a small green piece worth 1 HP, every 12 s at half health and never at full.</p><p><strong>Since the midday build.</strong> A stick pushed into a corner flies both axes at full speed. The boss is more aggressive: it cruises at 20\u00b0 a second, rams back to back, sheds a plate every half second and ends on a volley every 0.8 s; its lance fires forward after it turns, and it waits 3 s between turns. The dash comes back every 10 s, and Slow Mo, from level 8, slows everything to 0.4 for five seconds on E, or Y or the left trigger, once every 30 s.</p><p><strong>And from tonight.</strong> The boss, the waves, the camera and the ram\u2019s hull all follow the band now, and a ship on the ceiling is drawn clear of the top bars. You, the enemies and the boss are a quarter bigger, and you grew the band to 10.5 and moved the lane out to 19.72. On screen that nets out at only about 5% bigger, because the camera widens with the band. On the wider lane you fly at 16.3\u00b0 a second, so two Move Speed picks no longer outrun the boss; three do.</p><p><strong>One fix to commit.</strong> A build had emptied the lighting probe links in <code>Game Baking Set.asset</code>, and that copy went into your 11:52 commit. They are restored in your tree, and this build carries them.",
+    lede: "<strong>It is built:</strong> <code>Builds/26_0928-1136_scanFixes</code>, from commit <code>4034f12</code>, with the debug menu in (F8), so god mode and the skip to the boss are there if you want them. Play at least one run without them.</p><p><strong>It replaces the 25 September evening build, which was never played,</strong> so everything that card asked still stands and is carried over below. Nothing since 22 September has been played: the game a fifth slower, salvage, the more aggressive boss, the ten-second dash and Slow Mo, and the bigger ships on the 10.5 band with the lane at 19.72.</p><p><strong>Since that build.</strong> The frame cap is our own now, because Unity\u2019s stuttered; it only matters if you set one. Dynamic resolution steers by the GPU\u2019s own time. Gameplay sounds slow down under Slow Mo and hold under the pause menu. Moving the mouse over a menu button selects it. And the Graphics screen has a Volumetric Clouds row on the High and Ultra tiers: Low is the look you tuned, and on your card Medium costs about 2.4 ms more and High about 6.5.</p><p><strong>And from today\u2019s scan.</strong> A second level-up offer turns clear of one still out instead of landing on it. Shots on the boss\u2019s pods no longer throw the hull\u2019s armour spark as well. The lance and ram wind-ups go quiet when the attack is cut off, so a boss killed mid-charge no longer sounds over the victory screen. An Attack Speed pick no longer delays the next volley, and the Effects slider reaches sounds already playing.",
     watch: [
       "Play from the start with no god mode. Is the game the right speed on the wider lane, and is the boss a threat for the right length of fight?",
       "Look at the ships. They are a quarter bigger, but the band grew too, so they read only a little bigger; say if you want them bigger still, which means a shorter band or a bigger scale.",
@@ -338,9 +338,12 @@
       "Get hurt, and watch for green pieces where things die. Is one every 12 s at half health too generous, or too stingy?",
       "Dash into the ram head-on as it arrives. The dash only has to be up when the hull touches you, so it should carry you through even though the hull is wider than a dash now.",
       "Keep an eye on the boss\u2019s speed: it cruises at 20\u00b0 a second and you at 16.3, so it catches you unless you have three Move Speed picks or dash.",
-      "Try Slow Mo when it gets dense. Five seconds at 0.4, once every 30: too long, too short, or right?",
+      "Try Slow Mo when it gets dense. Five seconds at 0.4, once every 30: too long, too short, or right? The sounds should slow down with it.",
       "Watch the curtain\u2019s discs. Their rows are further apart on the bigger boss, so the gaps are wider; say if it has stopped feeling like a wall.",
-      "Listen to enemies dying close to you, and if a controller is handy, use it in the menus and to fly."
+      "Press F3 and read the GPU line. It should say several milliseconds, not 0.0; dynamic resolution steers by it, and it has only been seen working in the editor.",
+      "On the High or Ultra tier, flip the Volumetric Clouds row between Low, Medium and High. High costs about 4 ms more than Medium for about 1% of the picture; say if you can see it.",
+      "Take two level-ups close together: the second offer should land clear of the first.",
+      "Listen to enemies dying close to you, move the mouse over the menus, and if a controller is handy, use it in the menus and to fly."
     ]
   };
 
@@ -510,6 +513,15 @@
             "<strong>Built on 22 September</strong> (commit <code>7c31bd5</code>). When you are hurt, destroying something can leave a small green piece worth 1 HP where it died. A clock paces it by how much health is missing: a piece every 60 s with a tenth gone, 24 s with a quarter, 12 s at half, 8 s with three quarters, never at full health. The next wreck after one is due leaves it. At half health that is up to 5 HP a minute if you take every piece.",
             "Paced by time rather than by a chance per kill, because the bot’s two runs killed about two enemies a second and about one, and odds per kill would have paid for killing fast rather than for being hurt. Boss hull plates count as wrecks, so healing carries on after the waves stop; emplacements do not, because the boss chases you and would run over scrap at its own face.",
             "Pieces are smaller than upgrades with the same grab radius, carry no caption, last 15 s, and a green +1 HP floats up when you take one. Level-ups offer upgrades only now, and a spent upgrade pool leaves one piece instead. Not played yet; the pace is its own item under ‘Waiting on a real run’."
+          ]
+        },
+        {
+          id: "torpedo-dive",
+          title: "Decide whether the torpedo\u2019s floor dive has got too hard to time",
+          effort: "2 min to decide",
+          why: [
+            "Found by the 26 September audit. <code>TorpedoSteerTests</code> now flies a torpedo at you on the numbers the game has today as well as on the 22 September ones, and today a dive to the floor escapes only if you start it 0.8 to 1.15 s before the torpedo arrives, where it was 0.4 to 1.15 s.",
+            "The cause is the deeper band, which gives the torpedo room to follow you down, not the bigger ships. The sidestep of 2 either way is unchanged. Keep it harder, or tune the torpedo back towards the old window? Nothing has been tuned yet, and a run will tell you whether it feels unfair."
           ]
         }
       ]
@@ -898,6 +910,55 @@
           why: [
             "A build had emptied the six probe-data links in <code>Game Baking Set.asset</code>, as builds sometimes do, and that copy went into your 11:52 commit on 25 September with the rest of the rebake, so the editor had lost its baked probe lighting. The six data files were still on disk under the same identifiers, so the six lines were restored from the commit before, and the editor reads all of them again. The fix is in your tree to commit; <code>26_0925-2101_bigShips</code> was built with it."
           ]
+        },
+        {
+          id: "frame-limiter",
+          title: "Replace Unity\u2019s frame cap, which stuttered",
+          effort: "3 h",
+          why: [
+            "You said every frame cap was a stutter fest, in builds and the editor alike. It was Unity\u2019s own cap: measured on 26 September at 60 on your 200 Hz display, with the bot flying, frames alternated between about 6 and 30 ms, and 25 to 47% of them landed more than 2 ms off.",
+            "<code>FrameLimiter</code> replaced it (commit <code>fe26cc5</code>). It waits at the very start of the frame, sleeping while there is time and spinning through the last stretch, so the frame\u2019s time step includes the wait. In the same run: a median of 16.67 ms, with 3 to 7% of frames more than 2 ms off. It works with VSync on too, and a cap that divides the refresh rate goes to VSync instead.",
+            "<strong>Fixed again on 28 September.</strong> One sleep slower than a frame\u2019s spare time used to stop the sleeping for good and spin a CPU core flat out for the rest of the session. It forgets a slow sleep every frame now; forced into that state in play, it was sleeping again within about 54 frames and held 25.00 ms frames at a cap of 40."
+          ]
+        },
+        {
+          id: "audit-0926",
+          title: "Fix the third ChatGPT audit",
+          effort: "a day",
+          why: [
+            "Ten findings at <code>fe26cc5</code>, all accurate, all fixed on 26 September (commit <code>d650460</code>) and checked in play. Dynamic resolution steers by the GPU\u2019s own time, held to what the screen can show. The boss\u2019s pods stay on the lane whichever way it faces. The builders put new parts on their collision layers. Moving the mouse over a menu button selects it. The frame cap survives a recompile during play and lets a late frame restart its rhythm.",
+            "Gameplay sounds follow game time: they slow to 0.4 under Slow Mo, lance charge included, and hold under the pause menu; once the run has ended they play out at full speed. The old keyboard input path was deleted.",
+            "Two things only a build or a run can settle: the GPU line on F3, which is at the top, and the torpedo\u2019s floor dive, which is under \u2018Needs you\u2019."
+          ]
+        },
+        {
+          id: "cloud-row",
+          title: "Add a Volumetric Clouds quality row",
+          effort: "2 h",
+          why: [
+            "Your ask on 26 September: a setting that raises the clouds\u2019 step counts. It is on the Graphics screen of both menus, under Volumetric Fog (commit <code>af530e2</code>): Low is 64 primary and 6 light steps, what the scene was tuned with; Medium 256 and 24; High 512 and 32, as far as HDRP takes the light steps.",
+            "128 and 12 was skipped because from the game camera it draws exactly what 64 and 6 does: HDRP never lets a step run longer than an eighth of the cloud layer, and the camera looks almost level through it, so both counts hit that limit. Every tier starts on Low, and the row greys out below the High tier, which is the first to compile clouds.",
+            "Measured on a frozen frame on Ultra, your RX 6700 XT, the whole camera: 9.9 ms on Low, 12.3 on Medium and 16.4 on High. Medium changes about a fifth of the picture over Low, subtly; High changes about 1% over Medium. You kept High."
+          ]
+        },
+        {
+          id: "scan-0928",
+          title: "Fix the 28 September project scan",
+          effort: "a day",
+          why: [
+            "A read-only scan of <code>af530e2</code> by another Claude session. All nine code findings were real, and all are fixed (commit <code>1a26e85</code>), 563 tests, checked in play with the bot.",
+            "The frame cap no longer spins a core. A second offer turns clear of one still out: 32.5\u00b0 from everything, where it landed on the first or 10\u00b0 off it. A shot on a pod no longer reaches the hull as well: 64 pod hits brought 66 hull sparks before, none after. The lance and ram wind-ups stop when the attack is cut off. The debug menu\u2019s Clear Arena clears the two ships that shoot, Advance brings the later enemy types sooner, and it can no longer skip the boss by jumping past its two-second window.",
+            "Smaller ones: a sound\u2019s first play can be any of its clips, an Attack Speed pick keeps the gun\u2019s rhythm, the fallback that grants skills without pickups records them in the run summary, the Effects slider reaches sounds already playing, and the README has a Slow Mo row."
+          ]
+        },
+        {
+          id: "asset-cleanup",
+          title: "Clear out unused assets and the cloud bank",
+          effort: "30 min",
+          why: [
+            "At your call on 28 September (commit <code>4034f12</code>): six unused models, three materials, seven prefabs, a stray copy of the lighting settings, an empty render texture, the old reorganisation plan, and the cloud bank with its 19 MB mask. Nothing referenced any of them.",
+            "The scan listed four more materials, and they stayed: the island model\u2019s import settings point at them, which only a search that reads those settings finds. The sound libraries hidden behind a <code>~</code> stay on purpose, as the pool to re-pick sounds from."
+          ]
         }
       ]
     },
@@ -923,7 +984,7 @@
             "The boss was tuned against a ship at 7, and on 22 September you went to 5.6 while its rounds kept their speeds. Worked out, not played:",
             "<strong>The ram.</strong> A dash covers about 6 units, less than the hull, which is 8.81 wide since the boss grew on 25 September. That turned out not to matter: the hull hurts only on first touch, so a dash that is up as it arrives carries you through whatever is left \u2014 measured with the bot, twice with the ship still inside when the dash ran out. Since the evening of 25 September a dash comes only every ten seconds, so it answers about two rams in five; see \u2018Feel the ten-second dash and Slow Mo\u2019.",
             "<strong>The rest.</strong> The lance’s 1.2 s charge is about two thirds of a crossing of the 10.5 band where it was one; leaving the beam takes only half a unit, so that should hold. A vertical dash carries 3.6 of the 4.4 to 4.7 between the boss’s banks where it carried one. The torpedoes are half again your speed; the tests say a runner is never caught and a timed dive escapes.",
-            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. The build at the top, <code>Builds/26_0925-2101_bigShips</code>, has all of it."
+            "The bot’s full run on the slower ship took 15 hits in the fight and died 11 s into Exposed, but that bot could not see two of the four enemy kinds. The one that can arrived with 11 HP and died 8 s into Armoured, one of the three emplacements at 70 of 80. A bot is not a verdict. The build at the top, <code>Builds/26_0928-1136_scanFixes</code>, has all of it."
           ]
         },
         {
@@ -1016,6 +1077,15 @@
             "Everything is a quarter bigger since 25 September, but the band grew with it, and a whole-band camera draws a ship at its size against the band, so on screen they read only about 5% bigger than that morning. If they should look bigger still, a shorter band or a bigger scale are the dials; the boss needs a band of about 9.6.",
             "Two side effects to feel for. The curtain\u2019s rows spread with the boss and its discs did not, so every gap is about 0.3 wider; discs 0.875 across would put it back. And the lane you moved out to 19.72 turns the same 5.6 u/s into 16.3\u00b0 a second, so two Move Speed picks no longer outrun the boss at 20; three do.",
             "It is in <code>Builds/26_0925-2101_bigShips</code>."
+          ]
+        },
+        {
+          id: "build-pacing",
+          title: "Watch the frame cap and dynamic resolution in a build",
+          effort: "one run",
+          why: [
+            "Both were timed in the editor, not in a build. Dynamic resolution now steers by the GPU time the player reports, and in the editor that read 0.04 ms for the first minute of one run before settling at 12 to 14, so readings under half a millisecond are ignored. F3\u2019s GPU line in the build at the top should read several milliseconds; 0.0 there means it is steering on the fallback.",
+            "If you use a frame cap, watch whether it paces evenly. Without FreeSync a cap with VSync off still tears, and VSync with a cap under the refresh rate repeats frames; that part the limiter cannot fix."
           ]
         },
         {
