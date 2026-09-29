@@ -1,15 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SurvivalChaos
 {
     public class MainMenu : MonoBehaviour
     {
+        /// <summary>
+        /// Starts a run, from the title screen or as a restart from the death
+        /// and victory screens. Those screens leave timeScale at 0; the loading
+        /// screen holds it there through the load and hands back to RunTime
+        /// once the new run is on screen, so nothing here has to reset it.
+        /// </summary>
         public void Jogar(){
-            ResumeTime();
-            SceneManager.LoadScene("Game");
+            LoadingScreen.Load("Game", "Entering the arena");
         }
 
         public void Sair(){
@@ -17,17 +19,7 @@ namespace SurvivalChaos
         }
 
         public void MenuPrincipal(){
-            ResumeTime();
-            SceneManager.LoadScene("Menu");
-        }
-
-        /// <summary>
-        /// Time.timeScale survives a scene load, and the death, pause and victory
-        /// screens all set it to 0. Without this, restarting from one of those
-        /// menus loaded a frozen game.
-        /// </summary>
-        private static void ResumeTime(){
-            Time.timeScale = 1f;
+            LoadingScreen.Load("Menu", "Back to the menu");
         }
     }
 }

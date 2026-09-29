@@ -10,10 +10,11 @@ namespace SurvivalChaos.EditorTools
     /// Puts ThirdPartyNotices.txt, from the project folder, next to the game's
     /// executable in every Windows build.
     ///
-    /// AMD's FSR DLLs ship in every Windows build, and their licence asks for its
-    /// notice to go with every copy. Beside the exe is where a player, or anyone
-    /// checking, looks for one. A missing file stops the build before it starts
-    /// rather than letting it ship without the notice.
+    /// Every Windows build carries AMD's FSR DLLs, NVIDIA's DLSS DLL and two OFL
+    /// fonts, and their licences ask for their notices to go with every copy.
+    /// Beside the exe is where a player, or anyone checking, looks for them. A
+    /// missing file stops the build before it starts rather than letting it ship
+    /// without the notices. <c>ThirdPartyNoticesTests</c> checks what is in it.
     /// </summary>
     public sealed class ThirdPartyNotices : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
@@ -33,8 +34,8 @@ namespace SurvivalChaos.EditorTools
             if (IsWindows(report) && !File.Exists(Source))
             {
                 throw new BuildFailedException(
-                    FileName + " is missing from the project folder. AMD's FSR licence needs " +
-                    "its notice shipped with the game.");
+                    FileName + " is missing from the project folder. The FSR, DLSS and font " +
+                    "licences need their notices shipped with the game.");
             }
         }
 

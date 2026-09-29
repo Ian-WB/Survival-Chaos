@@ -51,10 +51,70 @@ namespace SurvivalChaos
             public FfxNative.DispatchParams parameters;
         }
 
+        /// <summary>
+        /// Every context slot this domain holds, so they can be given back when
+        /// HDRP will not. Its upscaler framework frees a context only once a
+        /// running pipeline has gone 400 frames without it. When the pipeline
+        /// itself goes - every quality tier change, entering play in the
+        /// editor, a script reload - it drops its contexts without cleaning any
+        /// of them up, and each one strands a native FSR context and its GPU
+        /// memory. The plugin has 16 slots, so FSR stopped after 16 of those.
+        /// </summary>
+        private static readonly System.Collections.Generic.HashSet<int> LiveContexts =
+            new System.Collections.Generic.HashSet<int>();
+
+        private static bool releaseHooked;
+
         public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
         {
+            HookRelease();
+
             int id = FfxNative.ReserveContext();
-            return id < 0 ? null : new Fsr3Context(id, displayResolution);
+            if (id < 0)
+            {
+                return null;
+            }
+
+            LiveContexts.Add(id);
+            return new Fsr3Context(id, displayResolution);
+        }
+
+        private static void HookRelease()
+        {
+            if (releaseHooked)
+            {
+                return;
+            }
+
+            releaseHooked = true;
+            RenderPipelineManager.activeRenderPipelineDisposed += ReleaseAll;
+#if UNITY_EDITOR
+            // In case a reload ever comes without the pipeline being disposed
+            // first. Releasing twice is safe: a released slot leaves the set.
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += ReleaseAll;
+#endif
+        }
+
+        /// <summary>Gives back every slot still held, on the render thread.</summary>
+        private static void ReleaseAll()
+        {
+            if (LiveContexts.Count == 0)
+            {
+                return;
+            }
+
+            using (CommandBuffer command = new CommandBuffer { name = "FSR 3 release" })
+            {
+                foreach (int id in LiveContexts)
+                {
+                    command.IssuePluginEventAndData(
+                        FfxNative.RenderEventFunc, FfxNative.EventRelease, (System.IntPtr)id);
+                }
+
+                Graphics.ExecuteCommandBuffer(command);
+            }
+
+            LiveContexts.Clear();
         }
 
         /// <summary>
@@ -236,7 +296,12 @@ namespace SurvivalChaos
 
             public void Cleanup(CommandBuffer cmd)
             {
-                cmd.IssuePluginEventAndData(FfxNative.RenderEventFunc, FfxNative.EventRelease, (System.IntPtr)Id);
+                // Only while still held: after ReleaseAll the slot may already
+                // belong to another camera's context.
+                if (LiveContexts.Remove(Id))
+                {
+                    cmd.IssuePluginEventAndData(FfxNative.RenderEventFunc, FfxNative.EventRelease, (System.IntPtr)Id);
+                }
             }
         }
     }

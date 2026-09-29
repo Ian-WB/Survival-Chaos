@@ -64,19 +64,6 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void AmdsNoticeIsThereToShip()
-        {
-            // ThirdPartyNotices copies it beside the exe in every Windows build.
-            string path = System.IO.Path.Combine(
-                System.IO.Path.GetDirectoryName(Application.dataPath), "ThirdPartyNotices.txt");
-            Assert.IsTrue(System.IO.File.Exists(path), "ThirdPartyNotices.txt is missing");
-
-            string text = System.IO.File.ReadAllText(path);
-            StringAssert.Contains("Copyright (C) Advanced Micro Devices, Inc.", text);
-            StringAssert.Contains("The above copyright notice and this permission notice shall be included", text);
-        }
-
-        [Test]
         public void UnitysAmdModuleStaysOut()
         {
             // It carries only FSR 2, and AMDUnityPlugin.dll, 9.9 MB in every build.
