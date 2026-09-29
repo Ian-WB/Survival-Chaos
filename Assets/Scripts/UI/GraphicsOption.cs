@@ -372,12 +372,7 @@ namespace SurvivalChaos
         {
             List<UpscaleMethod> available = new List<UpscaleMethod> { UpscaleMethod.Off };
 
-            if (director.FsrAvailable)
-            {
-                available.Add(UpscaleMethod.Fsr);
-            }
-
-            // Beside FSR 2 in the list, though it is stored as 3.
+            // Before DLSS in the list, though it is stored as 3.
             if (director.Fsr3Available)
             {
                 available.Add(UpscaleMethod.Fsr3);

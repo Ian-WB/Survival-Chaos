@@ -12,8 +12,8 @@ namespace SurvivalChaos
     ///
     /// This is the one place the game writes to a pipeline asset, and only
     /// because HDRP leaves no other way. It runs the first upscaler in that list
-    /// that can run for the camera. DLSS and FSR2 each have a per-camera switch
-    /// the graphics menu turns off, but a framework upscaler has none. Listed
+    /// that can run for the camera. DLSS has a per-camera switch the graphics
+    /// menu turns off, but a framework upscaler has none. Listed
     /// permanently, FSR 3 would take over whenever the menu says Off but the
     /// render scale is below 100% or dynamic resolution is on, the cases HDRP's
     /// own upscale filter is meant to handle.
@@ -21,8 +21,8 @@ namespace SurvivalChaos
     /// So the name goes in only in play and only while chosen. It comes out of
     /// every asset it was put in when the choice changes, the quality tier moves
     /// to another asset, the director goes away, or play mode ends. Nothing
-    /// marks the asset dirty, and <c>UpscalerListingTests</c> checks that no
-    /// asset on disk lists it.
+    /// marks the asset dirty, and <c>Fsr3Tests</c> checks that no asset on
+    /// disk lists it.
     /// </summary>
     internal static class Fsr3Listing
     {

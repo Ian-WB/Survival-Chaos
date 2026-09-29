@@ -11,15 +11,19 @@ namespace SurvivalChaos
     /// changing one mean re-finding the other.
     ///
     /// The numbers are what a player's settings file stores, so they never
-    /// move: FSR 3 came last and is 3, even though the menu lists it beside
-    /// FSR 2.
+    /// move: FSR is 3 because it came last, and 1 stays reserved for the FSR 2
+    /// it replaced.
     /// </summary>
     public enum UpscaleMethod
     {
         Off = 0,
 
-        /// <summary>Unity's own FSR 2, built into HDRP.</summary>
-        Fsr = 1,
+        /// <summary>
+        /// Unity's own FSR 2, retired for <see cref="Fsr3"/> on 29 Sep 2026.
+        /// Never offered or run; a settings file that stored it reads as FSR 3
+        /// (see <see cref="DisplayOptions.StoredUpscaleMethod"/>).
+        /// </summary>
+        RetiredFsr2 = 1,
 
         Dlss = 2,
 
@@ -55,8 +59,8 @@ namespace SurvivalChaos
     ///
     /// DLAA is in this list rather than the upscale list because that is what it
     /// is — DLSS at 100% scale, spending its budget on anti-aliasing rather than
-    /// on reconstruction. There is deliberately no FSR equivalent: Unity's
-    /// <c>AMD.FSR2Quality</c> has no native-resolution mode to expose.
+    /// on reconstruction. There is no FSR equivalent: AMD's library has a
+    /// native-resolution mode, but nothing here offers it.
     /// </summary>
     public enum AntiAliasingMode
     {
@@ -367,10 +371,30 @@ namespace SurvivalChaos
         /// nine-item list once, which meant "DLSS Balanced" and "FSR Balanced"
         /// were unrelated entries a player had to scroll between to compare.
         ///
-        /// Indexed by <see cref="UpscaleMethod"/>. FSR carries its version now
-        /// that there are two of them.
+        /// Indexed by <see cref="UpscaleMethod"/>, so the retired FSR 2 keeps its
+        /// slot. FSR carries no version: AMD's loader picks 3.1.5 or FSR 4 by
+        /// card, and the system profile reports which.
         /// </summary>
-        public static readonly string[] UpscaleMethodNames = { "Off", "FSR 2", "DLSS", "FSR 3" };
+        public static readonly string[] UpscaleMethodNames = { "Off", "FSR 2", "DLSS", "FSR" };
+
+        /// <summary>
+        /// What a stored upscaler number means today. A player who had FSR 2
+        /// keeps an FSR rather than silently losing upscaling, and a number no
+        /// build ever wrote reads as Off.
+        /// </summary>
+        public static UpscaleMethod StoredUpscaleMethod(int stored)
+        {
+            switch (stored)
+            {
+                case (int)UpscaleMethod.RetiredFsr2:
+                case (int)UpscaleMethod.Fsr3:
+                    return UpscaleMethod.Fsr3;
+                case (int)UpscaleMethod.Dlss:
+                    return UpscaleMethod.Dlss;
+                default:
+                    return UpscaleMethod.Off;
+            }
+        }
 
         /// <summary>
         /// How hard the upscaler pushes, in the order every other game lists it:
@@ -385,11 +409,10 @@ namespace SurvivalChaos
         /// <summary>
         /// How many of those are vendor presets rather than a scale of our own.
         ///
-        /// Split out from the name count deliberately. Both drivers' quality
-        /// enums stop at four, so clamping a stored value against the number of
-        /// *names* would hand them a fifth they do not accept - which is exactly
-        /// what adding Custom to the end would otherwise have done to
-        /// <see cref="Fsr2QualityValue"/>.
+        /// Split out from the name count deliberately. DLSS's quality enum stops
+        /// at four and so do AMD's published ratios, so clamping a stored value
+        /// against the number of *names* would hand the driver a fifth it does
+        /// not accept - which is exactly what adding Custom to the end once did.
         /// </summary>
         public const int PresetCount = 4;
 
@@ -434,24 +457,6 @@ namespace SurvivalChaos
                 case 2: return DlssMaximumPerformance;
                 default: return DlssUltraPerformance;
             }
-        }
-
-        /// <summary>
-        /// The quality value to hand HDRP for FSR2.
-        ///
-        /// <c>AMD.FSR2Quality</c> happens to run best-to-cheapest already, so this
-        /// is the identity — but it is written out rather than assumed, because the
-        /// two vendors disagreeing about ordering is exactly the trap above.
-        /// </summary>
-        public static uint Fsr2QualityValue(int quality)
-        {
-            if (quality < 0)
-            {
-                return 0;
-            }
-
-            int last = PresetCount - 1;
-            return (uint)(quality > last ? last : quality);
         }
 
         // ---------- sharpening ----------

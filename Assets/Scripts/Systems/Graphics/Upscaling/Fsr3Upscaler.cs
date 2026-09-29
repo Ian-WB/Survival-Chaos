@@ -11,15 +11,15 @@ namespace SurvivalChaos
     /// framework. On an RX 6000 card that is FSR 3.1.5; AMD's loader picks the
     /// newest the card supports, so an RX 9000 gets FSR 4 from the same DLL.
     ///
-    /// HDRP's built-in FSR2 is Unity's own integration of FSR 2; this runs
-    /// beside it as a separate menu entry. The inputs are the ones HDRP's FSR2
-    /// pass hands AMD's library, because that pass is the one known to work in
-    /// this game: HDR colour, reversed depth, motion vectors scaled from HDRP's
-    /// viewport units to pixels, no exposure texture and a pre-exposure of 1.
+    /// It replaced HDRP's built-in FSR2, Unity's own integration of FSR 2, on
+    /// 29 Sep 2026. The inputs are the ones that FSR2 pass handed AMD's
+    /// library, because that pass was the one known to work in this game: HDR
+    /// colour, reversed depth, motion vectors scaled from HDRP's viewport units
+    /// to pixels, no exposure texture and a pre-exposure of 1.
     ///
     /// The render scale stays the game's. This reports no quality mode, so HDRP
     /// renders at whatever <see cref="GraphicsDirector"/> asks for and FSR only
-    /// reconstructs from it - the same arrangement the FSR2 and DLSS paths use.
+    /// reconstructs from it - the same arrangement the DLSS path uses.
     /// </summary>
     public sealed class Fsr3Upscaler : AbstractUpscaler
     {

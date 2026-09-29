@@ -506,9 +506,10 @@ namespace SurvivalChaos
         /// This was DynamicOverriddenByUpscaler, and it was the reason the dynamic
         /// resolution row greyed out whenever an upscaler was on. That was
         /// accurate at the time: with the vendors' optimal-settings toggle set,
-        /// DLSS and FSR2 install their own scaler into HDRP's System slot and
-        /// HDRP prefers it over the User slot this class registers into, so the
-        /// controller ran every frame and its answer was thrown away.
+        /// DLSS and FSR2 (since retired) installed their own scaler into HDRP's
+        /// System slot and HDRP preferred it over the User slot this class
+        /// registers into, so the controller ran every frame and its answer was
+        /// thrown away.
         ///
         /// <see cref="ApplyCamera"/> turns that toggle off now. The System slot
         /// stays empty, HDRP selects User at the top of every camera, and the two
@@ -524,14 +525,12 @@ namespace SurvivalChaos
         public bool DlssAvailable =>
             HDDynamicResolutionPlatformCapabilities.DLSSDetected && PipelineOffers("DLSS");
 
-        /// <summary>Same question for FSR2, which most cards can run but not all.</summary>
-        public bool FsrAvailable =>
-            HDDynamicResolutionPlatformCapabilities.FSR2Detected && PipelineOffers("FSR2");
-
         /// <summary>
         /// Whether AMD's own FSR can run: DirectX 12 on Windows, with the plugin
         /// and AMD's DLLs in place. Not asked of the pipeline asset, which lists
-        /// FSR 3 only while it is chosen - see <c>Fsr3Listing</c>.
+        /// FSR 3 only while it is chosen - see <c>Fsr3Listing</c>. There is no
+        /// fallback where it cannot run: Unity's FSR 2, which also ran on
+        /// DirectX 11, was taken out when this replaced it.
         /// </summary>
         public bool Fsr3Available =>
 #if ENABLE_UPSCALER_FRAMEWORK
@@ -565,9 +564,9 @@ namespace SurvivalChaos
         ///
         /// Hardware support is not enough: HDRP only walks the upscalers named in
         /// the asset, so one the card can run but the asset omits will simply
-        /// never activate. Without this check, taking FSR2 out of the asset leaves
-        /// the menu still offering it and doing nothing - a dead control, which is
-        /// the failure this project keeps finding.
+        /// never activate. Without this check, taking DLSS out of the asset would
+        /// leave the menu still offering it and doing nothing - a dead control,
+        /// which is the failure this project keeps finding.
         ///
         /// Reads the asset; never writes to it.
         /// </summary>
@@ -586,7 +585,8 @@ namespace SurvivalChaos
         {
             get
             {
-                UpscaleMethod stored = (UpscaleMethod)GetInt("UpscaleMethod", (int)UpscaleMethod.Off);
+                UpscaleMethod stored = DisplayOptions.StoredUpscaleMethod(
+                    GetInt("UpscaleMethod", (int)UpscaleMethod.Off));
                 // A settings file can outlive the graphics card it was written on.
                 return Supported(stored) ? stored : UpscaleMethod.Off;
             }
@@ -597,10 +597,10 @@ namespace SurvivalChaos
         {
             switch (method)
             {
+                case UpscaleMethod.Off: return true;
                 case UpscaleMethod.Dlss: return DlssAvailable;
-                case UpscaleMethod.Fsr: return FsrAvailable;
                 case UpscaleMethod.Fsr3: return Fsr3Available;
-                default: return true;
+                default: return false;
             }
         }
 
@@ -665,12 +665,11 @@ namespace SurvivalChaos
 
         /// <summary>
         /// False when nothing on screen is being sharpened, so the row can say so
-        /// rather than sitting there doing nothing. Only TAA and the two FSRs
-        /// sharpen; DLSS, FXAA, SMAA and no anti-aliasing at all do not.
+        /// rather than sitting there doing nothing. Only TAA and FSR sharpen;
+        /// DLSS, FXAA, SMAA and no anti-aliasing at all do not.
         /// </summary>
         public bool SharpeningApplies =>
-            Method == UpscaleMethod.Fsr || Method == UpscaleMethod.Fsr3 ||
-            AntiAliasing == AntiAliasingMode.Taa;
+            Method == UpscaleMethod.Fsr3 || AntiAliasing == AntiAliasingMode.Taa;
 
         /// <summary>
         /// The scale the pipeline resolved for the last frame, which is not always
@@ -1081,10 +1080,9 @@ namespace SurvivalChaos
         /// destroys the DLSS feature and builds another, which is a hitch rather
         /// than a slow frame. That is the cost this whole path exists to avoid.
         ///
-        /// FSR2 has no equivalent limit. HDRP creates it with a maximum render
-        /// size of the full output, so every scale below native is already inside
-        /// its range and a clamp would only invent a restriction. FSR 3 is created
-        /// the same way, at the full allocation, and has none either.
+        /// FSR has no equivalent limit. It is created with a maximum render size
+        /// of the full allocation, so every scale below native is already inside
+        /// its range and a clamp would only invent a restriction.
         /// </summary>
         private bool TryUpscalerRange(out float minimum, out float maximum)
         {
@@ -1200,10 +1198,11 @@ namespace SurvivalChaos
         /// Drives the render scale, whoever decided it.
         ///
         /// Registered once, into the User slot. That slot used to be the one that
-        /// lost: DLSS and FSR2 claimed the System slot whenever they ran and HDRP
-        /// prefers it, so this applied exactly when no upscaler was on. With the
-        /// vendors' optimal settings switched off in <see cref="ApplyCamera"/> the
-        /// System slot is never claimed, HDRP selects User at the top of every
+        /// lost: DLSS and the since-retired FSR2 claimed the System slot whenever
+        /// they ran and HDRP prefers it, so this applied exactly when no upscaler
+        /// was on. With DLSS's optimal settings switched off in
+        /// <see cref="ApplyCamera"/> the System slot is never claimed, and FSR 3
+        /// never claims it at all, so HDRP selects User at the top of every
         /// camera, and this is the only scaler in play - which is what lets a
         /// custom scale and dynamic resolution reach an upscaler at all.
         ///
@@ -1244,7 +1243,6 @@ namespace SurvivalChaos
             // pass running even though no upscaling is being asked for.
             bool dlaa = method == UpscaleMethod.Off && aa == AntiAliasingMode.Dlaa;
             bool dlss = method == UpscaleMethod.Dlss;
-            bool fsr = method == UpscaleMethod.Fsr;
 
             // An upscaler does its own temporal reconstruction, so HDRP's
             // anti-aliasing is switched off rather than stacked on top of it.
@@ -1263,22 +1261,20 @@ namespace SurvivalChaos
                 method != UpscaleMethod.Off || dlaa || RenderScale < 1f || DynamicResolutionOn;
 
             data.allowDeepLearningSuperSampling = dlss || dlaa;
-            data.allowFidelityFX2SuperResolution = fsr;
 
             // FSR 3 has no switch on the camera. HDRP runs it for any camera
             // whose pipeline asset lists it, so it is listed only while chosen,
-            // with DLSS and FSR2 switched off above so it is the one HDRP finds.
+            // with DLSS switched off above so it is the one HDRP finds.
 #if ENABLE_UPSCALER_FRAMEWORK
             Fsr3Listing.Apply(method == UpscaleMethod.Fsr3);
 #endif
 
             // Both "use custom" flags are set because HDRP reads the quality and
-            // the optimal-settings toggle through different gates - DLSS checks
-            // its attributes flag, FSR2 checks its quality flag - and leaving
+            // the optimal-settings toggle through different gates, and leaving
             // either unset silently falls back to the pipeline asset's value.
             //
             // The optimal-settings toggle is the one that decides who owns the
-            // resolution, and it is off. On, each vendor writes its own scaler
+            // resolution, and it is off. On, DLSS writes its own scaler
             // into HDRP's System slot, narrows the pipeline asset's range to the
             // driver's, and HDRP prefers that over the User slot this class
             // registers into - so the render scale row and the whole dynamic
@@ -1287,21 +1283,16 @@ namespace SurvivalChaos
             // the entire reason a custom scale and dynamic resolution can reach an
             // upscaler at all.
             //
-            // What the vendors keep is the quality, because it is what they
-            // reconstruct with and, for DLSS, which band of input resolutions they
-            // will accept. Custom is not a vendor mode, so it resolves to whichever
-            // preset sits nearest the scale being asked for.
+            // What DLSS keeps is the quality, because it is what it reconstructs
+            // with and which band of input resolutions it will accept. Custom is
+            // not a vendor mode, so it resolves to whichever preset sits nearest
+            // the scale being asked for.
             data.deepLearningSuperSamplingUseCustomQualitySettings = true;
             data.deepLearningSuperSamplingUseCustomAttributes = true;
             data.deepLearningSuperSamplingUseOptimalSettings = false;
             data.deepLearningSuperSamplingQuality = dlaa
                 ? DisplayOptions.DlssDlaa
                 : DisplayOptions.DlssQualityValue(ResolvedPreset);
-
-            data.fidelityFX2SuperResolutionUseCustomQualitySettings = true;
-            data.fidelityFX2SuperResolutionUseCustomAttributes = true;
-            data.fidelityFX2SuperResolutionUseOptimalSettings = false;
-            data.fidelityFX2SuperResolutionQuality = DisplayOptions.Fsr2QualityValue(ResolvedPreset);
 
             ApplySharpening(data);
         }
@@ -1329,11 +1320,8 @@ namespace SurvivalChaos
 
             float upscalerSharpness = DisplayOptions.UpscalerSharpness(amount);
 
-            data.fidelityFX2SuperResolutionEnableSharpening = upscalerSharpness > 0f;
-            data.fidelityFX2SuperResolutionSharpening = upscalerSharpness;
-
             // FSR 3 reads its settings from HDRP's upscaler framework, which has
-            // no per-camera fields, so it takes the same number from here.
+            // no per-camera fields, so it takes the number from here.
 #if ENABLE_UPSCALER_FRAMEWORK
             Fsr3Upscaler.Sharpen = upscalerSharpness > 0f;
             Fsr3Upscaler.Sharpness = upscalerSharpness;

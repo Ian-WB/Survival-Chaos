@@ -313,23 +313,11 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void Fsr2QualityValue_KeepsAmdsOrderingAndClampsOffTheEnds()
-        {
-            Assert.AreEqual(0u, DisplayOptions.Fsr2QualityValue((int)UpscaleQuality.Quality));
-            Assert.AreEqual(3u, DisplayOptions.Fsr2QualityValue((int)UpscaleQuality.UltraPerformance));
-
-            // A settings file written by a later build with more modes must not
-            // index past the enum the driver actually accepts.
-            Assert.AreEqual(0u, DisplayOptions.Fsr2QualityValue(-1));
-            Assert.AreEqual(3u, DisplayOptions.Fsr2QualityValue(99));
-        }
-
-        [Test]
         public void QualityNames_CoverEveryModeBothVendorsOffer()
         {
             // Five names but four vendor modes: Custom is ours, not theirs. Both
-            // drivers' quality enums stop at four, so anything clamping a stored
-            // quality has to clamp against PresetCount rather than this length.
+            // vendors stop at four, so anything clamping a stored quality has to
+            // clamp against PresetCount rather than this length.
             Assert.AreEqual(4, DisplayOptions.PresetCount);
             Assert.AreEqual(DisplayOptions.PresetCount + 1,
                 DisplayOptions.UpscaleQualityNames.Length);
@@ -447,20 +435,6 @@ namespace SurvivalChaos.Tests
         {
             Assert.AreEqual(0, DisplayOptions.ResolvePreset(-1, 0.7f));
             Assert.AreEqual(DisplayOptions.PresetCount - 1, DisplayOptions.ResolvePreset(99, 0.7f));
-        }
-
-        /// <summary>
-        /// The trap adding Custom set. This clamped against the number of names,
-        /// which grew to five, so Custom would have reached AMD as a quality mode
-        /// its enum does not define.
-        /// </summary>
-        [Test]
-        public void Fsr2QualityValue_NeverNamesAModeAmdDoesNotHave()
-        {
-            for (int i = -2; i < 8; i++)
-            {
-                Assert.Less(DisplayOptions.Fsr2QualityValue(i), (uint)DisplayOptions.PresetCount);
-            }
         }
     }
 }

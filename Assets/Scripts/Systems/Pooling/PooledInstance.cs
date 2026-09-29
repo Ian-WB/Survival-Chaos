@@ -54,7 +54,7 @@ namespace SurvivalChaos
         /// A reused object is teleported to its new spawn point, so on its first
         /// frame the renderer reports movement from wherever it last died - often
         /// right across the screen. Anything that reprojects last frame using
-        /// motion vectors then drags the old image along that path: FSR2 leaves a
+        /// motion vectors then drags the old image along that path: FSR2 left a
         /// visible ghost trail on explosion particles, and TAA smears more subtly.
         ///
         /// One frame is the whole problem. After that the object is moving

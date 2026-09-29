@@ -14,7 +14,7 @@ namespace SurvivalChaos
     /// The plugin's source and build script live in Native/FfxUpscaler; the
     /// three DLLs sit in Assets/Plugins/FidelityFX/x86_64. FSR through AMD's
     /// DLLs is DirectX 12 only, so on DirectX 11 this reports NotD3D12 and the
-    /// menu leaves FSR 3 out.
+    /// menu offers no FSR at all.
     /// </summary>
     internal static class FfxNative
     {
@@ -98,10 +98,10 @@ namespace SurvivalChaos
 
 #if UNITY_EDITOR
         /// <summary>
-        /// FSR 3 stays out of the editor until it has proved itself in a build.
-        /// A mistake in a native plugin takes the whole process down, and the
-        /// editor is where the unsaved work is. Set this EditorPrefs key to let
-        /// the editor load it.
+        /// FSR 3 stays out of the editor unless asked for. A mistake in a native
+        /// plugin takes the whole process down, and the editor is where the
+        /// unsaved work is. Set this EditorPrefs key to let the editor load it;
+        /// without it, play in the editor has no FSR at all, since FSR 2 went.
         /// </summary>
         public const string EditorPrefKey = "SurvivalChaos.Fsr3InEditor";
 #endif
@@ -137,10 +137,11 @@ namespace SurvivalChaos
         /// <summary>
         /// For CommandBuffer.IssuePluginCustomTextureUpdateV2, which is how the
         /// plugin learns which D3D12 resource each input is. Unity's own FSR2
-        /// module does the same: the event carries Unity's texture ID to the
-        /// thread that runs the commands, where it can be turned into a
-        /// resource. A render buffer pointer read here, on the main thread,
-        /// cannot - under graphics jobs, resolving one crashed a build.
+        /// module, since removed, did the same: the event carries Unity's
+        /// texture ID to the thread that runs the commands, where it can be
+        /// turned into a resource. A render buffer pointer read here, on the
+        /// main thread, cannot - under graphics jobs, resolving one crashed a
+        /// build.
         /// </summary>
         public static IntPtr TextureEventFunc => textureEventFunc;
         public static int EventDispatch => eventDispatch;

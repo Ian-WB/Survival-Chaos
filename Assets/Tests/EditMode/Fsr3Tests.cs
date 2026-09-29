@@ -12,7 +12,8 @@ namespace SurvivalChaos.Tests
     /// The parts of FSR 3 that can go wrong without anything on screen saying
     /// so: a stored setting meaning a different upscaler, a jitter sequence a
     /// phase short, a pipeline asset left listing FSR 3 so it takes over when
-    /// the menu says Off, and the DLLs quietly left out of a build.
+    /// the menu says Off, the DLLs quietly left out of a build, and the FSR 2
+    /// it replaced finding its way back.
     /// </summary>
     public class Fsr3Tests
     {
@@ -23,12 +24,68 @@ namespace SurvivalChaos.Tests
         {
             // A player's settings file stores these numbers.
             Assert.AreEqual(0, (int)UpscaleMethod.Off);
-            Assert.AreEqual(1, (int)UpscaleMethod.Fsr);
+            Assert.AreEqual(1, (int)UpscaleMethod.RetiredFsr2);
             Assert.AreEqual(2, (int)UpscaleMethod.Dlss);
             Assert.AreEqual(3, (int)UpscaleMethod.Fsr3);
 
-            Assert.AreEqual("FSR 2", DisplayOptions.UpscaleMethodNames[(int)UpscaleMethod.Fsr]);
-            Assert.AreEqual("FSR 3", DisplayOptions.UpscaleMethodNames[(int)UpscaleMethod.Fsr3]);
+            Assert.AreEqual("FSR", DisplayOptions.UpscaleMethodNames[(int)UpscaleMethod.Fsr3]);
+        }
+
+        [TestCase(0, UpscaleMethod.Off)]
+        [TestCase(1, UpscaleMethod.Fsr3)]
+        [TestCase(2, UpscaleMethod.Dlss)]
+        [TestCase(3, UpscaleMethod.Fsr3)]
+        [TestCase(-1, UpscaleMethod.Off)]
+        [TestCase(7, UpscaleMethod.Off)]
+        public void AStoredFsr2ReadsAsFsr3(int stored, UpscaleMethod expected)
+        {
+            // Someone who had FSR 2 keeps an FSR; a number no build wrote is Off.
+            Assert.AreEqual(expected, DisplayOptions.StoredUpscaleMethod(stored));
+        }
+
+        [Test]
+        public void NoPipelineAssetListsTheRetiredFsr2()
+        {
+            int checkedCount = 0;
+
+            foreach (string guid in AssetDatabase.FindAssets("t:HDRenderPipelineAsset", new[] { "Assets" }))
+            {
+                HDRenderPipelineAsset asset =
+                    AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                List<string> names =
+                    asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+
+                checkedCount++;
+                Assert.IsFalse(names != null && names.Contains("FSR2"),
+                    asset.name + " lists FSR2, which was retired for FSR 3");
+            }
+
+            Assert.Greater(checkedCount, 0, "found no pipeline assets to check");
+        }
+
+        [Test]
+        public void AmdsNoticeIsThereToShip()
+        {
+            // ThirdPartyNotices copies it beside the exe in every Windows build.
+            string path = System.IO.Path.Combine(
+                System.IO.Path.GetDirectoryName(Application.dataPath), "ThirdPartyNotices.txt");
+            Assert.IsTrue(System.IO.File.Exists(path), "ThirdPartyNotices.txt is missing");
+
+            string text = System.IO.File.ReadAllText(path);
+            StringAssert.Contains("Copyright (C) Advanced Micro Devices, Inc.", text);
+            StringAssert.Contains("The above copyright notice and this permission notice shall be included", text);
+        }
+
+        [Test]
+        public void UnitysAmdModuleStaysOut()
+        {
+            // It carries only FSR 2, and AMDUnityPlugin.dll, 9.9 MB in every build.
+            foreach (UnityEditor.PackageManager.PackageInfo package in
+                     UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages())
+            {
+                Assert.AreNotEqual("com.unity.modules.amd", package.name,
+                    "Unity's AMD module is back, and with it FSR 2");
+            }
         }
 
         [TestCase(1.5f, 18)]

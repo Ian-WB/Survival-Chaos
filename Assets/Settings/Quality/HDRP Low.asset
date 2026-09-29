@@ -374,7 +374,6 @@ MonoBehaviour:
       advancedUpscalersByPriority: 
       advancedUpscalerNames:
       - DLSS
-      - FSR2
       DLSSPerfQualitySetting: 0
       DLSSInjectionPoint: 0
       TAAUInjectionPoint: 0

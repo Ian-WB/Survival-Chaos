@@ -11,16 +11,17 @@ namespace SurvivalChaos
     ///
     /// The framework is switched on by the ENABLE_UPSCALER_FRAMEWORK define,
     /// which Unity ships off, because it is the only way to hand HDRP an upscaler
-    /// of our own. Switching it on also registers Unity's own framework copies
-    /// of DLSS and FSR2, and HDRP builds every registered upscaler whenever it
-    /// creates the pipeline - after every compile, entering play, and every
-    /// change of quality tier. The DLSS copy logs a warning each time on any card
-    /// that is not NVIDIA's.
+    /// of our own. Switching it on also registers Unity's own framework copy of
+    /// DLSS, and HDRP builds every registered upscaler whenever it creates the
+    /// pipeline - after every compile, entering play, and every change of
+    /// quality tier. That copy logs a warning each time on any card that is not
+    /// NVIDIA's.
     ///
-    /// Neither copy is used. The pipeline assets list DLSS and FSR2 by their
-    /// short names, and HDRP runs those through its own long-standing passes,
-    /// which the graphics menu drives. The framework copies would only ever run
-    /// if an asset named them in full, so they are taken out again here.
+    /// It is not used. The pipeline assets list DLSS by its short name, and
+    /// HDRP runs that through its own long-standing pass, which the graphics
+    /// menu drives. The framework copy would only ever run if an asset named it
+    /// in full, so it is taken out again here. Unity's AMD module would add an
+    /// FSR2 copy the same way; the module was removed with FSR 2.
     ///
     /// What goes in is <see cref="Fsr3Upscaler"/>, under the name FSR3. HDRP
     /// only runs it for a pipeline asset that lists that name, and
@@ -31,11 +32,11 @@ namespace SurvivalChaos
 #endif
     public static class UpscalerRegistration
     {
-        private static readonly string[] UnusedRegistrars = { "RegisterDLSS", "RegisterFSR2" };
-        private static readonly string[] UnusedUpscalers = { "DLSSIUpscaler", "FSR2IUpscaler" };
+        private static readonly string[] UnusedRegistrars = { "RegisterDLSS" };
+        private static readonly string[] UnusedUpscalers = { "DLSSIUpscaler" };
 
-        // In the editor the registrars' static constructors add them, once per
-        // domain. Running those constructors here first means they have already
+        // In the editor the registrar's static constructor adds it, once per
+        // domain. Running that constructor here first means it has already
         // happened by the time the removal runs, whichever order Unity picks.
         static UpscalerRegistration()
         {
@@ -51,7 +52,7 @@ namespace SurvivalChaos
             RegisterOurs();
         }
 
-        // In a player, and in play mode, the registrars add them again from a
+        // In a player, and in play mode, the registrar adds it again from a
         // BeforeSceneLoad method. Unity does not order methods within one load
         // phase, so this runs in that phase and again once the scene has loaded,
         // which is still before its first frame is drawn.
@@ -93,8 +94,8 @@ namespace SurvivalChaos
             }
         }
 
-        // Both live in the global namespace and exist only when their vendor
-        // module is installed, so they are found by name rather than typeof.
+        // They live in the global namespace and exist only when NVIDIA's module
+        // is installed, so they are found by name rather than typeof.
         private static Type CoreType(string name)
         {
             return Type.GetType(name + ", Unity.RenderPipelines.Core.Runtime");
