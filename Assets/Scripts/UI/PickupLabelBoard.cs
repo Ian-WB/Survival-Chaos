@@ -170,6 +170,12 @@ namespace SurvivalChaos
             Instance = this;
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            Instance = null;
+        }
+
         private void OnDestroy()
         {
             if (Instance == this)

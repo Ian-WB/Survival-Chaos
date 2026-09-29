@@ -45,6 +45,12 @@ namespace SurvivalChaos
         /// <summary>Shared: a block is written and applied before the next one is touched.</summary>
         private static MaterialPropertyBlock block;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            block = null;
+        }
+
         private ShootScript shot;
         private Renderer flare;
         private float level;

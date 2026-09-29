@@ -154,6 +154,12 @@ namespace SurvivalChaos
             }
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            active = null;
+        }
+
         private void Start()
         {
             ResolveReferences();

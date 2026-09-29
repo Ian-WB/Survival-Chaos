@@ -132,6 +132,20 @@ namespace SurvivalChaos
         /// </summary>
         public static bool DebugChecking { get; set; }
 
+        /// <summary>
+        /// Probes again on entering play, as it did when every entry reloaded the
+        /// domain, so the editor's EditorPrefs gate is read afresh. That is safe
+        /// with contexts still alive: the plugin loads AMD's DLLs once and hands
+        /// back the same answer after. The ring stays, for the reason it is never
+        /// freed.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            status = null;
+            DebugChecking = false;
+        }
+
         public static IntPtr RenderEventFunc => renderEventFunc;
 
         /// <summary>

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace SurvivalChaos
 {
     /// <summary>
@@ -18,6 +20,18 @@ namespace SurvivalChaos
         {
             get => source;
             set => source = value ?? CreateDefault();
+        }
+
+        /// <summary>
+        /// A fresh default on entering play. Play mode keeps the domain since 29
+        /// September 2026, so without this a fake a test forgot to take out, or the
+        /// axis ramps where the last session let go of them, would carry into the
+        /// next session. The playtest bot hands input back itself when play ends.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            source = CreateDefault();
         }
 
         /// <summary>

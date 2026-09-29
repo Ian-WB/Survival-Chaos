@@ -123,6 +123,17 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Forgets the lookup on entering play, failure included, so an asset
+        /// created between two play sessions is found without a domain reload.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            cached = null;
+            searched = false;
+        }
+
+        /// <summary>
         /// Plays one of these sounds, given no asset, no sound, or no clip.
         ///
         /// Every call site is a line inside gameplay code that already had a job,

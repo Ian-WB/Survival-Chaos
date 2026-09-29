@@ -61,6 +61,12 @@ namespace SurvivalChaos
             }
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            Instance = null;
+        }
+
         public void AddEXP(int amount, Vector3 where)
         {
             OnEXPChange?.Invoke(amount, where);

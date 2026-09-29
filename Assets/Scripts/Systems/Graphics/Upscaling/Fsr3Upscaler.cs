@@ -65,6 +65,21 @@ namespace SurvivalChaos
 
         private static bool releaseHooked;
 
+        /// <summary>
+        /// The settings only. <see cref="GraphicsDirector"/> writes them again as
+        /// the game starts. The live slots and the release hook stay: the slots
+        /// are native contexts HDRP may still be holding when play begins again
+        /// without a domain reload, and forgetting them here is how they leaked.
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            Sharpness = 0f;
+            Sharpen = false;
+            DebugView = false;
+            LastContextId = -1;
+        }
+
         public override IUpscalerContext CreateContext(UpscalerOptions options, Vector2Int displayResolution)
         {
             HookRelease();

@@ -90,6 +90,14 @@ namespace SurvivalChaos
                 : asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
         }
 
+        // Normally empty by now, cleared as the last session ended. Clearing again
+        // costs nothing and covers a session that ended without that hook.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            Clear();
+        }
+
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
         private static void ClearOnLeavingPlay()
