@@ -572,7 +572,6 @@ MonoBehaviour:
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 3065546095207052095}
   telegraphScale: 1.7
-  curvature: 0.8614025
 --- !u!1 &1515142015807260251
 GameObject:
   m_ObjectHideFlags: 0
@@ -768,6 +767,7 @@ MonoBehaviour:
   leftOrRight: 0
   turnDeadbandDegrees: 20
   turnCooldownSeconds: 3
+  keepPaceWithPlayer: 1
   spawnSpeed: 0.1
   chaseRadiusFraction: 0
 --- !u!114 &782800684810090552
@@ -1157,7 +1157,6 @@ MonoBehaviour:
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 7801532857751363898}
   telegraphScale: 1.7
-  curvature: 1.1561852
 --- !u!1 &3120404038035122420
 GameObject:
   m_ObjectHideFlags: 0
@@ -2290,7 +2289,6 @@ MonoBehaviour:
   explosion: {fileID: 8504988584203488244, guid: 7081010ff346a0c4ab3167c095fa13ca, type: 3}
   glow: {fileID: 3582337470430959229}
   telegraphScale: 1.7
-  curvature: 0.8614025
 --- !u!1 &8108779055708958122
 GameObject:
   m_ObjectHideFlags: 0

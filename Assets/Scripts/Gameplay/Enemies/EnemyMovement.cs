@@ -36,6 +36,22 @@ namespace SurvivalChaos
         private float turnCooldownSeconds;
 
         /// <summary>
+        /// Whether the orbit speed rides the player's Move Speed picks.
+        ///
+        /// On for the boss only. It was tuned at 20 degrees a second against a
+        /// ship at 16.3, a lead of 23%, but each pick adds a tenth to
+        /// the ship and a run can take eight: three put the ship ahead, and on
+        /// 28 September 2026 a player ran from it. Scaled, the lead is 23%
+        /// at any number of picks, and the ram, which multiplies this speed,
+        /// keeps its lead too. Everything else on the ring keeps its own pace,
+        /// so the picks still buy speed against the waves.
+        /// </summary>
+        [SerializeField]
+        [Tooltip("Scales the orbit speed with the player's Move Speed picks, so the lead this was " +
+                 "tuned with holds however many a run takes. On for the boss, off for the waves.")]
+        private bool keepPaceWithPlayer;
+
+        /// <summary>
         /// When this enemy last turned round, in scaled time, so a pause does not
         /// count towards the cooldown. Negative infinity until the first turn,
         /// and again on every spawn, so a pooled enemy does not arrive still
@@ -235,8 +251,9 @@ namespace SurvivalChaos
             else
             {
                 float direction = leftOrRight ? 1f : -1f;
+                float pace = keepPaceWithPlayer ? PlayerMovement.SpeedMultiplier : 1f;
                 transform.RotateAround(
-                    pos, Vector3.up, direction * rotationSpeed * OrbitSpeedScale * Time.deltaTime);
+                    pos, Vector3.up, direction * rotationSpeed * OrbitSpeedScale * pace * Time.deltaTime);
 
                 // Hold the lane while riding it. Costs nothing for an enemy already
                 // on it, puts one that arrived off it back, and follows the lane if

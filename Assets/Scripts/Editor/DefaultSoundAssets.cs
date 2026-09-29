@@ -59,9 +59,11 @@ namespace SurvivalChaos.EditorTools
         private static readonly Spec[] Sounds =
         {
             // Fires every 0.5s at base attack speed and faster with upgrades, so
-            // it carries the widest pitch spread and the tightest retrigger.
+            // it carries the widest pitch spread and the tightest retrigger. The
+            // spread went from 0.94-1.06 to 0.92-1.08 on 28 September 2026, with
+            // eight clips where there were two, after it was heard as repetitive.
             new Spec("playerShot", "PlayerShot", AudioChannel.Sfx, 0.1218f,
-                new Vector2(0.94f, 1.06f), 0.06f, 4, 0f, "one per volley"),
+                new Vector2(0.92f, 1.08f), 0.06f, 4, 0f, "one per volley"),
 
             new Spec("playerHit", "PlayerHit", AudioChannel.Sfx, 1f,
                 new Vector2(0.96f, 1.04f), 0.08f, 2, 0f, "taking damage"),

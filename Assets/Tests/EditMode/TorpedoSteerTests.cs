@@ -352,32 +352,73 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// Far slower than the round it replaced, and about half again the
-        /// player's speed since the player slowed to 5.6 on 22 September - yet
-        /// still no catch for a player who runs flat out along the ring from 20
-        /// away. It steers at where it last saw the player, which runs a little
-        /// behind them, so it closes to about 2.7 after six and a half seconds,
-        /// passes that point and has to come about. Running buys time; it does
-        /// not end the chase.
+        /// Far slower than the round it replaced, about half again the player's
+        /// speed since the player slowed to 5.6 on 22 September, and since 28
+        /// September it catches a player who runs flat out along the ring from
+        /// 20 away. Until then it could not: its ghost trailed a runner by their
+        /// speed over its perception, so it closed to about 2.7, passed the
+        /// ghost and came about with the player still ahead. Running buys time
+        /// now; it does not end the chase.
         /// </summary>
-        private static void ARunner_IsGainedOn_ButNeverCaught(Fight fight)
+        private static void ARunner_IsCaught(Fight fight)
         {
             Assert.Less(fight.Crown.CruiseSpeed, OldRoundSpeed, fight.Name);
             Assert.Greater(fight.Crown.CruiseSpeed, fight.PlayerSpeed * 1.4f, fight.Name);
             Assert.Less(fight.Crown.CruiseSpeed, fight.PlayerSpeed * 1.6f, fight.Name);
 
             Mover fleeing = time => new Vector2(20f + fight.PlayerSpeed * time, 8f);
-            float closest = Closest(fight, fleeing, fight.Crown.Fuel, out _);
-            Assert.Less(closest, 5f, fight.Name + ": it should gain on them");
-            Assert.Greater(closest, fight.HitLength * 4f, fight.Name + ": it should not reach them");
-            Assert.IsFalse(Hits(fight, fleeing, fight.Crown.Fuel), fight.Name);
+            Assert.IsTrue(Hits(fight, fleeing, fight.Crown.Fuel),
+                fight.Name + ": a runner should be caught before the fuel runs out");
         }
 
         [Test]
-        public void GainsOnAPlayerWhoRuns_ButNeverCatchesThem() => ARunner_IsGainedOn_ButNeverCaught(AsWritten);
+        public void CatchesAPlayerWhoRuns() => ARunner_IsCaught(AsWritten);
 
         [Test]
-        public void GainsOnAPlayerWhoRuns_ButNeverCatchesThem_Today() => ARunner_IsGainedOn_ButNeverCaught(Current());
+        public void CatchesAPlayerWhoRuns_Today() => ARunner_IsCaught(Current());
+
+        /// <summary>
+        /// Eight Move Speed picks, the most a run can take, make the ship 1.8
+        /// times as fast. The boss fires its torpedoes at that pace
+        /// (<see cref="TorpedoHandling.Scaled"/>), and the chase is the same
+        /// chase: the runner is caught. At the torpedo's own pace they get away,
+        /// which is what a player did on 28 September 2026.
+        /// </summary>
+        [Test]
+        public void CatchesARunnerWithEveryMoveSpeedPick_OnlyAtTheirPace()
+        {
+            const float pace = 1.8f;
+            Fight fast = new Fight
+            {
+                Name = "every pick",
+                Floor = Floor,
+                Ceiling = Ceiling,
+                PlayerSpeed = AsWritten.PlayerSpeed * pace,
+                HitHeight = AsWritten.HitHeight,
+                HitLength = AsWritten.HitLength,
+                Crown = Crown.Scaled(pace),
+            };
+
+            Mover fleeing = time => new Vector2(20f + fast.PlayerSpeed * time, 8f);
+            Assert.IsTrue(Hits(fast, fleeing, fast.Crown.Fuel), "at the ship's pace it should catch them");
+
+            fast.Crown = Crown;
+            Assert.IsFalse(Hits(fast, fleeing, fast.Crown.Fuel), "at its own pace the faster ship should get away");
+        }
+
+        [Test]
+        public void Scaled_SpeedsUpTheChase_AndLeavesItsTimingAlone()
+        {
+            TorpedoHandling scaled = Crown.Scaled(1.5f);
+
+            Assert.AreEqual(Crown.LaunchSpeed * 1.5f, scaled.LaunchSpeed, 1e-4f);
+            Assert.AreEqual(Crown.CruiseSpeed * 1.5f, scaled.CruiseSpeed, 1e-4f);
+            Assert.AreEqual(Crown.TurnRate * 1.5f, scaled.TurnRate, 1e-4f);
+            Assert.AreEqual(Crown.Perception, scaled.Perception);
+            Assert.AreEqual(Crown.SpinUp, scaled.SpinUp);
+            Assert.AreEqual(Crown.ArmSeconds, scaled.ArmSeconds);
+            Assert.AreEqual(Crown.Fuel, scaled.Fuel);
+        }
 
         [Test]
         public void Thrust_LightsLowAtLaunch_BurnsFullAtCruise_AndGoesOutWithTheFuel()

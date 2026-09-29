@@ -28,6 +28,25 @@ namespace SurvivalChaos
 
         /// <summary>Seconds from launch it steers for. After that it flies straight.</summary>
         public float Fuel;
+
+        /// <summary>
+        /// The same torpedo against a ship <paramref name="pace"/> times as fast
+        /// as the one it was tuned against. Launch, cruise and turn rate scale
+        /// together, so it flies the same curves and keeps the same lead over
+        /// the player: the Move Speed picks go up to eight, 1.8 times the ship,
+        /// and at 8.5 unscaled three of them brought a runner to within 1.2
+        /// units a second of it. How fast it notices a dodge is left alone,
+        /// so a faster ship still shakes one off more easily.
+        /// </summary>
+        public TorpedoHandling Scaled(float pace)
+        {
+            float scale = Mathf.Max(0f, pace);
+            TorpedoHandling scaled = this;
+            scaled.LaunchSpeed *= scale;
+            scaled.CruiseSpeed *= scale;
+            scaled.TurnRate *= scale;
+            return scaled;
+        }
     }
 
     /// <summary>
@@ -45,6 +64,15 @@ namespace SurvivalChaos
         /// <summary>Where it believes the player is.</summary>
         public Vector2 Ghost;
 
+        /// <summary>
+        /// How fast it believes the player is going round the ring, in units a
+        /// second, learnt at the same pace as where they are.
+        /// </summary>
+        public float GhostRun;
+
+        /// <summary>Where the player was on the last step, to learn their run from.</summary>
+        public Vector2 LastSeen;
+
         /// <summary>Seconds since launch.</summary>
         public float Age;
 
@@ -61,7 +89,7 @@ namespace SurvivalChaos
         /// </summary>
         public static Torpedo Launch(Vector2 position, float heading, Vector2 target)
         {
-            return new Torpedo { Position = position, Heading = heading, Ghost = target, Age = 0f };
+            return new Torpedo { Position = position, Heading = heading, Ghost = target, LastSeen = target, Age = 0f };
         }
     }
 
@@ -92,6 +120,16 @@ namespace SurvivalChaos
     /// 0.15 or more above or below misses. TorpedoSteerTests works all of this
     /// through on today's numbers as well as the ones it was tuned on.
     ///
+    /// The delay is for dodges, and until 28 September 2026 it also let a
+    /// player run away. A ghost that only catches up trails a steady runner by
+    /// their speed over its perception - 3.5 units at 5.6 - so the torpedo
+    /// closed on the ghost, passed it and came about while the player was
+    /// still ahead: faster than the ship and never able to catch it. Round the
+    /// ring the ghost now also learns how fast the player is going, at the
+    /// same pace, and runs with them, so a steady run leaves no gap and the
+    /// faster torpedo closes. A sudden change - turning back, or any move up
+    /// or down, where the ghost still only catches up - beats it as before.
+    ///
     /// Everything else in the band bounces off the floor and ceiling, which
     /// the player's centre is clamped to. A torpedo does not bounce, because
     /// the snap would read as a glitch, and it does not scrape along an edge
@@ -117,6 +155,12 @@ namespace SurvivalChaos
         private const float SteepSine = 0.34f;
 
         /// <summary>
+        /// Units a second round the ring past which a player's move is not a
+        /// run. A dash with every Move Speed pick is about 50.
+        /// </summary>
+        private const float MaxRun = 60f;
+
+        /// <summary>
         /// Advances one torpedo by <paramref name="delta"/> seconds, chasing
         /// <paramref name="target"/> in the same flat coordinates.
         /// </summary>
@@ -134,6 +178,20 @@ namespace SurvivalChaos
             // Exponential rather than linear, so the catch-up is the same shape
             // at any frame rate.
             float catchUp = 1f - Mathf.Exp(-Mathf.Max(0f, handling.Perception) * delta);
+
+            // Round the ring the ghost runs with the player at the speed it has
+            // learnt, so a steady run leaves nothing behind them to chase. A step
+            // faster than anything can fly is the flat ring's seam - the short
+            // way round flipping as the player crosses the far side - and
+            // teaches it nothing.
+            float run = (target.x - torpedo.LastSeen.x) / delta;
+            if (Mathf.Abs(run) <= MaxRun)
+            {
+                torpedo.GhostRun = Mathf.Lerp(torpedo.GhostRun, run, catchUp);
+            }
+
+            torpedo.LastSeen = target;
+            torpedo.Ghost.x += torpedo.GhostRun * delta;
             torpedo.Ghost = Vector2.Lerp(torpedo.Ghost, target, catchUp);
 
             float speed = Speed(handling, age);

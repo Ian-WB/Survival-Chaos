@@ -52,6 +52,13 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// What the Move Speed picks have made of the ship's speed, 1 with none.
+        /// The boss and its torpedoes read it to keep the lead they were tuned
+        /// with, so no number of picks outruns them.
+        /// </summary>
+        public static float SpeedMultiplier => speedMultiplier;
+
+        /// <summary>
         /// The dash, held statically for exactly the reason speedMultiplier above
         /// is: the ship and the Main Camera both run this component, and they stay
         /// in formation only because they are handed the same numbers. A dash

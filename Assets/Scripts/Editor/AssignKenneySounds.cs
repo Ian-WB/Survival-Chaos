@@ -62,8 +62,15 @@ namespace SurvivalChaos.EditorTools
         {
             // Small against large is the whole reason these two are separable
             // during the boss fight, when both are firing constantly.
-            new Mapping("PlayerShot", SciFi, "small laser - the rapid one",
-                "laserSmall_000", "laserSmall_001", "laserSmall_002", "laserSmall_003"),
+            // Not from the pack since August 2026, when the gun became two
+            // Bluezone clips; since 28 September it plays eight short cuts of
+            // those, made by BuildPlayerShotVariants. Pointing here keeps a
+            // re-run from putting the small lasers back.
+            new Mapping("PlayerShot", Balanced, "short cuts of the two Bluezone gun clips - the rapid one",
+                "playerShot_cannon_tight", "playerShot_cannon_tight_dark",
+                "playerShot_cannon_full", "playerShot_cannon_full_dark",
+                "playerShot_gun_tight", "playerShot_gun_tight_dark",
+                "playerShot_gun_full", "playerShot_gun_full_dark"),
 
             new Mapping("BossShot", SciFi, "large laser - heavier than the player's",
                 "laserLarge_000", "laserLarge_001", "laserLarge_002"),

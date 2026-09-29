@@ -39,10 +39,10 @@ namespace SurvivalChaos.EditorTools
         /// clipping, which this game reaches routinely - a volley landing while
         /// two enemies explode is an ordinary second of play.
         /// </summary>
-        private const float TargetRmsDb = -16f;
+        internal const float TargetRmsDb = -16f;
 
         /// <summary>Nothing is allowed to peak nearer than this to full scale.</summary>
-        private const float PeakCeilingDb = -0.5f;
+        internal const float PeakCeilingDb = -0.5f;
 
         /// <summary>Below this, a sample counts as silence and is left out of the average.</summary>
         private const float GateDb = -60f;
@@ -122,6 +122,11 @@ namespace SurvivalChaos.EditorTools
             // above the sounds that carry threat. Their clips are also the two
             // hottest in the set once measured properly, which is why the numbers
             // are so large.
+            //
+            // Since 28 September 2026 the gun plays eight short cuts of its two
+            // clips (BuildPlayerShotVariants), and cutting the tails brought the
+            // files themselves down about 3 dB over their loudest 300 ms, which
+            // is the quieter gun that was asked for. So this number stayed.
             { "PlayerShot", -18.3f },
             { "PlayerDash", -20.9f },
 
@@ -305,7 +310,7 @@ namespace SurvivalChaos.EditorTools
         /// read as quiet, which is most explosions - the exact sounds being
         /// complained about.
         /// </summary>
-        private static float GatedRms(float[] samples)
+        internal static float GatedRms(float[] samples)
         {
             float gate = FromDb(GateDb);
             double sum = 0;
@@ -324,7 +329,7 @@ namespace SurvivalChaos.EditorTools
             return counted == 0 ? 0f : (float)Math.Sqrt(sum / counted);
         }
 
-        private static float Peak(float[] samples)
+        internal static float Peak(float[] samples)
         {
             float peak = 0f;
             for (int i = 0; i < samples.Length; i++)
@@ -335,9 +340,9 @@ namespace SurvivalChaos.EditorTools
             return peak;
         }
 
-        private static float FromDb(float db) => Mathf.Pow(10f, db / 20f);
+        internal static float FromDb(float db) => Mathf.Pow(10f, db / 20f);
 
-        private static float ToDb(float linear) => linear <= 0f ? -144f : 20f * Mathf.Log10(linear);
+        internal static float ToDb(float linear) => linear <= 0f ? -144f : 20f * Mathf.Log10(linear);
 
         /// <summary>
         /// Reads a clip's samples, decompressing it first if it is not already.
@@ -347,7 +352,7 @@ namespace SurvivalChaos.EditorTools
         /// read - measuring zeros and calling it quiet would be the worst possible
         /// outcome here.
         /// </summary>
-        private static bool TryRead(AudioClip clip, out float[] samples)
+        internal static bool TryRead(AudioClip clip, out float[] samples)
         {
             samples = null;
 
@@ -430,7 +435,7 @@ namespace SurvivalChaos.EditorTools
             EditorUtility.SetDirty(definition);
         }
 
-        private static void ApplyImportSettings(string path, bool forceMono)
+        internal static void ApplyImportSettings(string path, bool forceMono)
         {
             AudioImporter importer = AssetImporter.GetAtPath(path) as AudioImporter;
             if (importer == null)

@@ -146,8 +146,9 @@ namespace SurvivalChaos
         private float homePerception = 1.6f;
 
         [SerializeField]
-        [Tooltip("Units a second a torpedo cruises at once its motor is up to speed. The player " +
-                 "flies at 7 each way, so above 7 it gains on you and below it you can outrun it.")]
+        [Tooltip("Units a second a torpedo cruises at once its motor is up to speed, against a " +
+                 "player with no Move Speed picks, who flies at 5.6. It scales with the picks, so " +
+                 "above 5.6 it gains on a player who runs, however many they take.")]
         private float homeSpeed = 7.5f;
 
         [SerializeField]

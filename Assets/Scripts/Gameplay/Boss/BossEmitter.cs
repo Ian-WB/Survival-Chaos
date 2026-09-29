@@ -718,7 +718,10 @@ namespace SurvivalChaos
             {
                 if (quarry != null)
                 {
-                    shot.Home(quarry, attack.Torpedo, attack.HomeCoastSeconds, attack.HomeScale, floor, ceiling);
+                    // At the ship's pace, so its Move Speed picks never
+                    // outrun a torpedo: see TorpedoHandling.Scaled.
+                    shot.Home(quarry, attack.Torpedo.Scaled(PlayerMovement.SpeedMultiplier),
+                        attack.HomeCoastSeconds, attack.HomeScale, floor, ceiling);
 
                     if (!round.TryGetComponent(out TorpedoExhaust exhaust))
                     {
