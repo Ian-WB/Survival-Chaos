@@ -9,12 +9,25 @@ namespace SurvivalChaos
     /// questions: which upscaler a machine can run is decided by its hardware,
     /// and how hard to push it is decided by taste. A single combined list made
     /// changing one mean re-finding the other.
+    ///
+    /// The numbers are what a player's settings file stores, so they never
+    /// move: FSR 3 came last and is 3, even though the menu lists it beside
+    /// FSR 2.
     /// </summary>
     public enum UpscaleMethod
     {
         Off = 0,
+
+        /// <summary>Unity's own FSR 2, built into HDRP.</summary>
         Fsr = 1,
-        Dlss = 2
+
+        Dlss = 2,
+
+        /// <summary>
+        /// AMD's FSR through AMD's own DLLs: 3.1.5, or FSR 4 on cards that
+        /// have it. DirectX 12 only. See <c>Fsr3Upscaler</c>.
+        /// </summary>
+        Fsr3 = 3
     }
 
     /// <summary>How far below native the upscaler renders. Best image first.</summary>
@@ -353,8 +366,11 @@ namespace SurvivalChaos
         /// Which reconstruction runs, not how hard it pushes. The two were one
         /// nine-item list once, which meant "DLSS Balanced" and "FSR Balanced"
         /// were unrelated entries a player had to scroll between to compare.
+        ///
+        /// Indexed by <see cref="UpscaleMethod"/>. FSR carries its version now
+        /// that there are two of them.
         /// </summary>
-        public static readonly string[] UpscaleMethodNames = { "Off", "FSR", "DLSS" };
+        public static readonly string[] UpscaleMethodNames = { "Off", "FSR 2", "DLSS", "FSR 3" };
 
         /// <summary>
         /// How hard the upscaler pushes, in the order every other game lists it:

@@ -15,7 +15,9 @@ namespace SurvivalChaos
     /// The quality tier does most of the work — under HDRP the shadows, the
     /// atlases and every support flag live in the pipeline asset, one per level.
     /// Those assets are Unity's own stock HDRP tiers and this class never writes
-    /// to one. Selecting a tier is a single SetQualityLevel call; what is here is
+    /// to one, with a single exception HDRP forces: FSR 3's name in the active
+    /// asset's upscaler list, in play only, while FSR 3 is chosen (see
+    /// <c>Fsr3Listing</c>). Selecting a tier is a single SetQualityLevel call; what is here is
     /// everything the asset cannot express: display settings, and per-effect
     /// overrides the player wants on top of their chosen tier.
     ///
@@ -302,6 +304,10 @@ namespace SurvivalChaos
             {
                 Instance = null;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+                Fsr3Listing.Clear();
+#endif
+
                 // The scaler is a closure over this object, parked in a static
                 // slot inside HDRP. Left in place it outlives the director that
                 // owns it and keeps answering with a value nothing is updating
@@ -523,6 +529,38 @@ namespace SurvivalChaos
             HDDynamicResolutionPlatformCapabilities.FSR2Detected && PipelineOffers("FSR2");
 
         /// <summary>
+        /// Whether AMD's own FSR can run: DirectX 12 on Windows, with the plugin
+        /// and AMD's DLLs in place. Not asked of the pipeline asset, which lists
+        /// FSR 3 only while it is chosen - see <c>Fsr3Listing</c>.
+        /// </summary>
+        public bool Fsr3Available =>
+#if ENABLE_UPSCALER_FRAMEWORK
+            FfxNative.Available;
+#else
+            false;
+#endif
+
+        /// <summary>
+        /// Which FSR the FSR 3 entry is running - "3.1.5", or FSR 4 on a card
+        /// that has it - or empty when it is not running. AMD's loader picks
+        /// the version, so this is read back rather than assumed.
+        /// </summary>
+        public string UpscalerVersion
+        {
+            get
+            {
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (Method == UpscaleMethod.Fsr3 &&
+                    FfxNative.ContextInfo(Fsr3Upscaler.LastContextId, out string version, out _) > 0)
+                {
+                    return version;
+                }
+#endif
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Whether the pipeline asset lists an upscaler at all.
         ///
         /// Hardware support is not enough: HDRP only walks the upscalers named in
@@ -561,6 +599,7 @@ namespace SurvivalChaos
             {
                 case UpscaleMethod.Dlss: return DlssAvailable;
                 case UpscaleMethod.Fsr: return FsrAvailable;
+                case UpscaleMethod.Fsr3: return Fsr3Available;
                 default: return true;
             }
         }
@@ -626,11 +665,12 @@ namespace SurvivalChaos
 
         /// <summary>
         /// False when nothing on screen is being sharpened, so the row can say so
-        /// rather than sitting there doing nothing. Only TAA and FSR sharpen;
-        /// FXAA, SMAA and no anti-aliasing at all do not.
+        /// rather than sitting there doing nothing. Only TAA and the two FSRs
+        /// sharpen; DLSS, FXAA, SMAA and no anti-aliasing at all do not.
         /// </summary>
         public bool SharpeningApplies =>
-            Method == UpscaleMethod.Fsr || AntiAliasing == AntiAliasingMode.Taa;
+            Method == UpscaleMethod.Fsr || Method == UpscaleMethod.Fsr3 ||
+            AntiAliasing == AntiAliasingMode.Taa;
 
         /// <summary>
         /// The scale the pipeline resolved for the last frame, which is not always
@@ -1043,7 +1083,8 @@ namespace SurvivalChaos
         ///
         /// FSR2 has no equivalent limit. HDRP creates it with a maximum render
         /// size of the full output, so every scale below native is already inside
-        /// its range and a clamp would only invent a restriction.
+        /// its range and a clamp would only invent a restriction. FSR 3 is created
+        /// the same way, at the full allocation, and has none either.
         /// </summary>
         private bool TryUpscalerRange(out float minimum, out float maximum)
         {
@@ -1224,6 +1265,13 @@ namespace SurvivalChaos
             data.allowDeepLearningSuperSampling = dlss || dlaa;
             data.allowFidelityFX2SuperResolution = fsr;
 
+            // FSR 3 has no switch on the camera. HDRP runs it for any camera
+            // whose pipeline asset lists it, so it is listed only while chosen,
+            // with DLSS and FSR2 switched off above so it is the one HDRP finds.
+#if ENABLE_UPSCALER_FRAMEWORK
+            Fsr3Listing.Apply(method == UpscaleMethod.Fsr3);
+#endif
+
             // Both "use custom" flags are set because HDRP reads the quality and
             // the optimal-settings toggle through different gates - DLSS checks
             // its attributes flag, FSR2 checks its quality flag - and leaving
@@ -1283,6 +1331,13 @@ namespace SurvivalChaos
 
             data.fidelityFX2SuperResolutionEnableSharpening = upscalerSharpness > 0f;
             data.fidelityFX2SuperResolutionSharpening = upscalerSharpness;
+
+            // FSR 3 reads its settings from HDRP's upscaler framework, which has
+            // no per-camera fields, so it takes the same number from here.
+#if ENABLE_UPSCALER_FRAMEWORK
+            Fsr3Upscaler.Sharpen = upscalerSharpness > 0f;
+            Fsr3Upscaler.Sharpness = upscalerSharpness;
+#endif
 
             data.fsrOverrideSharpness = true;
             data.fsrSharpness = upscalerSharpness;

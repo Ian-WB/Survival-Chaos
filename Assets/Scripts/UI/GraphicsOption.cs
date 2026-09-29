@@ -377,6 +377,12 @@ namespace SurvivalChaos
                 available.Add(UpscaleMethod.Fsr);
             }
 
+            // Beside FSR 2 in the list, though it is stored as 3.
+            if (director.Fsr3Available)
+            {
+                available.Add(UpscaleMethod.Fsr3);
+            }
+
             if (director.DlssAvailable)
             {
                 available.Add(UpscaleMethod.Dlss);

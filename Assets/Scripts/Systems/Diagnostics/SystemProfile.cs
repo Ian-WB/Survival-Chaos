@@ -181,6 +181,13 @@ namespace SurvivalChaos
                 text.Append(' ').Append(DisplayOptions.UpscaleQualityNames[(int)director.Quality]);
             }
 
+            // AMD's loader picks the version, so what runs is worth saying.
+            string version = director.UpscalerVersion;
+            if (version.Length > 0)
+            {
+                text.Append(" (").Append(version).Append(')');
+            }
+
             text.Append("  |  AA ")
                 .Append(DisplayOptions.AntiAliasingNames[(int)director.AntiAliasing])
                 .Append("  |  sharpness ")

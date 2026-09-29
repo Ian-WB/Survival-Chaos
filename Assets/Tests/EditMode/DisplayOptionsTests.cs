@@ -335,7 +335,8 @@ namespace SurvivalChaos.Tests
                 DisplayOptions.UpscaleQualityNames.Length);
             Assert.AreEqual("Custom",
                 DisplayOptions.UpscaleQualityNames[(int)UpscaleQuality.Custom]);
-            Assert.AreEqual(3, DisplayOptions.UpscaleMethodNames.Length);
+            // One name per UpscaleMethod, which runs to Fsr3 = 3.
+            Assert.AreEqual((int)UpscaleMethod.Fsr3 + 1, DisplayOptions.UpscaleMethodNames.Length);
             Assert.AreEqual(5, DisplayOptions.AntiAliasingNames.Length);
 
             // DLAA must stay last: the anti-aliasing row drops exactly one entry

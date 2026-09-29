@@ -393,6 +393,7 @@ MonoBehaviour:
       FSR2InjectionPoint: 0
       fsrOverrideSharpness: 0
       fsrSharpness: 0.92
+      upscalerOptions: []
       maxPercentage: 100
       minPercentage: 33
       dynResType: 1
