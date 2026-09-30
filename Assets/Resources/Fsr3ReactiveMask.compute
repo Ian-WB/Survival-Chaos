@@ -1,0 +1,65 @@
+// FSR 3's reactive mask: where transparent effects were drawn this frame.
+//
+// Compares the frame as it stood before HDRP drew its transparents with the
+// frame FSR is about to upscale. Particles write no motion vectors, so FSR
+// moves their pixels with whatever was behind them, and a history built that
+// way leaves copies of an explosion trailing across the screen as the camera
+// orbits. Where this marks a pixel, FSR takes more of the current frame and
+// less of that history.
+//
+// The arithmetic is AMD's own reactive mask generator, as its SDK ships it:
+// both colours tonemapped by their largest channel, the largest difference
+// between them, scaled, and above a cutoff written as one fixed value. See
+// Fsr3ReactiveMask.cs for the numbers.
+
+#pragma kernel MaskArray
+#pragma kernel Mask2D
+
+// HDRP allocates its colour buffers as one-slice arrays wherever its shaders
+// are compiled for them; a platform without that gets plain 2D textures.
+Texture2DArray<float4> _OpaqueArray;
+Texture2DArray<float4> _ColorArray;
+Texture2D<float4> _Opaque2D;
+Texture2D<float4> _Color2D;
+
+RWTexture2D<float> _Reactive;
+
+// x: scale, y: cutoff, z: the value written above the cutoff.
+float4 _Params;
+uint2 _RenderSize;
+
+float3 Tonemap(float3 colour)
+{
+    return colour / (max(max(0.0, colour.r), max(colour.g, colour.b)) + 1.0);
+}
+
+float Reactivity(float3 before, float3 after)
+{
+    float3 delta = abs(Tonemap(after) - Tonemap(before));
+    float value = max(delta.r, max(delta.g, delta.b)) * _Params.x;
+    return value < _Params.y ? 0.0 : _Params.z;
+}
+
+[numthreads(8, 8, 1)]
+void MaskArray(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _RenderSize.x || id.y >= _RenderSize.y)
+    {
+        return;
+    }
+
+    int4 at = int4(id.xy, 0, 0);
+    _Reactive[id.xy] = Reactivity(_OpaqueArray.Load(at).rgb, _ColorArray.Load(at).rgb);
+}
+
+[numthreads(8, 8, 1)]
+void Mask2D(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _RenderSize.x || id.y >= _RenderSize.y)
+    {
+        return;
+    }
+
+    int3 at = int3(id.xy, 0);
+    _Reactive[id.xy] = Reactivity(_Opaque2D.Load(at).rgb, _Color2D.Load(at).rgb);
+}

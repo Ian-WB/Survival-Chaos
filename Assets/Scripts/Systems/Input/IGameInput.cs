@@ -65,5 +65,23 @@ namespace SurvivalChaos
         /// things for a new IGameInput implementation to forget.
         /// </summary>
         int DebugShortcutPressed { get; }
+
+        /// <summary>
+        /// -1 on the frame the previous options tab is asked for, +1 for the
+        /// next, 0 otherwise.
+        ///
+        /// Q and E on the keyboard, the shoulders on a pad. Those are the
+        /// flip, the dash and Slow Mo in a run, and sharing them costs nothing:
+        /// the tabs are only on screen while play is stopped, and every one of
+        /// those three stands down while it is.
+        /// </summary>
+        int MenuTabPressed { get; }
+
+        /// <summary>
+        /// Whether the pad was the last thing the player touched, for prompts
+        /// that name a button. A pad connected but lying on the desk does not
+        /// count once a key has been pressed.
+        /// </summary>
+        bool PadLastUsed { get; }
     }
 }

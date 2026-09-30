@@ -76,6 +76,9 @@ namespace SurvivalChaos
         public const uint TextureMotion = 2;
         public const uint TextureOutput = 3;
 
+        /// <summary>Optional: where transparent effects drew (see <see cref="Fsr3ReactiveMask"/>).</summary>
+        public const uint TextureReactive = 4;
+
         public static uint TextureUserData(int contextId, uint texture) => ((uint)contextId << 4) | texture;
 
         // FfxApiCreateContextUpscaleFlags, from ffx_upscale.h.

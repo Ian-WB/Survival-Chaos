@@ -194,19 +194,23 @@ namespace SurvivalChaos
             Refresh();
         }
 
-        /// <summary>Wired to the row's two buttons. +1 and -1.</summary>
-        public void Step(int direction)
+        /// <summary>
+        /// One step either way, from the row's arrows or from left and right on
+        /// the row itself. False when nothing changed: the row is inert, or
+        /// Shadows is already at the end it was pushed towards.
+        /// </summary>
+        public bool Step(int direction)
         {
             GraphicsDirector director = GraphicsDirector.Instance;
             if (director == null || !Available(director))
             {
-                return;
+                return false;
             }
 
             int count = Count(director);
             if (count <= 1)
             {
-                return;
+                return false;
             }
 
             // Wraps rather than clamping: with three or four entries, running
@@ -218,12 +222,19 @@ namespace SurvivalChaos
             // and every tier defaults at or one below High, which wrapping puts
             // a single press away from it. Three presses is the right price for
             // a rung a player has to mean.
-            int raw = Index(director) + direction;
+            int current = Index(director);
+            int raw = current + direction;
             int next = kind == GraphicsOptionKind.Shadows
                 ? Mathf.Clamp(raw, 0, count - 1)
                 : (raw + count) % count;
 
+            if (next == current)
+            {
+                return false;
+            }
+
             Apply(director, next);
+            return true;
         }
 
         public void Next() => Step(1);

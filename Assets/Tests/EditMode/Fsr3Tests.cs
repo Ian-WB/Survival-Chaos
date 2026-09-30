@@ -166,6 +166,21 @@ namespace SurvivalChaos.Tests
                 Assert.AreNotEqual("FSR2IUpscaler", entry.Key.Name);
             }
         }
+
+        /// <summary>
+        /// The reactive mask's shader is loaded by name from Resources. Moved or
+        /// renamed, FSR would simply get no mask and particles would ghost again,
+        /// with nothing but a warning in the log to say why.
+        /// </summary>
+        [Test]
+        public void TheReactiveMaskShaderIsWhereFsr3LooksForIt()
+        {
+            ComputeShader shader = Resources.Load<ComputeShader>("Fsr3ReactiveMask");
+            Assert.IsNotNull(shader, "Resources/Fsr3ReactiveMask.compute is missing");
+
+            Assert.IsTrue(shader.HasKernel("MaskArray"), "HDRP's one-slice array buffers need MaskArray");
+            Assert.IsTrue(shader.HasKernel("Mask2D"));
+        }
     }
 }
 #endif

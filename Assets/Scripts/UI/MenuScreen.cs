@@ -92,7 +92,7 @@ namespace SurvivalChaos
             EventSystem events = EventSystem.current;
             GameObject selected = events != null ? events.currentSelectedGameObject : null;
 
-            if (selected != null && selected.transform.IsChildOf(transform))
+            if (selected != null && selected.transform.IsChildOf(transform) && Steerable(selected))
             {
                 lastSelected = selected;
             }
@@ -135,6 +135,22 @@ namespace SurvivalChaos
             GameObject selected = events.currentSelectedGameObject;
             if (selected != null && selected.activeInHierarchy)
             {
+                // The mouse can select what the keys and the pad cannot stand on:
+                // a setting's arrows and the tabs are out of navigation, so the
+                // pad passes over them. Hovering one still takes focus, and from
+                // there no direction leads anywhere. So a direction hands focus
+                // back to where the keys left it, and it is never remembered as
+                // somewhere to come back to.
+                if (!Steerable(selected))
+                {
+                    if (NavigatePressed(events))
+                    {
+                        Focus(events, lastSelected);
+                    }
+
+                    return;
+                }
+
                 if (selected.transform.IsChildOf(transform))
                 {
                     lastSelected = selected;
@@ -198,7 +214,15 @@ namespace SurvivalChaos
                 && control.activeInHierarchy
                 && control.transform.IsChildOf(transform)
                 && control.TryGetComponent(out Selectable selectable)
-                && selectable.IsInteractable();
+                && selectable.IsInteractable()
+                && Steerable(control);
+        }
+
+        /// <summary>Whether the keys and the pad can move on from this control.</summary>
+        private static bool Steerable(GameObject control)
+        {
+            return control.TryGetComponent(out Selectable selectable)
+                && selectable.navigation.mode != Navigation.Mode.None;
         }
 
         private static bool NavigatePressed(EventSystem events)

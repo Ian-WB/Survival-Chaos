@@ -11,6 +11,7 @@ carrying binaries in its history.
 | `rebuild-reference.html` | The whole project: what the rebuild changed and how every system works now. The long one. |
 | `leviathan-dossier.html` | The boss fight on its own — three acts, the muzzle rig, and what measuring it turned up. |
 | `open-list.html` | What is still outstanding, as a checklist. |
+| `polish-roadmap.html` | Sixteen proposed polish items in three phases, each with a recommended answer. What is accepted moves onto the open list. |
 
 ## These are snapshots, not the source
 

@@ -41,6 +41,8 @@ Start from `Assets/Scenes/Menu.unity`. The game scene is `Game.unity`.
 | Slow Mo, once it is picked up | E | Y, or left trigger |
 | Pause | Esc | Start |
 | Move through a menu, and choose | Arrow keys, Enter | D-pad or left stick, A |
+| Change a setting in Options | Left / Right | D-pad or left stick, left / right |
+| Switch Options tab | Q / E | Left / right shoulder |
 | Back out of a menu | Esc | B, or Start in a run |
 
 The ship fires on its own. Each level-up puts a few upgrades out on the ring:

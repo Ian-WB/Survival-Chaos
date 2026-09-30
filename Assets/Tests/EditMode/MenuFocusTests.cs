@@ -166,5 +166,133 @@ namespace SurvivalChaos.Tests
 
             Assert.That(events.currentSelectedGameObject, Is.Null);
         }
+
+        /// <summary>
+        /// A setting's arrows and the option tabs are out of navigation, so the
+        /// pad passes over them. A screen must never open on one, or remember
+        /// one as the place to come back to: from there no direction leads
+        /// anywhere.
+        /// </summary>
+        [Test]
+        public void AControlOutOfNavigation_IsNeverWhereFocusLands()
+        {
+            Button tab = Control<Button>("Tab");
+            tab.navigation = new Navigation { mode = Navigation.Mode.None };
+            Button row = Control<Button>("Row");
+
+            MenuScreen screen = root.AddComponent<MenuScreen>();
+            var serialized = new SerializedObject(screen);
+            serialized.FindProperty("firstSelected").objectReferenceValue = tab;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            Assert.That(DefaultOf(screen), Is.SameAs(row.gameObject),
+                "an authored first control the keys cannot leave is passed over too");
+
+            bool usable = (bool)typeof(MenuScreen).GetMethod("Usable", Private)
+                .Invoke(screen, new object[] { tab.gameObject });
+            Assert.That(usable, Is.False, "so it is not somewhere to come back to either");
+        }
+
+        private OptionRow Row(string name)
+        {
+            GameObject host = new GameObject(name, typeof(RectTransform));
+            host.transform.SetParent(root.transform, false);
+            return host.AddComponent<OptionRow>();
+        }
+
+        private static AxisEventData Move(EventSystem events, MoveDirection direction)
+        {
+            return new AxisEventData(events) { moveDir = direction };
+        }
+
+        /// <summary>
+        /// Left and right belong to the value, so they must not walk off the
+        /// row the way they did when the arrows were the controls. Up and down
+        /// still move between rows.
+        /// </summary>
+        [Test]
+        public void ARow_KeepsLeftAndRight_AndPassesUpAndDownOn()
+        {
+            EventSystem events = Events();
+            OptionRow top = Row("Top");
+            OptionRow below = Row("Below");
+            Button beside = Control<Button>("Beside");
+
+            top.navigation = new Navigation
+            {
+                mode = Navigation.Mode.Explicit,
+                selectOnDown = below,
+                selectOnLeft = beside,
+                selectOnRight = beside
+            };
+            events.SetSelectedGameObject(top.gameObject);
+
+            AxisEventData left = Move(events, MoveDirection.Left);
+            top.OnMove(left);
+            AxisEventData right = Move(events, MoveDirection.Right);
+            top.OnMove(right);
+
+            Assert.That(events.currentSelectedGameObject, Is.SameAs(top.gameObject),
+                "sideways changes the setting, even with something wired beside it");
+            Assert.That(left.used && right.used, Is.True);
+
+            top.OnMove(Move(events, MoveDirection.Down));
+            Assert.That(events.currentSelectedGameObject, Is.SameAs(below.gameObject));
+        }
+
+        [Test]
+        public void ARowWithNothingToChange_StepsNowhere()
+        {
+            Assert.That(Row("Unwired").Step(1), Is.False,
+                "a row that changed nothing must not click as if it had");
+        }
+
+        private OptionsTabs[] Tabs(int count)
+        {
+            MenuScreen[] screens = new MenuScreen[count];
+            for (int i = 0; i < count; i++)
+            {
+                GameObject screen = new GameObject("Tab " + i, typeof(RectTransform));
+                screen.transform.SetParent(root.transform, false);
+                screen.SetActive(false);
+                screens[i] = screen.AddComponent<MenuScreen>();
+            }
+
+            OptionsTabs[] tabs = new OptionsTabs[count];
+            for (int i = 0; i < count; i++)
+            {
+                tabs[i] = screens[i].gameObject.AddComponent<OptionsTabs>();
+                var serialized = new SerializedObject(tabs[i]);
+                SerializedProperty list = serialized.FindProperty("tabs");
+                list.arraySize = count;
+                for (int j = 0; j < count; j++)
+                {
+                    list.GetArrayElementAtIndex(j).objectReferenceValue = screens[j];
+                }
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            return tabs;
+        }
+
+        /// <summary>
+        /// The shoulders go round: RB from the last tab comes back to the first,
+        /// and LB from the first goes to the last.
+        /// </summary>
+        [Test]
+        public void TheTabsTurnBothWays_AndWrapAtTheEnds()
+        {
+            OptionsTabs[] tabs = Tabs(3);
+
+            tabs[0].Turn(1);
+            Assert.That(tabs[1].gameObject.activeSelf, Is.True);
+
+            tabs[2].Turn(1);
+            Assert.That(tabs[0].gameObject.activeSelf, Is.True, "RB from the last tab wraps to the first");
+
+            tabs[2].gameObject.SetActive(false);
+            tabs[0].Turn(-1);
+            Assert.That(tabs[2].gameObject.activeSelf, Is.True, "LB from the first tab wraps to the last");
+        }
     }
 }

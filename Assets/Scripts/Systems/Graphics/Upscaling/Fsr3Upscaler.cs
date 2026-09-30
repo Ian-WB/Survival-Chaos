@@ -48,6 +48,7 @@ namespace SurvivalChaos
             public TextureHandle depth;
             public TextureHandle motion;
             public TextureHandle output;
+            public Fsr3ReactiveMask.Inputs reactive;
             public FfxNative.DispatchParams parameters;
         }
 
@@ -117,6 +118,10 @@ namespace SurvivalChaos
             {
                 return;
             }
+
+            // Nothing left to make a mask for, so the copy it compares against
+            // can stop too.
+            Fsr3ReactiveMask.Disable();
 
             using (CommandBuffer command = new CommandBuffer { name = "FSR 3 release" })
             {
@@ -195,6 +200,7 @@ namespace SurvivalChaos
                 builder.UseTexture(io.motionVectorColor);
                 builder.UseTexture(output, AccessFlags.Write);
 
+                data.reactive = Fsr3ReactiveMask.Record(renderGraph, builder, io.cameraColor, io.preUpscaleResolution);
                 data.color = io.cameraColor;
                 data.depth = io.cameraDepth;
                 data.motion = io.motionVectorColor;
@@ -210,6 +216,13 @@ namespace SurvivalChaos
                     SendTexture(command, pass.depth, id, FfxNative.TextureDepth);
                     SendTexture(command, pass.motion, id, FfxNative.TextureMotion);
                     SendTexture(command, pass.output, id, FfxNative.TextureOutput);
+
+                    // Only a mask made from this frame's copy. Without one the
+                    // plugin upscales as it did before there was a mask at all.
+                    if (Fsr3ReactiveMask.Dispatch(command, pass.reactive, pass.color))
+                    {
+                        SendTexture(command, pass.reactive.reactive, id, FfxNative.TextureReactive);
+                    }
 
                     command.IssuePluginEventAndData(
                         FfxNative.RenderEventFunc, FfxNative.EventDispatch, FfxNative.Stage(pass.parameters));
@@ -316,6 +329,13 @@ namespace SurvivalChaos
                 if (LiveContexts.Remove(Id))
                 {
                     cmd.IssuePluginEventAndData(FfxNative.RenderEventFunc, FfxNative.EventRelease, (System.IntPtr)Id);
+                }
+
+                // The last camera using FSR has stopped, so the reactive mask's
+                // copy of every frame can stop with it.
+                if (LiveContexts.Count == 0)
+                {
+                    Fsr3ReactiveMask.Disable();
                 }
             }
         }

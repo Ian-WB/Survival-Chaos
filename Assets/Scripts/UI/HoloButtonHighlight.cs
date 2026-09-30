@@ -56,6 +56,10 @@ namespace SurvivalChaos
         [Tooltip("How much of its brightness the frame keeps while the button is not interactable.")]
         private float disabledDim = 0.3f;
 
+        [SerializeField]
+        [Tooltip("Stays lit whatever the pointer and focus do. For the options tab that is open.")]
+        private bool held;
+
         private static readonly int GlowId = Shader.PropertyToID("_Glow");
         private static readonly int BracketId = Shader.PropertyToID("_BracketArm");
         private static readonly int FillId = Shader.PropertyToID("_FillColor");
@@ -84,6 +88,9 @@ namespace SurvivalChaos
         /// which is worse than no feedback, because it claims something happened.
         /// </summary>
         private bool Interactable => button == null || button.interactable;
+
+        /// <summary>Where the highlight settles with nothing on the button.</summary>
+        private float Resting => held ? 1f : 0f;
 
         private void Awake()
         {
@@ -125,8 +132,8 @@ namespace SurvivalChaos
         {
             // A menu can reopen with the pointer anywhere, so nothing may come
             // back still lit from the last time it was shown.
-            target = 0f;
-            highlight = 0f;
+            target = Resting;
+            highlight = Resting;
             sweep = 1f;
             Apply();
         }
@@ -181,13 +188,13 @@ namespace SurvivalChaos
         {
             if (eventData.selectedObject != gameObject)
             {
-                target = 0f;
+                target = Resting;
             }
         }
 
         public void OnSelect(BaseEventData eventData) => Highlight();
 
-        public void OnDeselect(BaseEventData eventData) => target = 0f;
+        public void OnDeselect(BaseEventData eventData) => target = Resting;
 
         /// <summary>
         /// The click sound for Enter and the pad's A, which press the button

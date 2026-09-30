@@ -240,6 +240,106 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Q and E, or the shoulders. Both at once cancel out rather than one
+        /// winning, since neither was meant more than the other.
+        /// </summary>
+        public int MenuTabPressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+                Gamepad pad = Gamepad.current;
+
+                bool previous = (keyboard != null && keyboard.qKey.wasPressedThisFrame)
+                    || (pad != null && pad.leftShoulder.wasPressedThisFrame);
+                bool next = (keyboard != null && keyboard.eKey.wasPressedThisFrame)
+                    || (pad != null && pad.rightShoulder.wasPressedThisFrame);
+
+                return previous == next ? 0 : next ? 1 : -1;
+            }
+        }
+
+        /// <summary>Stick travel that counts as picking the pad up.</summary>
+        private const float PadWakeThreshold = 0.5f;
+
+        /// <summary>Mouse travel in a frame, in pixels, that counts as reaching for it.</summary>
+        private const float MouseWakePixels = 5f;
+
+        private bool padLastUsed;
+        private bool deviceKnown;
+        private int deviceCheckedFrame = -1;
+
+        /// <summary>
+        /// Decided by whichever was last pressed or pushed, checked at most once a
+        /// frame. Until anything has been touched it goes by whether a pad is
+        /// plugged in, which is the better guess for someone who has one.
+        ///
+        /// Only a press or a real push counts. A pad sends reports while it sits
+        /// still, and its sticks drift, so "the pad sent something" would take
+        /// the prompts away from a player typing with a pad beside the keyboard.
+        /// </summary>
+        public bool PadLastUsed
+        {
+            get
+            {
+                if (deviceCheckedFrame == Time.frameCount)
+                {
+                    return padLastUsed;
+                }
+
+                deviceCheckedFrame = Time.frameCount;
+
+                Keyboard keyboard = Keyboard.current;
+                Mouse mouse = Mouse.current;
+                Gamepad pad = Gamepad.current;
+
+                if (!deviceKnown)
+                {
+                    deviceKnown = true;
+                    padLastUsed = pad != null;
+                }
+
+                if (PadTouched(pad))
+                {
+                    padLastUsed = true;
+                }
+                else if ((keyboard != null && keyboard.anyKey.wasPressedThisFrame)
+                    || (mouse != null && (mouse.leftButton.wasPressedThisFrame
+                        || mouse.delta.ReadValue().sqrMagnitude > MouseWakePixels * MouseWakePixels)))
+                {
+                    padLastUsed = false;
+                }
+
+                return padLastUsed;
+            }
+        }
+
+        private static bool PadTouched(Gamepad pad)
+        {
+            if (pad == null)
+            {
+                return false;
+            }
+
+            if (pad.leftStick.ReadValue().sqrMagnitude > PadWakeThreshold * PadWakeThreshold
+                || pad.rightStick.ReadValue().sqrMagnitude > PadWakeThreshold * PadWakeThreshold)
+            {
+                return true;
+            }
+
+            foreach (InputControl control in pad.allControls)
+            {
+                if (control is UnityEngine.InputSystem.Controls.ButtonControl button
+                    && button.wasPressedThisFrame)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Advances smoothing at most once per frame, so it does not matter how
         /// many scripts read the axes or in what order.
         /// </summary>

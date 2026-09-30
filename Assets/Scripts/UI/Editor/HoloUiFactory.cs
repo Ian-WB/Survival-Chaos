@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
@@ -377,7 +378,7 @@ namespace SurvivalChaos.EditorTools
         /// screen and the title screen cannot drift apart — they show the same
         /// channels and read from the same place.
         /// </summary>
-        public static void CreateVolumeRow(Transform panel, AudioChannel channel, string label,
+        public static Slider CreateVolumeRow(Transform panel, AudioChannel channel, string label,
             float top, Material barMaterial)
         {
             Vector2 anchor = new Vector2(0.5f, 1f);
@@ -418,6 +419,8 @@ namespace SurvivalChaos.EditorTools
             so.FindProperty("slider").objectReferenceValue = slider;
             so.FindProperty("readout").objectReferenceValue = readout;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            return slider;
         }
 
         /// <summary>
@@ -460,7 +463,7 @@ namespace SurvivalChaos.EditorTools
         /// to occupy one cycler row's worth of height, with the bar under the
         /// label, so it drops into the column without moving anything below it.
         /// </summary>
-        public static void CreateSharpnessRow(Transform panel, string label,
+        public static Slider CreateSharpnessRow(Transform panel, string label,
             float columnX, float top, Material barMaterial)
         {
             Vector2 anchor = new Vector2(0.5f, 1f);
@@ -503,38 +506,45 @@ namespace SurvivalChaos.EditorTools
             so.FindProperty("readout").objectReferenceValue = readout;
             so.FindProperty("note").objectReferenceValue = note;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            return slider;
         }
 
         /// <summary>
-        /// Panel size the display rows need.
+        /// Panel size for every options tab.
         ///
         /// Wide rather than tall: settings stacked in one column made a panel
         /// nearly as high as the screen, with a long dead gap between every label
         /// and its controls. Two columns use the shape a monitor actually is.
+        /// The columns sit at plus and minus 340 and a row's plate spans from
+        /// columnX - 316 to columnX + 328, so two-column content runs from -656 to
+        /// +668.
+        ///
+        /// Audio needs a fraction of the width, and gets it anyway. The tabs are
+        /// one screen to the player, and a frame that changed size with every
+        /// press of a shoulder would read as three windows again.
         /// </summary>
-        public static readonly Vector2 DisplayPanelSize = new Vector2(1400f, 700f);
+        public static readonly Vector2 OptionsPanelSize = new Vector2(1400f, 700f);
 
         /// <summary>
-        /// The same as display, because it is now the same shape: two columns of
-        /// five rows.
-        ///
-        /// It was 780 wide back when graphics was a single centred column. The
-        /// columns sit at plus and minus 340 and a row spans from columnX - 300 to
-        /// columnX + 313, so two-column content runs from -640 to +653 - close to
-        /// 1300 wide, against a 780 panel. Every label and every stepper hung
-        /// outside the frame.
+        /// Where the Back button goes on each tab. Far enough below the last row
+        /// that the note line underneath it still has somewhere to go: the
+        /// longest column is five rows from -170 in steps of 84, putting the last
+        /// note at -530.
         /// </summary>
-        public static readonly Vector2 GraphicsPanelSize = DisplayPanelSize;
+        public const float OptionsBackY = -620f;
+
+        /// <summary>The tabs, in strip order. Content is built by position.</summary>
+        public static readonly string[] OptionTabNames = { "Audio", "Display", "Graphics" };
+
+        private static readonly Vector2 BackButtonSize = new Vector2(420f, 72f);
 
         /// <summary>
-        /// Where the Back button goes on each panel. Far enough below the last row
-        /// that the note line underneath it still has somewhere to go.
-        ///
-        /// Both panels carry five rows from -170 in steps of 84, putting the last
-        /// note at -530, so both use the same value.
+        /// The plate behind a settings row while it has focus. A little brighter
+        /// than the panel it sits on, so the row reads as lifted rather than as a
+        /// second panel.
         /// </summary>
-        public const float DisplayBackY = -620f;
-        public const float GraphicsBackY = DisplayBackY;
+        private static readonly Color RowFill = new Color(0.10f, 0.45f, 0.60f, 0.30f);
 
         /// <summary>Horizontal centre of each column, relative to the panel.</summary>
         private const float LeftColumn = -340f;
@@ -553,9 +563,11 @@ namespace SurvivalChaos.EditorTools
         /// because changing the first changes what the other two mean, and a row
         /// that has just gone inert should be visible from the one that did it.
         /// </summary>
-        public static void PopulateDisplayPanel(Transform panel, Material panelMaterial,
+        public static List<Selectable> PopulateDisplayPanel(Transform panel, Material panelMaterial,
             Material barMaterial)
         {
+            List<Selectable> order = new List<Selectable>();
+
             const float top = -170f;
             const float step = 84f;
 
@@ -581,20 +593,22 @@ namespace SurvivalChaos.EditorTools
 
             for (int i = 0; i < screen.Length; i++)
             {
-                CreateOptionRow(panel, screen[i].kind, screen[i].label,
-                    LeftColumn, top - i * step, panelMaterial);
+                order.Add(CreateOptionRow(panel, screen[i].kind, screen[i].label,
+                    LeftColumn, top - i * step, panelMaterial));
             }
 
             for (int i = 0; i < reconstruction.Length; i++)
             {
-                CreateOptionRow(panel, reconstruction[i].kind, reconstruction[i].label,
-                    RightColumn, top - i * step, panelMaterial);
+                order.Add(CreateOptionRow(panel, reconstruction[i].kind, reconstruction[i].label,
+                    RightColumn, top - i * step, panelMaterial));
             }
 
             // Directly under the row it depends on: sharpening is a property of
             // whatever resolved the edges, so the two belong together.
-            CreateSharpnessRow(panel, "Sharpness",
-                RightColumn, top - reconstruction.Length * step, barMaterial);
+            order.Add(CreateSharpnessRow(panel, "Sharpness",
+                RightColumn, top - reconstruction.Length * step, barMaterial));
+
+            return order;
         }
 
         /// <summary>
@@ -618,8 +632,10 @@ namespace SurvivalChaos.EditorTools
         /// So the count moves with the tiers rather than being authored here. Turn
         /// either flag back on and its row has to come back with it.
         /// </summary>
-        public static void PopulateGraphicsPanel(Transform panel, Material panelMaterial)
+        public static List<Selectable> PopulateGraphicsPanel(Transform panel, Material panelMaterial)
         {
+            List<Selectable> order = new List<Selectable>();
+
             const float top = -170f;
             const float step = 84f;
 
@@ -643,15 +659,37 @@ namespace SurvivalChaos.EditorTools
 
             for (int i = 0; i < lighting.Length; i++)
             {
-                CreateOptionRow(panel, lighting[i].kind, lighting[i].label,
-                    LeftColumn, top - i * step, panelMaterial);
+                order.Add(CreateOptionRow(panel, lighting[i].kind, lighting[i].label,
+                    LeftColumn, top - i * step, panelMaterial));
             }
 
             for (int i = 0; i < image.Length; i++)
             {
-                CreateOptionRow(panel, image[i].kind, image[i].label,
-                    RightColumn, top - i * step, panelMaterial);
+                order.Add(CreateOptionRow(panel, image[i].kind, image[i].label,
+                    RightColumn, top - i * step, panelMaterial));
             }
+
+            return order;
+        }
+
+        /// <summary>
+        /// The four channels, in the order they make sense to reach for: the one
+        /// that governs everything, then the two most people actually want to
+        /// balance, then menu sound.
+        ///
+        /// Labelled for players rather than for the mixer. "Effects" and
+        /// "Interface" say what is being turned down; "SFX" and "UI" say how the
+        /// code is organised.
+        /// </summary>
+        public static List<Selectable> PopulateAudioPanel(Transform panel, Material barMaterial)
+        {
+            return new List<Selectable>
+            {
+                CreateVolumeRow(panel, AudioChannel.Master, "Master", -170f, barMaterial),
+                CreateVolumeRow(panel, AudioChannel.Music, "Music", -280f, barMaterial),
+                CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -390f, barMaterial),
+                CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -500f, barMaterial)
+            };
         }
 
         /// <summary>
@@ -663,11 +701,24 @@ namespace SurvivalChaos.EditorTools
         /// plain ASCII rather than typographic guillemets, because the font atlas
         /// is Extended ASCII and a missing glyph would render as a box.
         /// </summary>
-        public static void CreateOptionRow(Transform panel, GraphicsOptionKind kind, string label,
+        public static OptionRow CreateOptionRow(Transform panel, GraphicsOptionKind kind, string label,
             float columnX, float top, Material panelMaterial)
         {
             Vector2 anchor = new Vector2(0.5f, 1f);
             Vector2 middle = new Vector2(0.5f, 0.5f);
+
+            // First, so it draws behind everything else in the row. It reaches
+            // down over the note line, so a row that has one is lit as a whole
+            // rather than cut through the middle of its explanation.
+            Image plate = CreatePanel(panel, label + " Row", anchor, middle,
+                new Vector2(columnX + 6f, top - 8f), new Vector2(644f, 64f),
+                panelMaterial, RowFill, "HoloRow");
+            plate.raycastTarget = true;
+            plate.color = Color.clear;
+
+            OptionRow row = Undo.AddComponent<OptionRow>(plate.gameObject);
+            row.transition = Selectable.Transition.None;
+            row.targetGraphic = plate;
 
             // Laid out within a 560-wide column: the label owns the left half and
             // the controls sit together on the right, close enough to read as one
@@ -713,6 +764,154 @@ namespace SurvivalChaos.EditorTools
 
             UnityEventTools.AddVoidPersistentListener(previous.onClick, new UnityAction(option.Previous));
             UnityEventTools.AddVoidPersistentListener(next.onClick, new UnityAction(option.Next));
+
+            // The arrows are for the mouse. The pad stands on the row and uses
+            // left and right, so it has to pass over them.
+            previous.navigation = new Navigation { mode = Navigation.Mode.None };
+            next.navigation = new Navigation { mode = Navigation.Mode.None };
+
+            SerializedObject rowSo = new SerializedObject(row);
+            rowSo.FindProperty("option").objectReferenceValue = option;
+            rowSo.FindProperty("plate").objectReferenceValue = plate;
+            rowSo.ApplyModifiedPropertiesWithoutUndo();
+
+            return row;
+        }
+
+        /// <summary>
+        /// Fills the option tabs and ties them together: the strip across the
+        /// top, each tab's settings, its Back button and the order the keys and
+        /// the pad walk them in. Shared by the title screen and the pause screen,
+        /// which differ only in where Back goes.
+        /// </summary>
+        /// <param name="screens">One empty screen per entry in <see cref="OptionTabNames"/>, in order.</param>
+        /// <param name="back">Where Back, Esc and the pad's B go from every tab.</param>
+        /// <returns>The first tab's <see cref="OptionsTabs"/>, for the Options buttons.</returns>
+        public static OptionsTabs BuildOptionsTabs(GameObject[] screens, Material panelMaterial,
+            Material barMaterial, GameObject back)
+        {
+            MenuScreen[] tabs = new MenuScreen[screens.Length];
+            for (int i = 0; i < screens.Length; i++)
+            {
+                tabs[i] = screens[i].GetComponent<MenuScreen>();
+            }
+
+            MenuScreen backScreen = back.GetComponent<MenuScreen>();
+            OptionsTabs first = null;
+
+            for (int i = 0; i < screens.Length; i++)
+            {
+                Transform panel = screens[i].transform.Find("Panel");
+                AddTabStrip(panel, panelMaterial, tabs, i);
+
+                List<Selectable> order;
+                switch (i)
+                {
+                    case 0: order = PopulateAudioPanel(panel, barMaterial); break;
+                    case 1: order = PopulateDisplayPanel(panel, panelMaterial, barMaterial); break;
+                    default: order = PopulateGraphicsPanel(panel, panelMaterial); break;
+                }
+
+                Button backButton = CreateButton(panel, "Back", new Vector2(0.5f, 1f),
+                    new Vector2(0.5f, 0.5f), new Vector2(0f, OptionsBackY), BackButtonSize,
+                    panelMaterial, "Back", 24f);
+                UnityEventTools.AddVoidPersistentListener(backButton.onClick, new UnityAction(backScreen.Show));
+                SetPrevious(screens[i], back);
+
+                order.Add(backButton);
+                ChainVertically(order);
+
+                OptionsTabs component = Undo.AddComponent<OptionsTabs>(screens[i]);
+                SerializedObject so = new SerializedObject(component);
+                SerializedProperty list = so.FindProperty("tabs");
+                list.arraySize = tabs.Length;
+                for (int j = 0; j < tabs.Length; j++)
+                {
+                    list.GetArrayElementAtIndex(j).objectReferenceValue = tabs[j];
+                }
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                if (first == null)
+                {
+                    first = component;
+                }
+            }
+
+            return first;
+        }
+
+        /// <summary>
+        /// The tab strip: one framed button per tab, the open one held lit, and
+        /// the two keys that turn them at either end.
+        ///
+        /// The tabs are out of navigation. The shoulders turn them, and a tab the
+        /// pad could stand on would be one more stop above the top row for no
+        /// gain.
+        /// </summary>
+        private static void AddTabStrip(Transform panel, Material panelMaterial, MenuScreen[] tabs, int active)
+        {
+            const float y = -62f;
+            const float width = 250f;
+            const float gap = 30f;
+
+            Vector2 anchor = new Vector2(0.5f, 1f);
+            Vector2 middle = new Vector2(0.5f, 0.5f);
+            float span = tabs.Length * width + (tabs.Length - 1) * gap;
+
+            for (int i = 0; i < tabs.Length; i++)
+            {
+                float x = -span / 2f + width / 2f + i * (width + gap);
+                Button tab = CreateButton(panel, OptionTabNames[i] + " Tab", anchor, middle,
+                    new Vector2(x, y), new Vector2(width, 58f), panelMaterial, OptionTabNames[i], 24f);
+                tab.navigation = new Navigation { mode = Navigation.Mode.None };
+                UnityEventTools.AddVoidPersistentListener(tab.onClick, new UnityAction(tabs[i].Show));
+
+                if (i == active)
+                {
+                    SerializedObject so = new SerializedObject(tab.GetComponent<HoloButtonHighlight>());
+                    so.FindProperty("held").boolValue = true;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+
+            AddTabHint(panel, "Previous Tab Hint", new Vector2(-span / 2f - 70f, y), "Q", "LB");
+            AddTabHint(panel, "Next Tab Hint", new Vector2(span / 2f + 70f, y), "E", "RB");
+        }
+
+        private static void AddTabHint(Transform panel, string name, Vector2 position,
+            string keyboard, string pad)
+        {
+            TextMeshProUGUI text = CreateText(panel, name, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f),
+                position, new Vector2(90f, 40f), 20f, TextAlignmentOptions.Center);
+            text.text = keyboard;
+            text.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
+
+            InputHint hint = Undo.AddComponent<InputHint>(text.gameObject);
+            SerializedObject so = new SerializedObject(hint);
+            so.FindProperty("keyboard").stringValue = keyboard;
+            so.FindProperty("pad").stringValue = pad;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// Makes the controls one list for the keys and the pad: down goes to the
+        /// next, up to the one before, and nothing goes sideways.
+        ///
+        /// Two columns are walked as one, so down from the foot of the left
+        /// column goes to the head of the right. Sideways is taken, since it
+        /// changes the value, so crossing between columns happens at the ends.
+        /// </summary>
+        public static void ChainVertically(IList<Selectable> order)
+        {
+            for (int i = 0; i < order.Count; i++)
+            {
+                order[i].navigation = new Navigation
+                {
+                    mode = Navigation.Mode.Explicit,
+                    selectOnUp = i > 0 ? order[i - 1] : null,
+                    selectOnDown = i < order.Count - 1 ? order[i + 1] : null
+                };
+            }
         }
 
         /// <summary>

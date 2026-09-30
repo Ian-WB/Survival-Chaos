@@ -81,7 +81,10 @@ namespace
         TextureDepth = 1,
         TextureMotion = 2,
         TextureOutput = 3,
-        TextureCount = 4,
+        // Optional: where transparent effects drew, so FSR leans on the current
+        // frame there instead of history (see Fsr3ReactiveMask.cs).
+        TextureReactive = 4,
+        TextureCount = 5,
     };
 
     // Must match FfxNative.DispatchParams, field for field.
@@ -350,6 +353,7 @@ namespace
         ID3D12Resource* depth = slot.textures[TextureDepth];
         ID3D12Resource* motion = slot.textures[TextureMotion];
         ID3D12Resource* output = slot.textures[TextureOutput];
+        ID3D12Resource* reactive = slot.textures[TextureReactive];
         for (ID3D12Resource*& texture : slot.textures)
         {
             texture = nullptr;
@@ -386,6 +390,10 @@ namespace
         s_D3D12->RequestResourceState(depth, read);
         s_D3D12->RequestResourceState(motion, read);
         s_D3D12->RequestResourceState(output, write);
+        if (reactive != nullptr)
+        {
+            s_D3D12->RequestResourceState(reactive, read);
+        }
 
         ffxDispatchDescUpscale dispatch = {};
         dispatch.header.type = FFX_API_DISPATCH_DESC_TYPE_UPSCALE;
@@ -394,6 +402,10 @@ namespace
         dispatch.depth = ffxApiGetResourceDX12(depth, FFX_API_RESOURCE_STATE_COMPUTE_READ);
         dispatch.motionVectors = ffxApiGetResourceDX12(motion, FFX_API_RESOURCE_STATE_COMPUTE_READ);
         dispatch.output = ffxApiGetResourceDX12(output, FFX_API_RESOURCE_STATE_UNORDERED_ACCESS);
+        if (reactive != nullptr)
+        {
+            dispatch.reactive = ffxApiGetResourceDX12(reactive, FFX_API_RESOURCE_STATE_COMPUTE_READ);
+        }
         dispatch.jitterOffset = {p.jitterX, p.jitterY};
         dispatch.motionVectorScale = {p.motionScaleX, p.motionScaleY};
         dispatch.renderSize = {p.renderWidth, p.renderHeight};
@@ -420,6 +432,10 @@ namespace
         s_D3D12->NotifyResourceState(depth, read, false);
         s_D3D12->NotifyResourceState(motion, read, false);
         s_D3D12->NotifyResourceState(output, write, true);
+        if (reactive != nullptr)
+        {
+            s_D3D12->NotifyResourceState(reactive, read, false);
+        }
 
         if (result != FFX_API_RETURN_OK && slot.dispatches <= 3)
         {

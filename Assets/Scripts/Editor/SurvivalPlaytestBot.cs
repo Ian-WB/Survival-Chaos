@@ -973,6 +973,8 @@ namespace SurvivalChaos.EditorTools
             public bool DebugCopyReportPressed => previous.DebugCopyReportPressed;
             public bool DebugMenuTogglePressed => false;
             public int DebugShortcutPressed => 0;
+            public int MenuTabPressed => previous.MenuTabPressed;
+            public bool PadLastUsed => previous.PadLastUsed;
         }
     }
 }

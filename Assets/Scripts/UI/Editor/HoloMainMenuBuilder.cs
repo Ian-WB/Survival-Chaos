@@ -75,51 +75,31 @@ namespace SurvivalChaos.EditorTools
             }
 
             // Sub-screens first, so the title screen can point its entries at them.
-            GameObject audio = BuildScreen(root.transform, "Audio Screen", panelMaterial,
-                new Vector2(780f, 660f), "Audio");
             GameObject creditsScreen = BuildScreen(root.transform, "Credits Screen", panelMaterial,
                 new Vector2(900f, 620f), "Credits");
 
-            GameObject display = BuildScreen(root.transform, "Display Screen", panelMaterial,
-                HoloUiFactory.DisplayPanelSize, "Display");
-            HoloUiFactory.PopulateDisplayPanel(PanelOf(display), panelMaterial, barMaterial);
+            // Options is three tabs, each its own screen, and every one of them
+            // backs out to the title. The strip, the rows and the Back buttons
+            // come from the factory the pause screen shares.
+            GameObject[] tabs = new GameObject[HoloUiFactory.OptionTabNames.Length];
+            for (int i = 0; i < tabs.Length; i++)
+            {
+                tabs[i] = BuildScreen(root.transform, HoloUiFactory.OptionTabNames[i] + " Screen",
+                    panelMaterial, HoloUiFactory.OptionsPanelSize, null);
+            }
 
-            GameObject graphics = BuildScreen(root.transform, "Graphics Screen", panelMaterial,
-                HoloUiFactory.GraphicsPanelSize, "Graphics");
-            HoloUiFactory.PopulateGraphicsPanel(PanelOf(graphics), panelMaterial);
+            GameObject title = BuildTitleScreen(root.transform, mainMenu, creditsScreen);
+            OptionsTabs options = HoloUiFactory.BuildOptionsTabs(tabs, panelMaterial, barMaterial, title);
 
-            // Options is a hub here too. The three sections want very different
-            // layouts - four sliders, two columns of cyclers, one column of
-            // switches - and sharing one panel meant at least one was always the
-            // wrong shape.
-            GameObject options = BuildScreen(root.transform, "Options Screen", panelMaterial,
-                new Vector2(640f, 540f), "Options");
-            GameObject title = BuildTitleScreen(root.transform, mainMenu, options, creditsScreen);
+            // Wired now rather than in BuildTitleScreen: the tabs need the title
+            // screen to exist first, for their Back buttons.
+            Button optionsEntry = HoloUiFactory.Find<Button>(title.transform, "Options");
+            if (optionsEntry != null)
+            {
+                UnityEventTools.AddVoidPersistentListener(optionsEntry.onClick,
+                    new UnityAction(options.ShowRemembered));
+            }
 
-            Button toAudio = HoloUiFactory.CreateButton(PanelOf(options), "Audio",
-                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -160f), ButtonSize,
-                panelMaterial, "Audio", 24f);
-            UnityEventTools.AddVoidPersistentListener(toAudio.onClick,
-                new UnityAction(audio.GetComponent<MenuScreen>().Show));
-
-            Button toDisplay = HoloUiFactory.CreateButton(PanelOf(options), "Display",
-                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -250f), ButtonSize,
-                panelMaterial, "Display", 24f);
-            UnityEventTools.AddVoidPersistentListener(toDisplay.onClick,
-                new UnityAction(display.GetComponent<MenuScreen>().Show));
-
-            Button toGraphics = HoloUiFactory.CreateButton(PanelOf(options), "Graphics",
-                new Vector2(0.5f, 1f), Centre, new Vector2(0f, -340f), ButtonSize,
-                panelMaterial, "Graphics", 24f);
-            UnityEventTools.AddVoidPersistentListener(toGraphics.onClick,
-                new UnityAction(graphics.GetComponent<MenuScreen>().Show));
-
-            // The hub returns to the title; every sub-screen returns to the hub.
-            AddBack(PanelOf(options), panelMaterial, title, -430f);
-            BuildOptions(audio, panelMaterial, barMaterial, options);
-
-            AddBack(PanelOf(display), panelMaterial, options, HoloUiFactory.DisplayBackY);
-            AddBack(PanelOf(graphics), panelMaterial, options, HoloUiFactory.GraphicsBackY);
             BuildCredits(creditsScreen, panelMaterial, title, credits);
 
             // The title screen is the one the player arrives at, so unlike the
@@ -231,10 +211,14 @@ namespace SurvivalChaos.EditorTools
             Image panel = HoloUiFactory.CreatePanel(rect, "Panel", Centre, Centre,
                 Vector2.zero, panelSize, panelMaterial, HoloUiFactory.PanelFill, "HoloMenuPanel");
 
-            TextMeshProUGUI heading = HoloUiFactory.CreateText(panel.transform, "Title",
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -50f),
-                new Vector2(panelSize.x - 60f, 70f), 46f, TextAlignmentOptions.Center);
-            heading.text = title;
+            // A null title is an options tab, whose strip of tabs is its title.
+            if (title != null)
+            {
+                TextMeshProUGUI heading = HoloUiFactory.CreateText(panel.transform, "Title",
+                    new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -50f),
+                    new Vector2(panelSize.x - 60f, 70f), 46f, TextAlignmentOptions.Center);
+                heading.text = title;
+            }
 
             screen.SetActive(false);
             return screen;
@@ -256,7 +240,7 @@ namespace SurvivalChaos.EditorTools
         /// reason - it leaves the key art as the thing the player looks at.
         /// </summary>
         private static GameObject BuildTitleScreen(Transform parent, MainMenu mainMenu,
-            GameObject options, GameObject credits)
+            GameObject credits)
         {
             GameObject screen = new GameObject("Title Screen", typeof(RectTransform));
             Undo.RegisterCreatedObjectUndo(screen, "Build title screen");
@@ -268,9 +252,8 @@ namespace SurvivalChaos.EditorTools
             Button play = AddEntry(rect, "Play", "Play", 0);
             UnityEventTools.AddVoidPersistentListener(play.onClick, new UnityAction(mainMenu.Jogar));
 
-            Button optionsEntry = AddEntry(rect, "Options", "Options", 1);
-            UnityEventTools.AddVoidPersistentListener(optionsEntry.onClick,
-                new UnityAction(options.GetComponent<MenuScreen>().Show));
+            // Wired by the caller once the option tabs exist.
+            AddEntry(rect, "Options", "Options", 1);
 
             Button creditsEntry = AddEntry(rect, "Credits", "Credits", 2);
             UnityEventTools.AddVoidPersistentListener(creditsEntry.onClick,
@@ -297,22 +280,6 @@ namespace SurvivalChaos.EditorTools
             return HoloUiFactory.CreateMenuEntry(parent, name, Vector2.zero, new Vector2(0f, 0.5f),
                 new Vector2(ColumnLeft, ColumnTop - row * EntryStep), new Vector2(420f, 60f),
                 label, 30f);
-        }
-
-        private static void BuildOptions(GameObject screen, Material panelMaterial,
-            Material barMaterial, GameObject back)
-        {
-            Transform panel = PanelOf(screen);
-
-            // The same four rows the pause screen shows, from the same factory
-            // and reading the same channels — a level set here is already in
-            // force by the time the game scene loads.
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Master, "Master", -170f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Music, "Music", -280f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Sfx, "Effects", -390f, barMaterial);
-            HoloUiFactory.CreateVolumeRow(panel, AudioChannel.Ui, "Interface", -500f, barMaterial);
-
-            AddBack(panel, panelMaterial, back, -580f);
         }
 
         private static void BuildCredits(GameObject screen, Material panelMaterial,
