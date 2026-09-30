@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true},"updated":"30 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true},"updated":"30 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,21 +327,15 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-0928-pace",
-    title: "Feel the boss that keeps pace, and the new gun",
+    id: "play-0930",
+    title: "Try the tabs on a pad, and the particles under FSR",
     effort: "a build + one run",
-    lede: "<strong>Your report on 30 September:</strong> FSR 3 was fine apart from the particles, and Options was awkward on a pad. Both are fixed, and neither is in this build. See \u2018Make Options tabs, and let left and right change a setting\u2019 and \u2018Stop particles ghosting under FSR 3\u2019. You said nothing about the rest of the list, so nothing else has been ticked: say it was all fine and the rest get their defaults, or name what to look at again.</p><p><strong>Built: <code>Builds/26_0929-1431_newDrivers</code></strong>, with the debug menu in (F8) as usual. It is commit <code>6fd5d30</code>, with nothing left uncommitted, built clean after you updated your AMD driver to 32.0.21045.11001. It is the same game as <code>26_0929-1309_skyMusic</code>, to the byte in size, and replaces this morning\u2019s <code>26_0929-0941_loadingScreen</code>.</p><p><strong>New since the morning build:</strong> the music streams from disk instead of being decoded whole on every scene load, and the menu\u2019s track loops, where it used to stop after 3:09. The star sky is compressed, which takes 96 MB off the video memory. And the build came out with no warnings at all.</p><p><strong>Also new today: the start of the game.</strong> The splash had drawn \u201cMade with Unity\u201d below an empty slot for two seconds, because its logo still pointed at the jam\u2019s university logo, deleted in August. It now shows the Unity logo alone, centred. Play, Restart and Main Menu go through a loading screen now, where the screen used to freeze for about a second with nothing to say why.</p><p><strong>Since your last run, FSR is AMD\u2019s own FSR 3.1.5</strong>, which you picked over FSR 2 on 29 September; FSR 2 is gone. Your built game has DLSS saved as its upscaler, which your card cannot run, so it starts with upscaling off: pick FSR under Upscaling.</p><p><strong>From your 28 September run.</strong> The boss and its torpedoes can no longer be outrun: both speed up with your Move Speed picks, so the boss stays about a quarter faster than you and a torpedo half again, however many you take, and a torpedo no longer loses a player who runs straight. Dodging one up or down works as before. The gun plays eight shorter cuts of its two sounds, about 3 dB quieter, instead of alternating two long ones.</p><p><strong>Everything else you left unflagged was ticked with its default.</strong> Two things need you to say so rather than say nothing: a pad in your hand, and F3\u2019s GPU line in a build.</p><p><strong>How to answer:</strong> as before, say only what felt wrong.",
+    lede: "<strong>Tested on 30 September:</strong> you tried both fixes and said they work, so this card, the pad and FSR 3 in motion are ticked. They are in commit <code>85777ea</code>, and no build carries them yet; say the word and one with the debug menu follows.</p><p><strong>From your 30 September run.</strong> Options is tabs now, turned with LB and RB, and each setting changes with left and right on the row itself. FSR 3 gets a reactive mask, AMD\u2019s fix for particles that ghost. Everything else you left unflagged was ticked with its default, at your word.</p><p><strong>How to answer:</strong> as before, say only what felt wrong.",
     watch: [
-      "Launch the game. \u201cMade with Unity\u201d should sit alone in the middle of the screen, then the menu follows.",
-      "Press Play, and later Restart or Main Menu. Each should cover the screen with a panel and a filling bar for about a second, and the run should only start moving once it clears.",
-      "Leave the menu running past three minutes. The music should come round again without a gap you notice.",
-      "Look up at the stars and the blue nebula between the clouds. Say if anything looks blocky or stained; the sky is compressed now.",
-      "Take Move Speed picks and try to run from the boss. It should close on you whatever you have taken, about a quarter faster than you; say if that has made the fight oppressive.",
-      "Run straight from a torpedo, then dodge one up or down as it closes. Running no longer shakes it; the dodge should work exactly as before.",
-      "Listen to the gun through a long stretch of waves. Eight shorter variants now, about 3 dB quieter; say if it has lost its punch. The two original clips are still there to swap back.",
-      "If a controller is handy, use it in the menus and to fly.",
-      "Press F3 and read the GPU line. It should say several milliseconds, not 0.0.",
-      "Set Upscaling to FSR, then watch the rounds\u2019 streaks, the thrusters and the far trees while you climb and turn. F3 should say FSR (3.1.5); say if anything smears or shimmers."
+      "Open Options from the pause menu with a pad. LB and RB should turn the tabs in place, and B should leave Options from any of them.",
+      "Stand on a setting and press left and right. The value should change without going near the arrows, and down from the foot of the left column carries on at the head of the right.",
+      "Fly with the pad as well: a stick pushed into a corner should fly both ways at full speed.",
+      "Set Upscaling to FSR and watch the explosions while the camera moves. They should no longer leave copies behind; say if any particle still smears."
     ]
   };
 
@@ -528,7 +522,17 @@
           effort: "2 min",
           why: [
             "Since 29 September the sky cubemap is compressed with BC7, which takes it from 128 MB to 32 MB in every build. The comparison went to you in chat that day: the in-game sky frozen at the same moment both ways, and the texture at full size around its one worst pixel, each as uncompressed, BC7, and the difference eight times over. The difference panels are close to black. <code>Builds/26_0929-1309_skyMusic</code> carries it, so a look in the game settles it too.",
-            "My pick is to keep it. <strong>If you do not flag it:</strong> the sky stays BC7. Putting it back is Compression: None on <code>Art/Skybox/StarfieldSky.png</code>."
+            "My pick is to keep it. <strong>If you do not flag it:</strong> the sky stays BC7. Putting it back is Compression: None on <code>Art/Skybox/StarfieldSky.png</code>.",
+            "<strong>Ticked on 30 September:</strong> not flagged in your run, so the sky stays BC7."
+          ]
+        },
+        {
+          id: "play-0928-pace",
+          title: "Feel the boss that keeps pace, and the new gun",
+          effort: "a build + one run",
+          why: [
+            "Played on <code>Builds/26_0929-1431_newDrivers</code> and reported on 30 September. You flagged two things, and both are fixed (commit <code>85777ea</code>): Options was awkward on a pad, and FSR 3 left particles a bit duplicated or ghosted. See \u2018Make Options tabs, and let left and right change a setting\u2019 and \u2018Stop particles ghosting under FSR 3\u2019.",
+            "Everything else on the card was ticked with its default at your word: the splash and the loading screen, the streamed music and its loop, the compressed sky, the boss keeping pace, the gun, and F3\u2019s GPU line. The pad and FSR\u2019s particles stay open for the next build."
           ]
         }
       ]
@@ -1173,7 +1177,8 @@
             "What a virtual pad cannot say is how it feels in the hand: the stick\u2019s repeat speed, and whether B lands where you expect.",
             "<strong>And fly with it.</strong> Since 25 September a stick pushed into a corner flies both axes at full speed, as two held keys do. Before, the stick\u2019s round gate held a corner to about 0.71 on each axis, which is the slow diagonal you felt. A virtual pad now reaches the ship as 1 and 1 in a corner; it is in <code>Builds/26_0925-2101_bigShips</code>.",
             "<strong>If you do not flag it:</strong> ticked once a pad has felt right in your hand, in the menus and flying. If none was handy, it stays open.",
-            "<strong>Flagged on 30 September:</strong> Options was separate screens you had to back out of to change section, and a setting only changed by walking onto one of its arrows and pressing A. Both are fixed since that build; see \u2018Make Options tabs, and let left and right change a setting\u2019. It stays open until a pad has felt right in your hand in the next build."
+            "<strong>Flagged on 30 September:</strong> Options was separate screens you had to back out of to change section, and a setting only changed by walking onto one of its arrows and pressing A. Both are fixed since that build; see \u2018Make Options tabs, and let left and right change a setting\u2019. It stays open until a pad has felt right in your hand in the next build.",
+            "<strong>Ticked on 30 September:</strong> you tested the tabs and the rows and said they work."
           ]
         },
         {
@@ -1187,7 +1192,8 @@
             "<strong>Then a turn cooldown, at your call.</strong> The boss turns round once you are 20\u00b0 past it, and faster than you that meant a ram passing through you, turning and coming straight back, every half second to a second and a half. The bot, flown into the second act with the kit, took 24 hits and died in 21 s that way. With 3 s between turns the boss carries on 80 to 130\u00b0 past before coming back, and the same setup took 15 hits in 62 s and reached the Scuttle. It is <code>EnemyMovement</code>\u2019s Turn Cooldown Seconds on the boss; every other enemy has 0.",
             "A bot sees more than you do and acts on it, so that is a reading, not a verdict. If it is too much or too little, each is one number on the Boss prefab: <code>EnemyMovement</code>\u2019s rotation speed and turn cooldown, and the intervals of <code>Hull - Ram</code>, <code>Hull - Wreckage</code> and <code>Scuttle</code>. It is in <code>Builds/26_0925-2101_bigShips</code>.",
             "<strong>If you do not flag it:</strong> the boss keeps pace with your picks, 20\u00b0 a second with none, and the 3 s turn cooldown stays.",
-            "<strong>Flagged in your 28 September run: you could outrun it, and its torpedoes.</strong> Fixed; see \u2018Stop the boss and its torpedoes being outrun\u2019. It stays 23% faster than you at any number of Move Speed picks now, so this is back to how it feels, in the next build."
+            "<strong>Flagged in your 28 September run: you could outrun it, and its torpedoes.</strong> Fixed; see \u2018Stop the boss and its torpedoes being outrun\u2019. It stays 23% faster than you at any number of Move Speed picks now, so this is back to how it feels, in the next build.",
+            "<strong>Ticked on 30 September:</strong> not flagged in your run, so the boss keeps pace with your picks, 20\u00b0 a second with none, and the 3 s turn cooldown stays."
           ]
         },
         {
@@ -1223,7 +1229,8 @@
           why: [
             "Both were timed in the editor, not in a build. Dynamic resolution now steers by the GPU time the player reports, and in the editor that read 0.04 ms for the first minute of one run before settling at 12 to 14, so readings under half a millisecond are ignored. F3\u2019s GPU line in the build at the top should read several milliseconds; 0.0 there means it is steering on the fallback.",
             "If you use a frame cap, watch whether it paces evenly. Without FreeSync a cap with VSync off still tears, and VSync with a cap under the refresh rate repeats frames; that part the limiter cannot fix.",
-            "<strong>If you do not flag it:</strong> ticked if F3\u2019s GPU line read several milliseconds. If it said 0.0, tell me."
+            "<strong>If you do not flag it:</strong> ticked if F3\u2019s GPU line read several milliseconds. If it said 0.0, tell me.",
+            "<strong>Ticked on 30 September, at your word:</strong> the frame cap and dynamic resolution stay as they are."
           ]
         },
         {
@@ -1234,7 +1241,8 @@
             "Stills from the 29 September test build showed the trees and ruins as crisp under FSR 3 as under FSR 2 and native. Ghosting and shimmer only show in motion, and the places FSR has misbehaved before are the rounds\u2019 streaks, the thrusters, and the far trees against the clouds.",
             "Your built game has DLSS saved as its upscaler, which reads as off on your card, so pick FSR under Upscaling first. F3\u2019s Upscaler line should say FSR and a quality, then (3.1.5).",
             "<strong>If you do not flag it:</strong> FSR 3 stays as it is.",
-            "<strong>Flagged on 30 September:</strong> only the particles, which were a bit duplicated or ghosted. Fixed since that build; see \u2018Stop particles ghosting under FSR 3\u2019. The next build is the one to judge them in. <strong>If you do not flag them there:</strong> this is ticked."
+            "<strong>Flagged on 30 September:</strong> only the particles, which were a bit duplicated or ghosted. Fixed since that build; see \u2018Stop particles ghosting under FSR 3\u2019. The next build is the one to judge them in. <strong>If you do not flag them there:</strong> this is ticked.",
+            "<strong>Ticked on 30 September:</strong> you tested the reactive mask and said it works."
           ]
         },
         {
@@ -1243,7 +1251,8 @@
           effort: "one launch",
           why: [
             "The splash can only be seen in a build, and the loading screen was timed in the editor, where loads are warm. In a build the first Play is the slow one: the arena loads cold and its first frames build what the GPU has not drawn before, which is what the screen waits out.",
-            "<strong>If you do not flag it:</strong> both stay as they are."
+            "<strong>If you do not flag it:</strong> both stay as they are.",
+            "<strong>Ticked on 30 September:</strong> not flagged in your run, so the splash and the loading screen stay as they are."
           ]
         },
         {
@@ -1252,7 +1261,8 @@
           effort: "one run",
           why: [
             "Since 29 September both tracks stream from disk rather than being decoded whole as their scene loads. In the editor both played, and both wrapped past their ends and kept playing, the menu’s for the first time, but whether the loop points are seamless is for ears. <code>Builds/26_0929-1309_skyMusic</code> is the first build with it.",
-            "<strong>If you do not flag it:</strong> the music stays streamed."
+            "<strong>If you do not flag it:</strong> the music stays streamed.",
+            "<strong>Ticked on 30 September:</strong> not flagged in your run, so the music stays streamed."
           ]
         },
         {
