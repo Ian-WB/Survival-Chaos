@@ -71,6 +71,17 @@ namespace SurvivalChaos
         {
             var into = new StringBuilder();
 
+            // First, where it is seen: the reason to look at the numbers under it.
+            string best = Bests(RunRecords.LastBeaten);
+            if (best.Length > 0)
+            {
+                into.Append("<color=#66FFCC>NEW BEST  -  ").Append(best).AppendLine("</color>");
+            }
+            else if (RunRecords.Assisted)
+            {
+                into.AppendLine("<alpha=#88>DEBUG MENU USED  -  NOT A RECORD<alpha=#FF>");
+            }
+
             into.Append("SURVIVED ").Append(Clock(RunStats.Seconds));
             into.Append("    LEVEL ").AppendLine(RunStats.LevelReached.ToString());
             into.Append("DESTROYED ").Append(RunStats.EnemiesDestroyed);
@@ -98,6 +109,32 @@ namespace SurvivalChaos
             }
 
             return into.ToString();
+        }
+
+        /// <summary>The records a run beat, as the card names them. Empty for none.</summary>
+        public static string Bests(RunRecords.Beaten beaten)
+        {
+            var names = new StringBuilder();
+
+            void Add(RunRecords.Beaten flag, string name)
+            {
+                if ((beaten & flag) == 0)
+                {
+                    return;
+                }
+
+                if (names.Length > 0)
+                {
+                    names.Append(", ");
+                }
+
+                names.Append(name);
+            }
+
+            Add(RunRecords.Beaten.Longest, "LONGEST RUN");
+            Add(RunRecords.Beaten.Level, "HIGHEST LEVEL");
+            Add(RunRecords.Beaten.Fastest, "FASTEST WIN");
+            return names.ToString();
         }
 
         /// <summary>Minutes and seconds, because runs are ten minutes long.</summary>

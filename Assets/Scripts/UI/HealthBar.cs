@@ -48,8 +48,31 @@ namespace SurvivalChaos
         private RectTransform shaken;
         private Coroutine shaking;
 
+        [Header("Last hit point")]
+        [SerializeField]
+        [Min(0)]
+        [Tooltip("At or below this many hit points the bar pulses at full strength and a heartbeat " +
+                 "plays. The dial: 1 is the last hit point, 2 starts a hit earlier. 0 turns it off.")]
+        private int warnAtOrBelow = 1;
+
+        [SerializeField]
+        [Range(0.4f, 2f)]
+        [Tooltip("Game seconds between heartbeats. Game time, so it waits out a pause and slows " +
+                 "with Slow Mo.")]
+        private float heartbeatSeconds = 0.9f;
+
+        private HoloBar holo;
+        private float nextBeat;
+        private bool warning;
+
         private void Awake()
         {
+            holo = slider != null ? slider.GetComponent<HoloBar>() : null;
+            if (holo == null)
+            {
+                holo = GetComponentInChildren<HoloBar>();
+            }
+
             shaken = transform as RectTransform;
 
             if (shaken != null)
@@ -85,6 +108,44 @@ namespace SurvivalChaos
             if (hurt)
             {
                 Shake();
+            }
+        }
+
+        /// <summary>
+        /// The warning on the last hit point: the bar pulsing at full strength,
+        /// and a soft heartbeat until salvage takes the ship off it. The bar in
+        /// the corner was the only sign before, and a player who is dodging is
+        /// watching the ship. Only while there is more health to have lost: a
+        /// ship with one hit point to its name would beat the whole run.
+        /// </summary>
+        private void Update()
+        {
+            bool now = slider != null && warnAtOrBelow > 0
+                && slider.value > 0f
+                && slider.value <= warnAtOrBelow
+                && slider.maxValue > warnAtOrBelow
+                && !RunOutcome.Decided;
+
+            if (now != warning)
+            {
+                warning = now;
+                nextBeat = Time.time;
+
+                if (holo != null)
+                {
+                    holo.PulseFloor = now ? 1f : 0f;
+                }
+            }
+
+            if (!warning || PauseMenu.GameIsPaused || Time.time < nextBeat)
+            {
+                return;
+            }
+
+            nextBeat = Time.time + heartbeatSeconds;
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.LowHealth);
             }
         }
 

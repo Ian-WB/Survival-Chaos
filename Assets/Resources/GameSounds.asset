@@ -16,13 +16,22 @@ MonoBehaviour:
   playerHit: {fileID: 11400000, guid: 3a62f3a528a111743bcfdff00355df22, type: 2}
   playerDeath: {fileID: 11400000, guid: 8160371381ccf1543833bdc632e0dfaf, type: 2}
   playerDash: {fileID: 11400000, guid: c68fad35586636047b0eac7d67467565, type: 2}
+  deflectorBlock: {fileID: 11400000, guid: b21a15e61c683654a88d7804dc4fcd13, type: 2}
+  slowMoStart: {fileID: 11400000, guid: a22f08850f7cba74a965279e86e6e6e5, type: 2}
+  slowMoEnd: {fileID: 11400000, guid: 782fe0e89bf954a4b8ebe826f98a5b7a, type: 2}
+  lowHealth: {fileID: 11400000, guid: ff0c386a302d10846a10d40f7419fa80, type: 2}
   levelUp: {fileID: 11400000, guid: 76c1e75513274ac4fa172d84066f85b3, type: 2}
   skillPicked: {fileID: 11400000, guid: 858c7732477384d46a7c284e159030d0, type: 2}
+  salvagePicked: {fileID: 11400000, guid: 56fe35ea7afdb684b883d643dd5803fe, type: 2}
+  offerExpiring: {fileID: 11400000, guid: 07ed95ca02b788e4ba432df67cde1ebb, type: 2}
   enemyDeath: {fileID: 11400000, guid: 44cca5e94b65cd64ab2fe4a8d389daa6, type: 2}
   bossShot: {fileID: 11400000, guid: 4a4d0466c6a55e5458f9193dc8271357, type: 2}
   bossDeath: {fileID: 11400000, guid: b1dc6b90a4938ee47885ff58b201b664, type: 2}
   bossChargeLance: {fileID: 11400000, guid: 913436face918d245b0ca1dcf82426dd, type: 2}
   bossChargeRam: {fileID: 11400000, guid: 63841c2cad0c6d848b4aca04ad6c3d74, type: 2}
+  actEnd: {fileID: 11400000, guid: 5000e98a01a161740af0d1ec70627da2, type: 2}
+  bossHornDistant: {fileID: 11400000, guid: ac3300814e3113d4a9ed3c92dc0ba984, type: 2}
+  bossHornArrival: {fileID: 11400000, guid: 871df199ca5ed2a48b96064293f6f98a, type: 2}
   victory: {fileID: 11400000, guid: 740d9d00cb550e746a4b9ac50f13fca0, type: 2}
   uiClick: {fileID: 11400000, guid: a01a46782ba92de44840b51fd89af255, type: 2}
   uiHover: {fileID: 11400000, guid: 9a6b3a802738c924da0469c37a825d42, type: 2}

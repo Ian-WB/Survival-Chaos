@@ -96,7 +96,7 @@ namespace SurvivalChaos
         public void PickSkill(){
             // Final boss XP still updates progression, but the ending screen must
             // not create another offer behind itself.
-            if (RunOutcome.RunEnded) { return; }
+            if (RunOutcome.Decided) { return; }
 
             if (pickups == null)
             {
@@ -141,6 +141,7 @@ namespace SurvivalChaos
         public int ApplyDebugLoadout(bool stronger)
         {
             if (player == null || RunOutcome.RunEnded || player.CurrentHealth <= 0) { return 0; }
+            RunRecords.MarkAssisted();
 
             int granted = 0;
             foreach (SkillDefinition skill in skills)
@@ -292,7 +293,7 @@ namespace SurvivalChaos
 
         private void LateUpdate()
         {
-            if (!RunOutcome.RunEnded || banner == null) { return; }
+            if (!RunOutcome.Decided || banner == null) { return; }
             StopCoroutine(banner);
             banner = null;
             if (skillTextObject != null) { skillTextObject.SetActive(false); }
@@ -317,7 +318,7 @@ namespace SurvivalChaos
         private void ShowBanner(string skillName)
         {
             // Nothing to show it on in a scene that has not wired the banner.
-            if (RunOutcome.RunEnded || skillTextObject == null || skillText == null) { return; }
+            if (RunOutcome.Decided || skillTextObject == null || skillText == null) { return; }
             if (banner != null)
             {
                 StopCoroutine(banner);

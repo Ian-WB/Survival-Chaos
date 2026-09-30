@@ -9,6 +9,10 @@ namespace SurvivalChaos
         private GameObject deathMenuUI;
 
         public void ShowDeathMenu(){
+            // Before the card is filled, so it can say what the run beat.
+            RunStats.Stop();
+            RunRecords.Submit(RunStats.Seconds, RunStats.LevelReached, won: false);
+
             if (deathMenuUI != null){
                 deathMenuUI.SetActive(true);
                 RunSummary.Show(deathMenuUI);

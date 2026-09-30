@@ -45,6 +45,18 @@ namespace SurvivalChaos
         private const float BaseGap = 6f;
 
         private bool visible;
+
+        /// <summary>
+        /// True while the menu is on screen. The pause menu reads it to show
+        /// the pointer, which a run otherwise hides, so the menu can be clicked.
+        /// </summary>
+        public static bool Showing { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            Showing = false;
+        }
         private float nextRefresh;
 
         private Player player;
@@ -82,6 +94,7 @@ namespace SurvivalChaos
             if (GameInput.DebugMenuTogglePressed)
             {
                 visible = !visible;
+                Showing = visible;
                 if (visible)
                 {
                     Refresh();
@@ -159,6 +172,7 @@ namespace SurvivalChaos
 
         private void LevelUp()
         {
+            RunRecords.MarkAssisted();
             if (player != null) { player.DebugLevelUp(); }
         }
 
@@ -174,6 +188,7 @@ namespace SurvivalChaos
         private void Advance(float seconds)
         {
             if (RunOutcome.RunEnded) { return; }
+            RunRecords.MarkAssisted();
             if (timer != null) { timer.AdvanceBy(seconds); }
             if (director != null) { director.AdvanceBy(seconds); }
         }
@@ -188,6 +203,7 @@ namespace SurvivalChaos
         private void SkipToBoss()
         {
             if (RunOutcome.RunEnded) { return; }
+            RunRecords.MarkAssisted();
             if (timer != null && !timer.HandedOver)
             {
                 Advance(Mathf.Max(0f, timer.RunLength - timer.Elapsed));
@@ -203,6 +219,7 @@ namespace SurvivalChaos
         {
             if (player != null && !RunOutcome.RunEnded)
             {
+                RunRecords.MarkAssisted();
                 player.Heal(player.MaxHealth - player.CurrentHealth);
             }
         }
@@ -211,6 +228,7 @@ namespace SurvivalChaos
         {
             if (player != null && !RunOutcome.RunEnded)
             {
+                RunRecords.MarkAssisted();
                 player.Invulnerable = !player.Invulnerable;
             }
         }
@@ -218,6 +236,7 @@ namespace SurvivalChaos
         private void ClearArena(bool reward = false)
         {
             if (RunOutcome.RunEnded) { return; }
+            RunRecords.MarkAssisted();
             // Both kinds, the ships that shoot included: they share EnemyBase.
             EnemyBase[] enemies = FindObjectsByType<EnemyBase>(FindObjectsInactive.Exclude);
             foreach (EnemyBase enemy in enemies)
@@ -236,6 +255,7 @@ namespace SurvivalChaos
         /// </summary>
         private void StepTimeScale()
         {
+            RunRecords.MarkAssisted();
             RunTime.CycleSlowMotion();
         }
 
@@ -315,12 +335,12 @@ namespace SurvivalChaos
             {
                 CameraPresetSwitcher.Cycle();
             }
-            if (Draw(x, ref y, width, row, gap, "Generate offer (no level)", skills != null && running)) { skills.PickSkill(); }
+            if (Draw(x, ref y, width, row, gap, "Generate offer (no level)", skills != null && running)) { RunRecords.MarkAssisted(); skills.PickSkill(); }
             if (Draw(x, ref y, width, row, gap, "Kill enemies + reward XP", running)) { ClearArena(reward: true); }
             BossEmitter boss = BossEmitter.Active;
-            if (Draw(x, ref y, width, row, gap, "Next boss phase", boss != null && boss.Phase != BossPhase.Scuttle && running)) { boss.DebugAdvancePhase(); }
-            if (Draw(x, ref y, width, row, gap, "Boss kit: balanced", skills != null && running)) { skills.ApplyDebugLoadout(false); }
-            if (Draw(x, ref y, width, row, gap, "Boss kit: strong", skills != null && running)) { skills.ApplyDebugLoadout(true); }
+            if (Draw(x, ref y, width, row, gap, "Next boss phase", boss != null && boss.Phase != BossPhase.Scuttle && running)) { RunRecords.MarkAssisted(); boss.DebugAdvancePhase(); }
+            if (Draw(x, ref y, width, row, gap, "Boss kit: balanced", skills != null && running)) { RunRecords.MarkAssisted(); skills.ApplyDebugLoadout(false); }
+            if (Draw(x, ref y, width, row, gap, "Boss kit: strong", skills != null && running)) { RunRecords.MarkAssisted(); skills.ApplyDebugLoadout(true); }
         }
 
         /// <summary>

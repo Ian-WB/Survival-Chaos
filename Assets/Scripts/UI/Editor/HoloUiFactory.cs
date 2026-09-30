@@ -535,7 +535,7 @@ namespace SurvivalChaos.EditorTools
         public const float OptionsBackY = -620f;
 
         /// <summary>The tabs, in strip order. Content is built by position.</summary>
-        public static readonly string[] OptionTabNames = { "Audio", "Display", "Graphics" };
+        public static readonly string[] OptionTabNames = { "Audio", "Display", "Graphics", "Controls" };
 
         private static readonly Vector2 BackButtonSize = new Vector2(420f, 72f);
 
@@ -693,6 +693,76 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
+        /// Every action with its key and its pad button, and the two settings
+        /// about the controls themselves: rumble, and the hints that teach
+        /// them.
+        ///
+        /// The table is read, not walked: the pad only stops on the two rows
+        /// and Back. It sits in the left half, where the other tabs have their
+        /// left column, and the rows sit where their right column is, so the
+        /// strip turns between four screens of the same shape.
+        ///
+        /// The wording follows the README's controls table, which is the other
+        /// place these are written down. A change to a binding in
+        /// InputSystemGameInput wants both.
+        /// </summary>
+        public static List<Selectable> PopulateControlsPanel(Transform panel, Material panelMaterial)
+        {
+            const float top = -160f;
+            const float step = 40f;
+            const float actionX = -656f;
+            const float keysX = -386f;
+            const float padX = -196f;
+
+            (string action, string keys, string pad)[] bindings =
+            {
+                ("Fly round the ring", "A / D, Left / Right", "Left stick, d-pad"),
+                ("Climb and dive", "W / S, Up / Down", "Left stick, d-pad"),
+                ("Dash", "Space", "A or RB"),
+                ("Reverse", "Shift, on release", "LB, on release"),
+                ("Slow Mo", "E", "Y or LT"),
+                ("Pause", "Esc", "Start"),
+                ("Move in a menu", "Arrows, Enter", "D-pad, A"),
+                ("Back out of a menu", "Esc", "B"),
+                ("Switch Options tab", "Q / E", "LB / RB")
+            };
+
+            Color heading = new Color(Accent.r, Accent.g, Accent.b, 0.8f);
+            Color dimmer = new Color(Edge.r, Edge.g, Edge.b, 0.75f);
+            AddTableCell(panel, "Action Heading", actionX, top, 260f, "Action", heading);
+            AddTableCell(panel, "Keyboard Heading", keysX, top, 180f, "Keyboard", heading);
+            AddTableCell(panel, "Controller Heading", padX, top, 200f, "Controller", heading);
+
+            for (int i = 0; i < bindings.Length; i++)
+            {
+                float y = top - (i + 1) * step;
+                string name = bindings[i].action;
+                AddTableCell(panel, name + " Action", actionX, y, 260f, bindings[i].action, Edge);
+                AddTableCell(panel, name + " Keys", keysX, y, 180f, bindings[i].keys, dimmer);
+                AddTableCell(panel, name + " Pad", padX, y, 200f, bindings[i].pad, dimmer);
+            }
+
+            return new List<Selectable>
+            {
+                CreateToggleRow(panel, ToggleOptionKind.Rumble, "Rumble", RightColumn, -170f, panelMaterial),
+                CreateToggleRow(panel, ToggleOptionKind.ControlHints, "Control Hints", RightColumn, -254f,
+                    panelMaterial)
+            };
+        }
+
+        private static void AddTableCell(Transform panel, string name, float left, float y, float width,
+            string text, Color colour)
+        {
+            TextMeshProUGUI cell = CreateText(panel, name, new Vector2(0.5f, 1f), new Vector2(0f, 0.5f),
+                new Vector2(left, y), new Vector2(width, 30f), 17f, TextAlignmentOptions.Left);
+            cell.text = text;
+            cell.color = colour;
+            cell.enableAutoSizing = true;
+            cell.fontSizeMin = 12f;
+            cell.fontSizeMax = 17f;
+        }
+
+        /// <summary>
         /// One graphics setting: label, a value between two arrows, and a note
         /// underneath when the setting needs explaining.
         ///
@@ -702,6 +772,80 @@ namespace SurvivalChaos.EditorTools
         /// is Extended ASCII and a missing glyph would render as a box.
         /// </summary>
         public static OptionRow CreateOptionRow(Transform panel, GraphicsOptionKind kind, string label,
+            float columnX, float top, Material panelMaterial)
+        {
+            RowParts parts = CreateRowShell(panel, label, columnX, top, panelMaterial);
+
+            GraphicsOption option = Undo.AddComponent<GraphicsOption>(parts.Caption.gameObject);
+            SerializedObject so = new SerializedObject(option);
+            // intValue, not enumValueIndex: the latter is the position in the
+            // enum's declared list rather than the value itself, so it silently
+            // points at the wrong setting the moment the enum has a gap in it -
+            // and GraphicsOptionKind has one, where the old combined upscaling
+            // row was removed.
+            so.FindProperty("kind").intValue = (int)kind;
+            so.FindProperty("value").objectReferenceValue = parts.Value;
+            so.FindProperty("note").objectReferenceValue = parts.Note;
+
+            // So the row can grey itself out. Without these it can still refuse
+            // the click, but it looks identical to a row that would accept one.
+            so.FindProperty("previousButton").objectReferenceValue = parts.Previous;
+            so.FindProperty("nextButton").objectReferenceValue = parts.Next;
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return FinishRow(parts, option);
+        }
+
+        /// <summary>
+        /// An on/off row for the Controls tab, the same shape as a graphics row
+        /// so the tabs read as one screen.
+        /// </summary>
+        public static OptionRow CreateToggleRow(Transform panel, ToggleOptionKind kind, string label,
+            float columnX, float top, Material panelMaterial)
+        {
+            RowParts parts = CreateRowShell(panel, label, columnX, top, panelMaterial);
+
+            ToggleOption option = Undo.AddComponent<ToggleOption>(parts.Caption.gameObject);
+            SerializedObject so = new SerializedObject(option);
+            so.FindProperty("kind").intValue = (int)kind;
+            so.FindProperty("value").objectReferenceValue = parts.Value;
+            so.FindProperty("note").objectReferenceValue = parts.Note;
+            so.FindProperty("previousButton").objectReferenceValue = parts.Previous;
+            so.FindProperty("nextButton").objectReferenceValue = parts.Next;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return FinishRow(parts, option);
+        }
+
+        /// <summary>What a settings row is made of, before a setting is attached to it.</summary>
+        private struct RowParts
+        {
+            public OptionRow Row;
+            public Image Plate;
+            public TextMeshProUGUI Caption;
+            public TextMeshProUGUI Value;
+            public TextMeshProUGUI Note;
+            public Button Previous;
+            public Button Next;
+        }
+
+        /// <summary>Wires a row's arrows and plate to its setting once the setting exists.</summary>
+        private static OptionRow FinishRow(RowParts parts, SteppedSetting option)
+        {
+            UnityEventTools.AddVoidPersistentListener(parts.Previous.onClick, new UnityAction(option.Previous));
+            UnityEventTools.AddVoidPersistentListener(parts.Next.onClick, new UnityAction(option.Next));
+
+            SerializedObject rowSo = new SerializedObject(parts.Row);
+            rowSo.FindProperty("option").objectReferenceValue = option;
+            rowSo.FindProperty("plate").objectReferenceValue = parts.Plate;
+            rowSo.ApplyModifiedPropertiesWithoutUndo();
+
+            return parts.Row;
+        }
+
+        /// <summary>The plate, label, arrows, value and note of a row, with no setting yet.</summary>
+        private static RowParts CreateRowShell(Transform panel, string label,
             float columnX, float top, Material panelMaterial)
         {
             Vector2 anchor = new Vector2(0.5f, 1f);
@@ -744,38 +888,21 @@ namespace SurvivalChaos.EditorTools
             note.text = string.Empty;
             note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
 
-            GraphicsOption option = Undo.AddComponent<GraphicsOption>(caption.gameObject);
-            SerializedObject so = new SerializedObject(option);
-            // intValue, not enumValueIndex: the latter is the position in the
-            // enum's declared list rather than the value itself, so it silently
-            // points at the wrong setting the moment the enum has a gap in it -
-            // and GraphicsOptionKind has one, where the old combined upscaling
-            // row was removed.
-            so.FindProperty("kind").intValue = (int)kind;
-            so.FindProperty("value").objectReferenceValue = current;
-            so.FindProperty("note").objectReferenceValue = note;
-
-            // So the row can grey itself out. Without these it can still refuse
-            // the click, but it looks identical to a row that would accept one.
-            so.FindProperty("previousButton").objectReferenceValue = previous;
-            so.FindProperty("nextButton").objectReferenceValue = next;
-
-            so.ApplyModifiedPropertiesWithoutUndo();
-
-            UnityEventTools.AddVoidPersistentListener(previous.onClick, new UnityAction(option.Previous));
-            UnityEventTools.AddVoidPersistentListener(next.onClick, new UnityAction(option.Next));
-
             // The arrows are for the mouse. The pad stands on the row and uses
             // left and right, so it has to pass over them.
             previous.navigation = new Navigation { mode = Navigation.Mode.None };
             next.navigation = new Navigation { mode = Navigation.Mode.None };
 
-            SerializedObject rowSo = new SerializedObject(row);
-            rowSo.FindProperty("option").objectReferenceValue = option;
-            rowSo.FindProperty("plate").objectReferenceValue = plate;
-            rowSo.ApplyModifiedPropertiesWithoutUndo();
-
-            return row;
+            return new RowParts
+            {
+                Row = row,
+                Plate = plate,
+                Caption = caption,
+                Value = current,
+                Note = note,
+                Previous = previous,
+                Next = next
+            };
         }
 
         /// <summary>
@@ -809,7 +936,8 @@ namespace SurvivalChaos.EditorTools
                 {
                     case 0: order = PopulateAudioPanel(panel, barMaterial); break;
                     case 1: order = PopulateDisplayPanel(panel, panelMaterial, barMaterial); break;
-                    default: order = PopulateGraphicsPanel(panel, panelMaterial); break;
+                    case 2: order = PopulateGraphicsPanel(panel, panelMaterial); break;
+                    default: order = PopulateControlsPanel(panel, panelMaterial); break;
                 }
 
                 Button backButton = CreateButton(panel, "Back", new Vector2(0.5f, 1f),
@@ -891,6 +1019,37 @@ namespace SurvivalChaos.EditorTools
             so.FindProperty("keyboard").stringValue = keyboard;
             so.FindProperty("pad").stringValue = pad;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// A small line in a corner of a menu that fills itself in when the
+        /// menu opens: the build stamp, or the best runs. Dim, because it is
+        /// there to be found rather than read.
+        /// </summary>
+        public static TextMeshProUGUI CreateFootnote(Transform parent, string name, MenuFootnote.Content content,
+            Vector2 anchor, Vector2 position, Vector2 size, float fontSize, TextAlignmentOptions align, float alpha)
+        {
+            TextMeshProUGUI text = CreateText(parent, name, anchor, anchor, position, size, fontSize, align);
+            text.text = content == MenuFootnote.Content.BuildStamp ? "Build" : "Best";
+            text.color = new Color(Edge.r, Edge.g, Edge.b, alpha);
+
+            MenuFootnote footnote = Undo.AddComponent<MenuFootnote>(text.gameObject);
+            SerializedObject so = new SerializedObject(footnote);
+            so.FindProperty("content").intValue = (int)content;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return text;
+        }
+
+        /// <summary>The build stamp, bottom right of a full-screen menu.</summary>
+        public static void AddBuildStamp(Transform screen)
+        {
+            TextMeshProUGUI stamp = CreateFootnote(screen, "Build Stamp", MenuFootnote.Content.BuildStamp,
+                new Vector2(1f, 0f), new Vector2(-28f, 22f), new Vector2(700f, 28f), 15f,
+                TextAlignmentOptions.BottomRight, 0.45f);
+
+            // As written: the folder is named in mixed case, and a commit is
+            // looked up by exactly what is on screen.
+            stamp.fontStyle = FontStyles.Normal;
         }
 
         /// <summary>

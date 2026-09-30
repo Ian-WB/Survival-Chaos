@@ -130,7 +130,29 @@ namespace SurvivalChaos.EditorTools
             // Retrigger matters here: hover fires again on reselection, and the
             // pointer crossing a column of buttons should not machine-gun.
             new Spec("uiHover", "UiHover", AudioChannel.Ui, 0.1281f,
-                new Vector2(0.98f, 1.02f), 0.07f, 2, 0f, "pointer arriving on a button")
+                new Vector2(0.98f, 1.02f), 0.07f, 2, 0f, "pointer arriving on a button"),
+
+            // The nine from 30 September 2026. Their clips and these same
+            // numbers come from BuildMomentSounds, and the levels from
+            // BalanceSoundLevels.IntentDb: keep the three in step.
+            new Spec("salvagePicked", "SalvagePicked", AudioChannel.Ui, 0.5012f,
+                new Vector2(0.96f, 1.04f), 0.05f, 2, 0f, "salvage repairing the ship"),
+            new Spec("deflectorBlock", "DeflectorBlock", AudioChannel.Sfx, 0.7079f,
+                new Vector2(0.97f, 1.03f), 0.1f, 1, 0f, "the deflector taking a hit"),
+            new Spec("slowMoStart", "SlowMoStart", AudioChannel.Ui, 0.5012f,
+                Vector2.one, 0.2f, 1, 0f, "Slow Mo starting"),
+            new Spec("slowMoEnd", "SlowMoEnd", AudioChannel.Ui, 0.5012f,
+                Vector2.one, 0.2f, 1, 0f, "Slow Mo running out"),
+            new Spec("offerExpiring", "OfferExpiring", AudioChannel.Sfx, 0.3162f,
+                Vector2.one, 0.25f, 1, 0f, "an offer's last seconds"),
+            new Spec("actEnd", "ActEnd", AudioChannel.Sfx, 0.7079f,
+                new Vector2(0.78f, 0.82f), 0.5f, 1, 0f, "an act of the Leviathan fight ending"),
+            new Spec("bossHornDistant", "BossHornDistant", AudioChannel.Sfx, 0.3162f,
+                Vector2.one, 1f, 1, 0f, "the Leviathan, far off"),
+            new Spec("bossHornArrival", "BossHornArrival", AudioChannel.Sfx, 0.5012f,
+                Vector2.one, 1f, 1, 0f, "the Leviathan arriving"),
+            new Spec("lowHealth", "LowHealth", AudioChannel.Sfx, 0.2512f,
+                Vector2.one, 0.3f, 1, 0f, "the heartbeat on the last hit point")
         };
 
         [MenuItem("Survival Chaos/Create Default Sound Assets", priority = 41)]

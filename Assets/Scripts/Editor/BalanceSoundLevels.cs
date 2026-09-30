@@ -132,8 +132,41 @@ namespace SurvivalChaos.EditorTools
 
             // Fires on every pointer crossing, and must sit well under the click
             // it precedes; it was one decibel above it.
-            { "UiHover", -17.8f }
+            { "UiHover", -17.8f },
+
+            // The nine added on 30 September 2026 by BuildMomentSounds, placed
+            // by the same rule and not yet heard in the mix. Each is the dial
+            // if it sits wrong.
+            //
+            // Rare and big: an act ending, the Leviathan arriving. The horn is
+            // long and sustained, which reads louder than its RMS says, so it
+            // sits under the deaths; the distant one is quieter again, and
+            // darker and echoing in the clip itself.
+            { "ActEnd", -3f },
+            { "BossHornArrival", -6f },
+            { "BossHornDistant", -10f },
+
+            // Something struck the ship and was stopped: a little under the hit
+            // it stands in for.
+            { "DeflectorBlock", -3f },
+
+            // Once a slowdown each, and the salvage as often as it drops. Near
+            // Skill Picked, the other collection sound.
+            { "SalvagePicked", -6f },
+            { "SlowMoStart", -6f },
+            { "SlowMoEnd", -6f },
+
+            // Repeat for as long as they apply - three ticks a warning, a beat
+            // every 0.9 s on the last hit point - so they stay underneath.
+            { "OfferExpiring", -10f },
+            { "LowHealth", -12f }
         };
+
+        /// <summary>The level a sound is meant to sit at, in dB against Player Hit. 0 when unlisted.</summary>
+        internal static float IntentFor(string name)
+        {
+            return IntentDb.TryGetValue(name, out float db) ? db : 0f;
+        }
 
         [MenuItem("Survival Chaos/Balance Sound Levels", priority = 45)]
         public static void Balance()

@@ -107,6 +107,19 @@ namespace SurvivalChaos
                  "to notice that it did - every attack restarts its cadence from here.")]
         private float phaseChangeSilence = 2f;
 
+        [Header("Hit-stop")]
+        [SerializeField]
+        [Range(0f, 0.3f)]
+        [Tooltip("Real seconds the game all but stops when an emplacement goes down that does not " +
+                 "end the act. A dial: 0 turns it off.")]
+        private float emplacementFreeze = 0.07f;
+
+        [SerializeField]
+        [Range(0f, 0.5f)]
+        [Tooltip("Real seconds the game all but stops when an act ends. Hull plates and ordinary " +
+                 "kills do not freeze at all: they come too often, and would stutter.")]
+        private float actFreeze = 0.15f;
+
         [Header("Muzzle tells")]
         [SerializeField]
         [Tooltip("The glow shown on a muzzle before it fires. Built by Survival Chaos/Apply Boss " +
@@ -1545,7 +1558,7 @@ namespace SurvivalChaos
             // The player died earlier in this same physics step, and the first
             // ending stands - a last point landing behind it would put the
             // victory screen over the death one. See Player.TakeHit.
-            if (RunOutcome.RunEnded)
+            if (RunOutcome.Decided)
             {
                 return;
             }
@@ -1658,7 +1671,12 @@ namespace SurvivalChaos
             if (phase != null && phase.ReportEmplacementDestroyed())
             {
                 EnterPhase();
+                return;
             }
+
+            // The act's own beat covers the last one, which is longer.
+            RunTime.Freeze(emplacementFreeze);
+            Rumble.Pulse(Rumble.Strength.Heavy);
         }
 
         /// <summary>Which act the fight is in. For the HUD and for tests.</summary>
@@ -1704,6 +1722,16 @@ namespace SurvivalChaos
         /// </summary>
         private void EnterPhase()
         {
+            // Felt as well as seen: the fight holds its breath, the pad
+            // thumps, and the act has a sound of its own. Before the silence
+            // below, which the sound is heard over.
+            RunTime.Freeze(actFreeze);
+            Rumble.Pulse(Rumble.Strength.Heavy);
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.ActEnd);
+            }
+
             StopAllCoroutines();
             ReleaseMovement();
             ClearTelegraphs();

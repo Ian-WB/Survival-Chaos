@@ -39,6 +39,15 @@ namespace SurvivalChaos
         /// <summary>True once the boss phase has been started. Latches the handover.</summary>
         private bool handedOver;
 
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Seconds before the Leviathan arrives that a horn sounds from far off. A second " +
+                 "horn sounds as it arrives. 0 leaves only the second.")]
+        private float hornLead = 10f;
+
+        /// <summary>Latches the distant horn, like the handover.</summary>
+        private bool hornSounded;
+
         void Start()
         {
             runLength = ResolveRunLength();
@@ -50,6 +59,7 @@ namespace SurvivalChaos
 
             timeValue = 0;
             handedOver = false;
+            hornSounded = false;
         }
 
         /// <summary>
@@ -123,6 +133,7 @@ namespace SurvivalChaos
                 return;
             }
 
+            RunRecords.MarkAssisted();
             timeValue = Mathf.Min(timeValue + seconds, runLength);
         }
 
@@ -143,11 +154,33 @@ namespace SurvivalChaos
 
             if (timeValue < runLength)
             {
+                // A horn, far off, ahead of the arrival. There is no text for
+                // this on purpose: the phase names on screen were taken out on
+                // 8 September 2026, and this adds only sound.
+                if (!hornSounded && hornLead > 0f && timeValue >= runLength - hornLead)
+                {
+                    hornSounded = true;
+                    PlayHorn(distant: true);
+                }
+
                 return;
             }
 
+            // A clock wound past the lead in one step skips the distant horn:
+            // two horns on one frame would be one horn, twice as loud.
+            hornSounded = true;
             handedOver = true;
             HandOverToBoss();
+            PlayHorn(distant: false);
+        }
+
+        private static void PlayHorn(bool distant)
+        {
+            GameSounds sounds = GameSounds.Instance;
+            if (sounds != null)
+            {
+                GameSounds.Play(distant ? sounds.BossHornDistant : sounds.BossHornArrival);
+            }
         }
 
         private void HandOverToBoss()

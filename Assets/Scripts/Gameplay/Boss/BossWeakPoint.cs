@@ -259,7 +259,7 @@ namespace SurvivalChaos
         {
             // RunEnded: the first ending stands, as on the hull - see
             // BossEmitter.OnTriggerEnter.
-            if (Destroyed || !other.CompareTag("Shoot") || RunOutcome.RunEnded)
+            if (Destroyed || !other.CompareTag("Shoot") || RunOutcome.Decided)
             {
                 return;
             }

@@ -387,8 +387,12 @@ namespace SurvivalChaos
         /// <summary>The pitch a voice playing <paramref name="sound"/> should have now, 0 when paused.</summary>
         private static float RateNow(SoundDefinition sound, float pitch)
         {
+            // The run's speed rather than Time.timeScale, which a hit-stop takes
+            // to near zero for a few hundredths of a second: sounds carry on
+            // through it. Decided rather than ended, so the ship's own death
+            // plays at its pitch through the slow beat before the card.
             float game = FollowsGameTime(sound)
-                ? GameSoundRate(PauseMenu.GameIsPaused, RunOutcome.RunEnded, Time.timeScale)
+                ? GameSoundRate(PauseMenu.GameIsPaused, RunOutcome.Decided, RunTime.SoundSpeed)
                 : 1f;
 
             return Mathf.Min(MaxPitch, Mathf.Abs(pitch) * game);

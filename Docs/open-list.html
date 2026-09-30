@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true},"updated":"30 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true},"updated":"30 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,15 +327,24 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-0930",
-    title: "Try the tabs on a pad, and the particles under FSR",
+    id: "play-polish",
+    title: "Play the polish build",
     effort: "a build + one run",
-    lede: "<strong>Tested on 30 September:</strong> you tried both fixes and said they work, so this card, the pad and FSR 3 in motion are ticked. They are in commit <code>85777ea</code>, and no build carries them yet; say the word and one with the debug menu follows.</p><p><strong>From your 30 September run.</strong> Options is tabs now, turned with LB and RB, and each setting changes with left and right on the row itself. FSR 3 gets a reactive mask, AMD\u2019s fix for particles that ghost. Everything else you left unflagged was ticked with its default, at your word.</p><p><strong>How to answer:</strong> as before, say only what felt wrong.",
+    lede: "<strong>Built: <code>Builds/26_0930-0825_polish</code></strong>, with the debug menu (F8), from commit <code>8ee1a3a</code> plus roadmap items 1 to 14, which are not committed yet. Its title and pause screens say so in the corner: <code>26_0930-0825_polish · 8ee1a3a+</code>, the + being the uncommitted work. 915 MB, no warnings. It is also the first build with the Options tabs and FSR 3’s reactive mask, which you tested in the editor.</p><p><strong>From the polish roadmap.</strong> You said “Go do 1-14” on 30 September, so both phases went in together rather than as two builds. Each one is its own item below, with what was checked in play. Where something is a matter of feel it has a dial, and the answer on it stands if you say nothing (see ‘Waiting on a real run’). 619 tests pass.</p><p><strong>How to answer:</strong> as before, say only what felt wrong.",
     watch: [
-      "Open Options from the pause menu with a pad. LB and RB should turn the tabs in place, and B should leave Options from any of them.",
-      "Stand on a setting and press left and right. The value should change without going near the arrows, and down from the foot of the left column carries on at the head of the right.",
-      "Fly with the pad as well: a stick pushed into a corner should fly both ways at full speed.",
-      "Set Upscaling to FSR and watch the explosions while the camera moves. They should no longer leave copies behind; say if any particle still smears."
+      "Alt-tab in the middle of a run. You should come back to the pause menu, not to the fight.",
+      "The mouse pointer should be gone once a run starts, and back on every menu and card.",
+      "The bottom-right corner of the title and pause screens names the build and its commit. It should match the folder you started it from.",
+      "Your first run opens with Reverse, then Dash, in the prompt at the foot of the screen, in the buttons you are using. Slow Mo, the Deflector and the first offer each get a line when they first turn up. Say if a line is hard to read mid-fight.",
+      "Options has a fourth tab, Controls: every key and pad button, and the Rumble and Control Hints switches.",
+      "Finish a run. The card says NEW BEST on anything you beat, and the title screen lists your bests. A run with the debug menu says so and does not count.",
+      "Lose the ship. The game should slow to a quarter for about a second while it breaks up and the music fades, and then Ship Lost comes up.",
+      "Destroy an emplacement: the game holds for an instant. Ending an act holds a little longer, with a metal strike.",
+      "Ten seconds before the Leviathan, a horn sounds far off, and a second one as it arrives.",
+      "On your last hit point the health bar pulses hard and a soft heartbeat plays until salvage lifts you off it.",
+      "On a pad, it rumbles on a hit, a dash, a blocked hit and an emplacement, and longer at the end.",
+      "Salvage, the deflector blocking, Slow Mo starting and ending, an offer’s last three seconds and an act ending each have a sound of their own now.",
+      "Pause, and the music drops and goes muffled. Slow Mo bends it down a little, and it comes back up as the bar runs out."
     ]
   };
 
@@ -533,6 +542,23 @@
           why: [
             "Played on <code>Builds/26_0929-1431_newDrivers</code> and reported on 30 September. You flagged two things, and both are fixed (commit <code>85777ea</code>): Options was awkward on a pad, and FSR 3 left particles a bit duplicated or ghosted. See \u2018Make Options tabs, and let left and right change a setting\u2019 and \u2018Stop particles ghosting under FSR 3\u2019.",
             "Everything else on the card was ticked with its default at your word: the splash and the loading screen, the streamed music and its loop, the compressed sky, the boss keeping pace, the gun, and F3\u2019s GPU line. The pad and FSR\u2019s particles stay open for the next build."
+          ]
+        },
+        {
+          id: "play-0930",
+          title: "Try the tabs on a pad, and the particles under FSR",
+          effort: "a build + one run",
+          why: [
+            "Tested on 30 September: you tried both fixes and said they work (commit <code>85777ea</code>), so this card was ticked with the pad and FSR 3 in motion. No build has carried them yet; the polish build will be the first."
+          ]
+        },
+        {
+          id: "boss-track",
+          title: "Choose a track for the Leviathan",
+          effort: "you, then 1 h",
+          why: [
+            "Roadmap item 15, answered ‘later’. The project has two tracks, one for the menu and one for the run, and the Leviathan is fought to the run’s. A third would fade in with the arrival horn, which is built now.",
+            "Only you can choose music, and it has to come with a licence you are happy with. Once there is a track, the fade is about an hour: <code>MusicSource</code> already eases its level for the pause and the death beat."
           ]
         }
       ]
@@ -1078,6 +1104,135 @@
             "AMD\u2019s answer is a reactive mask: it marks where transparent effects drew, so FSR trusts the current frame there instead of its history. HDRP\u2019s upscaler hook does not provide one, so the game makes its own. It copies the frame just before HDRP draws transparents and compares that with the frame FSR upscales, using the arithmetic of AMD\u2019s own mask generator. The clouds, the sky and the fog are drawn before the copy, so they are not marked. Our plugin passes the mask to FSR with the other inputs; rebuilding it meant restarting your editor once.",
             "Checked in play with the bot flying and FSR 3.1.5 on, by spawning a large explosion in front of the camera with FSR\u2019s debug view on. With the mask, one of the debug panels fills solid over the explosion; without it, only the explosion\u2019s outline shows there. In normal frames the explosion was sharper with the mask and smeared without it, but no two frames were the same moment, so the next build is where to judge it. Every upscale reported success. The cost is one copy of the frame and one small pass at render resolution, not yet measured; <code>Fsr3Tests</code> checks the mask\u2019s shader is where the game loads it from."
           ]
+        },
+        {
+          id: "focus-pause",
+          title: "Pause the run when the window loses focus",
+          effort: "45 min",
+          why: [
+            "Roadmap item 1. Builds run with ‘run in background’ off, so an alt-tab froze the fight where it stood, and coming back dropped you into the same frame with no warning. Losing focus mid-run now opens the pause menu.",
+            "Not on the death or victory card, not behind the loading screen, and not in the editor, which runs in the background and would pause on every click into another window. Checked in play by switching the editor’s background running off for the moment of the test: losing focus paused the run with the pause screen up, and with it back on, nothing happened."
+          ]
+        },
+        {
+          id: "hide-cursor",
+          title: "Hide the mouse pointer during a run",
+          effort: "30 min",
+          why: [
+            "Roadmap item 2. Nothing hid it, so it sat over the arena for the whole run. It hides while a run is being played and comes back on the pause menu, the Options tabs, the death and victory cards, the loading screen and the debug menu, and when you leave the run.",
+            "Checked in play: hidden from the first frame, shown on pausing, hidden on resuming, shown with the Ship Lost card."
+          ]
+        },
+        {
+          id: "build-stamp",
+          title: "Show the build on the title and pause screens",
+          effort: "1 h",
+          why: [
+            "Roadmap item 3. The bottom-right corner of the title screen and the pause menu names the build folder and the commit, as in <code>26_0930-0600_polish · 8ee1a3a+</code>. The + means the build had changes nobody had committed yet, which is what would have caught the build credited on 29 September with a change made 14 minutes after it. Settings changes do not earn the +, since every build flips the debug-menu variant on its way out.",
+            "A build step, <code>BuildStampWriter</code>, writes it into the game for the length of the build and deletes it afterwards; the file is gitignored in case a build fails first. The editor always says EDITOR, so a stamp left behind can never name the wrong build. Seen on the pause screen in play. The first build to carry it, <code>26_0930-0825_polish</code>, has <code>26_0930-0825_polish · 8ee1a3a+</code> in its resources, and the stamp file was gone from the project once the build finished."
+          ]
+        },
+        {
+          id: "control-hints",
+          title: "Teach each control when it first matters",
+          effort: "4 h",
+          why: [
+            "Roadmap item 4. The one prompt said “Shift - Reverse” for five seconds, even to someone on a pad, and nothing introduced the dash, Slow Mo, the Deflector, or what taking an upgrade gives up. The prompt at the foot of the screen now teaches one line at a time: Reverse, then Dash, in a run’s first seconds; Slow Mo and the Deflector the first time you take them; the first offer with a choice in it. Each names the key or the pad button, whichever you touched last, and changes on the spot if you switch.",
+            "The lines: <code>Shift - Reverse</code> or <code>LB</code>, <code>Space - Dash</code> or <code>A or RB</code>, <code>E - Slow Mo</code> or <code>Y or LT</code>, <code>Deflector - blocks a hit, then recharges</code>, and <code>Fly into one - the others vanish</code>. A line goes once you have done what it says (after at least a second), or after five. It waits out a pause and goes for good once the run is lost. Your first three runs show them, and the Controls tab turns them back on.",
+            "Checked in play: the run opened on Reverse and then Dash, in the keys, and the prompt hid under the pause menu. The wording is yours to judge mid-fight."
+          ]
+        },
+        {
+          id: "controls-tab",
+          title: "Add a Controls tab to Options",
+          effort: "2 h",
+          why: [
+            "Roadmap item 5. A fourth tab, which LB and RB reach like the others, on the title screen and in the pause menu. On the left is every action with its key and its pad button, in the README’s words. On the right are two rows: Rumble, and Control Hints, which says how many hinted runs are left and starts the three over when turned on. The pad stops only on the two rows and Back.",
+            "The rows are the same settings rows as the other tabs, driven through a shared base, <code>SteppedSetting</code>, so a row can change something that is not a graphics setting. Checked in play: the table and both rows drawn, and pad focus landing on Rumble."
+          ]
+        },
+        {
+          id: "best-runs",
+          title: "Remember your best runs",
+          effort: "2–3 h",
+          why: [
+            "Roadmap item 6. The game keeps your longest run, highest level and fastest Leviathan kill, saved beside the settings. The end card says NEW BEST and names what you beat, counted in whole seconds, because a best that reads the same as the old one is a claim you cannot check. The title screen lists all three under the menu once there are any.",
+            "A run where the debug menu wound the clock, handed out levels or a kit, healed you or cleared the arena is not a record, and its card says DEBUG MENU USED - NOT A RECORD. Otherwise your testing in the debug builds would write over your real bests. Both card lines were seen in play; the title-screen line is placed but not yet seen, because the editor would not draw the menu scene while unfocused."
+          ]
+        },
+        {
+          id: "colour-check",
+          title: "Check the arena’s colours for colour blindness",
+          effort: "1.5 h",
+          why: [
+            "Roadmap item 7, a report as agreed; nothing changed. Frames of the Leviathan fight from play, with salvage placed beside its pods, were run through Machado’s simulations of protanopia, deuteranopia and tritanopia, and the key colours were sampled and compared as ΔE, where about 10 is a clear difference and 2 barely one.",
+            "<strong>No red and green merge where it matters.</strong> Salvage’s green is so bright that it renders near white, so it is told apart by lightness rather than hue. It stays 35 to 38 from the pods under the two red-green kinds (46 normally), and 55 or more from the Leviathan’s rounds under all three.",
+            "<strong>Two weak pairs, for everyone rather than for colour blindness.</strong> Salvage over the brightest part of the lava river: 16 apart normally, 9 under protanopia, since both are near white. And the pods against the Leviathan’s rounds: about 20 apart for everyone, 12 under tritanopia, told apart by size and by one moving while the other does not. Worth acting on only if a run loses salvage over the lava, and then the lever is a darker rim or a pulse on salvage, not its colour."
+          ]
+        },
+        {
+          id: "death-beat",
+          title: "Put a beat between the killing hit and Ship Lost",
+          effort: "2–3 h",
+          why: [
+            "Roadmap item 8. The card used to go up on the frame of the hit, and time stopped with it, so the shot that killed you was never seen to land. Now the game runs at a quarter for 1.2 real seconds: the ship breaks up into an explosion, the music fades out, and a pad rumbles. Then Ship Lost, as before. The survival clock stops on the hit.",
+            "The run is lost from the first frame of the beat: nothing hurts the ship, nothing pauses, and no round still flying can take the Leviathan’s last point and put a victory over it. Five tests hold that. Checked in play twice with the bot flying: a quarter speed on the killing hit, the card 1.21 s later, the music at zero. The first check left the retro thrusters and the dash light glowing where the ship had been; the whole model is switched off now, and the second check showed nothing left. The dials are Death Beat Seconds and Death Beat Speed on the Player."
+          ]
+        },
+        {
+          id: "hit-stop",
+          title: "Freeze for a moment when the Leviathan loses a part",
+          effort: "1.5 h",
+          why: [
+            "Roadmap item 9. The game holds for 70 ms when an emplacement goes down and 150 ms when an act ends, in real time. It runs at 2% rather than stopping, so a dash pressed in the freeze still goes, and sounds play on at their own speed. Hull plates and ordinary kills do not freeze.",
+            "Checked in play with the bot: two emplacements it destroyed held 0.07 s each, and the end of the armoured act held 0.15. The dials are Emplacement Freeze and Act Freeze on the boss."
+          ]
+        },
+        {
+          id: "boss-horn",
+          title: "Sound a horn before the Leviathan arrives",
+          effort: "2 h",
+          why: [
+            "Roadmap item 10. Ten seconds before it arrives a low horn sounds far off, and a second, closer one as it arrives. No text, since the phase names were taken out on 8 September.",
+            "Neither pack has a horn, so both are synthesised by <code>BuildMomentSounds</code>: a reedy horn on D2 with an octave under it, a scoop up into the note and a filter that opens as it swells. The far one is darker, slower and echoing. Checked in play: the far horn exactly ten seconds before the arrival horn."
+          ]
+        },
+        {
+          id: "low-hp",
+          title: "Warn you on your last hit point",
+          effort: "2 h",
+          why: [
+            "Roadmap item 11. On one hit point the health bar pulses at full strength, and a soft heartbeat plays every 0.9 s of game time until salvage lifts you off it. The bar already pulsed below a fifth of its length, so at 1 of 25 it was most of the way there; the heartbeat is the new part. Nothing plays when one hit point is all the ship has.",
+            "Checked in play: the bot fell to one hit point on its own and the heartbeat ran 12 beats, 0.91 s apart, until salvage lifted it. The heartbeat is synthesised too. The dial is Warn At Or Below on the health bar: 1 now, 2 would start a hit earlier."
+          ]
+        },
+        {
+          id: "rumble",
+          title: "Rumble on a controller",
+          effort: "2 h",
+          why: [
+            "Roadmap item 12. Short pulses on a hit, a dash, the deflector blocking, an emplacement going down and an act ending, and a longer one when the ship is lost. Only for a player holding the pad, so one lying on the desk stays quiet. The motors stop when a pulse ends, under the pause menu, when the window loses focus and on quitting. The switch is on the Controls tab, and turning it on gives one short pulse so you feel it.",
+            "Not felt yet: there is no pad here. ‘Feel the rumble, and read the hints on a pad’ waits on your hands."
+          ]
+        },
+        {
+          id: "moment-sounds",
+          title: "Give moments their own sound",
+          effort: "3 h",
+          why: [
+            "Roadmap item 13. Salvage has its own sound instead of the upgrade’s, the deflector makes one when it blocks, Slow Mo has a falling cue going in and a rising one coming out, an offer ticks once a second through its last three, and an act ending strikes. With the two horns and the heartbeat that is nine new sounds; the game had 14.",
+            "My first picks, chosen by measuring rather than listening: <code>maximize_006</code> for salvage, <code>laserRetro_000</code> for the block, <code>minimize_004</code> and <code>maximize_004</code> for Slow Mo (the clips whose pitch falls and rises), <code>tick_002</code> for the offer, and <code>impactMetal_003</code> played a third low for the act. <code>BuildMomentSounds</code> names two alternatives for each; a swap is one line and a run of it. The levels sit on the same ladder as every other sound, and the tables that define the mix agree.",
+            "Heard in play through the bot, by name: all nine fired where they should. Whether they sound right is yours."
+          ]
+        },
+        {
+          id: "music-answers",
+          title: "Let the music answer pause and Slow Mo",
+          effort: "2 h",
+          why: [
+            "Roadmap item 14. Pause, and the music drops to 45% and goes muffled behind a 1 kHz low-pass, easing back when you resume. Slow Mo bends its pitch down 8%, about a semitone and a half, and it comes back up as the bar runs out. Through the death beat it fades out, and it stays out under the card.",
+            "Checked in play: paused, the track sat at 45% behind the filter. The dials are on each scene’s Music object: Paused Level, Paused Cutoff and Slow Mo Pitch Dip."
+          ]
         }
       ]
     },
@@ -1290,6 +1445,35 @@
             "<strong>Enemy_1 firing faster late in a run: absent.</strong> Over eighty seconds with 13 to 16 shooters, projectiles per shooter stayed flat and if anything trended down, and every shooter carried a pending invoke at every sample.",
             "<strong>The third was not tested, and this method cannot test it.</strong> An enemy setting off the wrong way round the ring is a property of the instant it spawns, and the chase recomputes direction from bearings on every frame after — so a sample taken seconds later shows the chase, not the spawn. That is now its own item below, rather than being quietly counted as passed."
           ]
+        },
+        {
+          id: "polish-feel",
+          title: "Judge the death beat, the freezes and the music",
+          effort: "one run",
+          why: [
+            "From the polish build. Each is a matter of feel with one dial, and each is set to what the roadmap proposed.",
+            "The death beat: 1.2 s at a quarter speed. The freezes: 70 ms for an emplacement, 150 ms for an act. The music: 45% and muffled under the pause menu, 8% down under Slow Mo. The heartbeat: from one hit point.",
+            "<strong>If you do not flag it:</strong> all of them stay as they are."
+          ]
+        },
+        {
+          id: "polish-sounds",
+          title: "Listen to the nine new sounds",
+          effort: "one run",
+          why: [
+            "Picked by measurement, not by ear. The alternatives for each: salvage <code>confirmation_003</code> or <code>forceField_001</code>; the block <code>glass_004</code> or <code>forceField_003</code>; Slow Mo the 005 or 002 pairs; the offer tick <code>tick_004</code> or <code>toggle_004</code>; the act <code>doorClose_001</code> or <code>error_006</code>. The horns and the heartbeat are synthesised, and could be cut from the pack’s engine drones instead.",
+            "Levels are guesses from the ladder too: the far horn at -10 dB and the near one at -6, the heartbeat at -12, the ticks at -10. Say which is too loud or lost.",
+            "<strong>If you do not flag it:</strong> my picks and levels stand."
+          ]
+        },
+        {
+          id: "polish-pad",
+          title: "Feel the rumble, and read the hints on a pad",
+          effort: "the same run, on a pad",
+          why: [
+            "Rumble has never run on a real pad here, and the hints were read only in their keyboard wording. Both want your hands: whether the pulses are too strong or too weak, and whether each line reads at a glance mid-fight.",
+            "<strong>If you do not flag it:</strong> the wording stands, and this is ticked once a pad has rumbled in your hand. If none was handy, it stays open."
+          ]
         }
       ]
     }
@@ -1314,7 +1498,8 @@
     ["The DLSS path has never executed", "The dev machine is a Radeon, and HDRP requires an NVIDIA vendor string. The rows are correctly hidden; the code is unit-tested but has never run."],
     ["ActualRenderScale is not a bug", "Checked it — the two render-scale numbers can legitimately disagree, and the report shows both on purpose so you can see which is wrong."],
     ["FSR 3\u2019s frame generation", "Left out on 29 September. It needs to take over the swap chain, which Unity owns, so the upscaler came alone."],
-    ["FSR 2 as a fallback on DirectX 11", "Removed with the rest of FSR 2 on 29 September, at your pick. FSR 3 needs DirectX 12, which the game asks for first, so only a machine that falls back to DirectX 11 goes without FSR."]
+    ["FSR 2 as a fallback on DirectX 11", "Removed with the rest of FSR 2 on 29 September, at your pick. FSR 3 needs DirectX 12, which the game asks for first, so only a machine that falls back to DirectX 11 goes without FSR."],
+    ["Rebinding the keys", "Roadmap item 16, answered ‘not now’ on 30 September. The game reads each key directly, so rebinding means moving input onto Input System actions and adding a rebind per action to the Controls tab, about a day and a half. Worth it once other people play the game, and not before."]
   ];
 
   var ALL = [];

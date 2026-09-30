@@ -51,6 +51,29 @@ namespace SurvivalChaos
         /// </summary>
         private bool holdingSlow;
 
+        /// <summary>
+        /// The ship's Slow Mo, for the music, which bends its pitch with it and
+        /// has no reference to the ship. Null with no ship in the scene.
+        /// </summary>
+        public static PlayerSlowMo Current { get; private set; }
+
+        /// <summary>
+        /// How much of the slowdown running now is left, 1 as it starts and 0
+        /// as it ends; 0 when none is running.
+        /// </summary>
+        public float SlowRemaining => cycle != null && cycle.IsSlowing(clock) ? cycle.Gauge(clock) : 0f;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOnEnterPlayMode()
+        {
+            Current = null;
+        }
+
+        private void OnEnable()
+        {
+            Current = this;
+        }
+
         /// <summary>Whether a Slow Mo pick has been taken this run. Read by the HUD.</summary>
         public bool Held => cycle != null;
 
@@ -89,13 +112,14 @@ namespace SurvivalChaos
         /// </summary>
         public bool TryActivate()
         {
-            if (cycle == null || PauseMenu.GameIsPaused || RunOutcome.RunEnded || !cycle.TryBegin(clock))
+            if (cycle == null || PauseMenu.GameIsPaused || RunOutcome.Decided || !cycle.TryBegin(clock))
             {
                 return false;
             }
 
             holdingSlow = true;
             RunTime.SetAbilityScale(slowScale);
+            PlayCue(GameSounds.Instance != null ? GameSounds.Instance.SlowMoStart : null);
             return true;
         }
 
@@ -115,6 +139,11 @@ namespace SurvivalChaos
         private void OnDisable()
         {
             ReleaseSlow();
+
+            if (Current == this)
+            {
+                Current = null;
+            }
         }
 
         private void Update()
@@ -131,11 +160,24 @@ namespace SurvivalChaos
             if (holdingSlow && !cycle.IsSlowing(clock))
             {
                 ReleaseSlow();
+
+                // Only when it runs out in play. A ship going away mid-slowdown
+                // is not the moment to announce that time is back.
+                PlayCue(GameSounds.Instance != null ? GameSounds.Instance.SlowMoEnd : null);
             }
 
             if (GameInput.SlowMoPressed)
             {
                 TryActivate();
+            }
+        }
+
+        /// <summary>The switch in or out of Slow Mo, which had no cue of its own until 30 September 2026.</summary>
+        private static void PlayCue(SoundDefinition cue)
+        {
+            if (cue != null)
+            {
+                GameSounds.Play(cue);
             }
         }
 

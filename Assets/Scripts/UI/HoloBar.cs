@@ -58,6 +58,14 @@ namespace SurvivalChaos
         private static readonly int FillId = Shader.PropertyToID("_Fill");
         private static readonly int GhostId = Shader.PropertyToID("_Ghost");
         private static readonly int PulseId = Shader.PropertyToID("_Pulse");
+
+        /// <summary>
+        /// The least the bar pulses, whatever its fill: 1 for full strength.
+        /// Set by the health bar on the ship's last hit point, where the pulse
+        /// from the low threshold alone is already most of the way there but
+        /// the warning should be unmistakable.
+        /// </summary>
+        public float PulseFloor { get; set; }
         private static readonly int GlowId = Shader.PropertyToID("_Glow");
         private static readonly int BorderId = Shader.PropertyToID("_Border");
         private static readonly int FillColourId = Shader.PropertyToID("_FillColor");
@@ -169,6 +177,7 @@ namespace SurvivalChaos
             float pulse = lowThreshold > 0f && motion.Fill < lowThreshold
                 ? 1f - motion.Fill / lowThreshold
                 : 0f;
+            pulse = Mathf.Max(pulse, PulseFloor);
 
             instance.SetFloat(PulseId, pulse);
 

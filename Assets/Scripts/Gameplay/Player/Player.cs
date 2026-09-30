@@ -90,6 +90,24 @@ namespace SurvivalChaos
         [SerializeField]
         private DeathMenu deathMenu;
 
+        [Header("Death")]
+        [SerializeField]
+        [Range(0f, 3f)]
+        [Tooltip("Real seconds between the killing hit and the Ship Lost card: the dial for how long " +
+                 "the ship takes to break up. 0 puts the card up on the hit, as it was until " +
+                 "30 September 2026.")]
+        private float deathBeatSeconds = 1.2f;
+
+        [SerializeField]
+        [Range(0.05f, 1f)]
+        [Tooltip("The game's speed through that beat. A quarter lets the shot that killed the ship " +
+                 "be seen landing.")]
+        private float deathBeatSpeed = 0.25f;
+
+        [SerializeField]
+        [Tooltip("What the ship breaks up into. The hit effect plays as well.")]
+        private GameObject deathExplosion;
+
         [SerializeField] public int currentExperience = 0, maxExperience = 40, currentLevel = 1;
 
         [SerializeField, Min(0)]
@@ -185,7 +203,7 @@ namespace SurvivalChaos
         // Update is called once per frame
         void Update()
         {
-            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded || Time.timeScale <= 0f)
+            if (PauseMenu.GameIsPaused || RunOutcome.Decided || Time.timeScale <= 0f)
             {
                 return;
             }
@@ -212,7 +230,7 @@ namespace SurvivalChaos
             // them.
             //
             // Nor once the run is over, for the reason in TakeHit.
-            if (Phased || RunOutcome.RunEnded)
+            if (Phased || RunOutcome.Decided)
             {
                 return;
             }
@@ -303,8 +321,9 @@ namespace SurvivalChaos
             // point would open the death screen, and the two endings are sibling
             // screens, so it would close the victory. Found by ChatGPT's scan on
             // 25 September 2026, in the code rather than in play; BossEmitter and
-            // BossWeakPoint refuse the reverse.
-            if (RunOutcome.RunEnded)
+            // BossWeakPoint refuse the reverse. The beat before the death card
+            // counts as over: the ship is already breaking up.
+            if (RunOutcome.Decided)
             {
                 return;
             }
@@ -332,6 +351,12 @@ namespace SurvivalChaos
             // deflector is held, blocked or not: each one restarts its recharge.
             if (deflector != null && deflector.TryAbsorb(Time.time))
             {
+                if (GameSounds.Instance != null)
+                {
+                    GameSounds.Play(GameSounds.Instance.DeflectorBlock);
+                }
+
+                Rumble.Pulse(Rumble.Strength.Block);
                 return;
             }
 
@@ -348,7 +373,87 @@ namespace SurvivalChaos
 
             if (killed)
             {
+                BeginDeath();
+            }
+            else
+            {
+                Rumble.Pulse(Rumble.Strength.Hit);
+            }
+        }
+
+        /// <summary>
+        /// The beat between the killing hit and the Ship Lost card.
+        ///
+        /// Until 30 September 2026 the card went up on the frame of the hit
+        /// and time stopped with it, so the shot that ended the run was never
+        /// seen to land. Now the game slows to a quarter, the ship breaks up,
+        /// the music fades (MusicSource hears RunOutcome.Ending), and the card
+        /// follows as it did before. The run is lost from the first frame of
+        /// it: nothing can hurt the ship, pause the game or win the fight
+        /// while it plays.
+        /// </summary>
+        private void BeginDeath()
+        {
+            Rumble.Pulse(Rumble.Strength.Death);
+            CancelInvoke(nameof(Shoot));
+
+            if (deathBeatSeconds <= 0f || !isActiveAndEnabled)
+            {
+                ShowDeathCard();
+                return;
+            }
+
+            RunOutcome.ReportEnding(deathBeatSpeed);
+            BreakUp();
+            StartCoroutine(DeathBeat());
+        }
+
+        private IEnumerator DeathBeat()
+        {
+            // Real seconds: the game's own are running at a quarter.
+            yield return new WaitForSecondsRealtime(deathBeatSeconds);
+            ShowDeathCard();
+        }
+
+        private void ShowDeathCard()
+        {
+            if (deathMenu != null)
+            {
                 deathMenu.ShowDeathMenu();
+            }
+        }
+
+        /// <summary>
+        /// The ship goes up: an explosion where it was, and everything it
+        /// draws switched off. Switched off rather than the object disabled,
+        /// because the ship carries the audio listener and the card still
+        /// needs this component to put it up.
+        /// </summary>
+        private void BreakUp()
+        {
+            GameObject blast = deathExplosion != null ? deathExplosion : playerHit;
+            if (blast != null)
+            {
+                ObjectPool.Spawn(blast, transform.position, transform.rotation);
+            }
+
+            // The model as a whole: ShipThrusters lives on it and switches its
+            // flares and the dash light back on every frame, which put three
+            // glowing parts where the ship had been (found in play on 30
+            // September 2026). Nothing on it is needed once the ship is gone.
+            if (instantiatedChild != null)
+            {
+                instantiatedChild.SetActive(false);
+            }
+
+            foreach (Renderer part in GetComponentsInChildren<Renderer>())
+            {
+                part.enabled = false;
+            }
+
+            foreach (Light glow in GetComponentsInChildren<Light>())
+            {
+                glow.enabled = false;
             }
         }
 
@@ -747,6 +852,9 @@ namespace SurvivalChaos
             if (deflector == null)
             {
                 deflector = new DeflectorCharge(recharge);
+
+                // It has no button, so the line says what it does instead.
+                Tutorial.Teach(ControlHint.Deflector);
             }
             else
             {
@@ -775,6 +883,11 @@ namespace SurvivalChaos
 
             slowMoPicks++;
             slowMo.Grant(PerPick(slowMoCooldown, slowMoPicks, 30f));
+
+            if (slowMoPicks == 1)
+            {
+                Tutorial.Teach(ControlHint.SlowMo);
+            }
         }
 
         /// <summary>Whether a Deflector pick has been taken this run. Read by the HUD.</summary>

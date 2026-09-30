@@ -27,10 +27,43 @@ namespace SurvivalChaos
         /// </summary>
         public static bool RunEnded { get; private set; }
 
+        /// <summary>
+        /// True from the killing hit until the death card goes up: the beat in
+        /// between, where the game runs slowly and the ship breaks up. The run
+        /// is lost from the first frame of it, so nothing may win it, pause it
+        /// or hurt the ship again, though the world is still moving.
+        /// </summary>
+        public static bool Ending { get; private set; }
+
+        /// <summary>
+        /// Whether the run's outcome is settled, card or no card yet. What the
+        /// "first ending stands" guards read, so a round still flying when the
+        /// ship is lost cannot take the boss's last point in the beat.
+        /// </summary>
+        public static bool Decided => RunEnded || Ending;
+
+        /// <summary>
+        /// Starts the beat between a lost run and its card, at
+        /// <paramref name="speed"/> of normal. The clock stops here rather than
+        /// at the card, so the time survived is the time of the killing hit.
+        /// </summary>
+        public static void ReportEnding(float speed)
+        {
+            if (Decided)
+            {
+                return;
+            }
+
+            Ending = true;
+            RunStats.Stop();
+            RunTime.SetEndingSpeed(speed);
+        }
+
         /// <summary>Marks the run as over. Called by the death and victory screens.</summary>
         public static void ReportRunEnded()
         {
             RunEnded = true;
+            Ending = false;
             RunTime.Apply();
 
             // Both endings pass through here before they stop time, which makes
@@ -61,6 +94,7 @@ namespace SurvivalChaos
         {
             BossDefeated = null;
             RunEnded = false;
+            Ending = false;
         }
 
         /// <summary>
@@ -89,6 +123,7 @@ namespace SurvivalChaos
             // victory screen would never appear. Subscribers from the old scene
             // remove themselves in OnDisable as it unloads.
             RunEnded = false;
+            Ending = false;
         }
     }
 }

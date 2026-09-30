@@ -73,6 +73,9 @@ namespace SurvivalChaos
                 return;
             }
 
+            // A run with its clock wound on is not a run to set a record in.
+            RunRecords.MarkAssisted();
+
             startTime -= seconds;
         }
 
@@ -101,6 +104,8 @@ namespace SurvivalChaos
             {
                 return false;
             }
+
+            RunRecords.MarkAssisted();
 
             foreach (SpawnStream stream in wave.Streams)
             {
@@ -249,7 +254,7 @@ namespace SurvivalChaos
             // the one SpawnBossNow put out.
             if (IsBoss(stream))
             {
-                if (!RunOutcome.RunEnded && FindAnyObjectByType<BossEmitter>() == null)
+                if (!RunOutcome.Decided && FindAnyObjectByType<BossEmitter>() == null)
                 {
                     Spawn(stream);
                 }

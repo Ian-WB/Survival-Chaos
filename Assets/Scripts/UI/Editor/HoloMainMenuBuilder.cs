@@ -78,7 +78,7 @@ namespace SurvivalChaos.EditorTools
             GameObject creditsScreen = BuildScreen(root.transform, "Credits Screen", panelMaterial,
                 new Vector2(900f, 620f), "Credits");
 
-            // Options is three tabs, each its own screen, and every one of them
+            // Options is four tabs, each its own screen, and every one of them
             // backs out to the title. The strip, the rows and the Back buttons
             // come from the factory the pause screen shares.
             GameObject[] tabs = new GameObject[HoloUiFactory.OptionTabNames.Length];
@@ -261,6 +261,12 @@ namespace SurvivalChaos.EditorTools
 
             Button quit = AddEntry(rect, "Quit", "Quit", 3);
             UnityEventTools.AddVoidPersistentListener(quit.onClick, new UnityAction(mainMenu.Sair));
+
+            // Under the entries, in their column: the player's bests, hidden
+            // until there are any. Then which build this is, in the corner.
+            HoloUiFactory.CreateFootnote(rect, "Best Runs", MenuFootnote.Content.Bests, Vector2.zero,
+                new Vector2(150f, 70f), new Vector2(1100f, 30f), 18f, TextAlignmentOptions.BottomLeft, 0.7f);
+            HoloUiFactory.AddBuildStamp(rect);
 
             screen.SetActive(false);
             return screen;

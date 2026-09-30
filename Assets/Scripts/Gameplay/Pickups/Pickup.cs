@@ -75,6 +75,9 @@ namespace SurvivalChaos
         private float expiresAt;
         private bool collected;
 
+        /// <summary>The last whole second of the warning that has ticked, so each ticks once.</summary>
+        private int lastTick;
+
         /// <summary>
         /// The tinted core's authored size, read before any life can change it.
         /// Salvage shrinks the core, and a pooled pickup keeps whatever size it
@@ -158,6 +161,7 @@ namespace SurvivalChaos
             // Time.time is the right one: a paused game should not expire an
             // offer the player never got to answer.
             expiresAt = Time.time + Mathf.Max(0.1f, lifetime);
+            lastTick = int.MaxValue;
 
             // Only a child's scale. On the root it would scale the trigger too.
             if (tintTarget != null && tintTarget.transform != transform)
@@ -216,6 +220,35 @@ namespace SurvivalChaos
             }
 
             Animate(remaining);
+            TickWarning(remaining);
+        }
+
+        /// <summary>
+        /// A tick on each of the last whole seconds of an upgrade on offer,
+        /// alongside the flashing, which was silent until 30 September 2026.
+        /// Salvage flashes without it: it turns up in the middle of fights all
+        /// the time, and a tick for every piece would be noise. The pickups of
+        /// one offer tick together, and the sound's retrigger guard makes that
+        /// one tick.
+        /// </summary>
+        private void TickWarning(float remaining)
+        {
+            if (Skill == null || remaining > warnWithin)
+            {
+                return;
+            }
+
+            int second = Mathf.CeilToInt(remaining);
+            if (second >= lastTick)
+            {
+                return;
+            }
+
+            lastTick = second;
+            if (GameSounds.Instance != null)
+            {
+                GameSounds.Play(GameSounds.Instance.OfferExpiring);
+            }
         }
 
         /// <summary>

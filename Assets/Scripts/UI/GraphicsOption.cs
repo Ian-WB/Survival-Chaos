@@ -85,7 +85,7 @@ namespace SurvivalChaos
     /// disagree.
     /// </summary>
     [AddComponentMenu("Survival Chaos/Graphics Option")]
-    public sealed class GraphicsOption : MonoBehaviour
+    public sealed class GraphicsOption : SteppedSetting
     {
         private static readonly FullScreenMode[] ScreenModes =
         {
@@ -199,7 +199,7 @@ namespace SurvivalChaos
         /// the row itself. False when nothing changed: the row is inert, or
         /// Shadows is already at the end it was pushed towards.
         /// </summary>
-        public bool Step(int direction)
+        public override bool Step(int direction)
         {
             GraphicsDirector director = GraphicsDirector.Instance;
             if (director == null || !Available(director))
@@ -236,10 +236,6 @@ namespace SurvivalChaos
             Apply(director, next);
             return true;
         }
-
-        public void Next() => Step(1);
-
-        public void Previous() => Step(-1);
 
         private void Refresh()
         {

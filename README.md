@@ -45,6 +45,10 @@ Start from `Assets/Scenes/Menu.unity`. The game scene is `Game.unity`.
 | Switch Options tab | Q / E | Left / right shoulder |
 | Back out of a menu | Esc | B, or Start in a run |
 
+The same list is on the Controls tab in Options, beside the Rumble switch and a
+switch that brings back the control hints a new player sees in their first
+three runs. A change to a binding in `InputSystemGameInput` wants both lists.
+
 The ship fires on its own. Each level-up puts a few upgrades out on the ring:
 fly into one and the others from that level-up disappear, or leave them and
 they run out. Enemies you destroy sometimes leave green scrap, which repairs

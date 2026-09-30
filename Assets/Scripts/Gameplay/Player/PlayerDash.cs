@@ -163,7 +163,7 @@ namespace SurvivalChaos
 
         private void Update()
         {
-            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded || Time.timeScale <= 0f) { return; }
+            if (PauseMenu.GameIsPaused || RunOutcome.Decided || Time.timeScale <= 0f) { return; }
             float now = Time.time;
 
             if (holdingBurst && !cycle.IsDashing(now))
@@ -184,6 +184,8 @@ namespace SurvivalChaos
             {
                 GameSounds.Play(GameSounds.Instance.PlayerDash);
             }
+
+            Rumble.Pulse(Rumble.Strength.Light);
         }
 
         /// <summary>

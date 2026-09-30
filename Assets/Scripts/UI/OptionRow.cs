@@ -26,7 +26,7 @@ namespace SurvivalChaos
     {
         [SerializeField]
         [Tooltip("The setting the row changes.")]
-        private GraphicsOption option;
+        private SteppedSetting option;
 
         [SerializeField]
         [Tooltip("The framed plate behind the row, faded in while the row has focus.")]
@@ -39,7 +39,7 @@ namespace SurvivalChaos
         private float lit;
         private float litTarget;
 
-        public GraphicsOption Option => option;
+        public SteppedSetting Option => option;
 
         protected override void OnEnable()
         {

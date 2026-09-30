@@ -45,6 +45,25 @@ namespace SurvivalChaos
                  "longer tail outlasts the move it belongs to.")]
         private SoundDefinition playerDash;
 
+        [SerializeField]
+        [Tooltip("The deflector taking a hit for the ship. It has to read as the opposite of a hit: " +
+                 "something struck, and nothing was lost.")]
+        private SoundDefinition deflectorBlock;
+
+        [SerializeField]
+        [Tooltip("Slow Mo starting. On the Interface channel, so it is heard at its own pitch rather " +
+                 "than slowed with the game it announces.")]
+        private SoundDefinition slowMoStart;
+
+        [SerializeField]
+        [Tooltip("Slow Mo running out. Interface channel, like the start.")]
+        private SoundDefinition slowMoEnd;
+
+        [SerializeField]
+        [Tooltip("A heartbeat, repeated while the ship is on its last hit point. HealthBar sets " +
+                 "how often, and from how many hit points.")]
+        private SoundDefinition lowHealth;
+
         [Header("Progression")]
         [SerializeField]
         private SoundDefinition levelUp;
@@ -52,6 +71,16 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("Confirming a skill from the level-up panel.")]
         private SoundDefinition skillPicked;
+
+        [SerializeField]
+        [Tooltip("Salvage repairing the ship. It used to borrow Skill Picked, so +1 HP sounded like " +
+                 "a new upgrade.")]
+        private SoundDefinition salvagePicked;
+
+        [SerializeField]
+        [Tooltip("An offer on the ring with three, two and one seconds left, once each, alongside " +
+                 "the flashing.")]
+        private SoundDefinition offerExpiring;
 
         [Header("Enemies and boss")]
         [SerializeField]
@@ -74,6 +103,19 @@ namespace SurvivalChaos
                  "act there is no emplacement left to shoot off.")]
         private SoundDefinition bossChargeRam;
 
+        [SerializeField]
+        [Tooltip("An act of the Leviathan fight ending: the last emplacement gone, or the hull " +
+                 "worn down to the last act. Played over the hit-stop.")]
+        private SoundDefinition actEnd;
+
+        [SerializeField]
+        [Tooltip("Far off, ten seconds before the Leviathan arrives.")]
+        private SoundDefinition bossHornDistant;
+
+        [SerializeField]
+        [Tooltip("As the Leviathan arrives.")]
+        private SoundDefinition bossHornArrival;
+
         [Header("Run")]
         [SerializeField]
         private SoundDefinition victory;
@@ -90,6 +132,15 @@ namespace SurvivalChaos
         public SoundDefinition PlayerHit => playerHit;
         public SoundDefinition PlayerDeath => playerDeath;
         public SoundDefinition PlayerDash => playerDash;
+        public SoundDefinition DeflectorBlock => deflectorBlock;
+        public SoundDefinition SlowMoStart => slowMoStart;
+        public SoundDefinition SlowMoEnd => slowMoEnd;
+        public SoundDefinition LowHealth => lowHealth;
+        public SoundDefinition SalvagePicked => salvagePicked;
+        public SoundDefinition OfferExpiring => offerExpiring;
+        public SoundDefinition ActEnd => actEnd;
+        public SoundDefinition BossHornDistant => bossHornDistant;
+        public SoundDefinition BossHornArrival => bossHornArrival;
         public SoundDefinition LevelUp => levelUp;
         public SoundDefinition SkillPicked => skillPicked;
         public SoundDefinition EnemyDeath => enemyDeath;

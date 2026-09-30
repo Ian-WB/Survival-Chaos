@@ -24,6 +24,10 @@ namespace SurvivalChaos
 
         public void Show()
         {
+            // Before the card is filled, so it can say what the run beat.
+            RunStats.Stop();
+            RunRecords.Submit(RunStats.Seconds, RunStats.LevelReached, won: true);
+
             if (victoryMenuUI != null)
             {
                 victoryMenuUI.SetActive(true);

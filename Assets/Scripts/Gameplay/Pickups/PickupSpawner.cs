@@ -206,7 +206,7 @@ namespace SurvivalChaos
 
         private void Salvage(Vector3 where)
         {
-            if (pickupPrefab == null || playerTarget == null || RunOutcome.RunEnded)
+            if (pickupPrefab == null || playerTarget == null || RunOutcome.Decided)
             {
                 return;
             }
@@ -296,6 +296,12 @@ namespace SurvivalChaos
             if (offer.LiveCount > 0)
             {
                 offers.Add(offer);
+            }
+
+            // Only an offer with a choice in it has something to explain.
+            if (offer.LiveCount > 1)
+            {
+                Tutorial.Teach(ControlHint.Offer);
             }
         }
 
@@ -438,7 +444,7 @@ namespace SurvivalChaos
                 // and a "+1" that did not happen is worse than no number.
                 PickupLabelBoard.Health(
                     pickup.transform.position, playerTarget.CurrentHealth - before);
-                PlayCollectSound();
+                PlaySalvageSound();
             }
 
             ClearOffer(pickup);
@@ -546,7 +552,7 @@ namespace SurvivalChaos
         /// </summary>
         public Vector3 Attract(Vector3 anchor, float seconds)
         {
-            if (playerTarget == null || player == null || seconds <= 0f || RunOutcome.RunEnded)
+            if (playerTarget == null || player == null || seconds <= 0f || RunOutcome.Decided)
             {
                 return anchor;
             }
@@ -602,6 +608,22 @@ namespace SurvivalChaos
             {
                 GameSounds.Play(GameSounds.Instance.SkillPicked);
             }
+        }
+
+        /// <summary>
+        /// Salvage's own sound. It borrowed the upgrade's until 30 September
+        /// 2026, so a repair sounded like a new skill. Falls back to that one
+        /// where the slot is empty, rather than going silent.
+        /// </summary>
+        private void PlaySalvageSound()
+        {
+            GameSounds sounds = GameSounds.Instance;
+            if (sounds == null)
+            {
+                return;
+            }
+
+            GameSounds.Play(sounds.SalvagePicked != null ? sounds.SalvagePicked : sounds.SkillPicked);
         }
 
         /// <summary>

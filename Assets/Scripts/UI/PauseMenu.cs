@@ -56,6 +56,57 @@ namespace SurvivalChaos
             if (active == this){
                 active = null;
             }
+
+            // Leaving the run, by any route. The title screen is all pointer.
+            ShowCursor(true);
+        }
+
+        /// <summary>
+        /// Losing the window mid-run opens the pause menu.
+        ///
+        /// Builds switch "run in background" off (RunInBackgroundOff), so an
+        /// alt-tab freezes the game where it stands, and coming back used to
+        /// drop the player into the same frame of the fight with no warning.
+        /// Now they come back to the pause screen and resume when ready.
+        ///
+        /// Only where the game really does stop without focus. The editor runs
+        /// in the background, and pausing there on every click into another
+        /// window would get in the way of working on the game. Not on a death
+        /// or victory card, or behind the loading screen, which have nothing to
+        /// pause.
+        /// </summary>
+        void OnApplicationFocus(bool focused)
+        {
+            if (focused || Application.runInBackground){
+                return;
+            }
+
+            if (GameIsPaused || RunOutcome.Decided || LoadingScreen.Busy){
+                return;
+            }
+
+            Pause();
+        }
+
+        /// <summary>
+        /// The pointer is hidden while the run is being played, since nothing
+        /// in a run uses it, and shown whenever a menu or card is up.
+        /// LateUpdate, so a pause or an ending this frame has already landed.
+        /// </summary>
+        void LateUpdate()
+        {
+            bool menu = GameIsPaused || RunOutcome.RunEnded || LoadingScreen.Busy;
+#if UNITY_EDITOR || UNITY_INCLUDE_INSTRUMENTATION || SURVIVAL_CHAOS_DEBUG_MENU
+            menu |= DebugMenu.Showing;
+#endif
+            ShowCursor(menu);
+        }
+
+        private static void ShowCursor(bool visible)
+        {
+            if (Cursor.visible != visible){
+                Cursor.visible = visible;
+            }
         }
 
         void Update()
@@ -70,8 +121,9 @@ namespace SurvivalChaos
 
             // The run is over and a death or victory screen is up. Pausing on top of
             // it would let the player resume out of an ending they have already
-            // reached, and carry on playing at zero health.
-            if (RunOutcome.RunEnded){
+            // reached, and carry on playing at zero health. The beat before the
+            // death card counts too: the run is already lost there.
+            if (RunOutcome.Decided){
                 return;
             }
 
@@ -116,7 +168,7 @@ namespace SurvivalChaos
         }
 
         void Pause(){
-            if (RunOutcome.RunEnded) { return; }
+            if (RunOutcome.Decided) { return; }
             if (pauseMenuUI != null) { pauseMenuUI.SetActive(true); }
             GameIsPaused = true;
             RunTime.Apply();

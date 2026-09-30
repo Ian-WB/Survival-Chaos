@@ -64,7 +64,7 @@ namespace SurvivalChaos.EditorTools
             MainMenu mainMenu = EnsureComponent<MainMenu>(canvas.gameObject);
             PauseMenu pause = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
 
-            // Options is three tabs, each its own screen, and every one of them
+            // Options is four tabs, each its own screen, and every one of them
             // backs out to the pause screen. The strip, the rows and the Back
             // buttons come from the factory the title screen shares.
             GameObject[] tabs = new GameObject[HoloUiFactory.OptionTabNames.Length];
@@ -233,6 +233,9 @@ namespace SurvivalChaos.EditorTools
             Button quit = AddButton(panel, panelMaterial, "Quit", "Quit", 3);
             UnityEventTools.AddVoidPersistentListener(quit.onClick, new UnityAction(mainMenu.Sair));
 
+            // Which build this is, so a screenshot of a paused run says so.
+            HoloUiFactory.AddBuildStamp(screen.transform);
+
             return screen;
         }
 
@@ -256,15 +259,24 @@ namespace SurvivalChaos.EditorTools
             return screen;
         }
 
+        /// <summary>
+        /// The prompt that teaches the controls, one line at a time (see
+        /// Tutorial). Wide enough for the longest line, the Deflector's, at
+        /// full size; the text shrinks rather than wraps if a line outgrows it.
+        /// </summary>
         private static GameObject BuildTutorialPrompt(Transform parent, Material panelMaterial)
         {
-            Image panel = HoloUiFactory.CreatePanel(parent, "Shift Prompt", new Vector2(0.5f, 0f),
-                new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(520f, 76f),
+            Image panel = HoloUiFactory.CreatePanel(parent, "Hint Prompt", new Vector2(0.5f, 0f),
+                new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(820f, 76f),
                 panelMaterial, HoloUiFactory.PanelFill, "HoloPrompt");
 
-            HoloUiFactory.CreateText(panel.transform, "Prompt Text", Centre, Centre,
-                Vector2.zero, new Vector2(470f, 60f), 22f, TextAlignmentOptions.Center)
-                .text = "Shift  -  Reverse";
+            TextMeshProUGUI text = HoloUiFactory.CreateText(panel.transform, "Prompt Text", Centre, Centre,
+                Vector2.zero, new Vector2(770f, 60f), 22f, TextAlignmentOptions.Center);
+            text.text = "Shift  -  Reverse";
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 16f;
+            text.fontSizeMax = 22f;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
 
             panel.gameObject.SetActive(false);
             return panel.gameObject;
