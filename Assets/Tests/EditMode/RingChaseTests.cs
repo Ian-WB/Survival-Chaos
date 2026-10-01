@@ -140,7 +140,41 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void AnEnemyThatHasNeverTurned_MayTurnAtOnce()
+        public void CrossingThePlayer_IsAPass()
+        {
+            Assert.IsTrue(RingChase.Passed(4f, -3f));
+            Assert.IsTrue(RingChase.Passed(-0.5f, 12f));
+        }
+
+        [Test]
+        public void StayingOnOneSide_IsNotAPass()
+        {
+            Assert.IsFalse(RingChase.Passed(30f, 2f));
+            Assert.IsFalse(RingChase.Passed(-2f, -30f));
+        }
+
+        /// <summary>
+        /// The sign flips at the far side of the ring too, where nobody went
+        /// past anybody.
+        /// </summary>
+        [Test]
+        public void CrossingTheAntipode_IsNotAPass()
+        {
+            Assert.IsFalse(RingChase.Passed(178f, -179f));
+        }
+
+        /// <summary>
+        /// The first frame of a life has nothing to compare against, and a
+        /// pooled boss must not open by holding course.
+        /// </summary>
+        [Test]
+        public void TheFirstFrame_IsNotAPass()
+        {
+            Assert.IsFalse(RingChase.Passed(float.NaN, -3f));
+        }
+
+        [Test]
+        public void AnEnemyNobodyHasPassed_MayTurnAtOnce()
         {
             Assert.IsTrue(RingChase.MayTurn(0f, float.NegativeInfinity, 3f));
         }
@@ -162,7 +196,7 @@ namespace SurvivalChaos.Tests
         /// before the cooldown existed - on the frame the chase asks.
         /// </summary>
         [Test]
-        public void NoCooldown_TurnsOnTheFrameAfterTheLastTurn()
+        public void NoCooldown_TurnsOnTheFrameOfThePass()
         {
             Assert.IsTrue(RingChase.MayTurn(10f, 10f, 0f));
         }

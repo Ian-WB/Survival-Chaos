@@ -29,35 +29,57 @@ namespace SurvivalChaos
         private float turnDeadbandDegrees = RingChase.DefaultDeadbandDegrees;
 
         [SerializeField]
-        [Tooltip("Seconds after turning round before this enemy may turn round again. 0 turns " +
-                 "whenever the chase asks, which is what every enemy but the boss wants. On the " +
-                 "boss it is the room a player who gets past it has: faster than the player, it " +
+        [Tooltip("Seconds this enemy holds its course after it and the player pass each other. 0 " +
+                 "turns whenever the chase asks, which is what every enemy but the boss wants. On " +
+                 "the boss it is the room a player who gets past it has: faster than the player, it " +
                  "would otherwise pass them, turn 20 degrees on and come straight back.")]
         private float turnCooldownSeconds;
 
         /// <summary>
-        /// Whether the orbit speed rides the player's Move Speed picks.
+        /// The orbit speed as a multiple of the player's, or 0 to travel at the
+        /// rotation speed above.
         ///
-        /// On for the boss only. It was tuned at 20 degrees a second against a
-        /// ship at 16.3, a lead of 23%, but each pick adds a tenth to
-        /// the ship and a run can take eight: three put the ship ahead, and on
-        /// 28 September 2026 a player ran from it. Scaled, the lead is 23%
-        /// at any number of picks, and the ram, which multiplies this speed,
-        /// keeps its lead too. Everything else on the ring keeps its own pace,
-        /// so the picks still buy speed against the waves.
+        /// Set on the boss only. It was authored at 20 degrees a second against
+        /// a ship at 16.3, a lead of 23%, but each pick adds to the ship and a
+        /// run can take eight: three put the ship ahead, and on 28 September
+        /// 2026 a player ran from it. From then it rode the picks, which held
+        /// the lead against them and not against a retune of the ship's own
+        /// speed. Since 1 October 2026 the lead is the number itself, 1.25, and
+        /// holds against both; the ram, which multiplies this speed, keeps its
+        /// lead too. Everything else on the ring keeps its own pace, so the
+        /// picks still buy speed against the waves.
         /// </summary>
         [SerializeField]
-        [Tooltip("Scales the orbit speed with the player's Move Speed picks, so the lead this was " +
-                 "tuned with holds however many a run takes. On for the boss, off for the waves.")]
-        private bool keepPaceWithPlayer;
+        [Min(0f)]
+        [Tooltip("Orbit speed as a multiple of the player's, Move Speed picks included: 1.25 is a " +
+                 "quarter faster than the ship, whatever the ship's speed is. 0 uses Rotation " +
+                 "Speed instead. Set on the boss, 0 on the waves.")]
+        private float playerSpeedRatio;
+
+        private PlayerMovement playerMovement;
 
         /// <summary>
-        /// When this enemy last turned round, in scaled time, so a pause does not
-        /// count towards the cooldown. Negative infinity until the first turn,
-        /// and again on every spawn, so a pooled enemy does not arrive still
-        /// cooling down from its last life.
+        /// Degrees a second round the ring at cruise: the ratio of the player's
+        /// speed where there is one, the authored speed where there is not.
         /// </summary>
-        private float lastTurnTime = float.NegativeInfinity;
+        public static float CruiseDegrees(float authoredDegrees, float playerSpeedRatio, float playerDegrees)
+        {
+            return playerSpeedRatio > 0f ? playerSpeedRatio * playerDegrees : authoredDegrees;
+        }
+
+        /// <summary>
+        /// When this enemy and the player last went past each other, in scaled
+        /// time, so a pause does not count towards the cooldown. Negative
+        /// infinity until the first pass, and again on every spawn, so a pooled
+        /// enemy does not arrive still holding course from its last life.
+        /// </summary>
+        private float lastPassTime = float.NegativeInfinity;
+
+        /// <summary>
+        /// Last frame's signed separation from the player, which is what a pass
+        /// is read from. Not a number until there has been a frame to compare.
+        /// </summary>
+        private float lastDelta = float.NaN;
 
         /// <summary>
         /// Which way round the ring this enemy is currently travelling.
@@ -158,7 +180,8 @@ namespace SurvivalChaos
         private void OnEnable()
         {
             leftOrRight = authoredDirection;
-            lastTurnTime = float.NegativeInfinity;
+            lastPassTime = float.NegativeInfinity;
+            lastDelta = float.NaN;
 
             // Belongs to an attack rather than to the enemy, and an attack
             // interrupted by death leaves it set. A pooled boss brought back
@@ -173,6 +196,7 @@ namespace SurvivalChaos
             if (playerObj != null)
             {
                 player = playerObj.transform;
+                playerMovement = playerObj.GetComponent<PlayerMovement>();
             }
 
             GameObject scenario = GameObject.FindWithTag("Scenario");
@@ -194,16 +218,24 @@ namespace SurvivalChaos
 
             // Before anything moves, because Enemy_1 and EnemySpaceShip read
             // TravellingLeft to pick which side their shot leaves from.
-            bool wanted = RingChase.ShouldTravelLeft(
-                PickupPlacement.BearingOf(transform.position, center),
-                PickupPlacement.BearingOf(player.position, center),
-                leftOrRight,
-                turnDeadbandDegrees);
+            float bearing = PickupPlacement.BearingOf(transform.position, center);
+            float playerBearing = PickupPlacement.BearingOf(player.position, center);
 
-            if (wanted != leftOrRight && RingChase.MayTurn(Time.time, lastTurnTime, turnCooldownSeconds))
+            // NaN on the first frame compares false both ways, so no pass.
+            float delta = Mathf.DeltaAngle(bearing, playerBearing);
+            if (RingChase.Passed(lastDelta, delta))
+            {
+                lastPassTime = Time.time;
+            }
+
+            lastDelta = delta;
+
+            bool wanted = RingChase.ShouldTravelLeft(
+                bearing, playerBearing, leftOrRight, turnDeadbandDegrees);
+
+            if (wanted != leftOrRight && RingChase.MayTurn(Time.time, lastPassTime, turnCooldownSeconds))
             {
                 leftOrRight = wanted;
-                lastTurnTime = Time.time;
             }
 
             Vector3 pos = center;
@@ -251,9 +283,11 @@ namespace SurvivalChaos
             else
             {
                 float direction = leftOrRight ? 1f : -1f;
-                float pace = keepPaceWithPlayer ? PlayerMovement.SpeedMultiplier : 1f;
+                float cruise = playerMovement != null
+                    ? CruiseDegrees(rotationSpeed, playerSpeedRatio, playerMovement.OrbitDegreesPerSecond)
+                    : rotationSpeed;
                 transform.RotateAround(
-                    pos, Vector3.up, direction * rotationSpeed * OrbitSpeedScale * pace * Time.deltaTime);
+                    pos, Vector3.up, direction * cruise * OrbitSpeedScale * Time.deltaTime);
 
                 // Hold the lane while riding it. Costs nothing for an enemy already
                 // on it, puts one that arrived off it back, and follows the lane if

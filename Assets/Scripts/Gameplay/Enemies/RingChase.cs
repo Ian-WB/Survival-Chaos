@@ -82,25 +82,51 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// Whether an enemy that last turned round at <paramref name="lastTurn"/>
-        /// may turn round again at <paramref name="now"/>.
+        /// Whether the enemy and the player went past each other between two
+        /// frames, given the signed separation <see cref="Mathf.DeltaAngle"/>
+        /// measured on each.
+        ///
+        /// The sign flips in two places, and only one of them is a pass. Close
+        /// in it means one overtook the other; at the antipode it means the
+        /// player drifted across the far side of the ring, and nobody went past
+        /// anybody. A quarter of the ring either side tells them apart.
+        /// </summary>
+        public static bool Passed(float previousDelta, float delta)
+        {
+            if (Mathf.Abs(previousDelta) >= 90f || Mathf.Abs(delta) >= 90f)
+            {
+                return false;
+            }
+
+            return (previousDelta > 0f && delta < 0f) || (previousDelta < 0f && delta > 0f);
+        }
+
+        /// <summary>
+        /// Whether an enemy the player last went past at
+        /// <paramref name="lastPass"/> may turn round at <paramref name="now"/>.
         ///
         /// The deadband above decides how far past the player an enemy goes
-        /// before it turns; this decides how soon after one turn it may make the
-        /// next. They are different questions. A boss faster than the player,
-        /// with only the band, passes them, goes 20 degrees on, turns, passes
-        /// them again and turns again - at 20 degrees a second, a turn every two
+        /// before it turns; this decides how long after a pass it holds course.
+        /// They are different questions. A boss faster than the player, with
+        /// only the band, passes them, goes 20 degrees on, turns, passes them
+        /// again and turns again - at 20 degrees a second, a turn every two
         /// seconds for as long as the player holds still, and the player is
         /// never out from under it. A cooldown longer than that carries it
         /// further on after each pass, which is the room a player who got past
         /// it has earned.
         ///
-        /// An enemy that has never turned passes <see cref="float.NegativeInfinity"/>,
-        /// and may turn at once.
+        /// Counted from the pass, not from the last turn. It was the turn until
+        /// 1 October 2026, and that gave the first pass of a fight no room at
+        /// all, there being no turn to count from, and every pass after it 20
+        /// and 40 degrees alternately.
+        ///
+        /// An enemy nobody has passed gives <see cref="float.NegativeInfinity"/>,
+        /// and may turn at once: one that arrives facing the wrong way is not
+        /// holding course for anyone.
         /// </summary>
-        public static bool MayTurn(float now, float lastTurn, float cooldownSeconds)
+        public static bool MayTurn(float now, float lastPass, float cooldownSeconds)
         {
-            return now - lastTurn >= Mathf.Max(0f, cooldownSeconds);
+            return now - lastPass >= Mathf.Max(0f, cooldownSeconds);
         }
     }
 }

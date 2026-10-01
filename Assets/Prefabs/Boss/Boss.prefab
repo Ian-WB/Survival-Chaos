@@ -767,7 +767,7 @@ MonoBehaviour:
   leftOrRight: 0
   turnDeadbandDegrees: 20
   turnCooldownSeconds: 3
-  keepPaceWithPlayer: 1
+  playerSpeedRatio: 1.25
   spawnSpeed: 0.1
   chaseRadiusFraction: 0
 --- !u!114 &782800684810090552
@@ -794,6 +794,13 @@ MonoBehaviour:
   hullSpark: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   scuttleThreshold: 90
   phaseChangeSilence: 2
+  emplacementFreeze: 0.07
+  actFreeze: 0.15
+  deathBeatSeconds: 2.5
+  deathBeatSpeed: 0.25
+  killFreeze: 0.15
+  deathExplosion: {fileID: 0}
+  deathBlasts: 9
   tellMesh: {fileID: 4300000, guid: 9abf9d684526f7244bbb4cba229ef1b4, type: 2}
   tellMaterial: {fileID: 2100000, guid: 39dc5dc915cac634e8d378f456dd6e1f, type: 2}
   tellBrightness: 3

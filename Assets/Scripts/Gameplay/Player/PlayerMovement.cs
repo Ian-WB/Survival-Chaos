@@ -59,6 +59,15 @@ namespace SurvivalChaos
         public static float SpeedMultiplier => speedMultiplier;
 
         /// <summary>
+        /// How fast this travels round the ring at full stick, in degrees a
+        /// second, Move Speed picks included and the dash not. The boss sets
+        /// its own pace as a multiple of this, so the two stay in proportion
+        /// whether it is a pick or the authored speed that changes.
+        /// </summary>
+        public float OrbitDegreesPerSecond =>
+            orbitSpeed * Mathf.Rad2Deg / ArenaGeometry.LaneRadius * speedMultiplier;
+
+        /// <summary>
         /// The dash, held statically for exactly the reason speedMultiplier above
         /// is: the ship and the Main Camera both run this component, and they stay
         /// in formation only because they are handed the same numbers. A dash
