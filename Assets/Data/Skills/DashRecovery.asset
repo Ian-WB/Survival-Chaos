@@ -17,5 +17,11 @@ MonoBehaviour:
   maxPicks: 3
   availableFromLevel: 060000000e00000016000000i
   pickupColor: {r: 3, g: 2.3, b: 0.1, a: 1}
-  stageNames: []
-  stagePickupNames: []
+  stageNames:
+  - Dash II!
+  - Dash III!
+  - Dash IV!
+  stagePickupNames:
+  - Dash II
+  - Dash III
+  - Dash IV

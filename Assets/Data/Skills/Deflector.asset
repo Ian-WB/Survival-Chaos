@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.DeflectorSkill
   displayName: Deflector Online!
   pickupName: Deflector
-  maxPicks: 2
-  availableFromLevel: 0a00000014000000i
+  maxPicks: 3
+  availableFromLevel: 0a000000140000001c000000i
   pickupColor: {r: 2.6, g: 2.8, b: 3, a: 1}
   stageNames:
   - Deflector Online!
-  - Deflector Recharges Faster!
+  - Deflector II!
+  - Deflector III!
   stagePickupNames:
   - Deflector
-  - Faster Deflector
+  - Deflector II
+  - Deflector III

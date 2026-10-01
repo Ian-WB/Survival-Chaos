@@ -19,9 +19,9 @@ MonoBehaviour:
   pickupColor: {r: 3, g: 0.25, b: 0.3, a: 1}
   stageNames:
   - Slow Mo! Press E or Y
-  - Slow Mo Recharges Faster!
-  - Slow Mo Recharges Faster!
+  - Slow Mo II!
+  - Slow Mo III!
   stagePickupNames:
   - Slow Mo
-  - Slow Mo Recharge
-  - Slow Mo Recharge II
+  - Slow Mo II
+  - Slow Mo III

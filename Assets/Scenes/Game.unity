@@ -15225,6 +15225,7 @@ MonoBehaviour:
   warmupPerStream: 4
   clearOfShipDegrees: 30
   arrivalSeconds: 0.4
+  keepEnemiesApart: 1
 --- !u!4 &581903989
 Transform:
   m_ObjectHideFlags: 0
@@ -32441,22 +32442,24 @@ MonoBehaviour:
   skillSelect: {fileID: 919132148744893763}
   dash: {fileID: 919132148744893765}
   shotUpgrades: 0
-  attackSpeedStep: 0.1
+  attackSpeedStep: 0.15
   shotIntervalFloor: 0.15
-  moveSpeedStep: 0.1
+  moveSpeedStep: 0.12
   dashCooldownStep: 1.5
   dashCooldownFloor: 4
   slowMoCooldown:
   - 30
-  - 24
-  - 18
+  - 20
+  - 10
   slowMo: {fileID: 919132148744893768}
   deflectorRecharge:
   - 10
   - 6
+  - 3
   magnetReach:
   - 4
   - 7
+  - 10
   magnetPullSpeed: 10
 --- !u!1 &1353773339
 GameObject:

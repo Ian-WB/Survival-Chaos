@@ -37,6 +37,12 @@ namespace SurvivalChaos
                  "it is all there. 0 puts it down at full size at once.")]
         private float arrivalSeconds = 0.4f;
 
+        [SerializeField]
+        [Tooltip("Eases enemies apart where they would overlap on screen, so a group chasing the " +
+                 "ship arrives as a formation. Off lets them fly inside one another, as they did " +
+                 "until 1 October 2026.")]
+        private bool keepEnemiesApart = true;
+
         /// <summary>The ship, found with its band at Start, whose bearing the arrivals keep clear of.</summary>
         private Transform ship;
 
@@ -350,6 +356,11 @@ namespace SurvivalChaos
             if (enemy && arrivalSeconds > 0f)
             {
                 EnemyArrival.Begin(spawned, arrivalSeconds);
+            }
+
+            if (enemy && keepEnemiesApart)
+            {
+                EnemySpacing.Begin(spawned, Center, band);
             }
         }
 
