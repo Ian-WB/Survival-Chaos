@@ -31,7 +31,10 @@ namespace SurvivalChaos.Tests
         {
             Object.DestroyImmediate(root);
             RunOutcome.Clear();
+            RunTime.SetHold(false);
             RunTime.ResetForNewRun();
+            RunStats.Clock = () => Time.time;
+            RunStats.Frame = () => Time.frameCount;
             RunStats.Clear();
         }
 
@@ -98,15 +101,112 @@ namespace SurvivalChaos.Tests
             Assert.That(RunOutcome.Decided, Is.True);
         }
 
+        // The stats read a clock and a frame count this test moves by hand.
+        // Unity's own stand still in edit mode, and the test this replaced
+        // (1 October 2026) passed whether or not the clock had stopped.
+        private static float clock;
+        private static int frame;
+
+        private static void UseAHandClock()
+        {
+            clock = 10f;
+            frame = 100;
+            RunStats.Clock = () => clock;
+            RunStats.Frame = () => frame;
+            RunStats.Clear();
+        }
+
         [Test]
         public void TheDeathBeat_StopsTheClockAtTheKillingHit()
         {
-            RunOutcome.ReportEnding(0.25f);
-            float atHit = RunStats.Seconds;
+            UseAHandClock();
 
-            // Stop latches, so the card's own stop cannot move it on.
-            RunStats.Stop();
-            Assert.That(RunStats.Seconds, Is.EqualTo(atHit));
+            clock = 15f;
+            Assert.That(RunStats.Seconds, Is.EqualTo(5f), "running until the hit");
+
+            RunOutcome.ReportEnding(0.25f);
+            clock = 17f;
+            Assert.That(RunStats.Seconds, Is.EqualTo(5f), "stopped at the hit, through the beat");
+
+            RunOutcome.ReportRunEnded();
+            clock = 30f;
+            Assert.That(RunStats.Seconds, Is.EqualTo(5f), "and the card's own stop does not move it on");
+        }
+
+        [Test]
+        public void TheResultsStand_AsOfTheDecidingFrame()
+        {
+            UseAHandClock();
+
+            RunStats.RecordKill();
+            RunOutcome.ReportEnding(0.25f, won: true);
+
+            // The same frame: the Leviathan settles the run, then pays out.
+            Assert.That(RunStats.Closed, Is.False);
+            RunStats.RecordKill();
+            RunStats.RecordExperience(40);
+            RunStats.RecordLevel(3);
+            RunStats.RecordSkill("Fire Rate");
+
+            frame++;
+            Assert.That(RunStats.Closed, Is.True);
+            RunStats.RecordKill();
+            RunStats.RecordExperience(15);
+            RunStats.RecordLevel(4);
+            RunStats.RecordSkill("Move Speed");
+
+            Assert.That(RunStats.EnemiesDestroyed, Is.EqualTo(2));
+            Assert.That(RunStats.ExperienceEarned, Is.EqualTo(40));
+            Assert.That(RunStats.LevelReached, Is.EqualTo(3));
+            Assert.That(RunStats.PicksOf("Move Speed"), Is.Zero);
+            Assert.That(RunStats.PicksOf("Fire Rate"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ARunStillGoing_KeepsCounting_WhateverTheFrame()
+        {
+            UseAHandClock();
+
+            frame += 500;
+            RunStats.RecordKill();
+
+            Assert.That(RunStats.Closed, Is.False);
+            Assert.That(RunStats.EnemiesDestroyed, Is.EqualTo(1));
+        }
+
+        // ---------- the loading screen's hold ----------
+
+        [Test]
+        public void ALoadHoldsTheGame_AndNothingUnderItRestartsTime()
+        {
+            RunTime.SetHold(true);
+            Assert.That(Time.timeScale, Is.Zero);
+
+            // What backing out of the pause menu, a debug speed and the old
+            // scene unloading each did under the loading screen.
+            PauseMenu.GameIsPaused = false;
+            RunTime.Apply();
+            Assert.That(Time.timeScale, Is.Zero, "resuming");
+
+            RunTime.SetSpeed(2f);
+            Assert.That(Time.timeScale, Is.Zero, "a debug speed");
+
+            RunTime.ResetForNewRun();
+            Assert.That(Time.timeScale, Is.Zero, "the old scene unloading");
+
+            RunTime.SetHold(false);
+            Assert.That(Time.timeScale, Is.EqualTo(1f), "given back for the new scene");
+        }
+
+        // ---------- the Leviathan's kill freeze ----------
+
+        [Test]
+        public void TheEndingBeat_CanOpenOnTheHitStopsOwnScale()
+        {
+            RunOutcome.ReportEnding(RunTime.FreezeScale, won: true);
+
+            Assert.That(Time.timeScale, Is.EqualTo(RunTime.FreezeScale).Within(1e-6f),
+                "the freeze the Leviathan's death asks for, not a faster floor");
         }
 
         [Test]

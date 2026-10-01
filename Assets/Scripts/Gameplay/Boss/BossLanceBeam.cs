@@ -403,6 +403,15 @@ namespace SurvivalChaos
                 return;
             }
 
+            // Stopped, so nothing to advance and nothing to hit. The damage
+            // test below ran on paused frames too, and a ship that had moved
+            // into the beam on the frame before a pause took its hit under the
+            // pause menu (ChatGPT's scan of 1 October 2026).
+            if (PauseMenu.GameIsPaused || Time.timeScale <= 0f)
+            {
+                return;
+            }
+
             elapsed += Time.deltaTime;
 
             if (!fading)

@@ -163,13 +163,19 @@ namespace SurvivalChaos
 
         private void Update()
         {
-            if (PauseMenu.GameIsPaused || RunOutcome.Decided || Time.timeScale <= 0f) { return; }
             float now = Time.time;
 
+            // Before the gate below: a burst under way at the deciding hit
+            // still has to end. Behind it, the ship and the camera kept the
+            // dash's heading and its five times speed through the whole beat
+            // (ChatGPT's scan of 1 October 2026). Game time, so a pause holds
+            // the burst rather than ending it.
             if (holdingBurst && !cycle.IsDashing(now))
             {
                 ReleaseBurst();
             }
+
+            if (PauseMenu.GameIsPaused || RunOutcome.Decided || Time.timeScale <= 0f) { return; }
 
             if (!GameInput.DashPressed || !cycle.TryBegin(now))
             {

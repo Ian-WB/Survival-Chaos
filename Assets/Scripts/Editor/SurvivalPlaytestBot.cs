@@ -156,6 +156,9 @@ namespace SurvivalChaos.EditorTools
             private readonly Dictionary<string, int> emplacementHealth = new Dictionary<string, int>();
             private string reason = "Searching", cameraName = "unknown";
             private string bossPhase = "not encountered";
+            private BossPhase lastPhase;
+            private BossEmitter podsOf;
+            private BossWeakPoint[] pods;
             private float bossStarted = -1;
             private int injuries, healed, dashRequests, slowMoUses;
             private float lastFailureDump = -10;
@@ -267,16 +270,27 @@ namespace SurvivalChaos.EditorTools
                 else if (player.Invulnerable) EndReason = "God mode enabled; run invalidated";
                 // Diagnostic only: these fields never enter observations or steering.
                 var boss = BossEmitter.Active;
-                if (boss != null && boss.Phase.ToString() != bossPhase)
+                // The enum compared, the name written only when it changes, and
+                // the pods found once per boss: this runs every editor update,
+                // and its strings and arrays were garbage in the same runs used
+                // to measure garbage.
+                if (boss != null && (bossStarted < 0 || boss.Phase != lastPhase))
                 {
                     if (bossStarted < 0) bossStarted = Time.time;
-                    bossPhase = boss.Phase.ToString();
+                    lastPhase = boss.Phase;
+                    bossPhase = lastPhase.ToString();
                     Log("BOSS PHASE " + bossPhase);
                 }
                 if (boss != null)
                 {
-                    foreach (var pod in boss.GetComponentsInChildren<BossWeakPoint>(true))
+                    if (podsOf != boss)
                     {
+                        podsOf = boss;
+                        pods = boss.GetComponentsInChildren<BossWeakPoint>(true);
+                    }
+                    foreach (var pod in pods)
+                    {
+                        if (pod == null) continue;
                         int hp = pod.Destroyed ? 0 : pod.CurrentHealth;
                         if (emplacementHealth.TryGetValue(pod.Label, out int last) && (last == hp || (hp > 0 && last - hp < 10))) continue;
                         emplacementHealth[pod.Label] = hp;

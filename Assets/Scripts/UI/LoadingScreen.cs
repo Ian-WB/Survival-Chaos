@@ -140,7 +140,7 @@ namespace SurvivalChaos
 
         private IEnumerator Run(string scene, string message)
         {
-            Time.timeScale = 0f;
+            RunTime.SetHold(true);
             status.text = message;
             bar.fillAmount = 0f;
 
@@ -168,7 +168,7 @@ namespace SurvivalChaos
             yield return WarmUp();
 
             bar.fillAmount = 1f;
-            RunTime.Apply();
+            RunTime.SetHold(false);
             yield return Fade(1f, 0f, fadeOutSeconds);
 
             // Before Hide: deactivating the object ends this coroutine.

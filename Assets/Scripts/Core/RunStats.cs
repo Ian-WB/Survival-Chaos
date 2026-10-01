@@ -33,6 +33,36 @@ namespace SurvivalChaos
         private static float startedAt;
         private static float endedAt = -1f;
 
+        /// <summary>The frame the clock stopped on, or -1 while it runs.</summary>
+        private static int endedFrame = -1;
+
+        /// <summary>
+        /// The game clock and frame count the stats read. Unity's own, except
+        /// in the edit mode tests, where neither moves and a test of "the
+        /// clock stopped" or "that came a frame too late" could not fail.
+        /// </summary>
+        public static System.Func<float> Clock = UnityClock;
+        public static System.Func<int> Frame = UnityFrame;
+
+        private static float UnityClock() => Time.time;
+        private static int UnityFrame() => Time.frameCount;
+
+        /// <summary>
+        /// True once the frame that decided the run is over. The card reports
+        /// the run as it stood at the deciding hit, like its clock: until 1
+        /// October 2026 a kill or a level landing in the beat afterwards still
+        /// counted, under a time that had already stopped (ChatGPT's scan of
+        /// that day). What happens in the deciding frame itself counts,
+        /// which is what lets the Leviathan's own kill and experience in: it
+        /// settles the run first and pays out second.
+        /// </summary>
+        public static bool Closed => ClosedAt(endedFrame, Frame());
+
+        public static bool ClosedAt(int endedOnFrame, int frame)
+        {
+            return endedOnFrame >= 0 && frame > endedOnFrame;
+        }
+
         /// <summary>
         /// How long the run lasted, in seconds, frozen once it ends.
         ///
@@ -41,7 +71,7 @@ namespace SurvivalChaos
         /// on the pause screen has not survived four minutes.
         /// </summary>
         public static float Seconds =>
-            Mathf.Max(0f, (endedAt >= 0f ? endedAt : Time.time) - startedAt);
+            Mathf.Max(0f, (endedAt >= 0f ? endedAt : Clock()) - startedAt);
 
         /// <summary>Skills picked, in the order they were first taken.</summary>
         public static IReadOnlyList<string> SkillOrder => skillOrder;
@@ -53,6 +83,11 @@ namespace SurvivalChaos
 
         public static void RecordKill()
         {
+            if (Closed)
+            {
+                return;
+            }
+
             EnemiesDestroyed++;
         }
 
@@ -64,6 +99,11 @@ namespace SurvivalChaos
         /// </summary>
         public static void RecordExperience(int amount)
         {
+            if (Closed)
+            {
+                return;
+            }
+
             ExperienceEarned += Mathf.Max(0, amount);
         }
 
@@ -73,7 +113,7 @@ namespace SurvivalChaos
         /// </summary>
         public static void RecordLevel(int level)
         {
-            if (level > LevelReached)
+            if (!Closed && level > LevelReached)
             {
                 LevelReached = level;
             }
@@ -81,7 +121,7 @@ namespace SurvivalChaos
 
         public static void RecordSkill(string skill)
         {
-            if (string.IsNullOrEmpty(skill))
+            if (Closed || string.IsNullOrEmpty(skill))
             {
                 return;
             }
@@ -123,7 +163,8 @@ namespace SurvivalChaos
         {
             if (endedAt < 0f)
             {
-                endedAt = Time.time;
+                endedAt = Clock();
+                endedFrame = Frame();
             }
         }
 
@@ -141,6 +182,8 @@ namespace SurvivalChaos
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnEnterPlayMode()
         {
+            Clock = UnityClock;
+            Frame = UnityFrame;
             Clear();
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -162,8 +205,9 @@ namespace SurvivalChaos
             skillCounts.Clear();
             KilledBy = null;
 
-            startedAt = Time.time;
+            startedAt = Clock();
             endedAt = -1f;
+            endedFrame = -1;
         }
     }
 }

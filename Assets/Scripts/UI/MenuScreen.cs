@@ -272,6 +272,21 @@ namespace SurvivalChaos
             gameObject.SetActive(true);
         }
 
+        /// <summary>
+        /// Opens this screen at its first control, whatever it was left on.
+        ///
+        /// For a question whose safe answer has to be the one selected every
+        /// time it is asked. A screen reached from another normally resumes
+        /// where it was left, which on "Abandon this run?" meant a Yes backed
+        /// out of was the selection the next time (ChatGPT's scan of 1 October
+        /// 2026).
+        /// </summary>
+        public void ShowFresh()
+        {
+            lastSelected = null;
+            Show();
+        }
+
         /// <summary>Closes this screen without opening another.</summary>
         public void Hide()
         {

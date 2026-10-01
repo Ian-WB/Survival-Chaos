@@ -38,6 +38,14 @@ namespace SurvivalChaos
         /// <summary>True while a hit-stop holds the game.</summary>
         public static bool Frozen { get; private set; }
 
+        /// <summary>
+        /// True while the loading screen holds the game still. Nothing else
+        /// restarts time under it: until 1 October 2026 the screen set the
+        /// time scale itself, and backing out of the pause menu behind it
+        /// resumed the run that was being replaced.
+        /// </summary>
+        public static bool Held { get; private set; }
+
         /// <summary>When the hit-stop ends, in unscaled seconds.</summary>
         private static float frozenUntil;
 
@@ -89,7 +97,10 @@ namespace SurvivalChaos
         {
             if (!float.IsNaN(speed))
             {
-                EndingSpeed = Mathf.Clamp(speed, 0.05f, 1f);
+                // Down to the hit-stop's own scale: the Leviathan's death
+                // opens on a freeze, and a floor of 0.05 ran it two and a
+                // half times faster than it asked for.
+                EndingSpeed = Mathf.Clamp(speed, FreezeScale, 1f);
             }
 
             Apply();
@@ -123,6 +134,13 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>Stops the game for a load, or gives it back once the new scene is ready.</summary>
+        public static void SetHold(bool held)
+        {
+            Held = held;
+            Apply();
+        }
+
         public static void CycleSlowMotion()
         {
             SetSpeed(RequestedSpeed > 0.9f ? 0.5f : RequestedSpeed > 0.4f ? 0.25f : 1f);
@@ -130,7 +148,7 @@ namespace SurvivalChaos
 
         public static void Apply()
         {
-            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded)
+            if (Held || PauseMenu.GameIsPaused || RunOutcome.RunEnded)
             {
                 Time.timeScale = 0f;
                 return;
@@ -155,12 +173,16 @@ namespace SurvivalChaos
             Frozen = false;
             frozenUntil = 0f;
             PauseMenu.GameIsPaused = false;
-            Time.timeScale = 1f;
+
+            // A load's hold outlives the scene it replaces: this runs as the
+            // old scene unloads, in the middle of the load.
+            Time.timeScale = Held ? 0f : 1f;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Initialize()
         {
+            Held = false;
             ResetForNewRun();
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;

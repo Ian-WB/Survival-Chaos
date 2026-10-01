@@ -50,7 +50,10 @@ namespace SurvivalChaos
         /// and that is decided outside the game. Learning the figure keeps the
         /// last sleep from overshooting a deadline either way.
         /// </summary>
-        private static double sleepCost = 0.002d;
+        private static double sleepCost = InitialSleepCost;
+
+        /// <summary>Where the estimate starts, each play session.</summary>
+        private const double InitialSleepCost = 0.002d;
 
         /// <summary>
         /// How far past its slot a frame may be let go and still count as on
@@ -186,6 +189,7 @@ namespace SurvivalChaos
             LastWaitSeconds = 0f;
             LastLateSeconds = 0f;
             lastStart = 0d;
+            sleepCost = InitialSleepCost;
 
             PlayerLoopSystem root = PlayerLoop.GetCurrentPlayerLoop();
             RemoveFrom(ref root);

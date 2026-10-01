@@ -154,6 +154,12 @@ namespace SurvivalChaos
         {
             padInUse = GameInput.PadLastUsed;
 
+            // A load is replacing this scene. Esc and B under the loading
+            // screen used to walk back out of the menus and resume the old run.
+            if (RunTime.Held){
+                return;
+            }
+
             // B backs out as Esc and Start do, but only from a menu. In play it
             // is a free button, and one that paused the game would be a surprise.
             bool back = GameIsPaused && GameInput.BackPressed;

@@ -49,7 +49,8 @@ namespace SurvivalChaos
                 consequence.text = line + " This run is lost.";
             }
 
-            GetComponent<MenuScreen>().Show();
+            // Fresh, so No is selected however the question was last left.
+            GetComponent<MenuScreen>().ShowFresh();
         }
 
         /// <summary>Yes: does what was asked.</summary>

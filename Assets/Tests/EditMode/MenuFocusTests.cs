@@ -72,6 +72,25 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
+        public void AScreenShownFresh_ForgetsWhereItWasLeft()
+        {
+            // "Abandon this run?" is asked this way: a Yes backed out of must
+            // not be what is selected the next time the question opens.
+            Control<Button>("No");
+            Button yes = Control<Button>("Yes");
+
+            MenuScreen screen = root.AddComponent<MenuScreen>();
+            FieldInfo left = typeof(MenuScreen).GetField("lastSelected", Private);
+            left.SetValue(screen, yes.gameObject);
+
+            screen.Show();
+            Assert.That(left.GetValue(screen), Is.SameAs(yes.gameObject), "an ordinary screen resumes");
+
+            screen.ShowFresh();
+            Assert.That(left.GetValue(screen), Is.Null);
+        }
+
+        [Test]
         public void AnAuthoredFirstControlThatIsGreyedOutIsPassedOver()
         {
             Button top = Control<Button>("Top");

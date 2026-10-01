@@ -286,6 +286,14 @@ namespace SurvivalChaos
                 return;
             }
 
+            // The run is decided: its results are settled, and an upgrade
+            // taken in the beat before the card would change a build nobody
+            // flies again. Left where it is rather than marked taken.
+            if (RunOutcome.Decided)
+            {
+                return;
+            }
+
             collected = true;
 
             if (owner != null)
