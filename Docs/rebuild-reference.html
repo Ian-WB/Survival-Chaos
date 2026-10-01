@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 375 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 377 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>375</b><span>commits</span></div>
-      <div class="stat"><b>655</b><span>tests</span></div>
+      <div class="stat"><b>377</b><span>commits</span></div>
+      <div class="stat"><b>661</b><span>tests</span></div>
       <div class="stat"><b>148</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -591,6 +591,15 @@
       <li><strong>A run of 400 seconds</strong> &mdash; the ten-minute run squeezed to two thirds with its shape kept: every
       stream&rsquo;s start and ramp step at two thirds of what they were, and experience worth half as much again so the
       ship still meets the boss at about level 35.</li>
+      <li><strong>A boss paced against the ship</strong> &mdash; its cruise is one number, 1.25 times the ship&rsquo;s
+      speed, where it was 20&deg; a second scaled by the Move Speed picks, so the lead holds against a retune of the
+      ship as well as against the picks. And its 3&nbsp;s turn cooldown counts from the moment it and the ship cross,
+      not from its last turn: the first pass of a fight had no cooldown at all, which a played run found on
+      1 October, and later passes alternated between 20&deg; and 40&deg; of room.</li>
+      <li><strong>A frame measured, and clouds that cost a third of what they did</strong> &mdash; a scan on 1 October
+      found the frame all on the graphics card and over a third of it in the volumetric clouds, whose look turned out
+      to be set by their light steps. The cloud row climbs on those now, 64 and 6, 64 and 16, 128 and 32, and High
+      draws the picture it drew at 512 and 32 for 2.8&nbsp;ms less.</li>
     </ul>
     <p>The days between 27 and 30 September &mdash; FSR 3, the two polish passes, the licensed music, the loading
     screen and two more outside scans &mdash; are recorded item by item on the open list and are not written up on
@@ -1891,6 +1900,50 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <div class="label">Worth keeping in proportion</div>
       <p>These spikes are ~15&nbsp;ms against a 16.67&nbsp;ms budget at 60&nbsp;FPS. They are visible <em>because</em> the game runs at 200&nbsp;+&nbsp;FPS, where a 15&nbsp;ms frame is a three-frame drop. Shipped at 60 they would fit inside the budget and vanish. That does not make them not worth fixing, but it does make this a polish problem on an already-fast game rather than a performance problem.</p>
     </div>
+
+    <h3>Where the frame goes</h3>
+    <p>Measured on 1 October, in the editor at 2560&times;1440 on the Ultra tier, an RX 6700 XT. The playtest bot flew into 77 to 99 enemies; then a crowded frame was frozen and one graphics row changed at a time, timing the whole camera on the GPU. The rows are the ones the owner&rsquo;s build runs: FSR on Quality, clouds High, fog Medium, shadows Medium, motion blur High.</p>
+    <p><strong>The frame is all GPU.</strong> The main thread took 8.4&nbsp;ms, of which 4.6 was waiting for the last frame to be presented, 2.8 was submitting the draw, and 0.64 was every script in the game together &mdash; <code>EnemyMovement</code>, the largest, 0.18 at 99 enemies. On the card, drawing the geometry was 0.19&nbsp;ms, the shadow maps 0.13 and deferred lighting 0.52. The rest is per-pixel work.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>One row changed</th><th class="num">GPU frame</th><th class="num">Difference</th></tr></thead>
+        <tbody>
+          <tr><td>As the build runs</td><td class="num">10.11 ms</td><td class="num">&mdash;</td></tr>
+          <tr><td>Clouds 256 / 24, the old Medium</td><td class="num">7.93</td><td class="num">&minus;2.2</td></tr>
+          <tr><td>Clouds 64 / 6, Low</td><td class="num">6.61</td><td class="num">&minus;3.5</td></tr>
+          <tr><td>Fog Low</td><td class="num">9.36</td><td class="num">&minus;0.75</td></tr>
+          <tr><td>Fog Off</td><td class="num">8.40</td><td class="num">&minus;1.7</td></tr>
+          <tr><td>Fog High</td><td class="num">11.08</td><td class="num">+1.0</td></tr>
+          <tr><td>Motion blur off</td><td class="num">9.72</td><td class="num">&minus;0.4</td></tr>
+          <tr><td>Shadows Low</td><td class="num">9.88</td><td class="num">&minus;0.2</td></tr>
+          <tr><td>Shadows High</td><td class="num">10.50</td><td class="num">+0.4</td></tr>
+          <tr><td>Reflections off</td><td class="num">9.92</td><td class="num">&minus;0.2</td></tr>
+          <tr><td>FSR off, native TAA</td><td class="num">14.89</td><td class="num">+4.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The baseline repeated to a hundredth of a millisecond at the end of the pass. The clouds&rsquo; cost does not show under their own name: it lands under <code>OpaqueAtmosphericScattering</code>, 2.96&nbsp;ms on High and 0.11 on Low, a pass with no cloud code in it. Trust the whole-camera number.</p>
+    <div class="note">
+      <div class="label">The clouds&rsquo; picture is made of light steps</div>
+      <p>Fourteen pairs of primary and light steps were timed on that frame and each capture compared with 512 and 32, against a second capture at 512 and 32 as the control, which differed on 0.2% of pixels by more than 2 in 255.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Primary / light</th><th class="num">GPU frame</th><th class="num">Pixels that differ</th></tr></thead>
+          <tbody>
+            <tr><td>512 / 32, the old High</td><td class="num">10.10 ms</td><td class="num">0.2%</td></tr>
+            <tr><td>512 / 16</td><td class="num">8.57</td><td class="num">4.7%</td></tr>
+            <tr><td>256 / 24, the old Medium</td><td class="num">7.88</td><td class="num">0.5%</td></tr>
+            <tr><td>256 / 6</td><td class="num">7.03</td><td class="num">26%</td></tr>
+            <tr><td><strong>128 / 32, High</strong></td><td class="num">7.32</td><td class="num">0.5%</td></tr>
+            <tr><td>64 / 32</td><td class="num">6.92</td><td class="num">1.6%</td></tr>
+            <tr><td><strong>64 / 16, Medium</strong></td><td class="num">6.73</td><td class="num">7%</td></tr>
+            <tr><td><strong>64 / 6, Low</strong></td><td class="num">6.58</td><td class="num">28%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Holding the light steps and cutting the primary ones barely moves the picture; holding the primary and cutting the light ones moves a quarter of it. HDRP caps a primary step at an eighth of the layer&rsquo;s altitude range, and the game camera looks almost level through the layer, so more primary steps only march further out. The ladder of 28 September had doubled both together, which is why its High looked like its Medium for 2.2&nbsp;ms more. <code>CloudLadder</code> is 64 and 6, 64 and 16, 128 and 32 since 1 October. One frame from one camera was compared; the boss&rsquo;s arrival and the other six cameras were not.</p>
+    </div>
+    <p>Instancing, LODs, occlusion culling, the Resident Drawer and mipmap streaming were each checked against this and left off. The arena is 90 static renderers, 88,000 triangles and 7 materials, an enemy 240 to 1,300 triangles and the boss 9,900, and every texture in the project comes to 728&nbsp;MB on a 12&nbsp;GB card. The 0.3&nbsp;ms of geometry and shadows is the whole ceiling for LODs; the 2.8&nbsp;ms of draw submission, with 4.6 of slack behind it, is the ceiling for the rest.</p>
   </section>
 
   <section id="settings">
@@ -1906,7 +1959,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>The settings screen had said Medium was the default since the tiers were rebuilt. Nothing read it. <code>GraphicsPresets.DefaultIndex&nbsp;=&nbsp;1</code>, the constant whose summary names Medium, was referenced <em>nowhere in the project</em>; the tier actually came from ProjectSettings, which still held <code>Standalone:&nbsp;6</code> — an index minted when there were eight generated levels, against a list that has four.</p>
       <p>An index past the end of that list resolves to the last entry rather than failing, so 6 quietly meant "the most expensive tier there is" and a fresh install booted on Ultra. Nothing reported it, because 6 is not an error — it is an index that used to mean something else. A constant nothing reads records an intention; it does not enforce one. The fallback now comes from the constant, and the eighteen platform entries are corrected to agree.</p>
     </div>
-    <p>One thing the compile gates decide on their own: <strong>volumetric clouds first appear at High.</strong> Medium's asset ships <code>supportVolumetricClouds: false</code>, the same kind of hard gate as <code>supportSSR</code> on Low, so clouds have no row and simply arrive with the tier.</p>
+    <p>One thing the compile gates decide on their own: <strong>volumetric clouds first appear at High.</strong> Medium's asset ships <code>supportVolumetricClouds: false</code>, the same kind of hard gate as <code>supportSSR</code> on Low, so clouds simply arrive with the tier. Since 26 September their step counts are a row of their own, Volumetric Clouds, greyed out below High: 64 primary and 6 light steps on Low, 64 and 16 on Medium, 128 and 32 on High &mdash; see <a href="#perf">Where the frame goes</a>. Every tier starts on Low.</p>
     </div>
 
     <p>The copies sit at the top of <code>Settings/Quality/</code> rather than being referenced where they were found, because a folder named <code>Editor</code> is excluded from player builds — a quality level pointing at an asset that never reaches the build has no render pipeline at runtime.</p>
@@ -2195,7 +2248,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>655 tests across 65 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>661 tests across 65 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2223,7 +2276,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>SpawnBandTests</code></td><td class="num">9</td><td>spawn heights against the band the player can fly in</td></tr>
           <tr><td><code>SpawnMathTests</code></td><td class="num">9</td><td>the spawn curve at shipped values</td></tr>
           <tr><td><code>ArenaGeometryTests</code></td><td class="num">8</td><td>orbit projection keeps bearing and height</td></tr>
-          <tr><td><code>RingChaseTests</code></td><td class="num">13</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter, and a turn cooldown that holds course until it has run</td></tr>
+          <tr><td><code>RingChaseTests</code></td><td class="num">17</td><td>which way round the ring closes on the player, with a deadband so it cannot chatter, what counts as the two passing each other, and a turn cooldown that holds course from a pass until it has run</td></tr>
           <tr><td><code>PlaytestBotPredictionTests</code></td><td class="num">13</td><td>the playtest bot&rsquo;s forecasts: its own dash, an enemy closing on a route&rsquo;s height at the game&rsquo;s rate &mdash; stepped along a route that climbs, held out of range, and caught up over the reaction delay from where the ship really went &mdash; a gun&rsquo;s line of fire ahead of it at its height, and height scored on the closest a route comes rather than where it ends</td></tr>
           <tr><td><code>VolleyTimerTests</code></td><td class="num">8</td><td>boss cadence, no catch-up bursts</td></tr>
           <tr><td><code>RunTimeTests</code></td><td class="num">16</td><td>that choosing a debug speed cannot lift a pause or restart a finished run, that a retry starts at 1&times;, and that Slow Mo multiplies with the debug speed and cannot lift a pause or an ending either</td></tr>
@@ -2284,7 +2337,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 655 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 661 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2362,6 +2415,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       one pick that matters, and whether the shorter waves are easier is not settled by one run. The dials are the
       steps and waits on <code>Player</code>, the boss&rsquo;s health in <code>Boss.asset</code>, and the Scout
       streams&rsquo; ramp in <code>MainRun</code>. It is in <code>26_1001-1616_run400</code>, with the debug menu.</li>
+      <li><strong>The cheaper cloud ladder has been compared on one frame, not yet seen in a build.</strong> High at 128
+      and 32 matched 512 and 32 from the game camera, frozen. Fewer primary steps march a shorter way out, so what a
+      run has to show is whether far clouds end early during the boss&rsquo;s arrival or from the other cameras. The
+      dial is the two tables in <code>CloudLadder</code>. It is in <code>26_1001-1738_cloudLadder</code>, with the
+      debug menu.</li>
       <li><strong>The shadow work is cut; the millisecond is still unattributed.</strong> Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. What remains is the confirmation: that measurement is submitted work from a paused editor frame with GPU timing unavailable, so it proves the mechanism was large without proving it was the 8.4&nbsp;ms spike. A capture from a real run closes it.</li>
       <li><strong>What the Shadows row costs is unmeasured.</strong> Its rungs were stepped in a frame
       frozen at <code>timeScale</code> 0, which is what made the captures comparable and also means the sun
@@ -2416,8 +2474,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       is untried on the 200&nbsp;Hz machine that stalled under VSync. It is in <code>26_0926-0845_frameCap</code>,
       with the debug menu.</li>
       <li><strong>The more aggressive boss has been flown by the bot, not yet by you.</strong> Since 25 September it
-      cruises at 20&deg; a second where it was 12 &mdash; faster than the player&rsquo;s 16.3 on today&rsquo;s 19.72 lane, so it takes three Move Speed
-      picks to outrun it, where two did on the 18.72 lane &mdash; rams back to back at 60, sheds a plate every half second and ends on a volley every
+      cruises at 20&deg; a second where it was 12 &mdash; faster than the player&rsquo;s 16.3 on today&rsquo;s 19.72 lane, and since 1 October a quarter faster than the ship at any speed, so no number of Move Speed
+      picks outruns it &mdash; rams back to back at 60, sheds a plate every half second and ends on a volley every
       0.8&nbsp;s. The playtest bot flew it twice without god mode. With the balanced boss kit it stayed just ahead, took
       two hits in 136&nbsp;s and had the prow and crown down in 43, then sat on the floor under the keel pod, which is
       its own height choice. At base speed and level 1 it dashed 28 times to stay 24&ndash;50&deg; ahead and took none
@@ -2534,7 +2592,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 375 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 377 commits
   </footer>
 
 </div>

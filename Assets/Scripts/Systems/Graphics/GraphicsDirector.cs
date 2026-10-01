@@ -1469,8 +1469,8 @@ namespace SurvivalChaos
         /// The clouds' step counts, and nothing else about them. Where the layer
         /// sits, how dense it is and how it is lit stay as the scene authored
         /// them; this is only how finely each ray samples it. More primary steps
-        /// cut the noise and carry the clouds further out; more light steps give
-        /// smoother lighting and self-shadowing.
+        /// carry the clouds further out; more light steps give smoother lighting
+        /// and self-shadowing, and are what the rungs really differ by.
         /// </summary>
         private void ApplyClouds()
         {

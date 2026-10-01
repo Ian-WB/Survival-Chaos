@@ -120,21 +120,23 @@ namespace SurvivalChaos
     /// toward the sun for its lighting.
     ///
     /// Low is what the scene was tuned with: HDRP's own defaults, 64 and 6,
-    /// which Scene Volume Profile never overrode. Medium jumps straight to
-    /// 256/24, skipping the doubling in between, because 128/12 renders the
-    /// same image as 64/6 from the game camera. HDRP never lets a step run
-    /// longer than an eighth of the layer's altitude range (875 of 7000 here),
-    /// and the camera looks nearly level through the layer, so its rays are
-    /// long enough that both counts hit that cap; the extra steps only march
-    /// further out, where nothing shows. 256 is the first count whose steps
-    /// come out shorter, and the first that looks different.
+    /// which Scene Volume Profile never overrode.
     ///
-    /// High is as far as HDRP goes on the light steps, which it clamps at 32.
-    /// It is the row's ceiling rather than a good trade: on a frozen frame on
-    /// Ultra (RX 6700 XT, 28 September 2026) the whole camera cost 9.9 ms on
-    /// Low, 12.3 on Medium and 16.4 on High, and High changed about 1% of the
-    /// picture over Medium where Medium changed 18% over Low. Ian asked for a
-    /// doubling ladder on 26 September and chose these three on 28 September.
+    /// The rungs climb on the light steps, because those are what the picture
+    /// is made of. HDRP never lets a primary step run longer than an eighth
+    /// of the layer's altitude range (875 of 7000 here), and the camera looks
+    /// nearly level through the layer, so its rays are long enough that every
+    /// count hits that cap; more primary steps only march further out, and
+    /// past 128 nothing out there shows. High is as far as HDRP goes on the
+    /// light steps, which it clamps at 32.
+    ///
+    /// Measured on one frozen frame from the game camera on 1 October 2026
+    /// (Ultra, FSR Quality at 1440p, RX 6700 XT; whole-camera GPU time, and
+    /// the share of pixels more than 2/255 from 512/32, against a noise floor
+    /// of 0.2%): 64/6 6.6 ms and 28%, 64/16 6.7 ms and 7%, 128/32 7.3 ms and
+    /// 0.5%. The ladder before that day was 64/6, 256/24, 512/32, which Ian
+    /// chose on 28 September: its High cost 10.1 ms for the same picture as
+    /// 128/32, and its Medium 7.9 ms.
     ///
     /// Low, Medium and High only. There is no Off: the arena sits up in the
     /// cloud layer, and whether there are clouds at all is the scene's call and
@@ -150,10 +152,10 @@ namespace SurvivalChaos
         public const int Count = Highest - Lowest + 1;
 
         /// <summary>Primary steps, Low to High.</summary>
-        private static readonly int[] Primary = { 64, 256, 512 };
+        private static readonly int[] Primary = { 64, 64, 128 };
 
         /// <summary>Light steps, Low to High. HDRP stops them at 32.</summary>
-        private static readonly int[] Light = { 6, 24, 32 };
+        private static readonly int[] Light = { 6, 16, 32 };
 
         /// <summary>
         /// A stored rung pulled into Low..High. Off and the ray-traced rungs are

@@ -353,7 +353,7 @@
           <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">27.5 u/s at the lane, 4.5 s per lap</td></tr>
           <tr><td>Keel discs</td><td class="num">40&deg;/s</td><td class="dim">13.8 u/s, 9 s per lap</td></tr>
           <tr><td>Crown torpedoes</td><td class="num">8.5 u/s</td><td class="dim">half again the player&rsquo;s 5.6; turn at 90&deg;/s</td></tr>
-          <tr><td>Boss orbit</td><td class="num">20&deg;/s</td><td class="dim">18 s per lap &mdash; faster than your 16.3, so it gains on you unless you dash; since 28 September it keeps pace with your Move Speed picks, so no number of them outruns it; 15 until 22 September and 12 after it, 20 since 25 September to make it chase. Two picks outran it until the lane moved out that evening</td></tr>
+          <tr><td>Boss orbit</td><td class="num">1.25 &times; yours</td><td class="dim">20.3&deg;/s against your 16.3 with no picks, about 18 s per lap &mdash; so it gains on you unless you dash. Since 1 October it is a multiple of the ship&rsquo;s speed, one number on the boss, where it was 20&deg;/s that rode the Move Speed picks from 28 September; no pick and no retune of the ship outruns it; 15 until 22 September and 12 after it, 20 since 25 September to make it chase. Two picks outran it until the lane moved out that evening</td></tr>
           <tr><td>Boss health</td><td class="num">1000</td><td class="dim">1 damage per bullet &mdash; 600 until 1 October; the weak points and the Scuttle kept their numbers, so all of the extra 400 is on the open hull</td></tr>
           <tr><td>Hittable lane</td><td class="num">19.49 &rarr; 19.95</td><td class="dim">where a bullet has to be born to reach the player at all; a disc, 19.53 &rarr; 19.91</td></tr>
           <tr><td>Muzzle spread</td><td class="num">18.72 &rarr; 20.75</td><td class="dim">across a hull 3.7 units deep &mdash; four times wider than the lane</td></tr>
@@ -763,6 +763,17 @@
             carries on 80 to 130&deg; past before it comes back; the same setup took 15 hits in
             62&thinsp;s and was still flying when the Scuttle began. It is <code>EnemyMovement</code>&rsquo;s
             Turn Cooldown Seconds on the boss, 0 on every other enemy.
+          </p>
+          <p class="dim">
+            <span class="em">Since 1 October the 3&thinsp;s count from the pass, not from the last turn.</span>
+            You played the 400-second build and reported that the cooldown only applied after the first turn,
+            and that was exactly it: on the first pass of a fight there was no earlier turn to count from, so
+            the boss went 20&deg; on and came straight back, and after that a ship holding still got 20&deg; and
+            40&deg; of room alternately. Now the clock starts when the boss and the player cross, a dash through
+            the hull included, so every pass buys the same 3&thinsp;s. A boss that arrives facing the wrong way
+            still turns at once. The bot, flown into the fight with two Move Speed picks, saw a turn 3.0&thinsp;s
+            after each of four passes, the first included; it flew away each time and was about 136&deg; from
+            the boss when it turned.
           </p>
           <p class="dim">
             <span class="em">Then the dash went to ten seconds</span>, and Slow Mo arrived to cover the
@@ -1273,7 +1284,7 @@
           units a second and the boss&rsquo;s in degrees. It stays
           on you, the lance&rsquo;s 160&deg; and its plates reach you more, and the ram rises with it to
           60. Since 28 September the boss and its torpedoes scale with the Move Speed picks, so that lead holds
-          however many you take. The ram runs back to back, a plate sheds every 0.5&thinsp;s, and the Scuttle fires every
+          however many you take; since 1 October the boss&rsquo;s cruise is set as 1.25 times the ship&rsquo;s speed outright. The ram runs back to back, a plate sheds every 0.5&thinsp;s, and the Scuttle fires every
           0.8. <span class="em">The first act&rsquo;s cadences were left as you tuned them.</span> And it
           waits 3&thinsp;s between turns, so a ram that passes you carries on rather than sawing back
           over you.
@@ -1317,6 +1328,18 @@
           fight the wrecks are stragglers from the waves, which live up to 80&thinsp;s after the boss
           arrives since 1 October, two minutes before, and broken hull plates. Emplacements drop nothing, because the boss chases the
           player round the ring and would run over scrap left at its own face. Not yet played.
+        </p>
+      </div>
+      <div class="card">
+        <h3>How much room a pass buys</h3>
+        <p class="dim">
+          From 1 October, and not played yet. The boss holds its course for 3&thinsp;s from the moment it and
+          the ship cross, on every pass, and cruises a quarter faster than the ship at any speed. A ship that
+          flies away after a pass is about a third of the ring from the boss when it turns, by the bot&rsquo;s
+          run, and the boss then closes at a quarter of the ship&rsquo;s speed. If that is too long a rest, the
+          dial is Turn Cooldown Seconds on the boss&rsquo;s <code>EnemyMovement</code>; if it closes too fast or
+          too slowly afterwards, it is Player Speed Ratio beside it. It is in
+          <span class="mono">26_1001-1703_bossPace</span>, with the debug menu.
         </p>
       </div>
       <div class="card">

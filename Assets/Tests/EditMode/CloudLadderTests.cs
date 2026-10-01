@@ -34,16 +34,17 @@ namespace SurvivalChaos.Tests
         [Test]
         public void Rungs_AreTheChosenStepCounts()
         {
-            // 128/12 is skipped on purpose: from the game camera it renders the
-            // same image as 64/6, because both hit HDRP's step-length cap.
-            Assert.AreEqual(new[] { 64, 256, 512 }, new[]
+            // The light steps carry the look. Primary steps past 128 hit HDRP's
+            // step-length cap from the game camera and only cost time: 512/32
+            // rendered the same image as 128/32 for 2.8 ms more.
+            Assert.AreEqual(new[] { 64, 64, 128 }, new[]
             {
                 CloudLadder.PrimarySteps(EffectQuality.Low),
                 CloudLadder.PrimarySteps(EffectQuality.Medium),
                 CloudLadder.PrimarySteps(EffectQuality.High)
             });
 
-            Assert.AreEqual(new[] { 6, 24, 32 }, new[]
+            Assert.AreEqual(new[] { 6, 16, 32 }, new[]
             {
                 CloudLadder.LightSteps(EffectQuality.Low),
                 CloudLadder.LightSteps(EffectQuality.Medium),
@@ -69,7 +70,7 @@ namespace SurvivalChaos.Tests
                 }
 
                 // High asks for exactly HDRP's ceiling. If an HDRP upgrade
-                // raises it, the doubling to 48 becomes possible.
+                // raises it, a rung above 32 becomes possible.
                 Assert.AreEqual(clouds.numLightSteps.max, CloudLadder.LightSteps(EffectQuality.High));
             }
             finally
