@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739c835d212724a4d8fd8ae4b8ad840d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  delay: 120
+  delay: 80
 --- !u!114 &-1196103576992989831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -116,6 +116,7 @@ MonoBehaviour:
   leftOrRight: 0
   turnDeadbandDegrees: 20
   turnCooldownSeconds: 0
+  keepPaceWithPlayer: 0
   spawnSpeed: 0.1
   chaseRadiusFraction: 1.2
 --- !u!114 &-6739958517522978217
@@ -130,12 +131,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a434bc28cf0a0a349933013e08feca65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  childObject: {fileID: 4059127192425382724}
-  enemyHit: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   explosion: {fileID: 488202066062453081, guid: ee68ecc6938e6ca4ebf9ccf8e00f4bca, type: 3}
+  enemyHit: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
   definition: {fileID: 11400000, guid: 758023a95c130bd4aaa38b6ff0c465dc, type: 2}
   healthPoints: 2
   EnemyShip: {fileID: 2752971980227408059}
+  childObject: {fileID: 4059127192425382724}
   shootPivot: {fileID: 1449221108018617522}
   shootPivot_1: {fileID: 1449221108018617522}
   shootPrefab: {fileID: 6051693256502410095, guid: aed2fea2f22f1284bb24be4d4095fb2c, type: 3}

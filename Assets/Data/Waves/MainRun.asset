@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1824fa8e7faf960468b427ee395335ab, type: 3}
   m_Name: MainRun
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.WaveDefinition
-  stopSpawningAt: 602
+  stopSpawningAt: 402
   authoredFloor: 2.721233
   authoredCeiling: 11.618166
   streams:
@@ -27,7 +27,7 @@ MonoBehaviour:
     startDelay: 0
     interval: 8
     intervalScale: 0.8
-    rampEvery: 40
+    rampEvery: 26.66
     minInterval: 0.1
   - label: Enemy(1) -> Enemy 2
     prefab: {fileID: 2752971980227408059, guid: 778f3559fb4e69141b81f3753e36c18d, type: 3}
@@ -37,10 +37,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 10
+    startDelay: 6.67
     interval: 10
     intervalScale: 0.8
-    rampEvery: 40
+    rampEvery: 26.66
     minInterval: 0.1
   - label: ObstacleEnemySpawn (6) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -50,10 +50,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 22
+    startDelay: 14.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (7) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -63,10 +63,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 22
+    startDelay: 14.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -76,10 +76,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 22
+    startDelay: 14.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (2) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -89,10 +89,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 26
+    startDelay: 17.33
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (5) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -102,10 +102,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 26
+    startDelay: 17.33
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (8) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -115,10 +115,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 26
+    startDelay: 17.33
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (10) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -128,10 +128,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 28
+    startDelay: 18.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (3) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -141,10 +141,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 28
+    startDelay: 18.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (4) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -154,10 +154,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 28
+    startDelay: 18.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (9) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -167,10 +167,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 28
+    startDelay: 18.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (1) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -180,10 +180,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 30
+    startDelay: 20
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: ObstacleEnemySpawn (11) -> Enemy 3
     prefab: {fileID: 2752971980227408059, guid: fcb2879877f4e99418473c0904429301, type: 3}
@@ -193,10 +193,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 0.8}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 30
+    startDelay: 20
     interval: 60
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: Enemy 2 -> Enemy
     prefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
@@ -206,10 +206,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 180
+    startDelay: 120
     interval: 20
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: Enemy 2 (1) -> Enemy
     prefab: {fileID: 2752971980227408059, guid: 2314402a18f552b4fadef8541decfdc4, type: 3}
@@ -219,10 +219,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 240
+    startDelay: 160
     interval: 20
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1
   - label: Enemy3(1) -> Enemy 1
     prefab: {fileID: 2752971980227408059, guid: 5bacc39a5fcb74344accc15c4f97bf14, type: 3}
@@ -232,10 +232,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 280
+    startDelay: 186.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 60
+    rampEvery: 40
     minInterval: 0.1
   - label: Enemy3 -> Enemy 1
     prefab: {fileID: 2752971980227408059, guid: 5bacc39a5fcb74344accc15c4f97bf14, type: 3}
@@ -245,10 +245,10 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 340
+    startDelay: 226.67
     interval: 60
     intervalScale: 0.9
-    rampEvery: 60
+    rampEvery: 40
     minInterval: 0.1
   - label: BossSpawn -> Boss
     prefab: {fileID: 2752971980227408059, guid: 16ffec50ecaea2b47a6a45d6eeb4ca56, type: 3}
@@ -258,8 +258,8 @@ MonoBehaviour:
     yOffsetRange: {x: 0, y: 0}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 600
+    startDelay: 400
     interval: 99999
     intervalScale: 0.9
-    rampEvery: 50
+    rampEvery: 33.33
     minInterval: 0.1

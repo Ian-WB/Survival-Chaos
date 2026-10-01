@@ -32438,7 +32438,7 @@ MonoBehaviour:
   maxExperience: 50
   currentLevel: 1
   levelCostIncrease: 35
-  experienceMultiplier: 3
+  experienceMultiplier: 4.5
   skillSelect: {fileID: 919132148744893763}
   dash: {fileID: 919132148744893765}
   shotUpgrades: 0
