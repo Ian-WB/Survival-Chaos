@@ -225,7 +225,7 @@ namespace SurvivalChaos.EditorTools
                 level = player.currentLevel;
                 previous = GameInput.Source;
                 Log($"START hp={health}/{player.MaxHealth} level={level} reaction={delay} observation={ObserveEvery} commitment={CommitFor} horizon={Horizon}");
-                Log("LIMITS: state perception; physics occlusion only; no contrast/fog/audio perception; no offscreen memory; prediction updates observed turns/bounces but cannot foresee them; hull flashes are ambiguous and may be damage, not ram charge; damage cause unknown. Existing run randomness is not reseeded.");
+                Log("LIMITS: state perception; physics occlusion only; no contrast/fog/audio perception; no offscreen memory; prediction updates observed turns/bounces but cannot foresee them; hull flashes are ambiguous and may be damage, not ram charge; damage cause is the game's own record of the last hit. Existing run randomness is not reseeded.");
                 GameInput.Source = this;
             }
             private static T Read<T>(object instance, string field)
@@ -288,7 +288,7 @@ namespace SurvivalChaos.EditorTools
             {
                 if (player == null || health == player.CurrentHealth) return;
                 int current = player.CurrentHealth;
-                Log($"HP {health}->{current}; cause unknown; at={player.transform.position}; input={axes}; dashActive={(dash != null && dash.Invincible)}");
+                Log($"HP {health}->{current}; cause={(current < health ? player.LastHitBy ?? "unknown" : "healing")}; at={player.transform.position}; input={axes}; dashActive={(dash != null && dash.Invincible)}");
                 if (current < health)
                 {
                     injuries += health - current;

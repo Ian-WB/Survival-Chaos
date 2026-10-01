@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true},"updated":"30 September 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true},"updated":"30 September 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,24 +327,19 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-polish",
-    title: "Play the polish build",
+    id: "play-polish-2",
+    title: "Play the second polish pass",
     effort: "a build + one run",
-    lede: "<strong>Built: <code>Builds/26_0930-0825_polish</code></strong>, with the debug menu (F8), from commit <code>8ee1a3a</code> plus roadmap items 1 to 14, which are not committed yet. Its title and pause screens say so in the corner: <code>26_0930-0825_polish · 8ee1a3a+</code>, the + being the uncommitted work. 915 MB, no warnings. It is also the first build with the Options tabs and FSR 3’s reactive mask, which you tested in the editor.</p><p><strong>From the polish roadmap.</strong> You said “Go do 1-14” on 30 September, so both phases went in together rather than as two builds. Each one is its own item below, with what was checked in play. Where something is a matter of feel it has a dial, and the answer on it stands if you say nothing (see ‘Waiting on a real run’). 619 tests pass.</p><p><strong>How to answer:</strong> as before, say only what felt wrong.",
+    lede: "<strong>Built:</strong> <code>Builds/26_0930-1328_polish2</code>, with the debug menu, made on 30 September straight after your rebake. It carries roadmap 2 items 17, 19 and 21 to 26 and the new music, from a working tree not yet committed on top of <code>af3b2c7</code>. 644 tests pass, and each item was checked in play with the bot; see its own entry below.</p><p><strong>How to answer:</strong> as before, say only what felt wrong. The dials are under ‘Waiting on a real run’, and the answer on each stands if you say nothing. Items 27 to 32 on the roadmap are still unanswered.",
     watch: [
-      "Alt-tab in the middle of a run. You should come back to the pause menu, not to the fight.",
-      "The mouse pointer should be gone once a run starts, and back on every menu and card.",
-      "The bottom-right corner of the title and pause screens names the build and its commit. It should match the folder you started it from.",
-      "Your first run opens with Reverse, then Dash, in the prompt at the foot of the screen, in the buttons you are using. Slow Mo, the Deflector and the first offer each get a line when they first turn up. Say if a line is hard to read mid-fight.",
-      "Options has a fourth tab, Controls: every key and pad button, and the Rumble and Control Hints switches.",
-      "Finish a run. The card says NEW BEST on anything you beat, and the title screen lists your bests. A run with the debug menu says so and does not count.",
-      "Lose the ship. The game should slow to a quarter for about a second while it breaks up and the music fades, and then Ship Lost comes up.",
-      "Destroy an emplacement: the game holds for an instant. Ending an act holds a little longer, with a metal strike.",
-      "Ten seconds before the Leviathan, a horn sounds far off, and a second one as it arrives.",
-      "On your last hit point the health bar pulses hard and a soft heartbeat plays until salvage lifts you off it.",
-      "On a pad, it rumbles on a hit, a dash, a blocked hit and an emplacement, and longer at the end.",
-      "Salvage, the deflector blocking, Slow Mo starting and ending, an offer’s last three seconds and an act ending each have a sound of their own now.",
-      "Pause, and the music drops and goes muffled. Slow Mo bends it down a little, and it comes back up as the bar runs out."
+      "The run plays Chase now, and the Leviathan fights to Neon Hyperdrive, taking over as it arrives. Listen for a hiccup where the fight’s music loops, about a minute and a half in.",
+      "Kill the Leviathan. The game holds on the hit, slows to a quarter while blasts run along the hull, and the hull goes up before Leviathan Down comes up, about 2.5 s after the hit. The music plays on.",
+      "Enemies flash and grow in over 0.4 s, and none arrives within about 30° of the ship.",
+      "Pause: there is a Restart button, and Restart, Main Menu and Quit each ask “Abandon this run?” first, with No selected. Your run so far is summed up under the buttons.",
+      "When a card comes up, its buttons fade in and ignore A for 0.6 s, so a dash pressed as it appears cannot restart the run.",
+      "Going into a run or back to the menu, the music fades out under the loading screen and the new track fades in once it clears.",
+      "Pull the pad’s cable mid-run: the game pauses and says the controller was disconnected.",
+      "Lose the ship: the card’s first line says what did it, as in “Lost to a Leviathan torpedo”."
     ]
   };
 
@@ -558,7 +553,16 @@
           effort: "you, then 1 h",
           why: [
             "Roadmap item 15, answered ‘later’. The project has two tracks, one for the menu and one for the run, and the Leviathan is fought to the run’s. A third would fade in with the arrival horn, which is built now.",
-            "Only you can choose music, and it has to come with a licence you are happy with. Once there is a track, the fade is about an hour: <code>MusicSource</code> already eases its level for the pause and the death beat."
+            "Only you can choose music, and it has to come with a licence you are happy with. Once there is a track, the fade is about an hour: <code>MusicSource</code> already eases its level for the pause and the death beat.",
+            "<strong>Done on 30 September, and you let me choose.</strong> The Leviathan has ‘Neon Hyperdrive’ by Adiutorium, who also wrote the title music, CC0 from OpenGameArt. When the boss appears, the run’s track hands over to it in 3 s, on equal-power gains so the level does not dip halfway. It starts at bar 10, the build, which reaches the drop about 24 s later, and loops from bar 65 back to bar 10, so its quiet intro and its fade-out are skipped. See ‘Give the run and the Leviathan music with a known licence’."
+          ]
+        },
+        {
+          id: "play-polish",
+          title: "Play the polish build",
+          effort: "a build + one run",
+          why: [
+            "Played on <code>Builds/26_0930-0825_polish</code> on 30 September. You said everything seems to work, so the build’s card, the dials and the new sounds were ticked with the answers they carried, and the rumble was ticked once you said a pad rumbled in your hand."
           ]
         }
       ]
@@ -1233,6 +1237,88 @@
             "Roadmap item 14. Pause, and the music drops to 45% and goes muffled behind a 1 kHz low-pass, easing back when you resume. Slow Mo bends its pitch down 8%, about a semitone and a half, and it comes back up as the bar runs out. Through the death beat it fades out, and it stays out under the card.",
             "Checked in play: paused, the track sat at 45% behind the filter. The dials are on each scene’s Music object: Paused Level, Paused Cutoff and Slow Mo Pitch Dip."
           ]
+        },
+        {
+          id: "music-licensed",
+          title: "Give the run and the Leviathan music with a known licence",
+          effort: "half a day",
+          why: [
+            "Your answer on 30 September: nobody remembers where the two tracks came from, and you let me choose. Both came in with the jam’s last commit in June 2023. The title music traced to ‘Darbuka Delight’ by Adiutorium on OpenGameArt, CC0, so it stays. The run’s <code>track01.ogg</code> carried only LMMS’s default tag and turned up nowhere, so it is out of the project, kept in git history.",
+            "<strong>The run plays ‘Chase’ and the Leviathan ‘Neon Hyperdrive’</strong>, both by Adiutorium and CC0, so all three tracks share a composer; another OpenGameArt user has already mixed Chase with the title track. Chosen from the composer’s descriptions and then measured, since I cannot listen. Chase is 4:22, steady and dense, 7.9 onsets a second against the old track’s 2.9, and it ends about as loud as it starts, so it loops cleanly. Neon Hyperdrive is 2:10 at 140 BPM with every section on a bar line: a quiet intro to bar 10, a build to bar 24, a drop, a breakdown, a second drop, and an outro from bar 65.",
+            "<strong>The levels stayed where they were.</strong> By the mix tool’s own gated RMS, Chase is 3.1 dB under the old track, so the Game scene’s music went from 0.12 to 0.1537 and a run is as loud as before. The music assets are set the way the mix tool would set them, so running it again changes nothing: the title track’s asset came down 2.1 dB, and the Menu scene went from 0.162 to 0.2066 to cover it. The Leviathan’s loop measures about 1 dB over the run, with its drops a few dB higher.",
+            "Checked in play with the bot, skipped to the boss. The handover began as the Leviathan appeared and took 3 s, at 0.113 and 0.102 halfway, as equal power gives, and the run’s track stopped once it was done. Moved to just before bar 65, the track went from 111.581 s to 17.317 s inside a frame, overshoot carried. Paused, it dropped to 45% behind the filter like the run’s. <code>MusicLoopTests</code> hold the loop and the handover, and 626 tests pass. All three tracks are credited in <code>ThirdPartyNotices.txt</code>, beside every build."
+          ]
+        },
+        {
+          id: "leviathan-death",
+          title: "Let the Leviathan die on screen",
+          effort: "3 h",
+          why: [
+            "Roadmap 2, item 17. The killing hit used to send the boss back to its pool on that frame, with the Leviathan Down card up and time stopped, so the thing fought for ten minutes never visibly died. Now the game holds on the hit for 0.15 s, then runs at a quarter while blasts run along the hull from the emplacements outward, the fire still in the air goes out, and a last volley of blasts takes the hull. The card follows 2.5 s after the hit.",
+            "It runs on the ship’s own death beat, marked as a win: nothing can hurt the ship or pause the game through it, and the music plays on instead of fading. Checked in play with the bot: the hold, a quarter speed, the hull gone just before the card, and the card at 2.5 s with the Leviathan’s track at full. The dials are Death Beat Seconds, Death Beat Speed and Kill Freeze on the Boss prefab."
+          ]
+        },
+        {
+          id: "enemy-arrival",
+          title: "Let enemies arrive rather than appear",
+          effort: "2–3 h",
+          why: [
+            "Roadmap 2, item 19. Measured before the change, 57 of 85 spawns were already on screen on their first frame, and one appeared 3.9 units from the ship. Now each enemy flashes and grows in over 0.4 s, and cannot touch the ship or be shot until it is all there. Spawns also keep 30° of ring clear either side of the ship. How many come, and when, is unchanged.",
+            "Checked in play with the bot: 25 of 25 arrivals started at 1% size with their colliders off, none within 30° of the ship or within 8 units of it, and a minute later every enemy on the ring was full size and hittable, 17 of them killed. The dials are Clear Of Ship Degrees and Arrival Seconds on the WaveDirector."
+          ]
+        },
+        {
+          id: "pause-restart",
+          title: "Put Restart on the pause screen, and check before abandoning a run",
+          effort: "2 h",
+          why: [
+            "Roadmap 2, item 21. The pause screen has Restart between Options and Main Menu. Restart, Main Menu and Quit each open “Abandon this run?”, which says what Yes will do, with No selected; No, B and Esc go back to the pause screen. The death and victory cards do not ask.",
+            "Checked in play: Restart and Quit each opened the question with No selected, No came back to the pause screen with the run intact, and Yes on Restart loaded a new run."
+          ]
+        },
+        {
+          id: "card-guard",
+          title: "Stop a dash press from skipping the end card",
+          effort: "45 min",
+          why: [
+            "Roadmap 2, item 22. A is the dash and also presses the selected button, and both cards open on Try Again, so an A pressed as the card came up started a new run unread. Now the buttons fade in over 0.6 s and take no press until they are there, and then Try Again is selected.",
+            "Checked in play on the Ship Lost card: not pressable through 0.6 s while fading in, then pressable with Try Again selected."
+          ]
+        },
+        {
+          id: "music-fades",
+          title: "Fade the music across a load",
+          effort: "1 h",
+          why: [
+            "Roadmap 2, item 23. The old scene’s music used to stop dead partway through a load, and the new scene’s started at full on the same frame. Now it fades out over 0.4 s as the loading screen comes up, and the load waits for it; the new track starts silent and fades in over about a second once the loading screen has gone.",
+            "Checked in play through two loads, Try Again and Restart: out in 0.4 s under the screen, in over 1.1 s after it. The dials are Music Fade Seconds on the loading screen and Fade In Seconds on each scene’s Music object."
+          ]
+        },
+        {
+          id: "pad-unplug",
+          title: "Pause when the pad is unplugged",
+          effort: "45 min",
+          why: [
+            "Roadmap 2, item 24. If the pad in use goes away mid-run, cable out or battery flat, the run pauses and the pause screen says “Controller disconnected”. It stays paused when the pad comes back. An ordinary pause does not show the line.",
+            "Checked in play by adding a virtual pad and removing it through the Input System, which is the path a real unplug takes."
+          ]
+        },
+        {
+          id: "pause-summary",
+          title: "Show the run so far on the pause screen",
+          effort: "1 h",
+          why: [
+            "Roadmap 2, item 25. The pause screen shows the same summary as the end card, under its buttons: time, level, kills, experience and how often you took each skill, written by the end card’s own code. Seen in play."
+          ]
+        },
+        {
+          id: "hit-source",
+          title: "Say what ended the run",
+          effort: "2–3 h",
+          why: [
+            "Roadmap 2, item 26. Every hit carries its source now: a Fighter’s or a Heavy’s round, the Leviathan’s torpedoes, lance, curtain, guns, hull or a falling plate, and ramming a Scout, Drone, Fighter or Heavy by name. The Ship Lost card’s first line says what did it, in red. A test fails if a round’s prefab is renamed and its hits lose their name.",
+            "The playtest bot logs the source of every hit instead of “cause unknown”, so the next balance question comes with data. Checked in play: the card read “Lost to ramming a Scout”, and the bot’s report named rams, torpedoes and the hull."
+          ]
         }
       ]
     },
@@ -1453,7 +1539,8 @@
           why: [
             "From the polish build. Each is a matter of feel with one dial, and each is set to what the roadmap proposed.",
             "The death beat: 1.2 s at a quarter speed. The freezes: 70 ms for an emplacement, 150 ms for an act. The music: 45% and muffled under the pause menu, 8% down under Slow Mo. The heartbeat: from one hit point.",
-            "<strong>If you do not flag it:</strong> all of them stay as they are."
+            "<strong>If you do not flag it:</strong> all of them stay as they are.",
+            "<strong>Ticked on 30 September:</strong> you played the build and said everything seems to work, so every dial stays where it is."
           ]
         },
         {
@@ -1463,7 +1550,8 @@
           why: [
             "Picked by measurement, not by ear. The alternatives for each: salvage <code>confirmation_003</code> or <code>forceField_001</code>; the block <code>glass_004</code> or <code>forceField_003</code>; Slow Mo the 005 or 002 pairs; the offer tick <code>tick_004</code> or <code>toggle_004</code>; the act <code>doorClose_001</code> or <code>error_006</code>. The horns and the heartbeat are synthesised, and could be cut from the pack’s engine drones instead.",
             "Levels are guesses from the ladder too: the far horn at -10 dB and the near one at -6, the heartbeat at -12, the ticks at -10. Say which is too loud or lost.",
-            "<strong>If you do not flag it:</strong> my picks and levels stand."
+            "<strong>If you do not flag it:</strong> my picks and levels stand.",
+            "<strong>Ticked on 30 September:</strong> not flagged in your run, so the picks and levels stand."
           ]
         },
         {
@@ -1472,7 +1560,28 @@
           effort: "the same run, on a pad",
           why: [
             "Rumble has never run on a real pad here, and the hints were read only in their keyboard wording. Both want your hands: whether the pulses are too strong or too weak, and whether each line reads at a glance mid-fight.",
-            "<strong>If you do not flag it:</strong> the wording stands, and this is ticked once a pad has rumbled in your hand. If none was handy, it stays open."
+            "<strong>If you do not flag it:</strong> the wording stands, and this is ticked once a pad has rumbled in your hand. If none was handy, it stays open.",
+            "<strong>Played on 30 September, not yet ticked:</strong> you said everything seems to work, but not whether a pad was in your hand, so this waits for that one answer. The hint wording stands.",
+            "<strong>Ticked on 30 September:</strong> you said the pad rumbled. The pulses and the hint wording stand."
+          ]
+        },
+        {
+          id: "music-hear",
+          title: "Hear the new run music and the Leviathan’s",
+          effort: "one run",
+          why: [
+            "Chosen and levelled by measurement, not by ear, and no build has them yet. Listen for whether Chase suits ten minutes of waves, whether Neon Hyperdrive coming in with the arrival horn lands, a hiccup where it loops from bar 65 back to bar 10, about a minute and a half into the fight, and whether either sits too loud or too quiet against the effects.",
+            "The dials: <code>GameplayMusic</code> and <code>BossMusic</code>’s volumes balance the tracks against each other, the level on the Game scene’s Music object places music against everything else, and Boss Loop Start, Boss Loop End and Boss Crossfade sit on that same object.",
+            "<strong>If you do not flag it:</strong> both tracks, their levels and the loop stand."
+          ]
+        },
+        {
+          id: "polish2-feel",
+          title: "Judge the Leviathan’s death, the arrivals and the fades",
+          effort: "one run",
+          why: [
+            "From the second polish pass. Each is a matter of feel with its dial, set to what the roadmap proposed: the Leviathan’s death at 2.5 s, a quarter speed after a 0.15 s hold; enemies growing in over 0.4 s and keeping 30° clear of the ship; the end card’s buttons held for 0.6 s; the music out in 0.4 s and in over 1 s.",
+            "<strong>If you do not flag it:</strong> all of them stay as they are."
           ]
         }
       ]
@@ -1499,6 +1608,8 @@
     ["ActualRenderScale is not a bug", "Checked it — the two render-scale numbers can legitimately disagree, and the report shows both on purpose so you can see which is wrong."],
     ["FSR 3\u2019s frame generation", "Left out on 29 September. It needs to take over the swap chain, which Unity owns, so the upscaler came alone."],
     ["FSR 2 as a fallback on DirectX 11", "Removed with the rest of FSR 2 on 29 September, at your pick. FSR 3 needs DirectX 12, which the game asks for first, so only a machine that falls back to DirectX 11 goes without FSR."],
+    ["A ship you ram goes up", "Roadmap 2, item 18, answered no on 30 September. Ramming still takes the enemy off the ring without an explosion or a sound."],
+    ["A moment’s grace after a hit", "Roadmap 2, item 20, answered no on 30 September. Two rounds from one volley can still take two hit points at once; the dash and the Deflector stay the only protection."],
     ["Rebinding the keys", "Roadmap item 16, answered ‘not now’ on 30 September. The game reads each key directly, so rebinding means moving input onto Input System actions and adding a rebind per action to the Controls tab, about a day and a half. Worth it once other people play the game, and not before."]
   ];
 

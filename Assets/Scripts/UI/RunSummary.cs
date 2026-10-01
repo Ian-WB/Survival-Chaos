@@ -71,7 +71,14 @@ namespace SurvivalChaos
         {
             var into = new StringBuilder();
 
-            // First, where it is seen: the reason to look at the numbers under it.
+            // What ended a lost run comes first: it is the question the card is
+            // read to answer.
+            if (!string.IsNullOrEmpty(RunStats.KilledBy))
+            {
+                into.Append("<color=#FF6B6E>").Append(LostTo(RunStats.KilledBy)).AppendLine("</color>");
+            }
+
+            // Then, where it is seen: the reason to look at the numbers under it.
             string best = Bests(RunRecords.LastBeaten);
             if (best.Length > 0)
             {
@@ -109,6 +116,12 @@ namespace SurvivalChaos
             }
 
             return into.ToString();
+        }
+
+        /// <summary>The Ship Lost card's first line: "LOST TO A LEVIATHAN TORPEDO".</summary>
+        public static string LostTo(string source)
+        {
+            return "LOST TO " + source.ToUpperInvariant();
         }
 
         /// <summary>The records a run beat, as the card names them. Empty for none.</summary>

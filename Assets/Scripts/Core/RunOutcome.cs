@@ -28,12 +28,20 @@ namespace SurvivalChaos
         public static bool RunEnded { get; private set; }
 
         /// <summary>
-        /// True from the killing hit until the death card goes up: the beat in
-        /// between, where the game runs slowly and the ship breaks up. The run
-        /// is lost from the first frame of it, so nothing may win it, pause it
-        /// or hurt the ship again, though the world is still moving.
+        /// True from the deciding hit until the card goes up: the beat in
+        /// between, where the game runs slowly and the ship, or since 30
+        /// September 2026 the Leviathan, breaks up. The run is settled from the
+        /// first frame of it, so nothing may change the outcome, pause it or
+        /// hurt the ship again, though the world is still moving.
         /// </summary>
         public static bool Ending { get; private set; }
+
+        /// <summary>
+        /// Whether the beat under way, or the card after it, is a win. The music
+        /// reads it: a lost run's track fades out through its beat, and a won
+        /// run's plays on.
+        /// </summary>
+        public static bool Won { get; private set; }
 
         /// <summary>
         /// Whether the run's outcome is settled, card or no card yet. What the
@@ -43,11 +51,11 @@ namespace SurvivalChaos
         public static bool Decided => RunEnded || Ending;
 
         /// <summary>
-        /// Starts the beat between a lost run and its card, at
+        /// Starts the beat between the deciding hit and its card, at
         /// <paramref name="speed"/> of normal. The clock stops here rather than
-        /// at the card, so the time survived is the time of the killing hit.
+        /// at the card, so the time survived is the time of that hit.
         /// </summary>
-        public static void ReportEnding(float speed)
+        public static void ReportEnding(float speed, bool won = false)
         {
             if (Decided)
             {
@@ -55,6 +63,7 @@ namespace SurvivalChaos
             }
 
             Ending = true;
+            Won = won;
             RunStats.Stop();
             RunTime.SetEndingSpeed(speed);
         }
@@ -95,6 +104,7 @@ namespace SurvivalChaos
             BossDefeated = null;
             RunEnded = false;
             Ending = false;
+            Won = false;
         }
 
         /// <summary>
@@ -124,6 +134,7 @@ namespace SurvivalChaos
             // remove themselves in OnDisable as it unloads.
             RunEnded = false;
             Ending = false;
+            Won = false;
         }
     }
 }

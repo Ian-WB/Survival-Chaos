@@ -23,6 +23,23 @@ namespace SurvivalChaos
                  "arrivals do not pay to create themselves mid-frame.")]
         private int warmupPerStream = 4;
 
+        [Header("Arrivals")]
+        [SerializeField]
+        [Range(0f, 90f)]
+        [Tooltip("Degrees of ring kept clear either side of the ship when an enemy picks where to " +
+                 "arrive, so none appears on top of it. 30 is about 10 units along the lane. 0 lets " +
+                 "them arrive anywhere, as they did until 30 September 2026.")]
+        private float clearOfShipDegrees = 30f;
+
+        [SerializeField]
+        [Range(0f, 2f)]
+        [Tooltip("Game seconds an enemy takes to flash and grow in, harmless and unhittable until " +
+                 "it is all there. 0 puts it down at full size at once.")]
+        private float arrivalSeconds = 0.4f;
+
+        /// <summary>The ship, found with its band at Start, whose bearing the arrivals keep clear of.</summary>
+        private Transform ship;
+
         private float startTime;
 
         /// <summary>
@@ -139,6 +156,8 @@ namespace SurvivalChaos
             }
 
             band = FindBand();
+            Player player = FindAnyObjectByType<Player>();
+            ship = player != null ? player.transform : null;
 
             if (band == null || !band.TryGetBand(out _, out _))
             {
@@ -300,9 +319,12 @@ namespace SurvivalChaos
                 height,
                 stream.Position.z);
 
+            // The boss keeps its own arrival: it is a fight, not a wave.
+            bool enemy = stream.Prefab.CompareTag("Enemy");
+
             if (!stream.LockBearing)
             {
-                position = AtRandomBearing(position, stream);
+                position = AtRandomBearing(position, stream, enemy);
             }
 
             // Pooled. Enemies were the last thing in the game still going through
@@ -323,7 +345,12 @@ namespace SurvivalChaos
             // within a frame either way: EnemyMovement calls LookAt towards the
             // axis every update, so a spawn brought in on a random bearing turns
             // to face the arena immediately.
-            ObjectPool.Spawn(stream.Prefab, position, stream.Rotation);
+            GameObject spawned = ObjectPool.Spawn(stream.Prefab, position, stream.Rotation);
+
+            if (enemy && arrivalSeconds > 0f)
+            {
+                EnemyArrival.Begin(spawned, arrivalSeconds);
+            }
         }
 
         /// <summary>
@@ -335,7 +362,7 @@ namespace SurvivalChaos
         /// height. Keeping the authored radius keeps each stream's character,
         /// which is how far out it comes from; only the bearing changes.
         /// </summary>
-        private Vector3 AtRandomBearing(Vector3 authored, SpawnStream stream)
+        private Vector3 AtRandomBearing(Vector3 authored, SpawnStream stream, bool keepClearOfShip)
         {
             Vector3 center = Center;
 
@@ -352,8 +379,11 @@ namespace SurvivalChaos
                 return authored;
             }
 
-            return PickupPlacement.PointAt(
-                Random.Range(-180f, 180f), center, radius, authored.y);
+            float bearing = keepClearOfShip && ship != null
+                ? SpawnBearing.Pick(Random.value, PickupPlacement.BearingOf(ship.position, center), clearOfShipDegrees)
+                : Random.Range(-180f, 180f);
+
+            return PickupPlacement.PointAt(bearing, center, radius, authored.y);
         }
 
         private void OnDrawGizmosSelected()

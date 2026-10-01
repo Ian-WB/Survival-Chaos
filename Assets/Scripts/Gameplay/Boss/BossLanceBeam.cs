@@ -382,6 +382,20 @@ namespace SurvivalChaos
             Step(0f);
         }
 
+        /// <summary>
+        /// Starts the beam going out now rather than when its hold ends: the
+        /// thin-out it would do anyway, only sooner. For the Leviathan's death,
+        /// so its lance does not outlast it across the victory.
+        /// </summary>
+        public void CutShort()
+        {
+            if (firing && !fading)
+            {
+                fading = true;
+                fadeStart = elapsed;
+            }
+        }
+
         private void Update()
         {
             if (!firing)

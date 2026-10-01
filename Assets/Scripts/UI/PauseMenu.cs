@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SurvivalChaos
 {
@@ -11,6 +12,18 @@ namespace SurvivalChaos
         private GameObject pauseMenuUI;
         [SerializeField]
         private GameObject optionsUI;
+
+        [SerializeField]
+        [Tooltip("The line on the pause screen saying the controller was disconnected. Shown only " +
+                 "when that is why the game paused.")]
+        private GameObject pauseNotice;
+
+        /// <summary>
+        /// Whether the player was on the pad as of last frame. Read before a
+        /// removal lands, because once the pad has gone the input source may
+        /// already have moved its guess to the keyboard.
+        /// </summary>
+        private bool padInUse;
 
         /// <summary>
         /// A fresh scene is a fresh run, so the flag starts down.
@@ -49,6 +62,7 @@ namespace SurvivalChaos
         void OnEnable()
         {
             active = this;
+            InputSystem.onDeviceChange += OnDeviceChange;
         }
 
         void OnDisable()
@@ -56,6 +70,8 @@ namespace SurvivalChaos
             if (active == this){
                 active = null;
             }
+
+            InputSystem.onDeviceChange -= OnDeviceChange;
 
             // Leaving the run, by any route. The title screen is all pointer.
             ShowCursor(true);
@@ -109,8 +125,35 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Pauses the run when the pad in use goes away: a cable out or a flat
+        /// battery. Until 30 September 2026 nothing noticed, and the ship stopped
+        /// answering while the waves kept coming. The pause screen says why, and
+        /// nothing resumes on its own when the pad comes back.
+        /// </summary>
+        private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            bool gone = change == InputDeviceChange.Removed || change == InputDeviceChange.Disconnected;
+            if (!gone || !(device is Gamepad) || !padInUse)
+            {
+                return;
+            }
+
+            if (GameIsPaused || RunOutcome.Decided || LoadingScreen.Busy){
+                return;
+            }
+
+            Pause();
+
+            if (pauseNotice != null){
+                pauseNotice.SetActive(true);
+            }
+        }
+
         void Update()
         {
+            padInUse = GameInput.PadLastUsed;
+
             // B backs out as Esc and Start do, but only from a menu. In play it
             // is a free button, and one that paused the game would be a surprise.
             bool back = GameIsPaused && GameInput.BackPressed;
@@ -163,12 +206,19 @@ namespace SurvivalChaos
                 optionsUI.SetActive(false);
             }
 
+            if (pauseNotice != null){
+                pauseNotice.SetActive(false);
+            }
+
             GameIsPaused = false;
             RunTime.Apply();
         }
 
         void Pause(){
             if (RunOutcome.Decided) { return; }
+
+            // Only the disconnect says why; every other pause needs no reason.
+            if (pauseNotice != null) { pauseNotice.SetActive(false); }
             if (pauseMenuUI != null) { pauseMenuUI.SetActive(true); }
             GameIsPaused = true;
             RunTime.Apply();

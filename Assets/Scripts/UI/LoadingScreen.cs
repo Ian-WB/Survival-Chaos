@@ -51,6 +51,12 @@ namespace SurvivalChaos
         private float fadeOutSeconds = 0.3f;
 
         [SerializeField]
+        [Min(0f)]
+        [Tooltip("Real seconds the music takes to fade out as the screen comes up. The load waits " +
+                 "for it, so this much is added to every load beyond the screen's own fade.")]
+        private float musicFadeSeconds = 0.4f;
+
+        [SerializeField]
         [Tooltip("The new scene has to draw at least this many frames under the screen.")]
         private int minimumWarmFrames = 3;
 
@@ -138,7 +144,15 @@ namespace SurvivalChaos
             status.text = message;
             bar.fillAmount = 0f;
 
+            // The music goes out as the screen comes up, and the load waits for
+            // it: the old scene's track would otherwise stop dead when the new
+            // scene replaces it.
+            MusicSource.FadeAllOut(musicFadeSeconds);
             yield return Fade(0f, 1f, fadeInSeconds);
+            if (musicFadeSeconds > fadeInSeconds)
+            {
+                yield return new WaitForSecondsRealtime(musicFadeSeconds - fadeInSeconds);
+            }
 
             // One whole frame fully covered before the heavy work starts, so the
             // screen is what stays up while the load holds the main thread.

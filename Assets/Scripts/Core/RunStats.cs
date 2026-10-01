@@ -104,6 +104,21 @@ namespace SurvivalChaos
         /// Latched, because the death screen can be reached with a victory
         /// already resolving in the same frame.
         /// </summary>
+        /// <summary>
+        /// What the killing hit came from, for the Ship Lost card's first line.
+        /// Null in a run nothing has ended, and in a won one.
+        /// </summary>
+        public static string KilledBy { get; private set; }
+
+        /// <summary>Records what ended the run. The first one stands, like the ending.</summary>
+        public static void RecordKiller(string source)
+        {
+            if (KilledBy == null && !string.IsNullOrEmpty(source))
+            {
+                KilledBy = source;
+            }
+        }
+
         public static void Stop()
         {
             if (endedAt < 0f)
@@ -145,6 +160,7 @@ namespace SurvivalChaos
 
             skillOrder.Clear();
             skillCounts.Clear();
+            KilledBy = null;
 
             startedAt = Time.time;
             endedAt = -1f;

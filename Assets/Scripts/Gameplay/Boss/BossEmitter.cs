@@ -120,6 +120,39 @@ namespace SurvivalChaos
                  "kills do not freeze at all: they come too often, and would stutter.")]
         private float actFreeze = 0.15f;
 
+        [Header("Death beat")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Real seconds between the killing hit and the Leviathan Down card, while the hull " +
+                 "breaks up. The dial for how long winning lasts; 0 puts the card up on the hit.")]
+        private float deathBeatSeconds = 2.5f;
+
+        [SerializeField]
+        [Range(0.05f, 1f)]
+        [Tooltip("Game speed through the death beat, as the ship's own death beat runs at.")]
+        private float deathBeatSpeed = 0.25f;
+
+        [SerializeField]
+        [Range(0f, 0.5f)]
+        [Tooltip("Real seconds the game all but stops on the killing hit, before the beat slows.")]
+        private float killFreeze = 0.15f;
+
+        [SerializeField]
+        [Tooltip("The blast chained along the hull. Left empty, the emplacements' own is used.")]
+        private GameObject deathExplosion;
+
+        [SerializeField]
+        [Range(0, 24)]
+        [Tooltip("Blasts chained along the hull before the last one, emplacements first.")]
+        private int deathBlasts = 9;
+
+        /// <summary>Set from the killing hit: the beat is playing and the boss does nothing else.</summary>
+        private bool dying;
+
+        /// <summary>What the last blast switched off, so the next spawn switches back on only that.</summary>
+        private readonly List<Behaviour> hiddenLights = new List<Behaviour>();
+        private readonly List<Renderer> hiddenParts = new List<Renderer>();
+
         [Header("Muzzle tells")]
         [SerializeField]
         [Tooltip("The glow shown on a muzzle before it fires. Built by Survival Chaos/Apply Boss " +
@@ -272,6 +305,8 @@ namespace SurvivalChaos
         private void OnEnable()
         {
             Active = this;
+            dying = false;
+            ShowWreck(true);
             FlyAtBandHeight();
             health = new HealthState(definition != null ? definition.MaxHealth : healthPoints);
             phase = new BossPhaseState(emplacements != null ? emplacements.Length : 0, scuttleThreshold);
@@ -598,7 +633,7 @@ namespace SurvivalChaos
 
         private void Update()
         {
-            if (timers == null)
+            if (timers == null || dying)
             {
                 return;
             }
@@ -1640,11 +1675,9 @@ namespace SurvivalChaos
 
             if (killed)
             {
+                // Death sends the boss back to its pool, straight away or at the
+                // end of its beat.
                 Death();
-
-                // The boss arrives through a spawn stream like everything else,
-                // so it comes from the pool and goes back to it.
-                ObjectPool.Despawn(gameObject);
                 return true;
             }
 
@@ -1808,8 +1841,19 @@ namespace SurvivalChaos
 
         private void Death()
         {
-            // Final XP still counts, but cannot create a new upgrade choice behind the ending.
-            RunOutcome.ReportRunEnded();
+            // Settled before the reward: final XP still counts, but cannot open
+            // an upgrade offer behind the ending, and nothing still flying can
+            // lose the run now that it is won.
+            bool beat = deathBeatSeconds > 0f && isActiveAndEnabled;
+            if (beat)
+            {
+                RunOutcome.ReportEnding(deathBeatSpeed, won: true);
+            }
+            else
+            {
+                RunOutcome.ReportRunEnded();
+            }
+
             int reward = definition != null ? definition.ExperienceReward : 2;
 
             // Shown and totalled by the player, which scales it - see Enemy.Death.
@@ -1828,7 +1872,276 @@ namespace SurvivalChaos
                 GameSounds.Play(sounds.BossDeath != null ? sounds.BossDeath : sounds.Victory);
             }
 
+            Rumble.Pulse(Rumble.Strength.Heavy);
+
+            if (!beat)
+            {
+                RunOutcome.ReportBossDefeated();
+
+                // The boss arrives through a spawn stream like everything else,
+                // so it comes from the pool and goes back to it.
+                ObjectPool.Despawn(gameObject);
+                return;
+            }
+
+            dying = true;
+            StopAllCoroutines();
+            ClearTelegraphs();
+            ClearTells();
+            SilenceCharges();
+
+            if (lanceBeam != null)
+            {
+                lanceBeam.CutShort();
+            }
+
+            if (movement != null)
+            {
+                movement.OrbitSpeedScale = 0.25f;
+            }
+
+            StartCoroutine(DeathBeat());
+        }
+
+        /// <summary>
+        /// The beat between the killing hit and the Leviathan Down card.
+        ///
+        /// Until 30 September 2026 the boss went back to its pool on the frame
+        /// of the hit and the card came up with time stopped, so after ten
+        /// minutes of run the thing fought never visibly died. Now the game
+        /// holds on the hit, then runs at a quarter while blasts run along the
+        /// hull from the emplacements outward and the fire still in the air
+        /// goes out, and a last volley of blasts takes the hull. The card follows
+        /// as before. It runs on the machinery of the ship's own death beat: the
+        /// run is settled from the hit, so nothing hurts the ship and nothing
+        /// pauses, and the music plays on because the ending is a win.
+        /// </summary>
+        private IEnumerator DeathBeat()
+        {
+            float realStart = Time.unscaledTime;
+
+            // The hit itself: all but stopped for an instant.
+            if (killFreeze > 0f)
+            {
+                RunTime.SetEndingSpeed(RunTime.FreezeScale);
+                yield return new WaitForSecondsRealtime(killFreeze);
+                RunTime.SetEndingSpeed(deathBeatSpeed);
+            }
+
+            PutOutHostileFire();
+
+            List<Vector3> points = BlastPoints();
+            GameObject blast = deathExplosion != null ? deathExplosion : EmplacementExplosion();
+
+            // The chain over the next six tenths of what is left, a short
+            // breath, then the last volley and the empty sky until the card.
+            float remaining = Mathf.Max(0f, deathBeatSeconds - (Time.unscaledTime - realStart));
+            float gap = points.Count > 0 ? remaining * 0.6f / points.Count : 0f;
+
+            foreach (Vector3 local in points)
+            {
+                SpawnBlasts(blast, local, 1);
+                if (gap > 0f)
+                {
+                    yield return new WaitForSecondsRealtime(gap);
+                }
+            }
+
+            yield return new WaitForSecondsRealtime(remaining * 0.1f);
+
+            SpawnBlasts(blast, Vector3.zero, 6);
+            Rumble.Pulse(Rumble.Strength.Death);
+            if (GameSounds.Instance != null && GameSounds.Instance.ActEnd != null)
+            {
+                GameSounds.Play(GameSounds.Instance.ActEnd);
+            }
+
+            ShowWreck(false);
+
+            float left = deathBeatSeconds - (Time.unscaledTime - realStart);
+            if (left > 0f)
+            {
+                yield return new WaitForSecondsRealtime(left);
+            }
+
+            dying = false;
             RunOutcome.ReportBossDefeated();
+            ObjectPool.Despawn(gameObject);
+        }
+
+        /// <summary>
+        /// Where the chain goes off, in the boss's own space: the emplacements
+        /// first, then points over the hull, each reaching further from its middle.
+        /// </summary>
+        private List<Vector3> BlastPoints()
+        {
+            var points = new List<Vector3>();
+
+            if (emplacements != null)
+            {
+                foreach (BossWeakPoint pod in emplacements)
+                {
+                    if (pod != null && points.Count < deathBlasts)
+                    {
+                        points.Add(transform.InverseTransformPoint(pod.transform.position));
+                    }
+                }
+            }
+
+            Bounds hull = HullBounds();
+            int more = Mathf.Max(0, deathBlasts - points.Count);
+
+            for (int i = 0; i < more; i++)
+            {
+                float reach = (i + 1f) / more;
+                Vector3 offset = new Vector3(
+                    Random.Range(-0.5f, 0.5f) * hull.size.x * reach,
+                    Random.Range(-0.5f, 0.5f) * hull.size.y * reach,
+                    Random.Range(-0.5f, 0.5f) * hull.size.z * reach);
+                points.Add(transform.InverseTransformPoint(hull.center + offset));
+            }
+
+            return points;
+        }
+
+        /// <summary>The hull's drawn extent in world space, or a unit box at the boss when nothing is drawn.</summary>
+        private Bounds HullBounds()
+        {
+            Renderer[] parts = hullModel != null
+                ? hullModel.GetComponentsInChildren<Renderer>()
+                : GetComponentsInChildren<Renderer>();
+
+            bool any = false;
+            Bounds bounds = new Bounds(transform.position, Vector3.one);
+
+            foreach (Renderer part in parts)
+            {
+                if (!part.enabled || part is ParticleSystemRenderer)
+                {
+                    continue;
+                }
+
+                if (any)
+                {
+                    bounds.Encapsulate(part.bounds);
+                }
+                else
+                {
+                    bounds = part.bounds;
+                    any = true;
+                }
+            }
+
+            return bounds;
+        }
+
+        private GameObject EmplacementExplosion()
+        {
+            if (emplacements != null)
+            {
+                foreach (BossWeakPoint pod in emplacements)
+                {
+                    if (pod != null && pod.Explosion != null)
+                    {
+                        return pod.Explosion;
+                    }
+                }
+            }
+
+            return hullSpark;
+        }
+
+        /// <summary>
+        /// One blast at <paramref name="local"/>, in the boss's space, and
+        /// <paramref name="count"/> less one more around it across the hull.
+        /// </summary>
+        private void SpawnBlasts(GameObject blast, Vector3 local, int count)
+        {
+            if (blast == null)
+            {
+                return;
+            }
+
+            Vector3 centre = transform.TransformPoint(local);
+            Vector3 size = HullBounds().size;
+
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 at = i == 0
+                    ? centre
+                    : centre + new Vector3(
+                        Random.Range(-0.35f, 0.35f) * size.x,
+                        Random.Range(-0.35f, 0.35f) * size.y,
+                        Random.Range(-0.35f, 0.35f) * size.z);
+
+                ObjectPool.Spawn(blast, at, Random.rotation);
+            }
+        }
+
+        /// <summary>
+        /// Takes every hostile round out of the air, the waves' as well as the
+        /// boss's: the fight is won, and fire still flying would read as it
+        /// going on. Pooled rounds go back to their pool; the few the waves'
+        /// guns still make with Instantiate are destroyed.
+        /// </summary>
+        private static void PutOutHostileFire()
+        {
+            foreach (GameObject round in GameObject.FindGameObjectsWithTag(HostileFireTag))
+            {
+                PooledInstance pooled = round.GetComponentInParent<PooledInstance>();
+
+                if (pooled != null)
+                {
+                    ObjectPool.Despawn(pooled.gameObject);
+                }
+                else
+                {
+                    Destroy(round);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Switches off everything the boss draws and every light on it once the
+        /// last blast has taken the hull, and on the next spawn switches back on
+        /// exactly what that switched off.
+        /// </summary>
+        private void ShowWreck(bool visible)
+        {
+            if (visible)
+            {
+                foreach (Renderer part in hiddenParts)
+                {
+                    if (part != null) { part.enabled = true; }
+                }
+
+                foreach (Behaviour lamp in hiddenLights)
+                {
+                    if (lamp != null) { lamp.enabled = true; }
+                }
+
+                hiddenParts.Clear();
+                hiddenLights.Clear();
+                return;
+            }
+
+            foreach (Renderer part in GetComponentsInChildren<Renderer>())
+            {
+                if (part.enabled && !(part is ParticleSystemRenderer))
+                {
+                    part.enabled = false;
+                    hiddenParts.Add(part);
+                }
+            }
+
+            foreach (Light lamp in GetComponentsInChildren<Light>())
+            {
+                if (lamp.enabled)
+                {
+                    lamp.enabled = false;
+                    hiddenLights.Add(lamp);
+                }
+            }
         }
     }
 }

@@ -74,7 +74,10 @@ namespace SurvivalChaos.EditorTools
                     panelMaterial, HoloUiFactory.OptionsPanelSize, null, HoloUiFactory.Edge);
             }
 
-            GameObject paused = BuildPause(root.transform, panelMaterial, mainMenu, pause);
+            GameObject abandon = BuildAbandon(root.transform, panelMaterial, mainMenu);
+            GameObject paused = BuildPause(root.transform, panelMaterial, pause, abandon.GetComponent<AbandonRun>());
+            // No and B come back here.
+            HoloUiFactory.Assign(abandon.GetComponent<MenuScreen>(), "previous", paused.GetComponent<MenuScreen>());
             OptionsTabs options = HoloUiFactory.BuildOptionsTabs(tabs, panelMaterial, barMaterial, paused);
             WireOptions(paused, options);
             GameObject death = BuildOutcome(root.transform, panelMaterial, mainMenu,
@@ -201,40 +204,112 @@ namespace SurvivalChaos.EditorTools
         }
 
         private static Button AddButton(Transform panel, Material panelMaterial, string name,
-            string label, int row)
+            string label, int row, float firstRow = -150f)
         {
             return HoloUiFactory.CreateButton(panel, name, new Vector2(0.5f, 1f), Centre,
-                new Vector2(0f, -150f - row * ButtonStep), ButtonSize, panelMaterial, label, 24f);
+                new Vector2(0f, firstRow - row * ButtonStep), ButtonSize, panelMaterial, label, 24f);
         }
+
+        /// <summary>
+        /// Where the buttons start on a screen with a line under its title: far
+        /// enough down that the line has its own room between the two.
+        /// </summary>
+        private const float FirstRowUnderALine = -186f;
+
+        /// <summary>The line under a title, clear of the title's capitals and of the first button.</summary>
+        private const float LineUnderTitle = -112f;
 
         /// <summary>
         /// The pause screen. Its Options button is wired afterwards by
         /// <see cref="WireOptions"/>, because the tabs it opens need this screen
         /// to exist first, for their Back buttons.
+        ///
+        /// Since 30 September 2026 it has Restart, and Restart, Main Menu and
+        /// Quit ask first (<see cref="AbandonRun"/>). Under the buttons is the
+        /// run so far, written by the end card's own <see cref="RunSummary"/>,
+        /// and under the title a line that shows only when a pad going away is
+        /// what paused the game.
         /// </summary>
         private static GameObject BuildPause(Transform parent, Material panelMaterial,
-            MainMenu mainMenu, PauseMenu pause)
+            PauseMenu pause, AbandonRun abandon)
         {
             GameObject screen = BuildScreen(parent, "Pause Screen", panelMaterial,
-                new Vector2(560f, 560f), "Paused", HoloUiFactory.Edge);
+                new Vector2(620f, 780f), "Paused", HoloUiFactory.Edge);
             Transform panel = PanelOf(screen);
 
-            Button resume = AddButton(panel, panelMaterial, "Resume", "Resume", 0);
+            TextMeshProUGUI notice = HoloUiFactory.CreateText(panel, "Pause Notice", new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, LineUnderTitle), new Vector2(560f, 28f), 20f,
+                TextAlignmentOptions.Center);
+            notice.text = "Controller disconnected";
+            notice.color = HoloUiFactory.Loss;
+            notice.raycastTarget = false;
+            notice.gameObject.SetActive(false);
+            if (pause != null)
+            {
+                HoloUiFactory.Assign(pause, "pauseNotice", notice.gameObject);
+            }
+
+            Button resume = AddButton(panel, panelMaterial, "Resume", "Resume", 0, FirstRowUnderALine);
             if (pause != null)
             {
                 UnityEventTools.AddVoidPersistentListener(resume.onClick, new UnityAction(pause.Resume));
             }
 
-            AddButton(panel, panelMaterial, "Options", "Options", 1);
+            AddButton(panel, panelMaterial, "Options", "Options", 1, FirstRowUnderALine);
 
-            Button toMenu = AddButton(panel, panelMaterial, "Main Menu", "Main Menu", 2);
-            UnityEventTools.AddVoidPersistentListener(toMenu.onClick, new UnityAction(mainMenu.MenuPrincipal));
+            Button restart = AddButton(panel, panelMaterial, "Restart", "Restart", 2, FirstRowUnderALine);
+            UnityEventTools.AddVoidPersistentListener(restart.onClick, new UnityAction(abandon.AskRestart));
 
-            Button quit = AddButton(panel, panelMaterial, "Quit", "Quit", 3);
-            UnityEventTools.AddVoidPersistentListener(quit.onClick, new UnityAction(mainMenu.Sair));
+            Button toMenu = AddButton(panel, panelMaterial, "Main Menu", "Main Menu", 3, FirstRowUnderALine);
+            UnityEventTools.AddVoidPersistentListener(toMenu.onClick, new UnityAction(abandon.AskMainMenu));
+
+            Button quit = AddButton(panel, panelMaterial, "Quit", "Quit", 4, FirstRowUnderALine);
+            UnityEventTools.AddVoidPersistentListener(quit.onClick, new UnityAction(abandon.AskQuit));
+
+            // The run so far. Filled each time the screen opens.
+            TextMeshProUGUI summary = HoloUiFactory.CreateText(panel, "Run Summary", new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 1f), new Vector2(0f, -602f), new Vector2(560f, 150f), 18f,
+                TextAlignmentOptions.Top);
+            summary.enableAutoSizing = true;
+            summary.fontSizeMin = 14f;
+            summary.fontSizeMax = 18f;
+            summary.textWrappingMode = TextWrappingModes.Normal;
+            summary.raycastTarget = false;
+
+            RunSummary runSummary = Undo.AddComponent<RunSummary>(screen);
+            HoloUiFactory.Assign(runSummary, "target", summary);
 
             // Which build this is, so a screenshot of a paused run says so.
             HoloUiFactory.AddBuildStamp(screen.transform);
+
+            return screen;
+        }
+
+        /// <summary>
+        /// The question before a run is thrown away. No comes first, so it is
+        /// what is selected, and what a second press of A lands on.
+        /// </summary>
+        private static GameObject BuildAbandon(Transform parent, Material panelMaterial, MainMenu mainMenu)
+        {
+            GameObject screen = BuildScreen(parent, "Abandon Screen", panelMaterial,
+                new Vector2(620f, 360f), "Abandon this run?", HoloUiFactory.Loss);
+            Transform panel = PanelOf(screen);
+
+            TextMeshProUGUI consequence = HoloUiFactory.CreateText(panel, "Consequence", new Vector2(0.5f, 1f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, LineUnderTitle), new Vector2(560f, 28f), 20f,
+                TextAlignmentOptions.Center);
+            consequence.text = "This run is lost.";
+            consequence.raycastTarget = false;
+
+            AbandonRun abandon = Undo.AddComponent<AbandonRun>(screen);
+            HoloUiFactory.Assign(abandon, "mainMenu", mainMenu);
+            HoloUiFactory.Assign(abandon, "consequence", consequence);
+
+            Button no = AddButton(panel, panelMaterial, "No", "No, keep playing", 0, FirstRowUnderALine);
+            UnityEventTools.AddVoidPersistentListener(no.onClick, new UnityAction(abandon.Cancel));
+
+            Button yes = AddButton(panel, panelMaterial, "Yes", "Yes", 1, FirstRowUnderALine);
+            UnityEventTools.AddVoidPersistentListener(yes.onClick, new UnityAction(abandon.Confirm));
 
             return screen;
         }

@@ -20392,7 +20392,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 0.162
+  m_Volume: 0.2066
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -20508,6 +20508,11 @@ MonoBehaviour:
   pausedCutoff: 1000
   slowMoPitchDip: 0.08
   response: 6
+  fadeInSeconds: 1
+  bossTrack: {fileID: 0}
+  bossLoopStart: 17.313
+  bossLoopEnd: 111.599
+  bossCrossfade: 3
 --- !u!1 &1182114551
 GameObject:
   m_ObjectHideFlags: 0
@@ -32060,7 +32065,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "DEVELOPMENT TEAM\n\nSamuel Silva | Game Design | abruel.anima@gmail.com\nLucca To\xE9 | Tech Art | lucca3Dev@outlook.com\nMaria Fernanda | Game Artist | fernanda783maria@gmail.com\nIan Barbosa | Main Programmer | ian.wb1@hotmail.com\nFabr\xEDcio Frade | UI Programmer | fabriciofrade22@gmail.com\nLuis Rocha | Programmer | nozomi.gdev@gmail.com"
+  m_text: "DEVELOPMENT TEAM\n\nSamuel Silva | Game Design\nLucca To\xE9 | Tech Art\nMaria Fernanda | Game Artist\nIan Barbosa | Main Programmer\nFabr\xEDcio Frade | UI Programmer\nLuis Rocha | Programmer"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0fb93a97284033948a5b10590292f598, type: 2}
   m_sharedMaterial: {fileID: -4361812200676605057, guid: 0fb93a97284033948a5b10590292f598, type: 2}

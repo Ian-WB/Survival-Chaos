@@ -1,6 +1,7 @@
 Survival Chaos - third-party notices
 
-Survival Chaos includes software and fonts by others. Their notices follow.
+Survival Chaos includes software, fonts and music by others. Their notices
+follow.
 
 ------------------------------------------------------------------------
 AMD FidelityFX Super Resolution
@@ -41,6 +42,21 @@ Learning Super Sampling), supplied with the Unity engine as nvngx_dlss.dll.
 Copyright 2018 - 2024 NVIDIA Corporation. NVIDIA and DLSS are trademarks
 and/or registered trademarks of NVIDIA Corporation in the U.S. and other
 countries.
+
+------------------------------------------------------------------------
+Music
+------------------------------------------------------------------------
+
+All three tracks are by Adiutorium, from OpenGameArt.org, and are
+dedicated to the public domain under CC0 1.0. No credit is required; the
+composer asks for it if you can, so here it is.
+
+Darbuka Delight (the title screen)
+  https://opengameart.org/content/darbuka-delight
+Chase (a run)
+  https://opengameart.org/content/chase-2
+Neon Hyperdrive (the Leviathan)
+  https://opengameart.org/content/neon-hyperdrive
 
 ------------------------------------------------------------------------
 Fonts: Chakra Petch and Liberation Sans

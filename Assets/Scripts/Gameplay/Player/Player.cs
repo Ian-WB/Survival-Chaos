@@ -237,7 +237,7 @@ namespace SurvivalChaos
 
             if (other.CompareTag("enemy_Shoot"))
             {
-                TakeHit(spawnHitEffect: true);
+                TakeHit(spawnHitEffect: true, DamageSource.OfRound(other.gameObject));
 
                 // A torpedo goes off when it hits. Plain rounds fly on through,
                 // which is harmless for a round that never comes back; a torpedo
@@ -254,12 +254,14 @@ namespace SurvivalChaos
                 // destroying one leaves a dead entry in its bucket for the pool to
                 // trip over and discard later. Ramming still kills it silently - no
                 // reward, no explosion - which is the existing behaviour.
+                // Named before it goes back to the pool.
+                string rammed = DamageSource.OfRam(other.gameObject);
                 ObjectPool.Despawn(other.gameObject);
-                TakeHit(spawnHitEffect: true);
+                TakeHit(spawnHitEffect: true, rammed);
             }
             else if (other.CompareTag("Boss"))
             {
-                TakeHit(spawnHitEffect: false);
+                TakeHit(spawnHitEffect: false, DamageSource.OfBoss(other.gameObject));
             }
         }
 
@@ -271,6 +273,13 @@ namespace SurvivalChaos
         /// on this component, so there is no way to leave it on for a real run.
         /// </summary>
         public bool Invulnerable { get; set; }
+
+        /// <summary>
+        /// What the last hit that cost a hit point came from, in the card's words
+        /// (see <see cref="DamageSource"/>). Null before the first. The playtest
+        /// bot reads it to say what hit it.
+        /// </summary>
+        public string LastHitBy { get; private set; }
 
         [SerializeField]
         [Tooltip("The dash, whose burst carries invincibility. Found on this object when left empty.")]
@@ -309,10 +318,10 @@ namespace SurvivalChaos
                 return;
             }
 
-            TakeHit(spawnHitEffect: true);
+            TakeHit(spawnHitEffect: true, DamageSource.LeviathanLance);
         }
 
-        private void TakeHit(bool spawnHitEffect)
+        private void TakeHit(bool spawnHitEffect, string source)
         {
             // The run is over, won or lost, and the first ending stands. Stopping
             // time does not stop the physics step the ending happened in: hits
@@ -361,6 +370,12 @@ namespace SurvivalChaos
             }
 
             bool killed = health.TakeDamage(1);
+            LastHitBy = source;
+
+            if (killed)
+            {
+                RunStats.RecordKiller(source);
+            }
 
             if (spawnHitEffect)
             {

@@ -168,7 +168,11 @@ namespace SurvivalChaos
         /// was being read as fact. Music was therefore the loudest thing in the
         /// game by about nine decibels, with every effect fighting underneath it,
         /// and no amount of work on the effects' own levels could have fixed
-        /// that. It is 0.12 in Game and 0.162 in Menu now.
+        /// that. It was 0.12 in Game and 0.162 in Menu until 30 September 2026,
+        /// and is 0.1537 and 0.2066 since. The new run track is 3.1 dB quieter
+        /// than the one it replaced and the menu's asset came down 2.1 dB to
+        /// match the other tracks, so both scenes went up by as much and nothing
+        /// sounds louder or quieter than it did.
         ///
         /// The lesson is the note, not the number: this comment described a value
         /// living in two scene files that nothing here can see. If it drifts

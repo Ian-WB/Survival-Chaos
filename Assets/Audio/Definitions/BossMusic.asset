@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b86e35fd0cfc754fbcaf5e8608dd919, type: 3}
-  m_Name: MenuMusic
+  m_Name: BossMusic
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 009346d2b0edb6948b244035dd43ff8f, type: 3}
+  - {fileID: 8300000, guid: a4d419b4a5e2cdf4c9580c006cac52e4, type: 3}
   channel: 1
-  volume: 0.7843
+  volume: 0.9829
   pitchRange: {x: 0.94, y: 1.06}
   minRetrigger: 0.05
   maxVoices: 4

@@ -54,6 +54,9 @@ namespace SurvivalChaos
         [Tooltip("Played once, here, when this emplacement is destroyed.")]
         private GameObject explosion;
 
+        /// <summary>This emplacement's blast, which the boss's death beat borrows for its hull.</summary>
+        public GameObject Explosion => explosion;
+
         [SerializeField]
         [Tooltip("The visible pod. Scaled up during a telegraph and hidden once wrecked. Kept " +
                  "separate from this object so the swell cannot quietly resize the collider " +

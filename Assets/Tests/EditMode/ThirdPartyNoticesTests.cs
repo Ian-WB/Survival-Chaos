@@ -53,5 +53,19 @@ namespace SurvivalChaos.Tests
         {
             StringAssert.Contains("NVIDIA and DLSS are trademarks", Notices());
         }
+
+        /// <summary>
+        /// CC0, so nothing requires it, but the composer asks for credit where
+        /// it can be given, and this file ships beside every build.
+        /// </summary>
+        [Test]
+        public void EveryMusicTrackIsCredited()
+        {
+            string text = Notices();
+            StringAssert.Contains("Adiutorium", text);
+            StringAssert.Contains("opengameart.org/content/darbuka-delight", text);
+            StringAssert.Contains("opengameart.org/content/chase-2", text);
+            StringAssert.Contains("opengameart.org/content/neon-hyperdrive", text);
+        }
     }
 }

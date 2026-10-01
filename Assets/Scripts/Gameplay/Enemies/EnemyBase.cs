@@ -37,6 +37,9 @@ namespace SurvivalChaos
         [Tooltip("Stats for this enemy. Falls back to the health value below when unset.")]
         private EnemyDefinition definition;
 
+        /// <summary>This enemy's stats and name, for the Ship Lost card's "ramming a Scout".</summary>
+        public EnemyDefinition Definition => definition;
+
         [SerializeField]
         private int healthPoints = 1;
 

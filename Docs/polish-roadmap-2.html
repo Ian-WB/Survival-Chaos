@@ -1,0 +1,516 @@
+<title>Survival Chaos — Polish Roadmap 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* A sibling of the open list: the same faces and a cool-biased neutral, with a
+     holo blue-teal as the accent where the open list uses burnt orange.
+     One column; the numbered items are the thing replied to, so the numbers
+     carry weight, and the answer on each is a chip you can read at a glance. */
+  :root {
+    --ground:   #F4F7F7;
+    --surface:  #FFFFFF;
+    --sunk:     #EAF0F1;
+    --line:     #D9E1E3;
+    --line-2:   #C3CED1;
+    --ink:      #121819;
+    --ink-2:    #55636A;
+    --ink-3:    #86939A;
+    --accent:   #19677F;
+    --accent-b: #19677F14;
+    --yes:      #3D6B49;
+    --yes-b:    #3D6B4916;
+    --later:    #8A5E0E;
+    --later-b:  #8A5E0E16;
+    --no:       #66737A;
+    --no-b:     #66737A16;
+    --shadow:   0 1px 2px #0E181A0F, 0 10px 28px -20px #0E181A40;
+    --display:  "Bricolage Grotesque", "Segoe UI Semibold", system-ui, sans-serif;
+    --body:     "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --mono:     "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0E1314;
+      --surface:  #161C1E;
+      --sunk:     #1C2427;
+      --line:     #283134;
+      --line-2:   #3A464A;
+      --ink:      #E6EDEF;
+      --ink-2:    #9BA7AC;
+      --ink-3:    #6C787D;
+      --accent:   #62C4E2;
+      --accent-b: #62C4E21C;
+      --yes:      #7DB98C;
+      --yes-b:    #7DB98C1E;
+      --later:    #E2B356;
+      --later-b:  #E2B3561C;
+      --no:       #9AA6AB;
+      --no-b:     #9AA6AB1A;
+      --shadow:   0 1px 0 #FFFFFF08 inset, 0 14px 34px -24px #000000CC;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0E1314;
+    --surface:  #161C1E;
+    --sunk:     #1C2427;
+    --line:     #283134;
+    --line-2:   #3A464A;
+    --ink:      #E6EDEF;
+    --ink-2:    #9BA7AC;
+    --ink-3:    #6C787D;
+    --accent:   #62C4E2;
+    --accent-b: #62C4E21C;
+    --yes:      #7DB98C;
+    --yes-b:    #7DB98C1E;
+    --later:    #E2B356;
+    --later-b:  #E2B3561C;
+    --no:       #9AA6AB;
+    --no-b:     #9AA6AB1A;
+    --shadow:   0 1px 0 #FFFFFF08 inset, 0 14px 34px -24px #000000CC;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.58;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding-inline: clamp(1rem, 4vw, 2rem);
+    padding-block: clamp(1.6rem, 5vw, 3.4rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.6rem;
+  }
+
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+  code { background: var(--sunk); padding: 0.08em 0.36em; border-radius: 4px; overflow-wrap: anywhere; }
+
+  a { color: var(--accent); text-underline-offset: 0.18em; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+  /* Header */
+  header { display: flex; flex-direction: column; gap: 0.8rem; }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .lede { margin: 0; font-size: 1.08rem; color: var(--ink-2); max-width: 40rem; }
+  .how {
+    margin: 0.3rem 0 0;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--line-2);
+    background: var(--sunk);
+    border-radius: 0 6px 6px 0;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+  }
+  .how strong { color: var(--ink); }
+
+  /* The gate: the one lifted object on the page */
+  .gate {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.2rem 1.3rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .gate .kicker { color: var(--accent); }
+  .gate h2 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; }
+  .gate p { margin: 0; color: var(--ink-2); }
+  .gate ul { margin: 0.1rem 0 0; padding-left: 1.2rem; color: var(--ink-2); display: grid; gap: 0.15rem; }
+
+  /* At a glance */
+  .glance h2, .phase > h2, .aside h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+  .glance { display: flex; flex-direction: column; gap: 0.9rem; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.93rem; min-width: 34rem; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+  th {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: var(--sunk);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr.split td { border-top: 2px solid var(--line-2); }
+  td.n { font-family: var(--mono); color: var(--ink-3); width: 2.6rem; font-variant-numeric: tabular-nums; }
+  td.t { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td a { color: var(--ink); text-decoration: none; }
+  td a:hover { color: var(--accent); text-decoration: underline; }
+  td.ph { color: var(--ink-3); font-size: 0.85rem; white-space: nowrap; }
+
+  /* Answer chips: semantic, separate from the accent */
+  .ans {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.14rem 0.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .ans.yes   { color: var(--yes);   background: var(--yes-b);   box-shadow: inset 0 0 0 1px var(--yes); }
+  .ans.later { color: var(--later); background: var(--later-b); box-shadow: inset 0 0 0 1px var(--later); }
+  .ans.no    { color: var(--no);    background: var(--no-b);    box-shadow: inset 0 0 0 1px var(--no); }
+
+  /* Phases and items */
+  .phase { display: flex; flex-direction: column; gap: 0.2rem; }
+  .phase-head { display: flex; flex-direction: column; gap: 0.35rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--line-2); }
+  .phase-head p { margin: 0; color: var(--ink-2); max-width: 40rem; }
+  .phase-head .kicker { color: var(--accent); }
+
+  .item {
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+    gap: 0 1rem;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: 1rem;
+  }
+  .item:target { background: linear-gradient(90deg, var(--accent-b), transparent 70%); }
+  .num {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.9rem;
+    line-height: 1;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.1rem;
+  }
+  .body { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+  .item h3 { font-size: 1.14rem; font-weight: 700; line-height: 1.3; letter-spacing: -0.005em; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.8rem; font-size: 0.86rem; color: var(--ink-3); }
+  .meta .t { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-2); }
+  .meta .who::before { content: "·"; margin-right: 0.8rem; color: var(--line-2); }
+  .meta .t::before { content: "·"; margin-right: 0.8rem; color: var(--line-2); }
+
+  .part { display: grid; grid-template-columns: 5.4rem minmax(0, 1fr); gap: 0 0.8rem; }
+  .part > .lab {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: 0.28rem;
+  }
+  .part > div p { margin: 0 0 0.45rem; }
+  .part > div p:last-child { margin-bottom: 0; }
+  .part > div ul { margin: 0.2rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.2rem; }
+  .part.dial > div { color: var(--ink-2); }
+
+  /* Ship plan and the asides */
+  .ship ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.6rem; }
+  .ship ol li::marker { font-family: var(--mono); color: var(--ink-3); }
+  .ship p, .aside p { margin: 0; color: var(--ink-2); }
+  .aside { display: flex; flex-direction: column; gap: 0.8rem; }
+  .aside ul { margin: 0; padding-left: 1.2rem; color: var(--ink-2); display: grid; gap: 0.35rem; }
+  .aside strong, .ship strong { color: var(--ink); }
+
+  footer { color: var(--ink-3); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+  @media (max-width: 34rem) {
+    .item { grid-template-columns: minmax(0, 1fr); gap: 0.3rem; }
+    .num { font-size: 1.4rem; }
+    .part { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; }
+    .part > .lab { padding-top: 0; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Survival Chaos · 30 September 2026 · at <span class="mono">af3b2c7</span></div>
+    <h1>Polish Roadmap 2</h1>
+    <p class="lede">Sixteen more things that would make a run feel finished. I found them by reading the game after the first pass, and measured one of them in play with the bot. None is a bug fix, and none repeats the first roadmap or something you’ve already decided against.</p>
+    <p class="how"><strong>Answered on 30 September:</strong> 17, 19 and 21 to 26 yes, built the same day and checked in play; 18 and 20 no. 27 to 32 are still open: reply with numbers, or “your picks” for the ones marked Yes. The numbers carry on from the first roadmap, which was 1 to 16. Everything answered is tracked on the open list.</p>
+  </header>
+
+  <section class="gate" aria-labelledby="gate-title">
+    <div class="kicker">Still open from the first pass</div>
+    <h2 id="gate-title">One answer carries over</h2>
+    <ul>
+      <li><strong>Did a pad rumble in your hand?</strong> It’s the one polish item still open on the open list. One word settles it.</li>
+      <li><strong>The Leviathan’s own track (15) is done.</strong> You let me choose on 30 September: it fights to “Neon Hyperdrive”, which takes over from the run’s track as it arrives, and the run plays “Chase” instead of the untraced track. Both are by the title music’s composer, and both are on the open list.</li>
+    </ul>
+    <p>It holds nothing up here.</p>
+  </section>
+
+  <section class="glance" aria-labelledby="glance-title">
+    <h2 id="glance-title">At a glance</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Item</th><th>Group</th><th>My pick</th><th>My time</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="n">17</td><td><a href="#i17">Let the Leviathan die on screen</a></td><td class="ph">Moments</td><td><span class="ans yes">Yes</span></td><td class="t">3 h</td></tr>
+          <tr><td class="n">18</td><td><a href="#i18">A ship you ram goes up</a></td><td class="ph">Moments</td><td><span class="ans yes">Yes</span></td><td class="t">30 min</td></tr>
+          <tr><td class="n">19</td><td><a href="#i19">Let enemies arrive rather than appear</a></td><td class="ph">Moments</td><td><span class="ans yes">Yes</span></td><td class="t">2–3 h</td></tr>
+          <tr><td class="n">20</td><td><a href="#i20">A moment’s grace after a hit</a></td><td class="ph">Moments</td><td><span class="ans yes">Yes</span></td><td class="t">1.5 h</td></tr>
+          <tr class="split"><td class="n">21</td><td><a href="#i21">Restart on the pause screen, and a check before abandoning a run</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">2 h</td></tr>
+          <tr><td class="n">22</td><td><a href="#i22">Stop a dash press from skipping the end card</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">45 min</td></tr>
+          <tr><td class="n">23</td><td><a href="#i23">Fade the music across a load</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">1 h</td></tr>
+          <tr><td class="n">24</td><td><a href="#i24">Pause when the pad is unplugged</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">45 min</td></tr>
+          <tr><td class="n">25</td><td><a href="#i25">Show the run so far on the pause screen</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">1 h</td></tr>
+          <tr><td class="n">26</td><td><a href="#i26">Say what ended the run</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">2–3 h</td></tr>
+          <tr><td class="n">27</td><td><a href="#i27">A tip on the loading screen</a></td><td class="ph">Between runs</td><td><span class="ans later">Later</span></td><td class="t">1 h</td></tr>
+          <tr><td class="n">28</td><td><a href="#i28">Hear the level as you set it</a></td><td class="ph">Between runs</td><td><span class="ans yes">Yes</span></td><td class="t">30 min</td></tr>
+          <tr class="split"><td class="n">29</td><td><a href="#i29">Give the game an icon</a></td><td class="ph">Shipping</td><td><span class="ans yes">Yes</span></td><td class="t">1.5 h</td></tr>
+          <tr><td class="n">30</td><td><a href="#i30">Credits that cover the rebuild</a></td><td class="ph">Shipping</td><td><span class="ans yes">Yes</span></td><td class="t">2 h</td></tr>
+          <tr><td class="n">31</td><td><a href="#i31">A screenshot key</a></td><td class="ph">Shipping</td><td><span class="ans yes">Yes</span></td><td class="t">45 min</td></tr>
+          <tr><td class="n">32</td><td><a href="#i32">Look for first-time stutters</a></td><td class="ph">Shipping</td><td><span class="ans yes">Yes, measure</span></td><td class="t">30 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─────────────── Moments ─────────────── -->
+  <section class="phase" aria-labelledby="p1">
+    <div class="phase-head">
+      <div class="kicker">Moments · change how a run plays · about a day of mine</div>
+      <h2 id="p1">Endings and arrivals</h2>
+      <p>The first pass gave losing a beat, the Leviathan a horn, and its parts a freeze. These four cover what it left: winning, ramming, the way enemies turn up, and the hit that lands twice. Each one names the number to turn if it’s wrong.</p>
+    </div>
+
+    <article class="item" id="i17">
+      <div class="num">17</div>
+      <div class="body">
+        <h3>Let the Leviathan die on screen</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">3 h</span><span class="who">you judge the length</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The killing hit sends the boss back to its pool on that frame. Its death sound plays, the Leviathan Down card goes up, and time stops. After a ten-minute run, the thing you fought never visibly dies. Item 8 gave losing a beat; winning still has none.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>About 2.5 seconds between the kill and the card:</p><ul><li>A 0.15 s freeze on the killing hit.</li><li>Time drops to a quarter while explosions run along the hull, from the emplacements outward.</li><li>The rounds still in the air go out, and one large blast takes the hull.</li><li>Then the card comes up as it does now.</li></ul><p>It runs on the death beat’s machinery, so nothing can hurt the ship or pause the game while it plays.</p></div></div>
+        <div class="part dial"><span class="lab">The dial</span><div><p>The 2.5 seconds.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i18">
+      <div class="num">18</div>
+      <div class="body">
+        <h3>A ship you ram goes up</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">30 min</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>Flying into an enemy costs you a hit point, and the enemy is taken off the ring on the spot, with no explosion and no death sound. It looks as if it passed through you and vanished.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>It explodes, with its own death sound. Ramming still earns nothing and doesn’t count as a kill; that part is deliberate and stays.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i19">
+      <div class="num">19</div>
+      <div class="body">
+        <h3>Let enemies arrive rather than appear</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">2–3 h</span><span class="who">you judge the look</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>Each enemy is put down at full size on the frame it spawns, on a random bearing anywhere round the ring. Nothing keeps a spawn away from your ship.</p></div></div>
+        <div class="part"><span class="lab">Measured</span><div><p>Today, with the bot flying for two and a half minutes: 57 of 85 enemies were already in the camera’s view on the frame they spawned. Most were across the arena, but 4 appeared within 8 units of the ship, one of them 3.9 units away.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>A short arrival, about 0.4 s: a flash, and the ship grows in from nothing. It can’t hurt you or be hit until it’s in. Spawns also skip the stretch of ring about 30° either side of your ship, so nothing arrives on top of you. How many enemies come, and when, doesn’t change.</p></div></div>
+        <div class="part dial"><span class="lab">The dials</span><div><p>The 0.4 s, and the 30°.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i20">
+      <div class="num">20</div>
+      <div class="body">
+        <h3>Give the ship a moment’s grace after a hit</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">1.5 h</span><span class="who">you judge the length</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>Apart from the dash and the Deflector, nothing protects the ship. Straight after a hit, the next round lands as hard as the first, so two rounds from one volley can take two hit points in the same instant.</p></div></div>
+        <div class="part"><span class="lab">Measured</span><div><p>Across the bot’s 50 logged runs, 701 hits: 61 of them took more than one hit point at once, and 85 more landed within a quarter of a second of the hit before. The bot dodges worse than you do, so you’ll meet this less often, but the volleys are the same.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>After a hit, the ship blinks and can’t be hurt for half a second. It makes the game a little easier, which is why it’s your call and not a fix. The dash and the Deflector stay as they are.</p></div></div>
+        <div class="part dial"><span class="lab">The dial</span><div><p>The half second.</p></div></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ─────────────── Between runs ─────────────── -->
+  <section class="phase" aria-labelledby="p2">
+    <div class="phase-head">
+      <div class="kicker">Between runs · no change to how a run plays · about a day of mine</div>
+      <h2 id="p2">Menus, loads and the end card</h2>
+      <p>Nothing here changes how a run plays. It covers the moments around a run: pausing, dying, restarting, loading, and the settings.</p>
+    </div>
+
+    <article class="item" id="i21">
+      <div class="num">21</div>
+      <div class="body">
+        <h3>Put Restart on the pause screen, and check before abandoning a run</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">2 h</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The pause screen has Resume, Options, Main Menu and Quit. One press of Main Menu or Quit ends a run of up to ten minutes, and Quit closes the game outright. There’s no Restart, so starting over means dying or going through the title screen.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>Restart goes between Options and Main Menu. Restart, Main Menu and Quit each ask “Abandon this run?”, with No selected. The death and victory cards don’t ask, because the run is already over there.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i22">
+      <div class="num">22</div>
+      <div class="body">
+        <h3>Stop a dash press from skipping the end card</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">45 min</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>On a pad, A is dash, and A also presses whichever menu button is selected. Both end cards open with Try Again selected. So an A pressed just as the card comes up, which is the reflex when a hit is coming, starts a new run before you’ve read the card, and a NEW BEST goes with it.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>For the first 0.6 s the card’s buttons fade in and ignore presses.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i23">
+      <div class="num">23</div>
+      <div class="body">
+        <h3>Fade the music across a load</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">1 h</span><span class="who">you listen</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The title music plays on behind the loading screen until the arena is ready, then stops dead, and the run’s track starts at full volume on the same frame. The same happens in the other direction.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>The old track fades out as the loading screen comes up, and the new one fades in over about a second once the run is on screen.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i24">
+      <div class="num">24</div>
+      <div class="body">
+        <h3>Pause when the pad is unplugged</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">45 min</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The game doesn’t notice a pad going away. If the cable comes out or the battery dies mid-run, the ship stops answering while the waves keep coming.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>If the pad you were using disconnects, the run pauses, as it already does when the window loses focus, and the pause screen says “Controller disconnected”. When the pad comes back, the game stays paused until you resume.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i25">
+      <div class="num">25</div>
+      <div class="body">
+        <h3>Show the run so far on the pause screen</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">1 h</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>Only the end card shows the run’s numbers: time, level, kills, and how often you took each skill. During a run, the only way to see your build is to remember it, and the build is what each offer asks you to think about.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>The pause screen shows the same summary under its buttons. The end card’s code writes it, so the two can’t disagree.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i26">
+      <div class="num">26</div>
+      <div class="body">
+        <h3>Say what ended the run</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">2–3 h</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>Ship Lost says how long you lasted, not what got you. The game doesn’t know either: a hit arrives with no source attached. That’s also why every playtest-bot report says “damage cause unknown”.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>Each hit carries its source: a Fighter’s round, a Heavy’s, a torpedo, the lance, the curtain, ramming a Scout, the Leviathan’s hull. The card’s first line becomes “Lost to a Leviathan torpedo”. The bot logs the source of every hit, so the next balance question comes with data.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i27">
+      <div class="num">27</div>
+      <div class="body">
+        <h3>A tip on the loading screen</h3>
+        <div class="meta"><span class="ans later">Later</span><span class="t">1 h</span><span class="who">you read the wording</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The hints teach the buttons, not the rules, and some rules aren’t stated anywhere:</p><ul><li>the dash passes through rounds untouched;</li><li>ramming costs a hit point and earns nothing;</li><li>salvage drops more often the more damaged you are;</li><li>the Leviathan’s hull can’t be hurt while its emplacements stand.</li></ul></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>One line under the loading bar, from about ten, never the same twice in a row.</p></div></div>
+        <div class="part dial"><span class="lab">Why later</span><div><p>The loading screen is up for about a second and a half, which is short for reading. It pays off once someone new is playing.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i28">
+      <div class="num">28</div>
+      <div class="body">
+        <h3>Hear the level as you set it</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">30 min</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>Moving Master or Effects in Options makes no sound, so on the title or pause screen you set a level you can’t hear. Music is the exception, because its track is playing (muffled under pause since item 14).</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>Each step of Master or Effects plays a short sound at the new level, no more than one every tenth of a second, so holding the stick doesn’t make a buzz.</p></div></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ─────────────── Shipping ─────────────── -->
+  <section class="phase" aria-labelledby="p3">
+    <div class="phase-head">
+      <div class="kicker">Shipping · no change to how a run plays · half a day of mine</div>
+      <h2 id="p3">Before anyone else plays it</h2>
+      <p>This is what someone opening the folder sees before the game starts, and what either of us needs to talk about a build.</p>
+    </div>
+
+    <article class="item" id="i29">
+      <div class="num">29</div>
+      <div class="body">
+        <h3>Give the game an icon</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">1.5 h</span><span class="who">you pick one of three</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The project sets no icon, so the exe, the taskbar and Alt+Tab all show Unity’s default.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>The game photographs its own art: the ship, the Leviathan, and a pod against the star sky. I make three icons from those, at every size Windows asks for, and you choose one.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i30">
+      <div class="num">30</div>
+      <div class="body">
+        <h3>Update the credits to cover the rebuild</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">2 h</span><span class="who">you fill two gaps</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The Credits screen is the 2023 jam team’s, carried over as it was: six names with their roles and personal email addresses. Nothing from the rebuild is there:</p><ul><li>the three music tracks, credited only in the notices file beside the exe since 30 September;</li><li>the Kenney and Sonniss sounds;</li><li>the Chakra Petch and Liberation Sans fonts;</li><li>AMD FSR and NVIDIA DLSS.</li></ul></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>The team comes first, with names and roles. A second section credits everyone else, from <code>ThirdPartyNotices.txt</code>, the sound packs and the music. The screen scrolls with the stick. It also settles “Decide whether the credits carry NVIDIA’s DLSS attribution” on the open list, by adding the line recommended there.</p></div></div>
+        <div class="part"><span class="lab">The music</span><div><p>Both tracks arrived in the jam’s last commit (“FINAL BUILD”, 25 June 2023, by Krazik01), and you don’t remember where they came from, so I traced them.</p><ul><li><strong>The title music is found.</strong> It’s “Darbuka Delight” by Adiutorium on OpenGameArt, posted on 6 May 2023 as <code>blow_the_day_with_a_darbuka.mp3</code>, the same name and size as ours. It’s CC0: no credit is required, but the author says one “would be highly appreciated”, so the credits name them.</li><li><strong>The run’s track was not found, so it’s been replaced.</strong> <code>track01.ogg</code> carried no name or author, only LMMS’s default tag, and searches found nothing. You let me choose, so the run plays “Chase” and the Leviathan “Neon Hyperdrive”, both by Adiutorium and CC0 too, and <code>track01.ogg</code> is out of the project.</li></ul></div></div>
+        <div class="part dial"><span class="lab">From you</span><div><p>Whether the emails stay. My pick is to take them off, since they’re your teammates’ personal addresses on a screen anyone with the game can read.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i31">
+      <div class="num">31</div>
+      <div class="body">
+        <h3>A screenshot key</h3>
+        <div class="meta"><span class="ans yes">Yes</span><span class="t">45 min</span><span class="who">me</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>The game can’t save a screenshot. I take mine inside the editor, because I don’t capture your desktop, so I’ve never seen a frame from a real build. Yours come through Windows’ own tools, and they don’t record which build they came from.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>F12 saves the frame, HUD included, at full resolution to <code>Pictures\Survival Chaos</code>. The file name carries the build stamp and the time, for example <code>26_0930-0825_polish 8ee1a3a+ 2026-09-30 21.14.07.png</code>. A “Saved” note shows for a second, and it isn’t in the picture. F12 joins the Controls tab.</p></div></div>
+      </div>
+    </article>
+
+    <article class="item" id="i32">
+      <div class="num">32</div>
+      <div class="body">
+        <h3>Look for first-time stutters</h3>
+        <div class="meta"><span class="ans yes">Yes, measure</span><span class="t">30 min, and 2–4 h if found</span><span class="who">your run carries it</span></div>
+        <div class="part"><span class="lab">Today</span><div><p>DirectX 12 has to build a draw state the first time something is drawn. Measured in a build on 29 September, that makes the arena’s first two frames take 0.48 and 0.28 s. The loading screen stays up through them for exactly that reason. Nothing covers the Leviathan’s first frames at ten minutes, or its attacks’ first frames after that. No stutter has been seen yet, which is why this starts as a measurement.</p></div></div>
+        <div class="part"><span class="lab">Change</span><div><p>The next build logs any frame over 50 ms along with what happened on it, so your run finds out. If the Leviathan’s arrival hitches, Unity 6 can record the draw states in one run and build them behind the loading screen.</p></div></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="ship aside" aria-labelledby="ship-title">
+    <h2 id="ship-title">How it would ship</h2>
+    <ol>
+      <li><strong>One build with everything you say yes to.</strong> Last time that worked, because each item named what to watch. The open list’s start-here card gets one line per item. For any you don’t flag, the answer on it stands.</li>
+      <li><strong>Before that build, two things from you:</strong> an icon from three candidates I’ll send (29), whether the emails stay (30), and nothing else unless a dial feels wrong.</li>
+      <li><strong>Your run.</strong> It needs to reach the Leviathan once, for 17 and 32. The debug menu’s Skip to boss is fine for that.</li>
+    </ol>
+  </section>
+
+  <section class="aside" aria-labelledby="decided-title">
+    <h2 id="decided-title">Left out, and why</h2>
+    <ul>
+      <li><strong>A sound on every hit that doesn’t kill.</strong> On 28 September you found the gun loud and repetitive, and this would add to that same stream of sound.</li>
+      <li><strong>Notches on the Leviathan’s bar, one per act.</strong> They’d put the fight’s structure on screen, which is close to the boss HUD you reverted on 8 September.</li>
+      <li><strong>A shape for salvage, not just a colour.</strong> The colour check (7) found salvage against the lava to be the weakest pair (ΔE 16, and 9 under protanopia), but the two didn’t merge. Worth doing only if you lose a piece in a run.</li>
+      <li><strong>Everything the first roadmap left out:</strong> screen shake, phase names on screen, the fireflies, FSR 3 frame generation, and trails behind the rounds. Key rebinding (16) stays parked.</li>
+    </ul>
+    <p>New enemies, new skills, a second boss, difficulty settings and an endless mode are still content, not polish. I can write a content roadmap if you want one.</p>
+  </section>
+
+  <footer>Written on 30 September 2026 from the code at <span class="mono">af3b2c7</span>, with one play-mode measurement the same day. Items you say yes to move onto the open list.</footer>
+</div>

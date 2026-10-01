@@ -66,7 +66,7 @@ namespace SurvivalChaos.Tests
                 }
             }
 
-            Assert.GreaterOrEqual(tracks, 2, "the menu and gameplay tracks were not found");
+            Assert.GreaterOrEqual(tracks, 3, "the menu, run and Leviathan tracks were not all found");
         }
     }
 }

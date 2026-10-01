@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: GameplayMusic
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SoundDefinition
   clips:
-  - {fileID: 8300000, guid: 1d8820c93f33f214e8e29b1c77b7d0ae, type: 3}
+  - {fileID: 8300000, guid: 96f1bd6d7f65e88428e7e877c5d109dd, type: 3}
   channel: 1
-  volume: 0.8943021
+  volume: 1
   pitchRange: {x: 0.94, y: 1.06}
   minRetrigger: 0.05
   maxVoices: 4

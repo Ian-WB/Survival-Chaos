@@ -32,6 +32,7 @@ namespace SurvivalChaos
             {
                 victoryMenuUI.SetActive(true);
                 RunSummary.Show(victoryMenuUI);
+                CardGuard.Hold(victoryMenuUI);
             }
             else
             {
