@@ -287,12 +287,12 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 350 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 375 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>350</b><span>commits</span></div>
-      <div class="stat"><b>523</b><span>tests</span></div>
-      <div class="stat"><b>125</b><span>runtime scripts</span></div>
-      <div class="stat"><b>11</b><span>content assets</span></div>
+      <div class="stat"><b>375</b><span>commits</span></div>
+      <div class="stat"><b>655</b><span>tests</span></div>
+      <div class="stat"><b>148</b><span>runtime scripts</span></div>
+      <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
   </header>
@@ -336,7 +336,7 @@
       <h2>Where the project started</h2>
     </div>
     <p>Survival Chaos was built in 2023 by a five-person team at PUC — the commit history is in Portuguese, and the last activity before the revival was a build handoff in June of that year. It ran on Unity 2021.3 with URP 12.</p>
-    <p>The game is an <strong>orbital survival shooter</strong>. You fly a ship in a circle around a volcanic island floating in space, always facing the centre. Enemies converge from outside and settle into the same circular lane. You survive ten minutes, a boss arrives, and you fight it.</p>
+    <p>The game is an <strong>orbital survival shooter</strong>. You fly a ship in a circle around a volcanic island floating in space, always facing the centre. Enemies converge from outside and settle into the same circular lane. You survive a countdown, a boss arrives, and you fight it. The countdown was five minutes in 2023, ten for most of the rebuild, and is 400 seconds since 1 October.</p>
     <p>That circular structure is the single most important thing to understand about the project — nearly every system is expressed in terms of it, and several of the stranger pieces of code only make sense once you see it.</p>
     <p>Before the rebuild began, the project had already been moved to Unity 6 and URP 17. That migration worked, but it was the only thing that had been done: the code underneath was untouched jam code.</p>
   </section>
@@ -579,7 +579,22 @@
       <li><strong>A frame cap that keeps time</strong> &mdash; every cap the menu offered handed its number to
       Unity&rsquo;s own limiter, which under a 60 cap swung frames between about 6 and 30&nbsp;ms; the game paces
       the cap itself now, with VSync on or off, and hands VSync any cap that is a whole fraction of the refresh.</li>
+      <li><strong>Enemies that keep clear of each other</strong> &mdash; every enemy closes on the ship&rsquo;s bearing and
+      height and nothing kept them apart, so nearly a quarter of the time one was drawn inside another and a group read
+      as one ship taking several rounds; since 1 October two that overlap on screen are eased apart, and a group
+      arrives as a formation.</li>
+      <li><strong>Abilities by name and number</strong> &mdash; an ability&rsquo;s later picks are offered as Dash II, Slow Mo
+      III and the like where they were phrases, and Deflector and Magnet each gained a third level.</li>
+      <li><strong>A late game retuned by hand</strong> &mdash; Attack Speed at 15% a pick and Move Speed at 12%, Slow Mo
+      back every 30, 20 and 10 seconds, rounds that live 0.7&nbsp;s, and a boss of 1000 hit points where it had 600,
+      all of the extra on the open hull.</li>
+      <li><strong>A run of 400 seconds</strong> &mdash; the ten-minute run squeezed to two thirds with its shape kept: every
+      stream&rsquo;s start and ramp step at two thirds of what they were, and experience worth half as much again so the
+      ship still meets the boss at about level 35.</li>
     </ul>
+    <p>The days between 27 and 30 September &mdash; FSR 3, the two polish passes, the licensed music, the loading
+    screen and two more outside scans &mdash; are recorded item by item on the open list and are not written up on
+    this page yet.</p>
   </section>
 
   <section id="review">
@@ -793,21 +808,21 @@ transform.LookAt(pos);</code></pre>
       <table>
         <thead><tr><th>Skill</th><th>Effect</th><th class="num">Max picks</th><th>Each pick opens at level</th></tr></thead>
         <tbody>
-          <tr><td>Attack Speed</td><td>+10% fire rate, flat per pick</td><td class="num">12</td><td>any</td></tr>
-          <tr><td>Move Speed</td><td>+10% orbit and climb, flat per pick</td><td class="num">8</td><td>any</td></tr>
+          <tr><td>Attack Speed</td><td>+15% fire rate, flat per pick; 10% until 1 October</td><td class="num">12</td><td>any</td></tr>
+          <tr><td>Move Speed</td><td>+12% orbit and climb, flat per pick; 10% until 1 October</td><td class="num">8</td><td>any</td></tr>
           <tr><td>Max Health</td><td>+5 to the ceiling</td><td class="num">8</td><td>any</td></tr>
           <tr><td>Shot Upgrade</td><td>advances double → triple → sextuple</td><td class="num">3</td><td>4, 10, 18</td></tr>
-          <tr><td>Dash Recovery</td><td>1.5&nbsp;s off the dash&rsquo;s 10&nbsp;s cooldown, so three reach 5.5; never under 4</td><td class="num">3</td><td>6, 14, 22</td></tr>
-          <tr><td>Slow Mo</td><td>the whole game at 0.4 for 5 real seconds on its button, once every 30&nbsp;s, then 24, then 18</td><td class="num">3</td><td>8, 14, 20</td></tr>
-          <tr><td>Magnet</td><td>pickups drift in from 4 units away, then 7</td><td class="num">2</td><td>5, 15</td></tr>
-          <tr><td>Deflector</td><td>a charge that blocks one hit, back after 10&nbsp;s without one, then 6</td><td class="num">2</td><td>10, 20</td></tr>
+          <tr><td>Dash, offered as Dash II to IV</td><td>1.5&nbsp;s off the dash&rsquo;s 10&nbsp;s cooldown, so three reach 5.5; never under 4</td><td class="num">3</td><td>6, 14, 22</td></tr>
+          <tr><td>Slow Mo</td><td>the whole game at 0.4 for 5 real seconds on its button, once every 30&nbsp;s, then 20, then 10; 24 and 18 until 1 October</td><td class="num">3</td><td>8, 14, 20</td></tr>
+          <tr><td>Magnet</td><td>pickups drift in from 4 units away, then 7, then 10</td><td class="num">3</td><td>5, 15, 25</td></tr>
+          <tr><td>Deflector</td><td>a charge that blocks one hit, back after 10&nbsp;s without one, then 6, then 3</td><td class="num">3</td><td>10, 20, 28</td></tr>
         </tbody>
       </table>
     </div>
     <p>Skills depend on <code>ISkillTarget</code>, not on <code>Player</code> — which is what lets selection be tested without a scene. <code>SkillPool</code> takes an injectable random function for the same reason.</p>
     <div class="note">
       <div class="label">Slow Mo keeps a clock of its own</div>
-      <p>It took Piercing Rounds&rsquo; place on 25 September, the same day the dash went from every second to every ten, and it is the other answer that arrives late: E, or Y or the left trigger, slows the whole game to 0.4 for five seconds &mdash; three as built, five since the same evening, set in the Inspector. Everything slows, the ship with it, so what it buys is time to see and steer rather than speed. The first pick grants it and the next two shorten the wait, 30 to 24 to 18.</p>
+      <p>It took Piercing Rounds&rsquo; place on 25 September, the same day the dash went from every second to every ten, and it is the other answer that arrives late: E, or Y or the left trigger, slows the whole game to 0.4 for five seconds &mdash; three as built, five since the same evening, set in the Inspector. Everything slows, the ship with it, so what it buys is time to see and steer rather than speed. The first pick grants it and the next two shorten the wait, 30 to 20 to 10 since 1 October, where they were 24 and 18.</p>
       <p>Neither of Unity&rsquo;s clocks would do for timing it. Game time is the thing being slowed, so three seconds of it at 0.4 would last seven and a half; unscaled time runs on behind the pause menu, so a slowdown would expire and the wait run down while nothing was moving. <code>PlayerSlowMo</code> counts unpaused real seconds itself, clamped per frame the way Unity clamps game time, and hands them to <code>SlowMoCycle</code>, which holds the rules with no Unity object attached. The wait runs from the start of one use to the start of the next, where the dash&rsquo;s runs from the end of the burst, because &ldquo;every thirty seconds&rdquo; is what it promises.</p>
       <p>The speed itself goes through <code>RunTime</code>, which multiplies the ability&rsquo;s share with the debug menu&rsquo;s rather than replacing it, so one ending cannot undo the other, and pause and the end of a run still win. The HUD&rsquo;s row above the hull bar is three bars now, dash, deflector and Slow Mo, a third each; the last stays hidden until the pick, drains over a slowdown and refills over the wait. In play the bot&rsquo;s slowdowns measured 3.01&nbsp;s of real time and 1.2 of game time, 30.4&nbsp;s apart. The length is <code>PlayerSlowMo</code>&rsquo;s Duration, and a change to it in play applies at once, to a slowdown already running as well, counted from that slowdown&rsquo;s start: set to 5, one lasted 4.97&nbsp;s, and one cut to 1.5 part-way through ended at 1.49.</p>
       <p>Piercing Rounds went with nothing left over. The one thing it had added that was worth keeping, a round counting its hit only once when the sweep and the physics system both report it, stays as a flag on <code>ShootScript</code>, and <code>RoundLandingTests</code> holds it.</p>
@@ -817,7 +832,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">Healing is no longer one of them</div>
       <p><code>Heal</code> used to sit in the pool as the unlimited entry, which meant the commonest way to meet healing was as one of three pickups on a level-up — so <strong>taking the heal forfeited two upgrades, and taking an upgrade forfeited the heal</strong>. That is a trade between a reward for killing well and the thing you need when you are not, and it is not a decision worth putting in front of anyone.</p>
       <p>It went out on its own cadence after that, +2 every second level and outside any offer, and since 22 September it is not tied to levelling at all: it comes as salvage from wrecks, paced by how hurt the player is &mdash; see <a href="#run">Progression</a>. <code>SkillSelect</code> filters the type out of its pool in code rather than trusting the scene list, because putting it back is a single click with a confusing symptom.</p>
-      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are forty picks now, across eight upgrades, more than a full run has level-ups — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
+      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are forty-two picks now, across eight upgrades, more than a full run has level-ups — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
     </div>
 
     <div class="note">
@@ -845,15 +860,15 @@ transform.LookAt(pos);</code></pre>
         <thead><tr><th class="num">From</th><th>What arrives</th><th>Cadence</th></tr></thead>
         <tbody>
           <tr><td class="num">t = 0</td><td>Scouts</td><td>every 8–10s</td></tr>
-          <tr><td class="num">t ≈ 22–30</td><td>Obstacles (12 streams)</td><td>60s, tightening to ~17s</td></tr>
-          <tr><td class="num">t ≈ 180–240</td><td>Fighters</td><td>every 20s</td></tr>
-          <tr><td class="num">t ≈ 280–340</td><td>Heavies</td><td>every 60s</td></tr>
-          <tr><td class="num">t = 600</td><td>The boss</td><td>once</td></tr>
-          <tr><td class="num">t = 602</td><td>all spawning stops</td><td>—</td></tr>
+          <tr><td class="num">t ≈ 15–20</td><td>Obstacles (12 streams)</td><td>60s, tightening to ~17s</td></tr>
+          <tr><td class="num">t ≈ 120–160</td><td>Fighters</td><td>every 20s</td></tr>
+          <tr><td class="num">t ≈ 187–227</td><td>Heavies</td><td>every 60s</td></tr>
+          <tr><td class="num">t = 400</td><td>The boss</td><td>once</td></tr>
+          <tr><td class="num">t = 402</td><td>all spawning stops</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
-    <p>Those arrival times were half of what they are here until the run was doubled, and the table said so for a while afterwards: the streams were restretched and the prose describing them was not. That cutoff was a magic <code>301</code> buried in a method that also contained dead code. It isn't debris — it's the design decision <em>"stop spawning trash once the boss arrives,"</em> and it's a named field on the asset now, which is the only reason doubling the run was a matter of changing a number rather than finding one.</p>
+    <p>Those arrival times have moved twice. They doubled when the run went from five minutes to ten, and the table kept the old ones for a while afterwards: the streams were restretched and the prose describing them was not. On 1 October they came down to two thirds, with the run at 400 seconds &mdash; see <a href="#run">Progression</a>. That cutoff was a magic <code>301</code> buried in a method that also contained dead code. It isn't debris — it's the design decision <em>"stop spawning trash once the boss arrives,"</em> and it's a named field on the asset now, which is the only reason doubling the run was a matter of changing a number rather than finding one.</p>
 
     <h3>Enemy stats</h3>
     <div class="scroll">
@@ -864,7 +879,7 @@ transform.LookAt(pos);</code></pre>
           <tr><td>Drone</td><td class="num">3</td><td class="num">5</td><td>Enemy 3</td></tr>
           <tr><td>Fighter</td><td class="num">2</td><td class="num">15</td><td>Enemy</td></tr>
           <tr><td>Heavy</td><td class="num">5</td><td class="num">15</td><td>Enemy 1</td></tr>
-          <tr><td>Boss</td><td class="num">600</td><td class="num">50</td><td>Boss</td></tr>
+          <tr><td>Boss</td><td class="num">1000</td><td class="num">50</td><td>Boss</td></tr>
         </tbody>
       </table>
     </div>
@@ -899,6 +914,24 @@ transform.LookAt(pos);</code></pre>
       <p><code>WaveDirector</code> runs the sweep at Start, editor-only — not from <code>OnValidate</code>, which fires when the component is touched and not when either of the two things it compares changes. Pressing play is the one action that reliably follows editing a wave or a bounds box. <code>Survival Chaos › Waves › Check Spawn Heights</code> runs the same sweep on demand.</p>
       <p><strong>Since 25 September the waves follow the box.</strong> <code>MainRun</code> records the band its heights were placed against, 2.72 to 11.62, and <code>WaveDirector</code> carries every spawn into the live band in proportion through <code>SpawnBand.Carry</code>, so moving or resizing the box keeps each stream at its place in the band and the obstacle rows stay three rows. The sweep measures the carried heights. Checked in play on a band raised 3: the obstacle rows spawned exactly 3 higher.</p>
     </div>
+
+    <h3>Enemies keep clear of each other</h3>
+    <p>Every enemy on the ring closes on the same bearing and the same height, the ship&rsquo;s, and nothing kept them apart: their colliders are triggers on a layer that does not meet itself. So a group arrived as one ship drawn several times over. It was reported on 1 October as a normal enemy taking two rounds, which by the code cannot happen &mdash; a Scout has one hit point and a round that lands always kills it &mdash; and then, separately, as enemies clipping into each other. They were one thing. Measured with the playtest bot and the clock wound to 300&nbsp;s, <strong>23% of the time an enemy was sitting deep inside another</strong>.</p>
+    <p><code>EnemySpacing</code> is added to each enemy by <code>WaveDirector</code> as it spawns, the way <code>EnemyArrival</code> is, so no prefab carries it and the boss never has it. The camera looks along the radius, so what has to stay clear is each enemy&rsquo;s box as seen from the axis: its width along the lane and its height, read from its collider at its current scale. Two that overlap are eased apart, half each, along whichever of the two is the shorter way out, which stacks wide, flat ships into a formation. One pass a frame covers all of them, four rounds of it, because in a crowd clearing one neighbour pushes into the next.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Share of enemy-frames</th><th class="num">Off</th><th class="num">On</th></tr></thead>
+        <tbody>
+          <tr><td>Deep inside another enemy</td><td class="num">23.3%</td><td class="num">0.7%</td></tr>
+          <tr><td>Touching another at all</td><td class="num">31.5%</td><td class="num">12.2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <div class="label">The band&rsquo;s edge was most of what was left</div>
+      <p>The first version cut deep overlaps to 3.3% and more rounds a frame only reached 2.8%. What held the rest was the clamp that keeps enemies inside the player&rsquo;s band: they chase the ship&rsquo;s height, the ship sits on the floor or the ceiling, and a pair pinned there was pushed apart in height, the one direction neither could go. What the edge refuses one of them, the other now makes up. The 12% still touching is mostly ships crossing as they travel opposite ways, which is left alone.</p>
+    </div>
+    <p>Not yet judged by eye, and fewer ships now reach the player at the same instant, so it may play a little easier. <code>Keep Enemies Apart</code> on the <code>WaveDirector</code> switches it off.</p>
 
     <h3>A first balance pass</h3>
     <p>The complaint that prompted it: the player feels too powerful, from the first minute. The numbers agree. A full build was three attack-speed picks and four shot upgrades, which is a fire interval of 0.216&nbsp;s and eight projectiles — <strong>37 bullets a second against a starting 1</strong>. Enemy health did not scale at all, so Drones and Scouts died to one bullet at minute one and at minute five alike, and the only thing pushing back was spawn rate.</p>
@@ -941,7 +974,7 @@ transform.LookAt(pos);</code></pre>
         <thead><tr><th>Act</th><th class="num">Spends</th><th>What is true</th></tr></thead>
         <tbody>
           <tr><td><strong>Armoured</strong></td><td class="num">240</td><td>the hull takes nothing; the three emplacements are the only targets, 80 each</td></tr>
-          <tr><td><strong>Exposed</strong></td><td class="num">270</td><td>every gun is dead, the hull opens, and the boss starts ramming and shedding wreckage</td></tr>
+          <tr><td><strong>Exposed</strong></td><td class="num">670</td><td>every gun is dead, the hull opens, and the boss starts ramming and shedding wreckage</td></tr>
           <tr><td><strong>Scuttle</strong></td><td class="num">90</td><td>every muzzle at once, wrecked banks included</td></tr>
         </tbody>
       </table>
@@ -967,6 +1000,12 @@ transform.LookAt(pos);</code></pre>
       fraction.</strong> It exists so the kill has a crescendo, and a crescendo is measured in
       seconds. Shrinking it in proportion with the rest of the bar would have shortened the one part
       of the fight nobody had complained about.</p>
+      <p>On 1 October the pool went back up, to <strong>1000</strong>, for the opposite reason: the gun had
+      got stronger &mdash; Attack Speed at 15% a pick, rounds that live 0.7&nbsp;s &mdash; and a bot with a full
+      build killed the 600 in 65&nbsp;s without being in danger. The pods stayed at 80 and the Scuttle at 90, so
+      the open hull took all of it, 670 where it was 270, and the second act went from about 10&nbsp;s to
+      34 and 51&nbsp;s in the bot&rsquo;s runs. The whole fight ran 99&nbsp;s with twelve Attack Speed picks and
+      118&nbsp;s with eight.</p>
     </div>
     <p>One pool for all three, so the bar moves throughout &mdash; including through a phase where the hull itself is taking nothing &mdash; and retuning an emplacement cannot quietly change what the boss is worth. <code>BossPhaseState</code> holds the order with no Unity object attached, because &ldquo;once, and never backwards&rdquo; is exactly the kind of rule that is impossible to check by playing: a phase that can be re-entered looks identical to one that cannot until the frame where two bullets arrive together.</p>
 
@@ -1129,7 +1168,7 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
 
   <section id="run">
     <div class="part-head"><h2>Progression and ending a run</h2></div>
-    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 3 today &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 35. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
+    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 4.5 since 1 October, 3 before &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 35. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
     <div class="warn">
       <div class="label">Three ways experience was lost or misreported, until 24 September</div>
       <p><strong>A subscription that could miss.</strong> <code>Player</code> subscribed from <code>OnEnable</code>, and Unity orders <code>Awake</code> and <code>OnEnable</code> across objects only by execution order &mdash; 0 for both &mdash; so whether <code>EXP.Awake</code> had run yet came down to the order the scene loaded its objects in. When it had not, a null check skipped the only attempt and every kill of the run earned nothing. <code>EXP</code> wakes first now, and the player binds again from <code>Start</code> to the instance it remembers, so a second try cannot subscribe twice.</p>
@@ -1209,7 +1248,7 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       column of ones would be thirteen hundred glyphs a run telling the player something they already know.</p>
       <p>The reward is the number that varies. A Fighter is worth three Scouts, and knowing that
       mid-run is what turns going after one rather than the other into a decision. It is the amount the bar
-      takes, after the multiplier &mdash; 45 and 15 at today&rsquo;s 3 &mdash; so the player puts it up rather
+      takes, after the multiplier &mdash; 68 and 22 at today&rsquo;s 4.5, 45 and 15 at 3 &mdash; so the player puts it up rather
       than the enemy that died, since the player is what scales it; until 24 September it showed the reward
       before scaling, a third of what the bar gained. The hull flash carries the
       other half of the message — that a shot landed, and on what — so the number is free to carry what
@@ -1303,6 +1342,25 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       player flies out of frame — and nothing about that bug would point at an upgrade. Both
       axes scale safely because the camera carries <code>ApplyBounds</code> too and is clamped to the same
       vertical envelope as the ship.</p>
+    </div>
+
+    <h4>Then 400 seconds, at the same shape</h4>
+    <p>On 1 October the run came down from 600 seconds to 400, asked for as the same game in less time. The stretch above was run backwards and by two thirds: every stream&rsquo;s <code>startDelay</code> is two thirds of what it was, the ramp steps are 26.66, 33.33 and 40&nbsp;s where they were 40, 50 and 60, the boss arrives at 400 and spawning stops at 402. The steps sit a hair under two thirds so the last one still lands before the boss does. Enemies live 80&nbsp;s where they lived 120.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Share of the run</th><th class="num">Spawns a second, at 600&nbsp;s</th><th class="num">at 400&nbsp;s</th></tr></thead>
+        <tbody>
+          <tr><td>10%</td><td class="num">0.50</td><td class="num">0.50</td></tr>
+          <tr><td>50%</td><td class="num">1.67</td><td class="num">1.67</td></tr>
+          <tr><td>90%</td><td class="num">5.04</td><td class="num">5.04</td></tr>
+          <tr><td>as the boss arrives</td><td class="num">7.55</td><td class="num">7.55</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The same rates over two thirds of the time is a third fewer enemies, 892 where there were 1331, and the build the boss was tuned against comes from experience. So <em>Experience Multiplier</em> went from 3 to 4.5, which by the arithmetic still brings a ship that kills everything to level 36 as the boss arrives, where 3 would have left it at 30. One bot run reached level 35 at 397&nbsp;s, against 585 on the ten-minute run, with every fifth level landing at about two thirds of its old time.</p>
+    <div class="note">
+      <div class="label">What the squeeze does not keep</div>
+      <p>A level-up comes about every 11 seconds where it came every 17, so there are more trips to a pickup per minute. Cooldowns were not touched, so the dash, Slow Mo and the Deflector are used two thirds as often in a run. And the boss did not shrink, so it is about a quarter of a session where it was a seventh. The pick counts are today&rsquo;s rather than the table&rsquo;s above: twelve Attack Speed picks at 15% reach a volley every 0.179&nbsp;s, still short of the 0.15 floor.</p>
     </div>
 
     <p><strong>Back Shot is gone.</strong> It was the one pick that changed what the gun does rather than how
@@ -2137,7 +2195,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>523 tests across 50 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>655 tests across 65 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2195,6 +2253,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         </tbody>
       </table>
     </div>
+    <p>The table lists the suites as they stood on 26 September. Fifteen have been added since, for FSR 3, the polish passes, the outside scans and <code>EnemySpacingTests</code>, whose six tests hold the arithmetic that parts two overlapping enemies; they are not listed here yet.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -2225,7 +2284,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 523 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 655 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2266,6 +2325,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <h3>An engine feature is a claim until it is timed</h3>
     <p>The frame cap stuttered in every build from the day it went in, and nothing in the project&rsquo;s code was wrong: it handed its number to <code>Application.targetFrameRate</code>, whose documentation says it microstutters with VSync off &mdash; the only way the menu ran it. A stopwatch at the start of every frame found 6&nbsp;ms and 30&nbsp;ms frames swinging around a correct average. An average frame rate would have passed it, and so would reading the menu&rsquo;s code; single frames are where a stutter lives.</p>
 
+    <h3>A report names what was seen, not what happened</h3>
+    <p>&ldquo;A normal enemy takes two shots&rdquo; was checked against the code, where it is impossible, and against the arrival window, where no round was being swallowed. It was true on screen all the same: two enemies in one place look like one enemy that survives a round. When a report contradicts the rule, measure what the player was looking at before deciding they misread it.</p>
+
     <h3>Physics sees steps, not paths</h3>
     <p>A round that moves a unit between physics steps can pass straight through a hitbox two thirds of a unit wide, and it will do so for some positions and not others &mdash; which reads as randomness, or as a target that is slightly off its lane, rather than as a sampling gap. Tests of it are just as easy to spoil: a player ramming the target, a target phase-locked to the step, waves spawning into the measurement. Hold everything still, step the target through one gap, and count.</p>
 
@@ -2288,11 +2350,18 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Decisions, not bugs</h4>
     <ul>
-      <li>Whether the eighteen 2023 jam branches still on the remote are kept. They are stale, but they are also the only record of who did what on the original project.</li>
+      <li>The 2023 jam branches are settled: on 28 September each of the seventeen became an <code>archive/</code> tag and the branches were deleted, so the history and its authors stay. What is undecided now is the second roadmap&rsquo;s items 27 to 32, which are on the open list.</li>
     </ul>
 
     <h4>Open on the current front</h4>
     <ul>
+      <li><strong>The 1 October balance and the 400-second run have been flown by the bot, not yet by you.</strong> On the
+      ten-minute run with the new numbers, a bot with all twelve Attack Speed picks won with 22 health after a 99&nbsp;s
+      fight, and one with four died at 522&nbsp;s without seeing the boss, 46 of its 58 damage from ramming Scouts. On the
+      400-second run one bot run won with 39 of 60 health and lost only 3 to the waves. So Attack Speed may now be the
+      one pick that matters, and whether the shorter waves are easier is not settled by one run. The dials are the
+      steps and waits on <code>Player</code>, the boss&rsquo;s health in <code>Boss.asset</code>, and the Scout
+      streams&rsquo; ramp in <code>MainRun</code>. It is in <code>26_1001-1616_run400</code>, with the debug menu.</li>
       <li><strong>The shadow work is cut; the millisecond is still unattributed.</strong> Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. What remains is the confirmation: that measurement is submitted work from a paused editor frame with GPU timing unavailable, so it proves the mechanism was large without proving it was the 8.4&nbsp;ms spike. A capture from a real run closes it.</li>
       <li><strong>What the Shadows row costs is unmeasured.</strong> Its rungs were stepped in a frame
       frozen at <code>timeScale</code> 0, which is what made the captures comparable and also means the sun
@@ -2465,7 +2534,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 350 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.3f1) · HDRP 17.6 · branch <code>main</code> · 375 commits
   </footer>
 
 </div>

@@ -15,15 +15,15 @@ namespace SurvivalChaos
         /// <summary>
         /// Seconds after which no further enemies spawn.
         ///
-        /// The default tracks MainRun, which stops at 602 and lands the boss at
-        /// 600 - two seconds of overlap so the last arrivals are already in the
+        /// The default tracks MainRun, which stops at 402 and lands the boss at
+        /// 400 - two seconds of overlap so the last arrivals are already in the
         /// air when it appears. It was left at 301 when the run was doubled,
         /// which broke nothing because MainRun overrides it, and would have
         /// quietly given any newly authored wave half a run.
         /// </summary>
         [SerializeField]
         [Tooltip("Seconds after which no further enemies spawn. This is when the boss takes over. 0 means never stop.")]
-        private float stopSpawningAt = 602f;
+        private float stopSpawningAt = 402f;
 
         /// <summary>
         /// The player's band the stream heights were placed against, bottom and

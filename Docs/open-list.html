@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true,"audit-1001":true},"updated":"1 October 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true,"audit-1001":true,"enemy-spacing":true,"ability-levels":true,"balance-1001":true,"run-400":true},"updated":"1 October 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,19 +327,19 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-polish-2",
-    title: "Play the second polish pass",
-    effort: "a build + one run",
-    lede: "<strong>Built:</strong> <code>Builds/26_1001-1338_auditFixes</code>, with the debug menu, made on 1 October. It is commit <code>200fc47</code> (roadmap 2 items 17, 19 and 21 to 26, the new music, and the credits without the email addresses) plus the nine fixes from ChatGPT’s 1 October scan, which are not yet committed; see ‘Fix what ChatGPT’s 1 October scan found’. Each item was checked in play with the bot; see its own entry below.</p><p><strong>How to answer:</strong> as before, say only what felt wrong. The dials are under ‘Waiting on a real run’, and the answer on each stands if you say nothing. Items 27 to 32 on the roadmap are still unanswered.",
+    id: "play-run400",
+    title: "Play the 400-second run",
+    effort: "one run, about 9 minutes",
+    lede: "<strong>Built:</strong> <code>Builds/26_1001-1616_run400</code>, with the debug menu, made on 1 October. It is commit <code>65d2189</code>, with nothing uncommitted. The Leviathan arrives at 400 s where it arrived at 600, and it has 1000 hit points where it had 600. Everything from the second polish pass and the 1 October scan is in it too, and none of that has been played by you yet either.</p><p><strong>What the bot found:</strong> one run on these numbers reached level 35 as the Leviathan arrived, at 397 s, and won with 39 of 60 health after a 118 s fight. That is one run in the editor; your hands decide.</p><p><strong>How to answer:</strong> as before, say only what felt wrong. The dials are under ‘Waiting on a real run’, and the answer on each stands if you say nothing. Items 27 to 32 on the second roadmap are still unanswered.",
     watch: [
-      "The run plays Chase now, and the Leviathan fights to Neon Hyperdrive, taking over as it arrives. Listen for a hiccup where the fight’s music loops, about a minute and a half in.",
-      "Kill the Leviathan. The game holds on the hit, slows to a quarter while blasts run along the hull, and the hull goes up before Leviathan Down comes up, about 2.5 s after the hit. The music plays on.",
-      "Enemies flash and grow in over 0.4 s, and none arrives within about 30° of the ship.",
-      "Pause: there is a Restart button, and Restart, Main Menu and Quit each ask “Abandon this run?” first, with No selected. Your run so far is summed up under the buttons.",
-      "When a card comes up, its buttons fade in and ignore A for 0.6 s, so a dash pressed as it appears cannot restart the run.",
-      "Going into a run or back to the menu, the music fades out under the loading screen and the new track fades in once it clears.",
-      "Pull the pad’s cable mid-run: the game pauses and says the controller was disconnected.",
-      "Lose the ship: the card’s first line says what did it, as in “Lost to a Leviathan torpedo”."
+      "A level-up comes about every 11 s now, where it came about every 17. Does going to fetch the pick that often get in the way of flying?",
+      "Enemies no longer fly inside one another: a group chasing you arrives as a formation, mostly stacked. No single ship should seem to take two rounds.",
+      "The last two minutes are a Scout flood. With few Attack Speed picks the bot died to it; with twelve it barely noticed. Does it feel like the only pick that matters?",
+      "The Leviathan’s second act, with the hull open, is the long one now: about 35 s where it was 10.",
+      "Offers read Dash II, Slow Mo II, Deflector III, Magnet III. Deflector and Magnet have a third level, at levels 28 and 25.",
+      "Slow Mo’s third level comes back every 10 s. Is half the fight in slow motion too much?",
+      "The run’s music was chosen against ten minutes of waves. Listen for where it is when the horn sounds at 390 s.",
+      "Still unjudged from the second polish pass: the Leviathan’s death, the Abandon question on Restart, Main Menu and Quit, the card’s held buttons, the music fades, and the line saying what the ship was lost to."
     ]
   };
 
@@ -1332,6 +1332,49 @@
             "Checked in play with the bot: the question reopened on No after being left on Yes; seven resumes under the loading screen left time at zero; a ship killed mid-dash let go 0.89 s later, before the card at 1.24 s; 40 paused frames inside the lance cost nothing and the first frame after resuming cost one point; and on the Leviathan’s death its kill and experience counted, a kill reported five frames later did not, and the freeze ran at 0.02.",
             "In <code>Builds/26_1001-1338_auditFixes</code>."
           ]
+        },
+        {
+          id: "enemy-spacing",
+          title: "Stop enemies flying inside one another",
+          effort: "2 h",
+          why: [
+            "You reported a normal enemy taking two rounds, then asked for enemies not to clip into each other. They were the same thing. A Scout has one hit point and a round that lands always kills it, and no round passed through an enemy while it was growing in (0 in 118 s). But with the clock at 300 s, <strong>23% of the time an enemy was sitting deep inside another one</strong>, so one ship on screen was two.",
+            "<strong>Done on 1 October</strong> (commit <code>d802645</code>). Every enemy closes on the ship’s bearing and height, and nothing kept them apart. Now two that overlap as the camera sees them are eased apart, half each, along the lane or in height, whichever is the shorter way out. Flat ships mostly stack, so a group arrives as a formation. They are kept inside your band, and a pair pinned on its floor or ceiling parts sideways.",
+            "Measured with the bot, the same way before and after: deep overlaps fell from 23.3% to 0.7%, and any touching from 31.5% to 12.2%. What is left is mostly ships crossing when they travel opposite ways. The boss is not part of it. <code>Keep Enemies Apart</code> on the WaveDirector switches it off. 655 tests pass.",
+            "Not judged by eye yet, and fewer ships now reach you at the same instant, which may play a little easier. It is a watch point at the top."
+          ]
+        },
+        {
+          id: "ability-levels",
+          title: "Number the abilities, and give Deflector and Magnet a third level",
+          effort: "30 min",
+          why: [
+            "<strong>Done on 1 October, at your word</strong> (commit <code>d802645</code>). An ability’s later picks used to be named with a phrase, as in ‘Faster Deflector’ or ‘Slow Mo Recharge II’. Now the offer and the banner use a short name and a numeral: Dash II to IV, Slow Mo II and III, Deflector II and III, Magnet II and III. The ship starts with the dash, so its picks begin at II. The banner on a first pick is unchanged, since ‘Slow Mo! Press E or Y’ teaches the button.",
+            "Deflector and Magnet each have a third pick, as Dash and Slow Mo had. Deflector III unlocks at level 28 and recharges after 3 s without a hit, where II takes 6. Magnet III unlocks at level 25 and reaches 10 units, where II reaches 7; the pickups of one offer are over 30 apart, so it still cannot pull two. The pool holds 42 picks where it held 40.",
+            "The shot upgrades keep their names, and the three stat picks still say ‘Increased!’ with no number."
+          ]
+        },
+        {
+          id: "balance-1001",
+          title: "Retune the picks and the Leviathan for the late game",
+          effort: "your tuning + two bot runs",
+          why: [
+            "<strong>Your numbers, set on 1 October</strong> (commit <code>d802645</code>). Attack Speed adds 15% of the starting rate a pick where it added 10%, so twelve picks reach a volley every 0.179 s where they reached 0.227; the 0.15 s floor is still out of reach. Move Speed adds 12% a pick where it added 10%. Slow Mo comes back every 30, 20 and 10 s where it was 30, 24 and 18. Your rounds live 0.7 s where they lived 0.5, so they fly 40% further round the ring.",
+            "<strong>The Leviathan has 1000 hit points where it had 600.</strong> The three weak points are still 80 each and the last act still starts at 90, so all of the extra 400 is in the second act, with the hull open.",
+            "Two full bot runs on these numbers, in the editor, with the run still ten minutes long. One took all twelve Attack Speed picks and won: 14 damage from the waves, a 99 s fight where it was 65 s, 22 health left. The other took four and <strong>died at 522 s without seeing the Leviathan</strong>, 46 of its 58 damage from ramming Scouts. Both were level until six minutes. So a full build wins a real fight, and a neglected gun loses to the flood; whether Attack Speed is now the only pick that matters is a question for your run.",
+            "In <code>Builds/26_1001-1525_balance</code>, and in the 400 s build at the top."
+          ]
+        },
+        {
+          id: "run-400",
+          title: "Shorten the run to 400 seconds",
+          effort: "1 h + a bot run",
+          why: [
+            "<strong>Done on 1 October, at your word</strong> (commit <code>65d2189</code>). You asked for 400 s where it was 600, playing as close to how it did as it could. So time was squeezed to two thirds and nothing else was touched: the Leviathan arrives at 400 s, spawning stops at 402, every stream starts at two thirds of its old time, and the ramp steps are 26.66, 33.33 and 40 s where they were 40, 50 and 60.",
+            "That keeps the spawn rate the same at every share of the run, 0.5 a second a tenth of the way in and about 7.5 at the end. It also means a third fewer enemies, 892 where there were 1331, so each kill is worth half as much again: the experience multiplier is 4.5 where it was 3, which by the arithmetic still brings a ship that kills everything to level 36 as the Leviathan arrives. Enemies live 80 s where they lived 120.",
+            "One bot run: level 35 at 397 s, where the ten-minute run reached it at 585; every fifth level landed at about two thirds of its old time. It won with 39 of 60 health, took 118 s on the Leviathan with eight Attack Speed picks, and lost only 3 health to the waves, against 14 and 58 in the two ten-minute runs. One run cannot say whether the shorter waves are easier or that build was strong.",
+            "What changes for you: a level-up about every 11 s where it was 17, the dash, Slow Mo and the Deflector used two thirds as often in a run, and the Leviathan, unchanged, now about a quarter of the session. In <code>Builds/26_1001-1616_run400</code>."
+          ]
         }
       ]
     },
@@ -1583,7 +1626,7 @@
           title: "Hear the new run music and the Leviathan’s",
           effort: "one run",
           why: [
-            "Chosen and levelled by measurement, not by ear, and no build has them yet. Listen for whether Chase suits ten minutes of waves, whether Neon Hyperdrive coming in with the arrival horn lands, a hiccup where it loops from bar 65 back to bar 10, about a minute and a half into the fight, and whether either sits too loud or too quiet against the effects.",
+            "Chosen and levelled by measurement, not by ear, and no build has them yet. Listen for whether Chase suits the waves, which run 400 s since 1 October where they ran ten minutes, whether Neon Hyperdrive coming in with the arrival horn lands, a hiccup where it loops from bar 65 back to bar 10, about a minute and a half into the fight, and whether either sits too loud or too quiet against the effects.",
             "The dials: <code>GameplayMusic</code> and <code>BossMusic</code>’s volumes balance the tracks against each other, the level on the Game scene’s Music object places music against everything else, and Boss Loop Start, Boss Loop End and Boss Crossfade sit on that same object.",
             "<strong>If you do not flag it:</strong> both tracks, their levels and the loop stand."
           ]
@@ -1595,6 +1638,26 @@
           why: [
             "From the second polish pass. Each is a matter of feel with its dial, set to what the roadmap proposed: the Leviathan’s death at 2.5 s, a quarter speed after a 0.15 s hold; enemies growing in over 0.4 s and keeping 30° clear of the ship; the end card’s buttons held for 0.6 s; the music out in 0.4 s and in over 1 s.",
             "<strong>If you do not flag it:</strong> all of them stay as they are."
+          ]
+        },
+        {
+          id: "balance-feel",
+          title: "Judge the 1 October balance",
+          effort: "one run",
+          why: [
+            "From ‘Retune the picks and the Leviathan for the late game’. Three things only a run answers. Whether Attack Speed has become the one pick you must take: the bot’s run with four of them died to the Scout flood. Whether Slow Mo at its third level, back every 10 s and lasting 5, is too much of the fight. And whether the Leviathan at 1000 is the right length; its second act is where all of the extra went.",
+            "The dials: <code>Attack Speed Step</code>, <code>Move Speed Step</code>, <code>Slow Mo Cooldown</code> and <code>Deflector Recharge</code> on the Player; the Leviathan’s health in <code>Boss.asset</code>; and, if other builds should survive the flood, the Scout streams’ ramp in <code>MainRun</code>, which shortens their gap by a fifth every 26.66 s.",
+            "<strong>If you do not flag it:</strong> every number stays as you set it."
+          ]
+        },
+        {
+          id: "run400-feel",
+          title: "Judge the 400-second run",
+          effort: "one run",
+          why: [
+            "From ‘Shorten the run to 400 seconds’. Whether a level-up every 11 s is too many trips to a pickup, whether the waves got easier (the one bot run lost 3 health to them), and where the run’s music is when the horn sounds: I did not check Chase against a 400 s countdown.",
+            "The dials: the boss stream’s <code>Start Delay</code> and <code>Stop Spawning At</code> in <code>MainRun</code> set the length, and the streams’ start delays and ramp steps have to move with them; <code>Experience Multiplier</code> on the Player sets how often you level.",
+            "<strong>If you do not flag it:</strong> the run stays 400 s with these numbers."
           ]
         }
       ]

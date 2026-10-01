@@ -40,7 +40,7 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Tooltip("Hit points, one per bullet. Each one also comes off the boss's own bar: the " +
-                 "three emplacements at 80 spend the first 240 of the boss's 600, which is what " +
+                 "three emplacements at 80 spend the first 240 of the boss's 1000, which is what " +
                  "keeps the health bar moving through a phase where the hull itself is taking " +
                  "nothing.")]
         private int healthPoints = 50;
@@ -281,7 +281,7 @@ namespace SurvivalChaos
             bool killed = health.TakeDamage(1);
 
             // Reported either way. The bar shows one pool for the whole boss and
-            // the emplacements spend the first 240 of its 600, so every point
+            // the emplacements spend the first 240 of its 1000, so every point
             // that lands here has to move it.
             if (owner != null)
             {

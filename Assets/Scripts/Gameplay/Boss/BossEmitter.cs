@@ -18,7 +18,7 @@ namespace SurvivalChaos
     /// things bolted to it are, and wrecking one takes an attack out of the
     /// fight. The fact: a boss bullet laps the ring in 4.5 seconds and the player
     /// in 21, so nothing the boss fires ever really leaves - it comes back
-    /// round and arrives from behind. Between them they turn 600 hit points from
+    /// round and arrives from behind. Between them they turn 1000 hit points from
     /// a number that has to be worn down into a fight with a shape.
     ///
     /// Health is one pool for all three acts. The emplacements spend the first
@@ -518,7 +518,7 @@ namespace SurvivalChaos
         ///
         /// It used to be resolved once, in Start, and that was a race the boss
         /// could lose. Timer switches the bar on at the same moment in the run
-        /// that the spawn stream releases the boss - both at 600 seconds - and a
+        /// that the spawn stream releases the boss - both at 400 seconds - and a
         /// tag search does not see inactive objects. Whichever of the two Unity
         /// happens to run first decides whether the boss spends the whole fight
         /// with a working health bar or with none at all, and the failure is

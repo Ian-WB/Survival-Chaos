@@ -12,7 +12,7 @@ namespace SurvivalChaos
     /// identical to one that cannot until the one frame where two bullets arrive
     /// together.
     ///
-    /// Health is not held here. The bar shows one 600-point pool and the
+    /// Health is not held here. The bar shows one 1000-point pool and the
     /// emplacements spend the first 240 of it, so there is only ever one number,
     /// and it lives with the emitter that owns the bar. This class is told what
     /// that number is rather than keeping a second copy of it.
