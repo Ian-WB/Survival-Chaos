@@ -154,6 +154,48 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
+        public void ScreenshotName_TakesANumber_WhenItsSecondIsTaken()
+        {
+            var taken = new HashSet<string> { "A 21.14.07.png" };
+            Assert.AreEqual("A 21.14.08.png", ScreenshotName.Free("A 21.14.08.png", taken.Contains));
+            Assert.AreEqual("A 21.14.07 (2).png", ScreenshotName.Free("A 21.14.07.png", taken.Contains));
+
+            taken.Add("A 21.14.07 (2).png");
+            Assert.AreEqual("A 21.14.07 (3).png", ScreenshotName.Free("A 21.14.07.png", taken.Contains));
+            Assert.AreEqual("A 21.14.07.png", ScreenshotName.Free("A 21.14.07.png", null));
+        }
+
+        [Test]
+        public void PreviewVolume_IsSilentAtZero_AndTheSoundsOwnAtFull()
+        {
+            Assert.AreEqual(0f, AudioDirector.PreviewVolume(0.8f, 0f));
+            Assert.AreEqual(0.8f, AudioDirector.PreviewVolume(0.8f, 1f), 0.0001f);
+            Assert.Less(AudioDirector.PreviewVolume(0.8f, 0.5f), 0.8f);
+        }
+
+        /// <summary>
+        /// The README tells a fresh clone which editor to install. It said
+        /// 6000.6.3f1 for a day after the project moved to 6000.6.4f1.
+        /// </summary>
+        [Test]
+        public void TheReadme_NamesTheEditorTheProjectIsOn()
+        {
+            string project = Path.GetDirectoryName(UnityEngine.Application.dataPath);
+            string version = File.ReadAllText(Path.Combine(project, "ProjectSettings", "ProjectVersion.txt"));
+            var match = System.Text.RegularExpressions.Regex.Match(version, @"m_EditorVersion:\s*(\S+)");
+            Assert.IsTrue(match.Success, "no editor version in ProjectVersion.txt");
+
+            string readme = File.ReadAllText(Path.Combine(project, "README.md"));
+            StringAssert.Contains("Unity " + match.Groups[1].Value, readme);
+
+            foreach (System.Text.RegularExpressions.Match named in
+                     System.Text.RegularExpressions.Regex.Matches(readme, @"6000\.\d+\.\d+[abf]\d+"))
+            {
+                Assert.AreEqual(match.Groups[1].Value, named.Value, "the README names another editor version");
+            }
+        }
+
+        [Test]
         public void ScreenshotName_HoldsNothingAFileNameCannot()
         {
             string name = ScreenshotName.For("bad:name/with\\every*thing?\"<>|\n\there", new DateTime(2026, 1, 2, 3, 4, 5));

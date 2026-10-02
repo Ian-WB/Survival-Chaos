@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 380 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 382 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>380</b><span>commits</span></div>
-      <div class="stat"><b>673</b><span>tests</span></div>
+      <div class="stat"><b>382</b><span>commits</span></div>
+      <div class="stat"><b>682</b><span>tests</span></div>
       <div class="stat"><b>152</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -2256,7 +2256,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>673 tests across 66 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>682 tests across 66 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2419,8 +2419,20 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <li><strong>Whether the Leviathan&rsquo;s first frames stutter is not known yet.</strong> Since 2 October a build keeps
       <code>hitches.log</code> beside its settings, every frame over 50&nbsp;ms with what the game had just done, and a run
       that reaches the boss fills it in. If the arrival or an attack&rsquo;s first volley shows there, the draw states can
-      be recorded in one run and built behind the loading screen. It is in <code>26_1002-0932_shipping</code>, with the
+      be recorded in one run and built behind the loading screen. It is in <code>26_1002-1057_scanFixes</code>, with the
       debug menu, along with an icon, loading tips and credits that are yours to judge.</li>
+      <li><strong>Unity&rsquo;s denoising package is gone.</strong> <code>com.unity.rendering.denoising</code> had been in the
+      manifest since 3 August and served only HDRP&rsquo;s path tracer, which is off. It put Intel&rsquo;s Open Image Denoise
+      and TBB in every Windows build, for x64 and for ARM: 96&nbsp;MB. Removed on 2 October, a build went from
+      926 to 830&nbsp;MB. The fog&rsquo;s denoising, the screen-space effects&rsquo; and the lightmap bake&rsquo;s are separate and
+      untouched; the bake uses a copy inside the editor, which still reports it as available. A test fails if the
+      package returns without a notice for Intel&rsquo;s libraries.</li>
+      <li><strong>A fifth scan, on 2 October, found seven things and six are fixed.</strong> Enemy spacing measured each
+      enemy&rsquo;s pivot where its box is up to 0.19 off it (<code>EnemySpacing.BoxCentre</code>); two screenshots in one
+      second shared a name (<code>ScreenshotName.Free</code>); a volume preview kept its level through a mute; a
+      Leviathan pass sampled at exactly level went uncounted (<code>RingChase.SideToRemember</code>); FSR&rsquo;s reactive
+      mask allocated every frame; and the README named the old editor. The seventh, that spacing compares every pair
+      of enemies, was measured at 0.15&nbsp;ms with 47 alive and left.</li>
       <li><strong>The 1 October balance and the 400-second run are settled.</strong> Played in two builds and not
       flagged, and on 2 October every number was kept as it is. What the bot showed is kept for the record. On the
       ten-minute run with the new numbers, a bot with all twelve Attack Speed picks won with 22 health after a 99&nbsp;s
@@ -2607,7 +2619,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 380 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 382 commits
   </footer>
 
 </div>

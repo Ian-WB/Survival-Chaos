@@ -228,7 +228,7 @@ namespace SurvivalChaos
                 lastPassTime = Time.time;
             }
 
-            lastDelta = delta;
+            lastDelta = RingChase.SideToRemember(lastDelta, delta);
 
             bool wanted = RingChase.ShouldTravelLeft(
                 bearing, playerBearing, leftOrRight, turnDeadbandDegrees);

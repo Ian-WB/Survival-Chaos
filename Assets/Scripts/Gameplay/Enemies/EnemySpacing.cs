@@ -113,6 +113,18 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// Where an enemy's box is, which is not where its root is: the boxes
+        /// were fitted to the models and sit off the pivot, the Scout's 0.12
+        /// one way and the Fighter's 0.19 the other. Measured from the roots,
+        /// those two could overlap by 0.19 and count as clear (scan of 2
+        /// October 2026).
+        /// </summary>
+        public static Vector3 BoxCentre(Transform enemy, BoxCollider box)
+        {
+            return box != null ? enemy.TransformPoint(box.center) : enemy.position;
+        }
+
         private void Awake()
         {
             box = GetComponent<BoxCollider>();
@@ -233,7 +245,9 @@ namespace SurvivalChaos
 
         private void Measure()
         {
-            Vector3 position = transform.position;
+            // The box's place. Move turns and lifts the root by however far
+            // this ends up from where it started, which carries the box with it.
+            Vector3 position = BoxCentre(transform, box);
             bearing = PickupPlacement.BearingOf(position, center);
             height = position.y;
             startBearing = bearing;

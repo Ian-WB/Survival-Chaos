@@ -146,6 +146,52 @@ namespace SurvivalChaos.Tests
             Assert.IsTrue(RingChase.Passed(-0.5f, 12f));
         }
 
+        /// <summary>
+        /// A frame that lands exactly level is neither side. The pass has to
+        /// be counted once it comes out the other side, and only once.
+        /// </summary>
+        [Test]
+        public void CrossingThroughDeadLevel_IsOnePass()
+        {
+            Assert.AreEqual(1, Passes(1f, 0f, -1f));
+            Assert.AreEqual(1, Passes(-1f, 0f, 1f));
+            Assert.AreEqual(1, Passes(2f, 0f, 0f, 0f, -2f));
+        }
+
+        [Test]
+        public void TouchingLevelAndGoingBack_IsNotAPass()
+        {
+            Assert.AreEqual(0, Passes(1f, 0f, 1f));
+            Assert.AreEqual(0, Passes(-3f, 0f, 0f, -1f));
+        }
+
+        [Test]
+        public void TheFirstFrame_HasNoSideToCompare()
+        {
+            Assert.AreEqual(0, Passes(float.NaN, 0f, 0f));
+            Assert.AreEqual(0, Passes(float.NaN, 0f, 5f));
+        }
+
+        // As EnemyMovement.Update counts them, from the first value as the
+        // side already remembered.
+        private static int Passes(params float[] deltas)
+        {
+            int passes = 0;
+            float last = deltas[0];
+
+            for (int i = 1; i < deltas.Length; i++)
+            {
+                if (RingChase.Passed(last, deltas[i]))
+                {
+                    passes++;
+                }
+
+                last = RingChase.SideToRemember(last, deltas[i]);
+            }
+
+            return passes;
+        }
+
         [Test]
         public void StayingOnOneSide_IsNotAPass()
         {

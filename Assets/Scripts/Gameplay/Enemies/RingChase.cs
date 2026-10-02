@@ -102,6 +102,19 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// The separation to compare the next frame's against: this frame's,
+        /// unless it is exactly zero. Dead level is neither side, so a crossing
+        /// sampled as +1, 0, -1 was two comparisons that each saw no change of
+        /// side, and the pass went uncounted (scan of 2 October 2026). Keeping
+        /// the side it came from counts it once, and one that touches level and
+        /// goes back the way it came is still no pass.
+        /// </summary>
+        public static float SideToRemember(float previousDelta, float delta)
+        {
+            return delta == 0f ? previousDelta : delta;
+        }
+
+        /// <summary>
         /// Whether an enemy the player last went past at
         /// <paramref name="lastPass"/> may turn round at <paramref name="now"/>.
         ///

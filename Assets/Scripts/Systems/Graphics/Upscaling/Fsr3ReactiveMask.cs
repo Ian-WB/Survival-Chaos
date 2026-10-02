@@ -136,8 +136,16 @@ namespace SurvivalChaos
         /// no copy to compare against yet - the first frame FSR runs, before the
         /// copy pass has ever executed.
         /// </summary>
-        public sealed class Inputs
+        /// <remarks>
+        /// A struct, held by value in the pass's own data. As a class it was
+        /// one object every rendered frame, pause menu included (scan of 2
+        /// October 2026); and one shared object would not do, because a pass
+        /// has to run with the values it was recorded with.
+        /// </remarks>
+        public struct Inputs
         {
+            /// <summary>False for "nothing": no copy to compare against yet.</summary>
+            public bool valid;
             public RTHandle opaqueCopy;
             public TextureHandle opaque;
             public TextureHandle reactive;
@@ -162,7 +170,7 @@ namespace SurvivalChaos
             ComputeShader compute = MaskShader;
             if (opaque == null || compute == null)
             {
-                return null;
+                return default;
             }
 
             TextureDesc colorDescription = color.GetDescriptor(renderGraph);
@@ -183,6 +191,7 @@ namespace SurvivalChaos
 
             var inputs = new Inputs
             {
+                valid = true,
                 opaqueCopy = opaque,
                 opaque = renderGraph.ImportTexture(opaque),
                 reactive = renderGraph.CreateTexture(description),
@@ -201,10 +210,10 @@ namespace SurvivalChaos
         /// Writes the mask. False when the copy is not this frame's, and the
         /// caller then sends FSR no mask at all rather than a stale one.
         /// </summary>
-        public static bool Dispatch(CommandBuffer command, Inputs inputs, TextureHandle color)
+        public static bool Dispatch(CommandBuffer command, in Inputs inputs, TextureHandle color)
         {
             // Not this frame's copy, or not the texture it was copied into.
-            if (inputs == null || copiedFrame != Time.frameCount || inputs.opaqueCopy != opaque)
+            if (!inputs.valid || copiedFrame != Time.frameCount || inputs.opaqueCopy != opaque)
             {
                 return false;
             }

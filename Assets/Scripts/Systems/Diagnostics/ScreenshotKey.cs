@@ -32,6 +32,11 @@ namespace SurvivalChaos
         private int noteFromFrame = -1;
         private float noteUntil;
 
+        // Paths handed out since the game started. A picture is written at the
+        // end of its frame, so one asked for a moment ago may not be a file yet.
+        private readonly System.Collections.Generic.HashSet<string> asked =
+            new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
 #if !SURVIVAL_CHAOS_NO_SCREENSHOTS
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Create()
@@ -74,6 +79,17 @@ namespace SurvivalChaos
                 string folder = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), FolderName);
                 Directory.CreateDirectory(folder);
+
+                // The name is good to the second, and F12 can be pressed twice
+                // in one: the second picture would have been written over the
+                // first (scan of 2 October 2026).
+                file = ScreenshotName.Free(file, name =>
+                {
+                    string path = Path.Combine(folder, name);
+                    return asked.Contains(path) || File.Exists(path);
+                });
+                asked.Add(Path.Combine(folder, file));
+
                 ScreenCapture.CaptureScreenshot(Path.Combine(folder, file));
                 note.text = "Saved to Pictures\\" + FolderName + "\\" + file;
             }
@@ -140,6 +156,34 @@ namespace SurvivalChaos
             string name = Clean(stamp);
             string time = when.ToString("yyyy-MM-dd HH.mm.ss", System.Globalization.CultureInfo.InvariantCulture);
             return (name.Length > 0 ? name + " " : string.Empty) + time + ".png";
+        }
+
+        /// <summary>
+        /// <paramref name="file"/> if nothing has that name, or else the same
+        /// name with a number: <c>... 21.14.07 (2).png</c>, then (3).
+        /// </summary>
+        /// <param name="taken">Whether a name is already in use.</param>
+        public static string Free(string file, Func<string, bool> taken)
+        {
+            if (taken == null || !taken(file))
+            {
+                return file;
+            }
+
+            string extension = Path.GetExtension(file);
+            string stem = file.Substring(0, file.Length - extension.Length);
+
+            for (int number = 2; number < 1000; number++)
+            {
+                string candidate = stem + " (" + number + ")" + extension;
+                if (!taken(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            // A thousand pictures in one second is not a case worth a name.
+            return file;
         }
 
         /// <summary>

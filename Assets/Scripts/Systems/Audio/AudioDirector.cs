@@ -226,6 +226,14 @@ namespace SurvivalChaos
                 music[i].ApplyLevel(AudioLevels.ToAmplitude(GetLevel(AudioChannel.Music)));
             }
 
+            // The slider's own sample as well. It is restarted at most every
+            // tenth of a second, so a drag to zero inside that left the last one
+            // playing out at the level before (scan of 2 October 2026).
+            if (previewVoice != null && previewSound != null && previewVoice.isPlaying)
+            {
+                previewVoice.volume = PreviewVolume(previewSound.Volume, GetLevel(previewSound.Channel));
+            }
+
             // Voices still sounding take the new level too. A voice's volume is
             // set when it starts, so moving the Effects slider under the pause
             // menu left a long sound - the lance's wind-up - at the old level
@@ -355,7 +363,14 @@ namespace SurvivalChaos
         public const float PreviewGap = 0.1f;
 
         private AudioSource previewVoice;
+        private SoundDefinition previewSound;
         private float lastPreview = float.NegativeInfinity;
+
+        /// <summary>What a preview plays at: the sound's own volume under its channel's level.</summary>
+        public static float PreviewVolume(float soundVolume, float channelLevel)
+        {
+            return soundVolume * AudioLevels.ToAmplitude(channelLevel);
+        }
 
         /// <summary>
         /// Plays a sound once at its channel's level, for a volume slider to
@@ -410,8 +425,9 @@ namespace SurvivalChaos
             previewVoice.clip = clip;
             previewVoice.outputAudioMixerGroup = sound.Output;
             previewVoice.pitch = 1f;
-            previewVoice.volume = sound.Volume * AudioLevels.ToAmplitude(GetLevel(sound.Channel));
+            previewVoice.volume = PreviewVolume(sound.Volume, GetLevel(sound.Channel));
             previewVoice.Play();
+            previewSound = sound;
             lastPreview = now;
         }
 
