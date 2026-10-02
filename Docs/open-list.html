@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true,"audit-1001":true,"enemy-spacing":true,"ability-levels":true,"balance-1001":true,"run-400":true,"play-run400":true,"boss-pace":true,"perf-scan":true},"updated":"1 October 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true,"audit-1001":true,"enemy-spacing":true,"ability-levels":true,"balance-1001":true,"run-400":true,"play-run400":true,"boss-pace":true,"perf-scan":true,"play-cloudladder":true,"cloud-ladder-look":true,"balance-feel":true,"run400-feel":true,"music-hear":true,"polish2-feel":true,"unity-664":true},"updated":"2 October 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,18 +327,18 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-cloudladder",
-    title: "Fight the Leviathan that gives you room, under the cheaper clouds",
-    effort: "one run, about 9 minutes",
-    lede: "<strong>Built:</strong> <code>Builds/26_1001-1738_cloudLadder</code>, with the debug menu, made on 1 October. It is commit <code>1cd2090</code> plus the new cloud ladder, which is not committed yet.</p><p><strong>New in it:</strong> the Volumetric Clouds row costs far less. Your setting is High, which is now 128 primary and 32 light steps where it was 512 and 32; on a frozen frame that drew the same picture for 2.8 ms less. See ‘Scan the game for performance, and make the cloud rungs cheaper’. It also carries the Leviathan’s speed and turn cooldown from the build before, which you have not played.</p><p><strong>Still open:</strong> the 1 October balance and the 400 s run. You did not say either way, so I ticked neither. ‘Tick the defaults’ closes both with every number as it is. Items 27 to 32 on the second roadmap are still unanswered.",
+    id: "roadmap2-answers",
+    title: "Answer the last six items on the second roadmap",
+    effort: "5 min",
+    lede: "<strong>Nothing is waiting on a run.</strong> You played <code>Builds/26_1001-1738_cloudLadder</code> and said to tick the defaults on 2 October, so every run item is closed with the answer it carried.</p><p><strong>The current build</strong> is <code>Builds/26_1001-1808_unity664</code>, with the debug menu: the same game on Unity 6000.6.4f1, rebaked. Its stamp reads <code>8fa089d+</code> because it was built just before the version change was committed as <code>aee4ecc</code>.</p><p><strong>What is left is yours to answer:</strong> items 27 to 32 on <a href='https://claude.ai/artifact/Qme8JDVSTkReejcyefT6Xg'>Polish Roadmap 2</a>, each with my pick on the page. A yes, no or later on each is enough.",
     watch: [
-      "Open Options and look at Upscaling first. Your saved setting reads as DLSS, which your card cannot run, so it may be Off; FSR is worth about 4.8 ms a frame at 1440p.",
-      "The clouds on High should look as they did. Look at the far ones during the Leviathan’s arrival and from the other cameras on the debug menu: if any look cut off, tell me.",
-      "F3 has a GPU line. With FSR on Quality and clouds on High it read about 10.1 ms in the editor before the change and 7.3 after.",
-      "The first time the Leviathan passes you it should carry on for 3 s before it turns, the same as every pass after it. That includes a dash through it.",
-      "If you fly away after a pass it ends up a long way off: the bot was about a third of the ring from it at each turn. Is that too much rest?",
-      "It cruises a quarter faster than you whatever you have picked. Run from it and it should close slowly; the ram should still catch you outright.",
-      "Skip to boss on the debug menu gets you there without the run."
+      "27: tips on the loading screen. My pick is later.",
+      "28: a sample sound when the Master or Effects volume steps.",
+      "29: an icon for the game. There is none set; you pick one of three.",
+      "30: credits. Today they name only the 2023 jam team; this also settles the DLSS attribution under ‘Needs you’.",
+      "31: a screenshot key on F12.",
+      "32: measure the first-time stutters in a build.",
+      "One thing I could not confirm from here: Upscaling in Options. Your saved setting reads as DLSS, which your card cannot run. If the row shows Off, FSR is worth about 4.8 ms a frame at 1440p."
     ]
   };
 
@@ -571,6 +571,15 @@
           why: [
             "Played on <code>Builds/26_1001-1616_run400</code> on 1 October. You said most things looked like they were working, and flagged two: the Leviathan’s speed, and its turn cooldown applying only after the first turn. Both are fixed (commit <code>1cd2090</code>); see ‘Set the Leviathan’s speed as a multiple of the ship’s’.",
             "You did not say how the balance or the shorter run felt, so ‘Judge the 1 October balance’ and ‘Judge the 400-second run’ stay open."
+          ]
+        },
+        {
+          id: "play-cloudladder",
+          title: "Fight the Leviathan that gives you room, under the cheaper clouds",
+          effort: "one run, about 9 minutes",
+          why: [
+            "Played on <code>Builds/26_1001-1738_cloudLadder</code>. You flagged nothing and, on 2 October, said to tick the defaults. So every run item still open was closed with the answer it carried: the cheaper clouds, the Leviathan’s speed and its turn cooldown, the 1 October balance, the 400-second run, the new music, and the Leviathan’s death, the arrivals and the fades.",
+            "The one thing not settled by that is the Upscaling row, which I could not read from here; it is on the card at the top."
           ]
         }
       ]
@@ -1393,7 +1402,8 @@
             "From your run of the 400 s build. You asked for the Leviathan’s speed to be fixed against yours, so the fight does not change with how many Move Speed picks a run takes. It already was, against the picks: 23% faster since 28 September. So what you felt was most likely the second thing you reported, that <strong>the turn cooldown only applied after the first turn</strong>. That was real.",
             "<strong>The cooldown</strong> (commit <code>1cd2090</code>). The Leviathan held its course for 3 s after its last turn, not after passing you. On the first pass of a fight there was no earlier turn to count from, so it went 20° past and came straight back; after that a ship holding still got 20° and 40° of room alternately. The 3 s now count from the moment you and it cross, a dash through it included, so every pass gets the same room. One that arrives facing the wrong way still turns at once.",
             "<strong>The speed.</strong> It is one number on the boss now, <code>Player Speed Ratio</code>, 1.25: a quarter faster than the ship, whatever the ship’s speed is. Before, it was 20° a second scaled by the picks, which held against a pick and would have drifted if the ship’s own 5.6 were retuned. The ram is still three times the cruise, and the waves keep their own pace.",
-            "Flown by the bot with two Move Speed picks: the Leviathan measured 1.250 times the ship on every sample, and it turned 3.0 s after each of four passes, the first included. The bot flew away each time, and was about 136° from it when it turned. If that is too much rest, <code>Turn Cooldown Seconds</code> on the same component is the dial. 661 tests pass. In <code>Builds/26_1001-1703_bossPace</code>."
+            "Flown by the bot with two Move Speed picks: the Leviathan measured 1.250 times the ship on every sample, and it turned 3.0 s after each of four passes, the first included. The bot flew away each time, and was about 136° from it when it turned. If that is too much rest, <code>Turn Cooldown Seconds</code> on the same component is the dial. 661 tests pass. In <code>Builds/26_1001-1703_bossPace</code>.",
+            "<strong>Played in the cloud ladder build and not flagged</strong>, so on 2 October the 1.25 and the 3 s stand."
           ]
         },
         {
@@ -1407,6 +1417,15 @@
             "<strong>The cloud ladder changed, at your word.</strong> Timing fourteen pairs of step counts on the same frame, and comparing each picture with 512 and 32, showed the light steps carry the look and primary steps past 128 buy nothing from the game camera. So the rungs are 64 and 6, 64 and 16, 128 and 32 now. High draws the same picture as before, 0.5% of pixels differing against a noise floor of 0.2%, for 7.3 ms a frame where it took 10.1. Medium costs 6.7 where it cost 7.9, and differs faintly on 7% of pixels.",
             "<strong>You asked about GPU instancing, LODs, the GPU Resident Drawer and texture streaming.</strong> All are off, and none would move the frame. The arena is 90 static objects, 88,000 triangles and 7 materials, an enemy 240 to 1,300 triangles and the Leviathan 9,900; the SRP Batcher already batches them, and every texture in the project is 728 MB against your card’s 12 GB. The Resident Drawer could help a machine with a weak processor and a strong card; I would switch it on only with a measurement from one.",
             "Checked by the tests, 661 passing, and by the measurement itself, which set the same step counts on the cloud volume. Not yet seen by you; that is ‘See the cheaper clouds in a build’. In <code>Builds/26_1001-1738_cloudLadder</code>."
+          ]
+        },
+        {
+          id: "unity-664",
+          title: "Move to Unity 6000.6.4f1, rebake and build",
+          effort: "15 min",
+          why: [
+            "You updated the editor on 1 October and asked for a rebake, a build, a commit and a push. Nothing in the project changed with the update but the version file (commit <code>aee4ecc</code>). All 661 tests pass on it.",
+            "The rebake took 148 s and the build 78 s, with no warnings, no errors and no editor exceptions; the probe-lighting links survived both. It is <code>Builds/26_1001-1808_unity664</code>, with the debug menu."
           ]
         }
       ]
@@ -1661,7 +1680,8 @@
           why: [
             "Chosen and levelled by measurement, not by ear, and no build has them yet. Listen for whether Chase suits the waves, which run 400 s since 1 October where they ran ten minutes, whether Neon Hyperdrive coming in with the arrival horn lands, a hiccup where it loops from bar 65 back to bar 10, about a minute and a half into the fight, and whether either sits too loud or too quiet against the effects.",
             "The dials: <code>GameplayMusic</code> and <code>BossMusic</code>’s volumes balance the tracks against each other, the level on the Game scene’s Music object places music against everything else, and Boss Loop Start, Boss Loop End and Boss Crossfade sit on that same object.",
-            "<strong>If you do not flag it:</strong> both tracks, their levels and the loop stand."
+            "<strong>If you do not flag it:</strong> both tracks, their levels and the loop stand.",
+            "<strong>Ticked on 2 October:</strong> not flagged in your runs, so both tracks, their levels and the loop stand."
           ]
         },
         {
@@ -1670,7 +1690,8 @@
           effort: "one run",
           why: [
             "From the second polish pass. Each is a matter of feel with its dial, set to what the roadmap proposed: the Leviathan’s death at 2.5 s, a quarter speed after a 0.15 s hold; enemies growing in over 0.4 s and keeping 30° clear of the ship; the end card’s buttons held for 0.6 s; the music out in 0.4 s and in over 1 s.",
-            "<strong>If you do not flag it:</strong> all of them stay as they are."
+            "<strong>If you do not flag it:</strong> all of them stay as they are.",
+            "<strong>Ticked on 2 October:</strong> not flagged in your runs, so all of them stay as they are."
           ]
         },
         {
@@ -1680,7 +1701,8 @@
           why: [
             "From ‘Retune the picks and the Leviathan for the late game’. Three things only a run answers. Whether Attack Speed has become the one pick you must take: the bot’s run with four of them died to the Scout flood. Whether Slow Mo at its third level, back every 10 s and lasting 5, is too much of the fight. And whether the Leviathan at 1000 is the right length; its second act is where all of the extra went.",
             "The dials: <code>Attack Speed Step</code>, <code>Move Speed Step</code>, <code>Slow Mo Cooldown</code> and <code>Deflector Recharge</code> on the Player; the Leviathan’s health in <code>Boss.asset</code>; and, if other builds should survive the flood, the Scout streams’ ramp in <code>MainRun</code>, which shortens their gap by a fifth every 26.66 s.",
-            "<strong>If you do not flag it:</strong> every number stays as you set it."
+            "<strong>If you do not flag it:</strong> every number stays as you set it.",
+            "<strong>Ticked on 2 October, at your word:</strong> every number stays as you set it."
           ]
         },
         {
@@ -1690,7 +1712,8 @@
           why: [
             "From ‘Shorten the run to 400 seconds’. Whether a level-up every 11 s is too many trips to a pickup, whether the waves got easier (the one bot run lost 3 health to them), and where the run’s music is when the horn sounds: I did not check Chase against a 400 s countdown.",
             "The dials: the boss stream’s <code>Start Delay</code> and <code>Stop Spawning At</code> in <code>MainRun</code> set the length, and the streams’ start delays and ramp steps have to move with them; <code>Experience Multiplier</code> on the Player sets how often you level.",
-            "<strong>If you do not flag it:</strong> the run stays 400 s with these numbers."
+            "<strong>If you do not flag it:</strong> the run stays 400 s with these numbers.",
+            "<strong>Ticked on 2 October, at your word:</strong> the run stays 400 s with these numbers."
           ]
         },
         {
@@ -1700,7 +1723,8 @@
           why: [
             "From ‘Scan the game for performance, and make the cloud rungs cheaper’. The new High was compared with the old on one frozen frame from the game camera. What that does not cover is the Leviathan’s arrival, the six other cameras on the debug menu, and the clouds in motion. Fewer primary steps march a shorter way out, so the thing to look for is far clouds that end early.",
             "The dial is the two tables in <code>CloudLadder</code>: 256 and 32 on High marches twice as far, for about 0.7 ms more going by 256 and 24.",
-            "<strong>If you do not flag it:</strong> the ladder stays 64 and 6, 64 and 16, 128 and 32."
+            "<strong>If you do not flag it:</strong> the ladder stays 64 and 6, 64 and 16, 128 and 32.",
+            "<strong>Ticked on 2 October:</strong> not flagged in your run, so the ladder stays 64 and 6, 64 and 16, 128 and 32."
           ]
         }
       ]
