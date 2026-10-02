@@ -48,6 +48,28 @@ namespace SurvivalChaos.Tests
             StringAssert.Contains("each copy\ncontains the above copyright notice and this license", text.Replace("\r\n", "\n"));
         }
 
+        /// <summary>
+        /// Unity's denoising package puts Intel's Open Image Denoise and TBB
+        /// in every build, used or not, and Apache 2.0 asks for the licence
+        /// to go with them. Taking the package out of the manifest is the
+        /// other way to pass this.
+        /// </summary>
+        [Test]
+        public void IntelsDenoiserIsCoveredWhileItShips()
+        {
+            string manifest = File.ReadAllText(Path.Combine(ProjectFolder, "Packages", "manifest.json"));
+            if (!manifest.Contains("com.unity.rendering.denoising"))
+            {
+                Assert.Pass("the denoising package is not installed");
+            }
+
+            string text = Notices();
+            StringAssert.Contains("Intel Open Image Denoise", text);
+            StringAssert.Contains("Threading Building Blocks", text);
+            StringAssert.Contains("Apache License", text);
+            StringAssert.Contains("END OF TERMS AND CONDITIONS", text);
+        }
+
         [Test]
         public void DlssIsAttributed()
         {
