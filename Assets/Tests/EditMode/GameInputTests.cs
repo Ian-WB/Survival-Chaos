@@ -23,6 +23,7 @@ namespace SurvivalChaos.Tests
             public bool DebugOverlayTogglePressed { get; set; }
             public bool DebugCopyReportPressed { get; set; }
             public bool DebugMenuTogglePressed { get; set; }
+            public bool ScreenshotPressed { get; set; }
             public int DebugShortcutPressed { get; set; }
             public int MenuTabPressed { get; set; }
             public bool PadLastUsed { get; set; }

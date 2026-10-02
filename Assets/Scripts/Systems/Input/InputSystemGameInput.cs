@@ -211,6 +211,15 @@ namespace SurvivalChaos
             }
         }
 
+        public bool ScreenshotPressed
+        {
+            get
+            {
+                Keyboard keyboard = Keyboard.current;
+                return keyboard != null && keyboard.f12Key.wasPressedThisFrame;
+            }
+        }
+
         /// <summary>
         /// The digit keys are indexed off digit1Key rather than named one by
         /// one. The Key enum orders them consecutively, which is what makes the

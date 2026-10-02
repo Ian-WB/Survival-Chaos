@@ -121,10 +121,26 @@ namespace SurvivalChaos.EditorTools
             status.color = quiet;
             status.text = "Entering the arena";
 
+            // Under the panel rather than in it: the panel says where you are
+            // going, and this is a different kind of line. Sentence case and
+            // plain tracking, because it is a sentence to read in a second and
+            // a half, not a label.
+            TextMeshProUGUI tip = HoloUiFactory.CreateText(root.transform, "Tip", Centre,
+                new Vector2(0.5f, 1f), new Vector2(0f, -PanelSize.y * 0.5f - 28f),
+                new Vector2(1100f, 70f), 24f, TextAlignmentOptions.Top);
+            tip.fontStyle = FontStyles.Normal;
+            tip.characterSpacing = 0f;
+            tip.textWrappingMode = TextWrappingModes.Normal;
+            Color soft = HoloUiFactory.Edge;
+            soft.a = 0.85f;
+            tip.color = soft;
+            tip.text = LoadingTips.All[0];
+
             LoadingScreen screen = root.AddComponent<LoadingScreen>();
             HoloUiFactory.Assign(screen, "group", group);
             HoloUiFactory.Assign(screen, "bar", bar);
             HoloUiFactory.Assign(screen, "status", status);
+            HoloUiFactory.Assign(screen, "tip", tip);
 
             // Just the two materials this made: SaveAssets would write every
             // dirty asset in the project along with them.

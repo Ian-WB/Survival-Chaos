@@ -349,6 +349,72 @@ namespace SurvivalChaos
             lastStarted[sound] = now;
         }
 
+        // ---------- previews ----------
+
+        /// <summary>The shortest gap between two previews, in real seconds.</summary>
+        public const float PreviewGap = 0.1f;
+
+        private AudioSource previewVoice;
+        private float lastPreview = float.NegativeInfinity;
+
+        /// <summary>
+        /// Plays a sound once at its channel's level, for a volume slider to
+        /// answer with. It has a voice of its own and ignores game time: the
+        /// sliders are used on the title screen and under the pause menu, where
+        /// a gameplay sound from the pool is held until the run resumes.
+        /// </summary>
+        public static void Preview(SoundDefinition sound)
+        {
+            if (Instance != null)
+            {
+                Instance.PreviewInternal(sound);
+            }
+        }
+
+        /// <summary>Whether a preview may start: holding a slider must not buzz.</summary>
+        public static bool MayPreview(float now, float last, float gap)
+        {
+            return now - last >= gap;
+        }
+
+        private void PreviewInternal(SoundDefinition sound)
+        {
+            if (sound == null || !sound.HasClips)
+            {
+                return;
+            }
+
+            float now = Time.unscaledTime;
+            if (!MayPreview(now, lastPreview, PreviewGap))
+            {
+                return;
+            }
+
+            int cursor = clipCursor.TryGetValue(sound, out int stored) ? stored : -1;
+            AudioClip clip = sound.PickClip(ref cursor);
+            clipCursor[sound] = cursor;
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (previewVoice == null)
+            {
+                GameObject host = new GameObject("Preview Voice");
+                host.transform.SetParent(transform, false);
+                previewVoice = host.AddComponent<AudioSource>();
+                previewVoice.playOnAwake = false;
+                previewVoice.spatialBlend = 0f;
+            }
+
+            previewVoice.clip = clip;
+            previewVoice.outputAudioMixerGroup = sound.Output;
+            previewVoice.pitch = 1f;
+            previewVoice.volume = sound.Volume * AudioLevels.ToAmplitude(GetLevel(sound.Channel));
+            previewVoice.Play();
+            lastPreview = now;
+        }
+
         // ---------- game time ----------
 
         /// <summary>

@@ -724,7 +724,8 @@ namespace SurvivalChaos.EditorTools
                 ("Pause", "Esc", "Start"),
                 ("Move in a menu", "Arrows, Enter", "D-pad, A"),
                 ("Back out of a menu", "Esc", "B"),
-                ("Switch Options tab", "Q / E", "LB / RB")
+                ("Switch Options tab", "Q / E", "LB / RB"),
+                ("Save a screenshot", "F12", "-")
             };
 
             Color heading = new Color(Accent.r, Accent.g, Accent.b, 0.8f);

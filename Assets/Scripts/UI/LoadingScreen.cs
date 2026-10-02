@@ -43,6 +43,10 @@ namespace SurvivalChaos
         private TMP_Text status;
 
         [SerializeField]
+        [Tooltip("Optional. One line from LoadingTips, a different one each load.")]
+        private TMP_Text tip;
+
+        [SerializeField]
         [Tooltip("Seconds to cover the screen. Short: the scene behind is frozen by then.")]
         private float fadeInSeconds = 0.15f;
 
@@ -78,6 +82,8 @@ namespace SurvivalChaos
         private const float LoadShare = 0.75f;
 
         private static LoadingScreen instance;
+
+        private static int lastTip = -1;
 
         /// <summary>True from the moment a load is asked for until the screen has cleared.</summary>
         public static bool Busy { get; private set; }
@@ -136,6 +142,7 @@ namespace SurvivalChaos
         {
             instance = null;
             Busy = false;
+            lastTip = -1;
         }
 
         private IEnumerator Run(string scene, string message)
@@ -143,6 +150,14 @@ namespace SurvivalChaos
             RunTime.SetHold(true);
             status.text = message;
             bar.fillAmount = 0f;
+
+            if (tip != null)
+            {
+                lastTip = LoadingTips.Next(lastTip, Random.Range(0, int.MaxValue));
+                tip.text = LoadingTips.All[lastTip];
+            }
+
+            HitchLog.Note("loading " + scene);
 
             // The music goes out as the screen comes up, and the load waits for
             // it: the old scene's track would otherwise stop dead when the new
@@ -168,6 +183,7 @@ namespace SurvivalChaos
             yield return WarmUp();
 
             bar.fillAmount = 1f;
+            HitchLog.Note("loading screen clears");
             RunTime.SetHold(false);
             yield return Fade(1f, 0f, fadeOutSeconds);
 

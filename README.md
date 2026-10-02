@@ -44,6 +44,12 @@ Start from `Assets/Scenes/Menu.unity`. The game scene is `Game.unity`.
 | Change a setting in Options | Left / Right | D-pad or left stick, left / right |
 | Switch Options tab | Q / E | Left / right shoulder |
 | Back out of a menu | Esc | B, or Start in a run |
+| Save a screenshot | F12 | - |
+
+A screenshot goes to `Pictures\Survival Chaos`, named with the build and the
+time. A build also keeps `hitches.log` beside its settings, in
+`%USERPROFILE%\AppData\LocalLow\Ian Wanderley\Survival Chaos`: every frame
+over 50 ms, with what the game had just done.
 
 The same list is on the Controls tab in Options, beside the Rumble switch and a
 switch that brings back the control hints a new player sees in their first

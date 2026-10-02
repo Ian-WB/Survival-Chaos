@@ -75,6 +75,8 @@ namespace SurvivalChaos
 
         public static bool DebugMenuTogglePressed => source.DebugMenuTogglePressed;
 
+        public static bool ScreenshotPressed => source.ScreenshotPressed;
+
         public static int DebugShortcutPressed => source.DebugShortcutPressed;
 
         public static int MenuTabPressed => source.MenuTabPressed;

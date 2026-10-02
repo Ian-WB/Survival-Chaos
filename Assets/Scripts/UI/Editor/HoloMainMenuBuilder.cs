@@ -60,8 +60,9 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
-            // Read before anything is destroyed.
-            string credits = CaptureCredits(canvas.transform);
+            // Written here since 2 October 2026. It used to be lifted out of
+            // the screen being replaced, which was the 2023 jam's own text.
+            string credits = CreditsText;
 
             ConfigureCanvas(canvas);
             GameObject root = HoloUiFactory.ReplaceRoot(canvas.transform, RootName);
@@ -153,39 +154,47 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// Lifts the credits out of whatever currently displays them. Picks the
-        /// longest run of text on the canvas, which is the credit roll by a wide
-        /// margin - every other label is a single word.
+        /// The credits. The team that made the game in 2023 comes first, as it
+        /// stood on their own screen, without the personal addresses that
+        /// screen carried. Then everyone whose work the rebuild uses, following
+        /// ThirdPartyNotices.txt, which ships beside the exe and is the place
+        /// the licences themselves are. A new sound pack, font or library
+        /// wants a line here as well as there.
+        ///
+        /// The NVIDIA line is the attribution its DLSS licence asks a game's
+        /// credits to carry. Plain ASCII apart from the two names: the font
+        /// atlas is Extended ASCII, and a glyph outside it draws as a box.
         /// </summary>
-        private static string CaptureCredits(Transform canvas)
-        {
-            string longest = string.Empty;
-
-            foreach (TMP_Text text in canvas.GetComponentsInChildren<TMP_Text>(includeInactive: true))
-            {
-                if (text.text != null && text.text.Length > longest.Length)
-                {
-                    longest = text.text;
-                }
-            }
-
-            foreach (Text text in canvas.GetComponentsInChildren<Text>(includeInactive: true))
-            {
-                if (text.text != null && text.text.Length > longest.Length)
-                {
-                    longest = text.text;
-                }
-            }
-
-            if (longest.Length < 40)
-            {
-                Debug.LogWarning("No credits text found to carry over - the new credits screen will " +
-                                 "need filling in by hand.");
-                return "Credits";
-            }
-
-            return longest;
-        }
+        public const string CreditsText =
+            "DEVELOPMENT TEAM\n\n" +
+            "Samuel Silva | Game Design\n" +
+            "Lucca To\u00E9 | Tech Art\n" +
+            "Maria Fernanda | Game Artist\n" +
+            "Ian Barbosa | Main Programmer\n" +
+            "Fabr\u00EDcio Frade | UI Programmer\n" +
+            "Luis Rocha | Programmer\n\n\n" +
+            "MUSIC\n\n" +
+            "Darbuka Delight, Chase and Neon Hyperdrive\n" +
+            "by Adiutorium, from OpenGameArt.org (CC0)\n\n\n" +
+            "SOUND\n\n" +
+            "Kenney | Interface Sounds and Sci-fi Sounds (CC0)\n" +
+            "Bluezone Corporation | weapon sounds, from the Sonniss GDC bundle\n\n\n" +
+            "VISUAL EFFECTS\n\n" +
+            "Big Rook Games | effects pack\n" +
+            "Unity Technologies | Particle Pack\n\n\n" +
+            "FONTS\n\n" +
+            "Chakra Petch | The Chakra Petch Project Authors\n" +
+            "Liberation Sans | Google and Red Hat\n" +
+            "Both under the SIL Open Font License 1.1\n\n\n" +
+            "TECHNOLOGY\n\n" +
+            "AMD FidelityFX Super Resolution\n" +
+            "Copyright (C) Advanced Micro Devices, Inc.\n\n" +
+            "NVIDIA DLSS\n" +
+            "Copyright 2018 - 2024 NVIDIA Corporation. NVIDIA and DLSS are\n" +
+            "trademarks and/or registered trademarks of NVIDIA Corporation\n" +
+            "in the U.S. and other countries.\n\n" +
+            "Made with Unity\n\n\n" +
+            "The licences are in ThirdPartyNotices.txt, beside the game.";
 
         /// <summary>
         /// A sub-screen: framed panel over a dimmed background. Only options and
@@ -293,16 +302,40 @@ namespace SurvivalChaos.EditorTools
         {
             Transform panel = PanelOf(screen);
 
-            TextMeshProUGUI text = HoloUiFactory.CreateText(panel, "Credits Text",
+            // A window the text scrolls inside: the roll is several times the
+            // panel's height since it began naming everyone the rebuild uses.
+            RectTransform window = HoloUiFactory.CreateRect(panel, "Credits Window",
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -130f),
-                new Vector2(800f, 340f), 20f, TextAlignmentOptions.TopLeft);
+                new Vector2(800f, 400f));
+            Undo.AddComponent<RectMask2D>(window.gameObject);
+
+            TextMeshProUGUI text = HoloUiFactory.CreateText(window, "Credits Text",
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero,
+                new Vector2(800f, 400f), 20f, TextAlignmentOptions.TopLeft);
             text.text = credits;
 
-            // Left as authored: names and addresses are not decoration, and the
-            // uppercasing and wide tracking used elsewhere would mangle an email.
+            // Left as authored: names are not decoration, and the uppercasing
+            // and wide tracking used elsewhere would shout a list of them.
             text.fontStyle = FontStyles.Normal;
             text.characterSpacing = 0f;
             text.textWrappingMode = TextWrappingModes.Normal;
+
+            // Its height is set by CreditsRoll when the screen opens. The
+            // screen is inactive while it is built, and an inactive text
+            // cannot be measured: it reports the height of five lines for
+            // forty-nine.
+            RectTransform textRect = text.rectTransform;
+
+            CreditsRoll roll = Undo.AddComponent<CreditsRoll>(window.gameObject);
+            HoloUiFactory.Assign(roll, "content", textRect);
+
+            TextMeshProUGUI hint = HoloUiFactory.CreateText(panel, "Credits Hint",
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -538f),
+                new Vector2(800f, 24f), 15f, TextAlignmentOptions.Center);
+            hint.text = "Up and down, or the wheel, to scroll";
+            Color quiet = HoloUiFactory.Edge;
+            quiet.a = 0.6f;
+            hint.color = quiet;
 
             AddBack(panel, panelMaterial, title, -580f);
         }

@@ -56,6 +56,9 @@ namespace SurvivalChaos
         /// <summary>True on the frame the debug menu is toggled.</summary>
         bool DebugMenuTogglePressed { get; }
 
+        /// <summary>True on the frame a screenshot is asked for.</summary>
+        bool ScreenshotPressed { get; }
+
         /// <summary>
         /// The number key pressed this frame, 1 to 8, or 0 for none. Drives the
         /// debug menu's shortcuts.

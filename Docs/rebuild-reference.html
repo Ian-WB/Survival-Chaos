@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 379 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 380 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>379</b><span>commits</span></div>
-      <div class="stat"><b>661</b><span>tests</span></div>
-      <div class="stat"><b>148</b><span>runtime scripts</span></div>
+      <div class="stat"><b>380</b><span>commits</span></div>
+      <div class="stat"><b>673</b><span>tests</span></div>
+      <div class="stat"><b>152</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
@@ -600,6 +600,11 @@
       found the frame all on the graphics card and over a third of it in the volumetric clouds, whose look turned out
       to be set by their light steps. The cloud row climbs on those now, 64 and 6, 64 and 16, 128 and 32, and High
       draws the picture it drew at 512 and 32 for 2.8&nbsp;ms less.</li>
+      <li><strong>The last six polish items</strong> &mdash; on 2 October: a line of advice under the loading bar, the gun
+      answering each step of the Master and Effects sliders, an icon cut from the game&rsquo;s own volcano, credits that
+      name everyone the rebuild uses and scroll, F12 saving a screenshot named with its build, and a log of every frame
+      over 50&nbsp;ms with what the game had just done, so a played build can say whether the Leviathan&rsquo;s first
+      frames stutter.</li>
     </ul>
     <p>The days between 27 and 30 September &mdash; FSR 3, the two polish passes, the licensed music, the loading
     screen and two more outside scans &mdash; are recorded item by item on the open list and are not written up on
@@ -2251,7 +2256,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>661 tests across 65 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>673 tests across 66 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2309,7 +2314,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         </tbody>
       </table>
     </div>
-    <p>The table lists the suites as they stood on 26 September. Fifteen have been added since, for FSR 3, the polish passes, the outside scans and <code>EnemySpacingTests</code>, whose six tests hold the arithmetic that parts two overlapping enemies; they are not listed here yet.</p>
+    <p>The table lists the suites as they stood on 26 September. Sixteen have been added since, for FSR 3, the polish passes, the outside scans, <code>EnemySpacingTests</code>, whose six tests hold the arithmetic that parts two overlapping enemies, and <code>ShippingPolishTests</code>, whose twelve hold the last six polish items; they are not listed here yet.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -2340,7 +2345,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 661 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 673 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2406,11 +2411,16 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Decisions, not bugs</h4>
     <ul>
-      <li>The 2023 jam branches are settled: on 28 September each of the seventeen became an <code>archive/</code> tag and the branches were deleted, so the history and its authors stay. What is undecided now is the second roadmap&rsquo;s items 27 to 32, which are on the open list.</li>
+      <li>The 2023 jam branches are settled: on 28 September each of the seventeen became an <code>archive/</code> tag and the branches were deleted, so the history and its authors stay. The second roadmap&rsquo;s items 27 to 32 were answered yes on 2 October and built; nothing is waiting on a decision.</li>
     </ul>
 
     <h4>Open on the current front</h4>
     <ul>
+      <li><strong>Whether the Leviathan&rsquo;s first frames stutter is not known yet.</strong> Since 2 October a build keeps
+      <code>hitches.log</code> beside its settings, every frame over 50&nbsp;ms with what the game had just done, and a run
+      that reaches the boss fills it in. If the arrival or an attack&rsquo;s first volley shows there, the draw states can
+      be recorded in one run and built behind the loading screen. It is in <code>26_1002-0932_shipping</code>, with the
+      debug menu, along with an icon, loading tips and credits that are yours to judge.</li>
       <li><strong>The 1 October balance and the 400-second run are settled.</strong> Played in two builds and not
       flagged, and on 2 October every number was kept as it is. What the bot showed is kept for the record. On the
       ten-minute run with the new numbers, a bot with all twelve Attack Speed picks won with 22 health after a 99&nbsp;s
@@ -2597,7 +2607,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 379 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 380 commits
   </footer>
 
 </div>

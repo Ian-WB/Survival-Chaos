@@ -64,6 +64,7 @@ namespace SurvivalChaos
 
             Ending = true;
             Won = won;
+            HitchLog.Note(won ? "Leviathan killed" : "ship lost");
             RunStats.Stop();
             RunTime.SetEndingSpeed(speed);
         }

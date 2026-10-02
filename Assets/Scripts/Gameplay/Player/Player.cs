@@ -620,6 +620,8 @@ namespace SurvivalChaos
         /// </summary>
         private void LevelUp(bool offerSkill = true)
         {
+            HitchLog.Note("level up");
+
             if (GameSounds.Instance != null)
             {
                 GameSounds.Play(GameSounds.Instance.LevelUp);

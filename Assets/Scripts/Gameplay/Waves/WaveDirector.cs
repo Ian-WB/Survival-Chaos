@@ -309,6 +309,13 @@ namespace SurvivalChaos
 
         private void Spawn(SpawnStream stream)
         {
+            // Here rather than in the boss's own OnEnable, which also runs
+            // when its pool is warmed at the start of a run.
+            if (IsBoss(stream))
+            {
+                HitchLog.Note("Leviathan arrives");
+            }
+
             float offsetX = Random.Range(stream.XOffsetRange.x, stream.XOffsetRange.y);
             float offsetY = Random.Range(stream.YOffsetRange.x, stream.YOffsetRange.y);
             float height = stream.Position.y + offsetY;

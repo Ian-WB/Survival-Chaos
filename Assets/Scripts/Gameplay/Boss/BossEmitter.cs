@@ -667,6 +667,13 @@ namespace SurvivalChaos
         {
             int volley = volleys[index]++;
 
+            // An attack's first volley is the first time its rounds and its
+            // effects are drawn, which is where a first-time stutter would be.
+            if (volley == 0)
+            {
+                HitchLog.Note("first " + attack.Label);
+            }
+
             switch (attack.Pattern)
             {
                 case BossFirePattern.Curtain:
@@ -1755,6 +1762,8 @@ namespace SurvivalChaos
         /// </summary>
         private void EnterPhase()
         {
+            HitchLog.Note("Leviathan enters " + Phase);
+
             // Felt as well as seen: the fight holds its breath, the pad
             // thumps, and the act has a sound of its own. Before the silence
             // below, which the sound is heard over.

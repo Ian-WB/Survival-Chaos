@@ -58,6 +58,14 @@ namespace SurvivalChaos
             if (AudioDirector.Instance != null)
             {
                 AudioDirector.Instance.SetLevel(channel, value);
+
+                // Master and Effects make no sound of their own in a menu, so
+                // the gun answers each step at the new level. Music is already
+                // playing, and the Interface channel has the menu's own clicks.
+                if (PreviewsOnChange(channel) && GameSounds.Instance != null)
+                {
+                    AudioDirector.Preview(GameSounds.Instance.PlayerShot);
+                }
             }
 
             UpdateReadout(value);
@@ -67,6 +75,12 @@ namespace SurvivalChaos
         /// Pulls the current level back onto the slider. Set without notifying,
         /// or writing the value would raise the change that wrote it.
         /// </summary>
+        /// <summary>Whether moving this channel's slider plays a sample.</summary>
+        public static bool PreviewsOnChange(AudioChannel channel)
+        {
+            return channel == AudioChannel.Master || channel == AudioChannel.Sfx;
+        }
+
         private void Refresh()
         {
             if (AudioDirector.Instance == null)
