@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 382 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 384 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>382</b><span>commits</span></div>
-      <div class="stat"><b>682</b><span>tests</span></div>
+      <div class="stat"><b>384</b><span>commits</span></div>
+      <div class="stat"><b>684</b><span>tests</span></div>
       <div class="stat"><b>152</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -579,6 +579,68 @@
       <li><strong>A frame cap that keeps time</strong> &mdash; every cap the menu offered handed its number to
       Unity&rsquo;s own limiter, which under a 60 cap swung frames between about 6 and 30&nbsp;ms; the game paces
       the cap itself now, with VSync on or off, and hands VSync any cap that is a whole fraction of the refresh.</li>
+      <li><strong>A row for the clouds</strong> &mdash; on 28 September the Graphics screen gained Volumetric Clouds, which
+      raises the clouds&rsquo; step counts on the tiers that compile them. It was 64 and 6, 256 and 24, 512 and 32 until
+      the scan of 1 October recut it.</li>
+      <li><strong>Two scans by another session, answered</strong> &mdash; on 28 September. The first found nine things, all
+      real: a frame cap that spun a core, a second offer landing on one still out, a shot on a pod that reached the
+      hull as well (64 pod hits had brought 66 hull sparks), wind-up sounds that outlived a cancelled attack, and a
+      debug menu that could skip the boss. The second found the hit flash leaving a property block on every enemy for
+      life, which kept all of them off the SRP Batcher: with about 90 on screen, 125 SetPass calls where there had
+      been 185.</li>
+      <li><strong>One enemy base class</strong> &mdash; <code>Enemy</code> and <code>Enemy_1</code> were two copies that had
+      drifted, which is how the gunships once lost their death sound. Both derive from <code>EnemyBase</code> now, with
+      the fields&rsquo; names kept so the four prefabs load unchanged.</li>
+      <li><strong>Unused assets, and the jam&rsquo;s branches</strong> &mdash; six models, three materials, seven prefabs and
+      the retired cloud bank with its 19&nbsp;MB mask were deleted, and the seventeen 2023 branches each became an
+      <code>archive/</code> tag before the branch went.</li>
+      <li><strong>A fuller hit, and a gun with eight voices</strong> &mdash; the sound of taking damage was a 20&nbsp;ms strike
+      that fell 16&nbsp;dB at once; each of its three strikes now plays over a force-field hum 9&nbsp;dB down, about
+      4&nbsp;dB fuller. The gun played two one-second clips in strict alternation on a gun that fires every 0.39&nbsp;s;
+      each is cut four ways with its tail faded, and in a minute of firing a clip came back two shots later 11% of the
+      time where it had been every time.</li>
+      <li><strong>A boss and torpedoes that cannot be outrun</strong> &mdash; eight Move Speed picks took the ship to
+      29.3&deg; a second against a boss at 20, and a torpedo aimed at where the ship had been could never catch a steady
+      runner. Both keep pace with the picks since 28 September, and a torpedo learns a run round the ring while still
+      lagging up and down, so a dodge works as before. 21 of 21 torpedoes ended on a runner holding full speed.</li>
+      <li><strong>FSR 3, through AMD&rsquo;s own libraries</strong> &mdash; on 29 September a small native plugin of the
+      project&rsquo;s began running the signed DLLs from AMD&rsquo;s FSR SDK through HDRP&rsquo;s upscaler slot: 3.1.5 on
+      an RX 6700 XT, 7.9&nbsp;ms of GPU a frame at 1440p Quality against 10.8 native. FSR 2 and Unity&rsquo;s AMD module
+      were removed the same day. A leak of one native context per quality change was closed, and since 30 September a
+      reactive mask the game makes itself stops particles ghosting.</li>
+      <li><strong>Notices that ship with the game</strong> &mdash; <code>ThirdPartyNotices.txt</code> lands beside the exe in
+      every Windows build, and a build stops before it starts if the file is missing. It carries AMD&rsquo;s MIT notice,
+      the two fonts&rsquo; Open Font License, a line for NVIDIA DLSS and the music&rsquo;s credits.</li>
+      <li><strong>A splash that is centred, and a loading screen</strong> &mdash; the splash&rsquo;s logo slot had pointed at
+      an image deleted in August, so every build drew &ldquo;Made with Unity&rdquo; under two seconds of nothing. And
+      Play froze the menu for about 1.2&nbsp;s with nothing on screen; a loading screen in the menus&rsquo; style goes
+      up before the work starts and stays until the new scene draws at a normal pace, with game time held at zero.</li>
+      <li><strong>The first Project Auditor report, read</strong> &mdash; about 2,780 warnings on 29 September, each group
+      checked against the project, and one real: both music tracks were decoded whole on every scene load. They
+      stream now, about 1&nbsp;ms and 0.2&nbsp;MB each where the menu&rsquo;s had cost 0.39&nbsp;s and 32&nbsp;MB. The
+      menu&rsquo;s music had also never looped, since the day the audio system went in.</li>
+      <li><strong>Play without a domain reload</strong> &mdash; entering play takes about 3&nbsp;s where it took 9.6. Statics
+      are no longer wiped between sessions, so all 25 classes that keep any reset them on entering play, and
+      <code>PlayModeStaticsTests</code> fails if a class gains static state without a reset. The star sky went from
+      128&nbsp;MB uncompressed to 32 as BC7 on the same day.</li>
+      <li><strong>Options as tabs</strong> &mdash; from a run on a pad on 30 September. The hub of three screens became one
+      panel with a strip of tabs that LB and RB turn, and each setting became one row: up and down move between rows,
+      left and right change the value.</li>
+      <li><strong>The first polish roadmap, items 1 to 14</strong> &mdash; built on 30 September: the run pauses when the
+      window loses focus, the pointer hides during a run, the title and pause screens name the build, each control is
+      taught when it first matters, Options has a Controls tab, the game remembers its best runs, the arena&rsquo;s
+      colours were checked for colour blindness, a beat sits between the killing hit and Ship Lost, the game holds for
+      a moment when the Leviathan loses a part, a horn sounds before it arrives, the last hit point has a heartbeat, a
+      pad rumbles, and nine moments have a sound of their own.</li>
+      <li><strong>Music with a known licence</strong> &mdash; nobody remembered where the jam&rsquo;s two tracks came from.
+      The title&rsquo;s traced to Adiutorium&rsquo;s &ldquo;Darbuka Delight&rdquo;, CC0, and stays. The run plays his
+      &ldquo;Chase&rdquo; and the Leviathan his &ldquo;Neon Hyperdrive&rdquo;, which takes over in 3&nbsp;s as the boss
+      appears and loops from bar 65 back to bar 10.</li>
+      <li><strong>The second roadmap&rsquo;s first ten</strong> &mdash; also 30 September: the Leviathan dies on screen over
+      2.5&nbsp;s where it had vanished on the killing frame, enemies flash and grow in over 0.4&nbsp;s and keep 30&deg; of
+      ring clear of the ship, the pause screen has Restart and asks before a run is abandoned, the end card&rsquo;s
+      buttons take no press for 0.6&nbsp;s, the music fades across a load, an unplugged pad pauses the run, the pause
+      screen shows the run so far, and the Ship Lost card says what did it.</li>
       <li><strong>Enemies that keep clear of each other</strong> &mdash; every enemy closes on the ship&rsquo;s bearing and
       height and nothing kept them apart, so nearly a quarter of the time one was drawn inside another and a group read
       as one ship taking several rounds; since 1 October two that overlap on screen are eased apart, and a group
@@ -606,9 +668,8 @@
       over 50&nbsp;ms with what the game had just done, so a played build can say whether the Leviathan&rsquo;s first
       frames stutter.</li>
     </ul>
-    <p>The days between 27 and 30 September &mdash; FSR 3, the two polish passes, the licensed music, the loading
-    screen and two more outside scans &mdash; are recorded item by item on the open list and are not written up on
-    this page yet.</p>
+    <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
+    measurements; the parts of it that changed how a system works are written into Part III below.</p>
   </section>
 
   <section id="review">
@@ -1424,6 +1485,42 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       <code>ObjectPool</code> and <code>RunOutcome</code> both pair <code>SubsystemRegistration</code> with a
       <code>SceneManager</code> hook, and this had only the first half.</p>
     </div>
+
+    <h3>The moments get time of their own</h3>
+    <p>Until 30 September every large event took one frame. The killing hit put the Ship Lost card up and stopped
+    time on that frame, so the shot that killed the ship was never seen to land; the Leviathan went back to its
+    pool on the frame it died. Three small holds changed that, all in real time.</p>
+    <ul>
+      <li><strong>The death beat.</strong> The game runs at a quarter for 1.2&nbsp;s while the ship breaks up, the music
+      fades and a pad rumbles, then the card. The run is lost from the beat&rsquo;s first frame: nothing hurts the
+      ship, nothing pauses, and no round still flying can take the boss&rsquo;s last point and put a victory over it.
+      The dials are Death Beat Seconds and Death Beat Speed on the Player.</li>
+      <li><strong>The Leviathan&rsquo;s death.</strong> A hold of 0.15&nbsp;s on the hit, then a quarter speed while blasts
+      run along the hull from the emplacements outward, and the card 2.5&nbsp;s after the hit. It runs on the
+      ship&rsquo;s own beat, marked as a win, so the music plays on.</li>
+      <li><strong>The freeze.</strong> 70&nbsp;ms when an emplacement goes down and 150&nbsp;ms when an act ends. It runs
+      at 2% rather than stopping, so a dash pressed in it still goes.</li>
+    </ul>
+    <p>Two warnings came with them. A horn sounds far off ten seconds before the Leviathan arrives and again, closer,
+    as it does; and on its last hit point the ship has a heartbeat every 0.9&nbsp;s of game time until salvage lifts
+    it. The Ship Lost card&rsquo;s first line names what ended the run, because every hit carries its source now, and
+    a test fails if a round&rsquo;s prefab is renamed and its hits lose their name.</p>
+
+    <h3>Enemies arrive</h3>
+    <p>Measured before the change, 57 of 85 spawns were already on screen on their first frame, and one appeared 3.9
+    units from the ship. <code>EnemyArrival</code> has each enemy flash and grow in over 0.4&nbsp;s, untouchable and
+    harmless until it is all there, and <code>WaveDirector</code> keeps 30&deg; of ring clear either side of the ship.
+    How many come, and when, did not change.</p>
+
+    <h3>Bests, and what a first run is told</h3>
+    <p><code>RunRecords</code> keeps the longest run, the highest level and the fastest Leviathan kill beside the
+    settings. The end card says NEW BEST and names what was beaten, in whole seconds, because a best that reads the
+    same as the old one is a claim nobody can check. A run the debug menu touched is not a record and its card says
+    so; otherwise testing in a debug build would write over the real bests.</p>
+    <p><code>Tutorial</code> teaches one line at a time at the foot of the screen: Reverse and then Dash in a run&rsquo;s
+    first seconds, Slow Mo and the Deflector the first time each is taken, and the first offer with a choice in it.
+    Each names the key or the pad button, whichever was touched last. A line goes once the player has done what it
+    says, and the first three runs show them.</p>
   </section>
 
   <section id="render">
@@ -1621,6 +1718,31 @@ emission  = hot * glow * veins;</code></pre>
       <p>What found it was capturing <em>mid-climb</em> with each effect toggled on the camera alone: FSR on, short tilted trails; FSR off, straight ones, with motion blur on or off. The needle beside it was clean in every capture because it is rigid and writes its own motion vectors. So the streak is built the same way &mdash; a mesh on the round's root, a transparent graph that writes motion vectors, the renderer in Object mode &mdash; and FSR, TAA and motion blur reproject it like any other rigid object. Its bounds are symmetric about the centre so the bullet light stays on the needle.</p>
     </div>
 
+    <h3>FSR 3, through AMD&rsquo;s own libraries</h3>
+    <p>The FSR above was FSR 2, through Unity&rsquo;s AMD module. Since 29 September it is FSR 3.1.5, and neither FSR 2
+    nor that module is in the project. <code>SurvivalChaosFfx.dll</code>, a small native plugin built from
+    <code>Native/FfxUpscaler</code>, loads the signed DLLs from AMD&rsquo;s FSR SDK 2.3.0 and is driven by
+    <code>Fsr3Upscaler</code> in HDRP&rsquo;s upscaler slot. AMD&rsquo;s loader picks the version the card supports.
+    It is DirectX 12 only, and there is no frame generation, which would need the swap chain Unity owns. A setting
+    saved as FSR 2 reads as FSR.</p>
+    <p>Measured in a build at 1440p on Ultra, Quality preset: 7.9&nbsp;ms of GPU a frame, against 7.7 for FSR 2 and
+    10.8 native. The editor loads it only with the EditorPrefs switch <code>SurvivalChaos.Fsr3InEditor</code> on.</p>
+    <div class="warn">
+      <div class="label">Three things that failed without saying so</div>
+      <p><strong>Textures have to travel as Unity&rsquo;s own texture events.</strong> The first test build crashed the
+      moment FSR 3 came on, because the plugin read a texture pointer on the main thread. They go through
+      <code>IssuePluginCustomTextureUpdateV2</code>, the way Unity&rsquo;s own module sent them.</p>
+      <p><strong>Contexts leaked at every quality change.</strong> HDRP frees an upscaler&rsquo;s context only once a
+      running pipeline has gone 400 frames without it, and a tier change rebuilds the pipeline and drops them
+      uncleaned. The plugin has 16 slots, so FSR would have stopped after 16 tier changes.
+      <code>Fsr3Upscaler</code> keeps its own list of live contexts and gives them back when the pipeline goes.</p>
+      <p><strong>Particles ghosted.</strong> They write no motion vectors, so FSR moved an explosion&rsquo;s pixels with
+      whatever was behind it. AMD&rsquo;s answer is a reactive mask, which HDRP&rsquo;s hook does not provide, so
+      <code>Fsr3ReactiveMask</code> makes one: it copies the frame just before transparents are drawn and compares
+      that with the frame FSR upscales, using the arithmetic of AMD&rsquo;s own mask generator. The clouds, sky and
+      fog are drawn before the copy, so they are not marked.</p>
+    </div>
+
     <h3>Exposure, and one lever for fog</h3>
     <p>Exposure is fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
     <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. They went back to their defaults, leaving <code>meanFreePath</code> as the single control over how thick the air is, and four have been set again since, the two heights among them. <code>meanFreePath</code> is <strong>30</strong> today &mdash; 20 until the arena rose into the clouds on 24 September, then 50 &mdash; with the froxel depth and the maximum fog distance both at 64; the island's far edge is about 45 units out. The base and maximum heights of 1000 and 1050 are not ten-times leftovers: they are altitudes above HDRP&rsquo;s planet, which that move put 1000 below the arena, so the fog still spans world heights 0 to 50 as it did before. Across the flight band that gives a density falling from 0.54 of maximum to 0.16, so a low pass over the lava is markedly thicker than a high one.</p>
@@ -1694,6 +1816,37 @@ float  edge  = HoloBand(d, _Border);</code></pre>
       <div class="label">Why a link rather than a list</div>
       <p>The obvious repair was to add the three new screens to the list <code>Resume</code> already hid. That fixes today and rebuilds the same trap for whoever adds the fourth. The <code>previous</code> link is set by the menu builder in the same call that wires each Back button, so the key and the button read one source and cannot drift apart — and closing everything is a sweep over every <code>MenuScreen</code> in the scene, which cannot fall behind the screens that exist.</p>
     </div>
+
+    <h3>Options is one panel with four tabs</h3>
+    <p>The hub described above is gone since 30 September. Moving from Audio to Graphics had meant backing out and
+    going in again, and every setting was two arrow buttons to walk onto and press. Options is now one panel with
+    Audio, Display, Graphics and Controls in a strip across the top. LB and RB turn the tabs, or Q and E, and the
+    hints at the strip&rsquo;s ends name whichever was touched last. It opens on the tab last used, and B, Esc or
+    Back leaves it from any tab.</p>
+    <p>Each setting is one row to stand on. Up and down move between rows, left and right change the value, and A
+    steps it forward; the arrows stay for the mouse and the pad passes over them. A greyed-out row can still be
+    reached, so its note can be read. The rows share a base, <code>SteppedSetting</code>, which is what lets the
+    Controls tab&rsquo;s Rumble and Control Hints be rows without being graphics settings. The Controls tab&rsquo;s
+    left side is every action with its key and its pad button.</p>
+
+    <h3>A loading screen, and what it holds back</h3>
+    <p>Measured in a build on 29 September: pressing Play froze the menu for about 1.2&nbsp;s with nothing on screen,
+    0.4&nbsp;s loading the arena and then two slow first frames of 0.48 and 0.28&nbsp;s. <code>LoadingScreen</code>
+    goes up in 0.15&nbsp;s, before the heavy work, and stays until the new scene draws at a normal pace. Game time is
+    held at zero while it is up, so a paused or finished run does not unpause to load and a new run starts only once
+    it can be seen. A second press of Play does nothing. The old scene&rsquo;s music fades out over 0.4&nbsp;s under
+    it, and the new track fades in over about a second once it has gone. Since 2 October it carries a line of advice
+    from <code>LoadingTips</code>.</p>
+
+    <h3>The pause screen, and the cards that end a run</h3>
+    <p>The pause screen has Restart between Options and Main Menu. Restart, Main Menu and Quit each open
+    &ldquo;Abandon this run?&rdquo; with No selected; the death and victory cards do not ask. Under its buttons the
+    pause screen shows the run so far, written by the end card&rsquo;s own code, and its corner names the build:
+    the folder and the commit, with a + if the build had uncommitted changes. The run pauses by itself when the
+    window loses focus or the pad in use is unplugged, and the pointer is hidden while a run is being played.</p>
+    <p>A is the dash and also presses the selected button, and both end cards open on Try Again, so an A pressed as
+    the card came up started a new run unread. The buttons fade in over 0.6&nbsp;s and take no press until they are
+    there.</p>
 
     <h3>Keys and a pad reach every button</h3>
     <p>Unity&rsquo;s UI sends the arrows, the stick and Enter or A to whatever is <em>selected</em>, and until 25 September nothing selected anything: neither scene set a first selection and no script ever made one. The pad could fly the ship and pause it, and then could not reach Restart after dying. <code>MenuScreen</code> places focus now. A screen opened from play starts on its first live control &mdash; every pause begins on Resume &mdash; and one reached from another screen picks up where it was left, so backing out of Audio lands on Audio. It waits for <code>LateUpdate</code> to do it, because a screen&rsquo;s <code>OnEnable</code> runs before its children&rsquo;s, and a button selected before its own highlight has woken is lit and then reset.</p>
@@ -1790,6 +1943,24 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>Unity 6 renamed the AudioSource's <strong>Audio Clip</strong> field to <strong>Audio Generator</strong>, and serialises it as <code>m_Resource</code> alongside the legacy <code>m_audioClip</code>. Asked whether the music went "in the audio generator", the answer given was no — read as a question about the Sound asset system rather than about the field on the component. The clip slot stayed empty and nothing played.</p>
       <p>A second failure compounded it: the scene files were read from disk while the editor held unsaved changes, so the analysis described the last-saved state rather than the live one. <code>MusicSource</code> now logs a warning naming the object when it has no track, instead of presenting as silence with nothing to look at.</p>
     </div>
+
+    <h3>Three tracks by one composer, streamed</h3>
+    <p>All three tracks are by Adiutorium, from OpenGameArt, under CC0: &ldquo;Darbuka Delight&rdquo; on the title
+    screen, &ldquo;Chase&rdquo; for the run and &ldquo;Neon Hyperdrive&rdquo; for the Leviathan. The jam&rsquo;s own
+    run track carried no source anyone could find and is out of the project, kept in git history. When the boss
+    appears the run&rsquo;s track hands over in 3&nbsp;s on equal-power gains, so the level does not dip halfway.
+    The Leviathan&rsquo;s starts at bar 10 and loops from bar 65 back to bar 10, which skips its quiet intro and its
+    fade-out.</p>
+    <p>The tracks stream from disk. Set to decompress on load, the menu&rsquo;s three minutes cost 0.39&nbsp;s and
+    32&nbsp;MB on every return to the menu; streamed it is about 1&nbsp;ms and 0.2&nbsp;MB.
+    <code>MusicImportTests</code> fails if a track stops streaming.</p>
+
+    <h3>Sounds made, not picked</h3>
+    <p>Neither sound pack has a horn or a heartbeat, so <code>BuildMomentSounds</code> synthesises them, and it picks
+    the other moment sounds from the packs by measurement: salvage, the deflector&rsquo;s block, Slow Mo going in and
+    coming out, an offer&rsquo;s last three seconds, and an act ending. <code>BuildPlayerShotVariants</code> cuts the
+    gun&rsquo;s two clips into eight. Both are menu items that write into <code>Balanced/</code>, on the same level
+    ladder as every other sound.</p>
   </section>
 
   <section id="perf">
@@ -2010,7 +2181,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <div class="label">Three settings that were doing nothing until they were found</div>
       <p><strong>Adaptive Probe Volumes were on for High alone.</strong> Only High Fidelity ships with them, and this scene's indirect light <em>is</em> an APV bake — so on the other two tiers the bake was simply unread and dynamic objects fell back to legacy probes. The same failure shape as the ray-traced GI silhouettes, arrived at by leaving a default alone rather than by setting one.</p>
       <p><strong>Minimum screen percentage ships at 100.</strong> HDRP clamps every scale request to the asset's band, so with the floor at the ceiling the Render Scale row and the dynamic resolution controller both computed a percentage every frame and had it thrown away. It is 50 now, which is the floor the director already clamps to.</p>
-      <p><strong>The advanced upscaler list ships empty.</strong> HDRP only walks the upscalers named there, so DLSS and FSR2 were detected and never offered. Both are listed now.</p>
+      <p><strong>The advanced upscaler list ships empty.</strong> HDRP only walks the upscalers named there, so DLSS and FSR2 were detected and never offered. Both were listed then; FSR 2 has since given way to FSR 3, which registers itself.</p>
     </div>
 
     <h3>The bottom two tiers have no dynamic shadows</h3>
@@ -2108,7 +2279,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Upscaling is three rows, not one list</h4>
     <p>The first attempt was a single nine-item cycler — <em>Off, SMAA, TAA, FSR Quality, FSR Balanced, FSR Performance, DLSS Quality…</em> — which conflated <em>which</em> reconstruction runs with <em>how hard it pushes</em>. Comparing FSR Balanced against DLSS Balanced meant scrolling between two unrelated entries. It is now Upscale Method, Upscale Quality and Anti-Aliasing as separate rows, each of which goes quiet with a note when another owns it.</p>
-    <p><strong>DLAA belongs to anti-aliasing</strong>, not to upscaling: it is DLSS rendering at full resolution, spending its budget on edges instead of reconstruction. It makes the image cost more, not less. There is deliberately no FSR counterpart beside it — Unity's <code>AMD.FSR2Quality</code> has only Quality, Balanced, Performance and UltraPerformance, with no native-resolution mode to expose.</p>
+    <p><strong>DLAA belongs to anti-aliasing</strong>, not to upscaling: it is DLSS rendering at full resolution, spending its budget on edges instead of reconstruction. It makes the image cost more, not less. There is deliberately no FSR counterpart beside it — Unity's <code>AMD.FSR2Quality</code> has only Quality, Balanced, Performance and UltraPerformance, with no native-resolution mode to expose. That was written of FSR 2, which left the project on 29 September; see <a href="#render">Rendering</a> for FSR 3.</p>
 
     <div class="warn">
       <div class="label">The two vendors order their quality enums backwards from each other</div>
@@ -2256,7 +2427,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>682 tests across 66 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>684 tests across 66 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2432,6 +2603,16 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       Leviathan pass sampled at exactly level went uncounted (<code>RingChase.SideToRemember</code>); FSR&rsquo;s reactive
       mask allocated every frame; and the README named the old editor. The seventh, that spacing compares every pair
       of enemies, was measured at 0.15&nbsp;ms with 47 alive and left.</li>
+      <li><strong>A Release build was made and read, on 2 October.</strong> <code>26_1002-1314_release</code> is the
+      first without the debug menu since 10 September: 819&nbsp;MB against 830 for the debug build of the same day,
+      no warnings, and neither &ldquo;God mode&rdquo; nor &ldquo;Skip to boss&rdquo; anywhere in its assembly. The
+      Unity CLI&rsquo;s compiler libraries, which ride in every debug build, are not in it. Newtonsoft.Json is, at
+      0.7&nbsp;MB, so the notices file carries its MIT notice now and a test holds it there. It has not been
+      played. Microsoft&rsquo;s terms for DirectStorage and the DirectX 12 runtime, which Unity ships in every Windows
+      build, were read the same day: neither asks the game for a notice of its own, but DirectStorage is built from
+      Boost, C++/WinRT, DirectXTex and WIL, so Microsoft&rsquo;s notices file for them now ships beside the exe as
+      <code>ThirdPartyNotices-DirectStorage.txt</code>. Both licences ask that end users agree to terms at least as
+      protective, and the game has none; that is a question for a public release.</li>
       <li><strong>The 1 October balance and the 400-second run are settled.</strong> Played in two builds and not
       flagged, and on 2 October every number was kept as it is. What the bot showed is kept for the record. On the
       ten-minute run with the new numbers, a bot with all twelve Attack Speed picks won with 22 health after a 99&nbsp;s
@@ -2618,7 +2799,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 382 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 384 commits
   </footer>
 
 </div>

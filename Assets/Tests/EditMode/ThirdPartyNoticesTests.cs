@@ -70,6 +70,48 @@ namespace SurvivalChaos.Tests
             StringAssert.Contains("END OF TERMS AND CONDITIONS", text);
         }
 
+        /// <summary>
+        /// Newtonsoft.Json.dll is in the Release build of 2 October as well
+        /// as the debug ones: it comes in with the Unity CLI's package, whose
+        /// other libraries a Release build drops. MIT asks for its notice
+        /// with every copy.
+        /// </summary>
+        [Test]
+        public void JsonNetIsCoveredWhileItShips()
+        {
+            string packages = File.ReadAllText(Path.Combine(ProjectFolder, "Packages", "packages-lock.json"));
+            if (!packages.Contains("com.unity.nuget.newtonsoft-json"))
+            {
+                Assert.Pass("Newtonsoft.Json is not installed");
+            }
+
+            string text = Notices();
+            StringAssert.Contains("Newtonsoft.Json", text);
+            StringAssert.Contains("Copyright (c) 2007 James Newton-King", text);
+        }
+
+        /// <summary>
+        /// Microsoft's licence for DirectStorage asks only that its notices
+        /// are left alone, but the MIT and Apache components compiled into it
+        /// ask for theirs with every copy. So Microsoft's own notices file
+        /// ships whole, and the game's file says where it is.
+        /// </summary>
+        [Test]
+        public void DirectStoragesNoticesShipWhole()
+        {
+            string path = Path.Combine(ProjectFolder, "ThirdPartyNotices-DirectStorage.txt");
+            Assert.IsTrue(File.Exists(path), "ThirdPartyNotices-DirectStorage.txt is missing from the project folder");
+
+            string microsofts = File.ReadAllText(path);
+            StringAssert.StartsWith("NOTICES AND INFORMATION", microsofts);
+            foreach (string component in new[] { "boost", "Microsoft.Windows.CppWinRT", "microsoft/directxtex", "microsoft/wil" })
+            {
+                StringAssert.Contains(component, microsofts);
+            }
+
+            StringAssert.Contains("ThirdPartyNotices-DirectStorage.txt", Notices());
+        }
+
         [Test]
         public void DlssIsAttributed()
         {
