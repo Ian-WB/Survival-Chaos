@@ -2416,11 +2416,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Open on the current front</h4>
     <ul>
-      <li><strong>Whether the Leviathan&rsquo;s first frames stutter is not known yet.</strong> Since 2 October a build keeps
-      <code>hitches.log</code> beside its settings, every frame over 50&nbsp;ms with what the game had just done, and a run
-      that reaches the boss fills it in. If the arrival or an attack&rsquo;s first volley shows there, the draw states can
-      be recorded in one run and built behind the loading screen. It is in <code>26_1002-1057_scanFixes</code>, with the
-      debug menu, along with an icon, loading tips and credits that are yours to judge.</li>
+      <li><strong>The Leviathan&rsquo;s first frames do not stutter.</strong> Since 2 October a build keeps
+      <code>hitches.log</code> beside its settings, every frame over 50&nbsp;ms with what the game had just done. A run
+      in <code>26_1002-1057_scanFixes</code> that killed the boss left no slow frame anywhere in the fight, so the draw
+      states are not built ahead. The icon, the loading tips and the credits were not flagged in that run and stand.</li>
       <li><strong>Unity&rsquo;s denoising package is gone.</strong> <code>com.unity.rendering.denoising</code> had been in the
       manifest since 3 August and served only HDRP&rsquo;s path tracer, which is off. It put Intel&rsquo;s Open Image Denoise
       and TBB in every Windows build, for x64 and for ARM: 96&nbsp;MB. Removed on 2 October, a build went from
