@@ -19,34 +19,49 @@ namespace SurvivalChaos.Tests
     /// They reach ships only, through a rendering layer called Ships, so the
     /// island, its bake and the fog look as they did.
     ///
-    /// Both ways this breaks are silent. A ship left off the layer goes back to
-    /// drawing black and nothing logs it. A light let off the layer starts
+    /// The player's ship is on a layer of its own, Player Ship, with a key of
+    /// its own at half the strength. Its paint is the lightest of any ship's
+    /// and it flies nearest the camera, so under the enemies' key it came out
+    /// a flat pastel that looked lit from inside. The rim and the fill reach
+    /// both layers.
+    ///
+    /// Both ways this breaks are silent. A ship left off its layer goes back to
+    /// drawing black and nothing logs it. A light let off the layers starts
     /// lighting the island, which a rebake would then be judged against. The
     /// scene is read as saved, the way the other tests read it.
     /// </summary>
     public class ShipLightsTests
     {
         private const string Layer = "Ships";
+        private const string PlayerLayer = "Player Ship";
 
-        private static readonly string[] Lights = { "Ship Key Light", "Ship Rim Light", "Ship Fill Light" };
+        private const string EnemyKey = "Ship Key Light";
+        private const string PlayerKey = "Player Key Light";
 
-        private static uint ShipsBit()
+        private static readonly string[] Lights = { EnemyKey, PlayerKey, "Ship Rim Light", "Ship Fill Light" };
+
+        private static uint Bit(string layer)
         {
-            uint bit = UnityEngine.RenderingLayerMask.GetMask(Layer);
-            Assert.That(bit, Is.Not.Zero, "rendering layer '" + Layer + "' is not defined");
+            uint bit = UnityEngine.RenderingLayerMask.GetMask(layer);
+            Assert.That(bit, Is.Not.Zero, "rendering layer '" + layer + "' is not defined");
             return bit;
+        }
+
+        private static bool IsPlayer(GameObject root)
+        {
+            return root.GetComponent<ShipThrusters>() != null;
         }
 
         private static bool IsShip(GameObject root)
         {
-            return root.CompareTag("Enemy") || root.CompareTag("Boss") ||
-                   root.GetComponent<ShipThrusters>() != null;
+            return root.CompareTag("Enemy") || root.CompareTag("Boss") || IsPlayer(root);
         }
 
         [Test]
-        public void EveryShipRenderer_IsOnTheShipsLayer_AndStillOnDefault()
+        public void EveryShipRenderer_IsOnItsLayer_AndStillOnDefault()
         {
-            uint ships = ShipsBit();
+            uint enemies = Bit(Layer);
+            uint player = Bit(PlayerLayer);
             var wrong = new List<string>();
             int checkedRenderers = 0;
 
@@ -60,13 +75,21 @@ namespace SurvivalChaos.Tests
                     continue;
                 }
 
+                uint own = IsPlayer(root) ? player : enemies;
+                uint other = IsPlayer(root) ? enemies : player;
+
                 foreach (MeshRenderer renderer in root.GetComponentsInChildren<MeshRenderer>(true))
                 {
                     checkedRenderers++;
 
-                    if ((renderer.renderingLayerMask & ships) == 0)
+                    if ((renderer.renderingLayerMask & own) == 0)
                     {
-                        wrong.Add(path + " / " + renderer.name + ": not on " + Layer + ", so nothing lights it");
+                        wrong.Add(path + " / " + renderer.name + ": not on its layer, so nothing lights it");
+                    }
+
+                    if ((renderer.renderingLayerMask & other) != 0)
+                    {
+                        wrong.Add(path + " / " + renderer.name + ": on both layers, so both keys light it");
                     }
 
                     if ((renderer.renderingLayerMask & 1u) == 0)
@@ -86,7 +109,8 @@ namespace SurvivalChaos.Tests
         [Test]
         public void TheShipLights_ReachShipsOnly_CastNothing_AndStayOutOfTheFog()
         {
-            uint ships = ShipsBit();
+            uint enemies = Bit(Layer);
+            uint player = Bit(PlayerLayer);
             SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
 
             foreach (string name in Lights)
@@ -97,8 +121,11 @@ namespace SurvivalChaos.Tests
                 string light = scene.Component(gameObject, "Light");
                 Assert.That(light, Is.Not.Null, name + " has no Light");
 
-                Assert.AreEqual((float)ships, scene.Float(light, "m_RenderingLayerMask"),
-                    name + " must reach the Ships layer and no other, or it lights the island");
+                // Each key has one layer. The rim and the fill have both.
+                uint reach = name == EnemyKey ? enemies : name == PlayerKey ? player : enemies | player;
+
+                Assert.AreEqual((float)reach, scene.Float(light, "m_RenderingLayerMask"),
+                    name + " must reach its ships and nothing else, or it lights the island");
                 Assert.AreEqual(0f, scene.Float(light, "m_Shadows", "m_Type"), name + " casts shadows");
 
                 // 4 is Realtime. A Mixed or Baked light here would be written
@@ -112,12 +139,26 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void TheKeyAndTheRim_RideOnTheCamera()
+        public void ThePlayersKey_IsDimmerThanTheEnemies()
+        {
+            SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
+            float enemies = scene.Float(scene.Component(scene.GameObjectNamed(EnemyKey), "Light"), "m_Intensity");
+            float player = scene.Float(scene.Component(scene.GameObjectNamed(PlayerKey), "Light"), "m_Intensity");
+
+            // Both are directional and in lux, so the numbers compare. At the
+            // same strength the player's ship is the brightest thing in the
+            // lane, which is what the second key is there to stop.
+            Assert.That(player, Is.GreaterThan(0f));
+            Assert.That(player, Is.LessThan(enemies * 0.75f));
+        }
+
+        [Test]
+        public void TheKeysAndTheRim_RideOnTheCamera()
         {
             SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
             string camera = scene.Component(scene.GameObjectNamed("Main Camera"), "Transform");
 
-            foreach (string name in new[] { "Ship Key Light", "Ship Rim Light" })
+            foreach (string name in new[] { EnemyKey, PlayerKey, "Ship Rim Light" })
             {
                 string transform = scene.Component(scene.GameObjectNamed(name), "Transform");
                 Assert.AreEqual(camera, scene.Reference(transform, "m_Father"),

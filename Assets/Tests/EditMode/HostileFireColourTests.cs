@@ -7,13 +7,14 @@ namespace SurvivalChaos.Tests
 {
     /// <summary>
     /// That nothing which can hurt the ship is the colour of the lava, or of
-    /// the ship's own rounds.
+    /// the ship's own rounds, or so bright that it has no colour left.
     ///
     /// Hostile fire was red-orange until 5 October 2026, within four degrees of
     /// hue of the lava it was fired across, and a round over the flow could not
-    /// be picked out of it. It is cyan now. The colour is written by the editor
-    /// tool HostileFireColour, which this assembly cannot see, so these read
-    /// what it wrote: the materials, and the light the rounds carry.
+    /// be picked out of it. It is violet now, after a few hours as a cyan that
+    /// did not read as an enemy's. The colour is written by the editor tool
+    /// HostileFireColour, which this assembly cannot see, so these read what
+    /// it wrote: the materials, and the light the rounds carry.
     ///
     /// What would undo it is one material edited by hand, or a new hostile
     /// round given the old colour because the ones beside it used to have it.
@@ -38,12 +39,21 @@ namespace SurvivalChaos.Tests
 
         /// <summary>
         /// How far round the wheel hostile fire has to sit from the lava. The
-        /// orange was 0 to 11 away. Cyan is its complement, 187 to 202 away.
+        /// orange was 0 to 11 away. The violet is 106 to 111 away.
         /// </summary>
-        private const float FromLava = 120f;
+        private const float FromLava = 90f;
 
-        /// <summary>And from the ship's own rounds, which are green: 70 today.</summary>
+        /// <summary>And from the ship's own rounds, which are green: 129 today.</summary>
         private const float FromOurRounds = 40f;
+
+        /// <summary>
+        /// The brightest an HDRP Lit round's emission may be. Above about 2 the
+        /// tonemapper turns any hue into a pastel, which is how a cyan became
+        /// ice blue and would turn this violet pink. The rounds were at 3 and
+        /// 2.4 until 5 October 2026. HostileFireColour.PeakCeiling is the same
+        /// number, on the side that writes them.
+        /// </summary>
+        private const float PeakCeiling = 2f;
 
         private static float Hue(Color colour)
         {
@@ -95,6 +105,32 @@ namespace SurvivalChaos.Tests
                 if (Mathf.Abs(Mathf.DeltaAngle(hue, ours)) < FromOurRounds)
                 {
                     wrong.Add(Hostile[i, 0] + ": hue " + hue.ToString("0") + ", our rounds are " + ours.ToString("0"));
+                }
+            }
+
+            Assert.That(wrong, Is.Empty);
+        }
+
+        [Test]
+        public void NoHostileRound_IsBrightEnoughToLoseItsColour()
+        {
+            var wrong = new List<string>();
+
+            for (int i = 0; i < Hostile.GetLength(0); i++)
+            {
+                // The lance and the muzzle glows are shader graphs with an
+                // intensity of their own; a beam's white core is the point.
+                if (Hostile[i, 1] != "_EmissiveColor")
+                {
+                    continue;
+                }
+
+                Color glow = Read(Hostile[i, 0], Hostile[i, 1]);
+                float peak = Mathf.Max(glow.r, Mathf.Max(glow.g, glow.b));
+
+                if (peak > PeakCeiling)
+                {
+                    wrong.Add(Hostile[i, 0] + ": peaks at " + peak.ToString("0.##"));
                 }
             }
 

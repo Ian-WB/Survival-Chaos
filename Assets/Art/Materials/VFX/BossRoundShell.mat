@@ -324,14 +324,14 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.010999999, g: 0.24749997, b: 0.54999995, a: 1}
+    - _BaseColor: {r: 0.17049997, g: 0.010999997, b: 0.5499999, a: 1}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.010999999, g: 0.24749994, b: 0.5499999, a: 1}
+    - _Color: {r: 0.17049992, g: 0.010999997, b: 0.5499999, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 0.022, g: 0.495, b: 1.1, a: 1}
+    - _EmissiveColor: {r: 0.2325, g: 0.015, b: 0.75, a: 1}
     - _EmissiveColorLDR: {r: 0.6579875, g: 0.88031507, b: 0, a: 1}
     - _InvPrimScale: {r: 1, g: 1, b: 0, a: 0}
     - _IridescenceThicknessRemap: {r: 0, g: 1, b: 0, a: 0}

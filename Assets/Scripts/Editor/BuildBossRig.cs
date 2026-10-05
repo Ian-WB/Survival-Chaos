@@ -592,9 +592,9 @@ namespace SurvivalChaos.EditorTools
             //
             // Since 2026-10-05 the pods are the only part of that family still
             // warm. The rounds, the discs, the lance and the muzzle glows moved
-            // to cyan - see HostileFireColour - because fire the colour of the
+            // to violet - see HostileFireColour - because fire the colour of the
             // lava could not be seen crossing it. So red is what to shoot and
-            // cyan is what to dodge.
+            // violet is what to dodge.
             var red = new Color(2.2f, 0.09f, 0.04f);
 
             skin.SetColor("_UnlitColor", red);

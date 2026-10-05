@@ -17,41 +17,57 @@ namespace SurvivalChaos.EditorTools
     /// and a Leviathan round 23. Everything that could hurt the ship was the
     /// colour of the largest bright thing on screen.
     ///
-    /// It is cyan now, the lava's complement. The same frame gives 72 and 62,
-    /// and 52 and 50 under protanopia, which is its weakest case. What it gives
-    /// up is distance from the clouds: 34 for an enemy round where the orange
-    /// had 66, which is still a clear difference.
+    /// For a few hours that day it was cyan, the lava's complement. It measured
+    /// well and read wrong: on screen it was a pale ice blue, the colour of
+    /// the pickups and the HUD, and nothing about it said enemy.
     ///
-    /// The other candidate was to keep the red and give each round a white-hot
-    /// core and a black tip. It measured 43 to 49 against the body of the lava
-    /// but 14 to 18 against its brightest pixels, which are nearly white too.
+    /// It is violet now, and dimmer, and the second half matters as much as
+    /// the first. At a peak of 3 every hue here comes out of the tonemapper as
+    /// a pastel: the cyan as ice, a red as salmon, a violet as pink. That is
+    /// why no hostile round reads as hostile at that brightness, whatever its
+    /// colour. Below about 2 the hue survives. So this file sets each round's
+    /// peak as well as its colour, and they sit under the one rung
+    /// EmissiveLadder keeps the pickups on.
+    ///
+    /// Measured again on a frozen frame, each round against the pixels it
+    /// covers, worst of nine places across the arena: an enemy round 56 where
+    /// the cyan had 40 and the orange 32, a Leviathan round 69 against 41 and
+    /// 19 (83 over the lava flow itself), a disc 74 against 35 and 49. Under
+    /// protanopia and deuteranopia the worst is 41. A red at the same peaks
+    /// reads as the most hostile of all and measures the worst: 6 to 29 for
+    /// the two colour-blind cases, since it is the lava's own red.
     ///
     /// The pods stay red. That makes the rule the boss is read by: red is what
-    /// to shoot, cyan is what to dodge. It also undoes half of what 5 September
-    /// did, when the rounds, the lance and the pods were brought into one warm
-    /// family - see BuildBossRig, which still makes the pods.
+    /// to shoot, violet is what to dodge. It also undoes half of what 5
+    /// September did, when the rounds, the lance and the pods were brought
+    /// into one warm family - see BuildBossRig, which still makes the pods.
     ///
-    /// Brightness is not this file's business. Each material keeps the peak it
-    /// had, so the ladder EmissiveLadder describes is untouched: only the
-    /// ratios between the channels change.
+    /// Two pickups share the hue, Magnet and Max Health, as Shot Upgrade
+    /// shared the orange. They are told apart from a round the way they were
+    /// then: a pickup is near white with a caption over it, and stands still.
     /// </summary>
     public static class HostileFireColour
     {
         /// <summary>
-        /// A round's body, a disc, a muzzle glow and the lance's edge: hue 199,
+        /// A round's body, a disc, a muzzle glow and the lance's edge: hue 263,
         /// as ratios with the brightest channel at 1.
         /// </summary>
-        public static readonly Vector3 Bright = new Vector3(0.05f, 0.70f, 1.00f);
+        public static readonly Vector3 Bright = new Vector3(0.42f, 0.06f, 1.00f);
 
         /// <summary>
         /// The dimmer second surface of a round, and the lance's halo: a shell
-        /// or a tip, which sat deeper in the red than the body did and sits
-        /// deeper in the blue now.
+        /// or a tip, which sits a little deeper in the blue than the body.
         /// </summary>
-        public static readonly Vector3 Deep = new Vector3(0.02f, 0.45f, 1.00f);
+        public static readonly Vector3 Deep = new Vector3(0.31f, 0.02f, 1.00f);
 
-        /// <summary>The lance's centre line: pale and hot, as it was, but cool.</summary>
-        public static readonly Vector3 Core = new Vector3(0.70f, 0.95f, 1.00f);
+        /// <summary>The lance's centre line: pale and hot, with the hue only just in it.</summary>
+        public static readonly Vector3 Core = new Vector3(0.82f, 0.72f, 1.00f);
+
+        /// <summary>
+        /// No round's emission may peak above this. It is where the hue starts
+        /// to wash out; HostileFireColourTests holds the materials to it.
+        /// </summary>
+        public const float PeakCeiling = 2f;
 
         private const string VfxFolder = "Assets/Art/Materials/VFX/";
 
@@ -60,16 +76,20 @@ namespace SurvivalChaos.EditorTools
 
         private readonly struct LitRound
         {
-            public LitRound(string path, Vector3 shade, bool tintBase)
+            public LitRound(string path, Vector3 shade, float peak, bool tintBase)
             {
                 Path = path;
                 Shade = shade;
+                Peak = peak;
                 TintBase = tintBase;
             }
 
             public string Path { get; }
 
             public Vector3 Shade { get; }
+
+            /// <summary>The emission's brightest channel. The ratios come from the shade.</summary>
+            public float Peak { get; }
 
             /// <summary>
             /// Whether the surface under the glow is coloured too. The enemy
@@ -80,12 +100,13 @@ namespace SurvivalChaos.EditorTools
 
         private static readonly LitRound[] LitRounds =
         {
-            new LitRound(VfxFolder + "EnemyShot.mat", Bright, false),
-            new LitRound(VfxFolder + "EnemyShotTip.mat", Deep, false),
-            new LitRound("Assets/Art/Materials/Ships/New Material.mat", Bright, true),
-            new LitRound(VfxFolder + "BossRound.mat", Bright, true),
-            new LitRound(VfxFolder + "BossRoundShell.mat", Deep, true),
-            new LitRound(VfxFolder + "BossDisc.mat", Bright, true),
+            // The peaks were 1.3, 0.65, 1.6, 3, 1.1 and 2.4 until 5 October 2026.
+            new LitRound(VfxFolder + "EnemyShot.mat", Bright, 1.1f, false),
+            new LitRound(VfxFolder + "EnemyShotTip.mat", Deep, 0.55f, false),
+            new LitRound("Assets/Art/Materials/Ships/New Material.mat", Bright, 1.6f, true),
+            new LitRound(VfxFolder + "BossRound.mat", Bright, 1.6f, true),
+            new LitRound(VfxFolder + "BossRoundShell.mat", Deep, 0.75f, true),
+            new LitRound(VfxFolder + "BossDisc.mat", Bright, 1.35f, true),
         };
 
         [MenuItem("Survival Chaos/Apply Hostile Fire Colour", priority = 53)]
@@ -122,8 +143,9 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// One HDRP Lit round: the emission moves to the shade at the peak it
-        /// already had, and so does the surface under it where that is coloured.
+        /// One HDRP Lit round: the emission moves to the shade at the round's
+        /// peak. The surface under it, where that is coloured, takes the shade
+        /// at the brightness it already had.
         /// </summary>
         private static bool ApplyLit(LitRound round, StringBuilder log)
         {
@@ -135,7 +157,7 @@ namespace SurvivalChaos.EditorTools
             }
 
             Color glowBefore = material.GetColor("_EmissiveColor");
-            Color glowAfter = AtPeak(round.Shade, Peak(glowBefore), glowBefore.a);
+            Color glowAfter = AtPeak(round.Shade, round.Peak, glowBefore.a);
 
             Color baseBefore = material.GetColor("_BaseColor");
             Color baseAfter = round.TintBase ? AtPeak(round.Shade, Peak(baseBefore), baseBefore.a) : baseBefore;

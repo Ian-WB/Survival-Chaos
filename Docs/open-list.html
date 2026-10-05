@@ -328,18 +328,18 @@
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
     id: "play-thefight",
-    title: "Look at the lit ships and the cyan fire in a build",
+    title: "Look at the violet fire and the toned-down ships in a build",
     effort: "one run to the Leviathan, about 9 minutes",
-    lede: "<strong>Built on 5 October</strong> as <code>Builds/26_1005-1234_theFight</code>, with the debug menu: commit <code>a73e0e3</code> plus the day’s work, which is not committed yet. It carries the first four items of the <a href='https://claude.ai/artifact/LUm4hJpvYPD7jHakSrL4wE'>environment roadmap</a>, 33 to 36, which you said yes to that day. Three are in: lights that fall on ships only, a fixed exposure, and hostile fire in cyan. The fourth, a reflection probe, was measured and not built. The Drone’s body went from black to dark green the same day, and this build has that too; the one made fifteen minutes earlier, <code>26_1005-1219_theFight</code>, does not.</p><p><strong>The cyan reopens a call you have made twice.</strong> On 5 September the Leviathan’s fire and pods became one warm family, and on 8 September a pink-and-green palette was reverted the same day. This time the pods stay red and only the fire moved, so red is what to shoot and cyan is what to dodge. If it is wrong, going back is nine materials and one light.",
+    lede: "<strong>You looked at the 12:34 build on 5 October and flagged two things:</strong> the cyan fire did not look like an enemy’s, and the ships were lit too hard, yours most of all, which looked as if it glowed. Both are changed, in <code>Builds/26_1005-1358_theFight</code>, with the debug menu: commit <code>b42d7e1</code> plus the afternoon’s changes, which are not committed yet.</p><p><strong>The fire is violet now, and dimmer.</strong> The cyan came out of the tonemapper as a pale ice blue, the colour of the pickups and the HUD. Brightness did that as much as hue: at the brightness the rounds had, every colour turns pastel, a red into salmon and a violet into pink. So the rounds are about half as bright, where the colour holds, and purple. Measured against what is behind them, they stand out more than the cyan or the old orange did in every place I checked, for red-green colour-blind eyes too. The pods stay red, so red is what to shoot and violet is what to dodge.</p><p><strong>If violet is wrong too,</strong> the sheet I sent in chat has the others at the same brightness: magenta, red, and the old orange. Red reads as the most hostile and is the hardest to tell from the lava, worst of all for colour-blind eyes. Changing it is three numbers in one file.</p><p><strong>The ships are lit less.</strong> The enemies’ key went from 4 lux to 3, the rim from 5 to 4 and the warm fill from 6000 lumens to 5000. Your ship has a key of its own at 1.5: it has the lightest paint and flies nearest the camera, so the enemies’ key turned it pastel.",
     watch: [
-      "Enemies and your own ship should show their colours on every side of the ring, with an orange edge on the side facing the volcano. Before, they drew as black shapes.",
-      "The Leviathan’s hull is lit for the first time. Say if it is now too bright against its pods.",
-      "The Drone, the flat eight-pointed star, has a dark green body where it was black. It is the faintest of the changes; say if it wants to be lighter.",
-      "Enemy rounds, the Leviathan’s torpedoes, discs and lance, and the glow on a muzzle about to fire are cyan. Watch a round cross the lava, and the lance in the second act.",
+      "Enemy rounds, the Leviathan’s torpedoes, discs and lance, and the glow on a muzzle about to fire are violet. Say whether it reads as an enemy’s.",
+      "Watch a round cross the lava, and the lance in the second act. They should stay purple and not wash out to pink or white.",
+      "Your ship should look lit, not lit from inside. Say if it is now too dark, or still too bright.",
+      "Enemies are a little dimmer than in the 12:34 build and should still show their colours on every side of the ring. The Leviathan’s hull is dimmer too; say if it competes with its pods.",
       "The pods are still red. Check they still read as the thing to shoot.",
-      "Brightness should hold steady all the way round the ring. It used to dip by up to a quarter of a stop where the lava faces the camera.",
-      "Each round throws a small cyan light now, where it was red. If it shows on the island’s rim as rounds pass, tell me.",
-      "The island, its bake and the fog should look exactly as they did."
+      "Two pickups, Magnet and Max Health, are near the fire’s colour. Say if you ever take one for a round.",
+      "Each round throws a small violet light. If it shows on the island’s rim as rounds pass, tell me.",
+      "The Drone’s dark green body, the steady exposure, the island, its bake and the fog are as they were in the 12:34 build."
     ]
   };
 
@@ -1560,7 +1560,8 @@
             "Environment roadmap, item 33. Nothing lit the lane: the moon is 1 lux, the sky a fifth of that, and by my arithmetic the nearest live lava light put about 0.14 lux on a ship. Every enemy drew as a black shape whatever colour its materials were. The 10 September measurement under ‘See whether enemies get lost against the island’ said the same thing another way, and named a rim light as the lever.",
             "<strong>Three lights that reach ships only</strong>, through a rendering layer called Ships that every enemy, the Leviathan, its wreckage and your ship are on. A cool key of 4 lux and a rim of 5 ride on the camera, so a ship is shaded the same way all round the ring. A warm fill of 6000 lumens stands on the island’s axis, 4 units across, so the side facing the volcano is orange and glossy canopies catch it. None casts a shadow or lights the fog.",
             "Checked on a frozen frame with the lights switched off and on: 0.43% of the picture changed, all of it ships, against 0.007% between two captures of the same thing. The island did not move. The whole camera took 18.4 ms either way in the editor on Ultra, inside the 0.3 ms the reading wanders by. <code>ShipLightsTests</code> fails if a ship leaves the layer or a light gets off it. The dials are the three brightnesses: Ship Key Light and Ship Rim Light under the Main Camera, and Ship Fill Light.",
-            "<strong>One enemy was not helped by light alone:</strong> the Drone, whose body was painted black. It is dark green since the same day; see ‘Decide whether the Drone should stay black’."
+            "<strong>One enemy was not helped by light alone:</strong> the Drone, whose body was painted black. It is dark green since the same day; see ‘Decide whether the Drone should stay black’.",
+            "<strong>Toned down the same afternoon, after your first look.</strong> The key is 3 lux, the rim 4 and the fill 5000 lumens. Your ship looked as if it glowed, and on a frozen frame that was the key alone: it lands flat on the lightest paint of any ship, on the ship nearest the camera. So your ship is on a second layer, Player Ship, with a key of its own at 1.5 lux, <code>Player Key Light</code>; the rim and the fill reach both layers. <code>ShipLightsTests</code> holds each ship to its own layer and the player’s key under the enemies’. 700 tests pass."
           ]
         },
         {
@@ -1580,7 +1581,9 @@
             "Environment roadmap, item 36. The lava’s hot colour is hue 12. Enemy rounds were 12, the Leviathan’s rounds 14, its discs 13 and the lance’s glow 16. With rounds laid out across a frozen frame, an enemy round over the lava flow measured 13 apart from it and a Leviathan round 23, on the scale where 10 is a clear difference.",
             "<strong>They are cyan now</strong>, hue 199, each at the brightness it had: enemy rounds, the Leviathan’s torpedoes, discs and lance, the glow on a muzzle before it fires, the torpedoes’ plume, and the small light each round carries. The same frame gives 72 and 62, and 52 and 50 under protanopia. What it gives up is distance from the clouds, 34 where the orange had 66. The other candidate, red with a white-hot core and a black tip, measured 43 to 49 against the lava’s body but 14 to 18 against its brightest pixels, which are nearly white too.",
             "<strong>The pods stay red</strong>, so red is what to shoot and cyan is what to dodge. This reopens a call made twice: the one warm family of 5 September, and the pink-and-green palette reverted on 8 September, whose green pod lights washed the island. Nothing here lights the island but the rounds’ own small light.",
-            "The colour lives in one place, <code>HostileFireColour</code>, a menu item under Survival Chaos; the lance and tell builders read it, so running them cannot put the orange back. <code>HostileFireColourTests</code> fails if a hostile surface comes within 120° of the lava’s hue. Flown by the bot through the waves and 114 s of the Leviathan with no errors; 698 tests pass. The weakest pair left is a Leviathan round against the Attack Speed pickup’s core, 12 apart, told apart by shape and label."
+            "The colour lives in one place, <code>HostileFireColour</code>, a menu item under Survival Chaos; the lance and tell builders read it, so running them cannot put the orange back. <code>HostileFireColourTests</code> fails if a hostile surface comes within 120° of the lava’s hue. Flown by the bot through the waves and 114 s of the Leviathan with no errors; 698 tests pass. The weakest pair left is a Leviathan round against the Attack Speed pickup’s core, 12 apart, told apart by shape and label.",
+            "<strong>Violet since the same afternoon, and dimmer.</strong> You said the cyan did not look like an enemy’s. On screen it was a pale ice blue, and brightness did that as much as hue: at a peak of 3 the tonemapper turns every colour here into a pastel. The rounds are hue 263 now and came down from 3 and 2.4 to 1.6 and 1.35, where the colour holds. Each round against the pixels it covers, worst of nine places on a frozen frame: an enemy round 56, where the cyan had 40 and the orange 32; a Leviathan round 69 against 41 and 19, and 83 over the lava flow; a disc 74 against 35 and 49. Under protanopia and deuteranopia the worst is 41. Red at the same brightness measured worst, 6 to 29 for those two. So it is red to shoot and violet to dodge.",
+            "<code>HostileFireColour</code> sets each round’s brightness as well as its colour now. <code>HostileFireColourTests</code> asks for 90° from the lava’s hue, since violet sits 106 to 111 away, and fails if a round’s glow peaks above 2, where the colour starts to wash out. Flown by the bot through 152 s of the Leviathan with no errors. Two pickups, Magnet and Max Health, are near the fire’s hue, as Shot Upgrade was near the orange; a pickup is almost white, stands still and carries a caption."
           ]
         }
       ]
@@ -1894,11 +1897,11 @@
         },
         {
           id: "fight-look",
-          title: "Judge the ship lights and the cyan fire",
+          title: "Judge the ship lights and the violet fire",
           effort: "one run",
           why: [
-            "From the environment roadmap’s first four. Three things are feel, each with a dial: how bright the ships are (the three ship lights), whether the Leviathan’s lit hull competes with its pods, and whether cyan fire reads as hostile beside a ship whose own rounds are green.",
-            "<strong>If you do not flag it:</strong> the three brightnesses, the fixed exposure, the cyan and the Drone’s green stand."
+            "From the environment roadmap’s first four. Three things are feel, each with a dial: how bright the ships are (the four ship lights), whether the Leviathan’s lit hull competes with its pods, and whether violet fire reads as an enemy’s. The first look, on 5 October, flagged the cyan and the brightness; both were changed that afternoon, so this is for the build after.",
+            "<strong>If you do not flag it:</strong> the brightnesses, the fixed exposure, the violet and the Drone’s green stand."
           ]
         }
       ]
