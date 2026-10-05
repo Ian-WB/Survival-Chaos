@@ -992,9 +992,8 @@ namespace SurvivalChaos
             //
             // maxShadowDistance is chiefly the directional cascade split, and it
             // is one here: the scene's shadow casters are the Directional Light,
-            // realtime with soft shadows, Lava Light 2, the one lava light that
-            // casts, and the point-light template cloned onto the player's
-            // rounds. So this is the range the profile's four cascades are spread
+            // realtime with soft shadows, the six lava lights, cached, and the
+            // point-light template cloned onto the player's rounds. So this is the range the profile's four cascades are spread
             // across, and the distance past which shadows stop.
             //
             // 50 against an arena 37.44 units across at the lane, with the camera

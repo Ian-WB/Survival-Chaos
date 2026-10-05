@@ -173,6 +173,36 @@ namespace SurvivalChaos
         /// </summary>
         public const int DefaultIndex = 4;
 
+        /// <summary>
+        /// What the debug menu's two camera sliders run between. Distance
+        /// starts at 2 because closer than that the ship fills the lens, and
+        /// stops at 30, half as far again as the furthest preset.
+        /// </summary>
+        public const float MinDistance = 2f;
+        public const float MaxDistance = 30f;
+        public const float MinFieldOfView = 20f;
+        public const float MaxFieldOfView = 110f;
+
+        /// <summary>
+        /// The lens for <paramref name="preset"/> moved to <paramref name="distance"/>
+        /// outside the lane, on a band <paramref name="bandHeight"/> tall, when
+        /// <paramref name="chosen"/> is the lens asked for by hand, or zero for
+        /// none. A whole-band preset refits to the band from wherever it is put,
+        /// so the distance slider alone keeps the band whole; a lens preset
+        /// keeps its own. A lens chosen by hand wins over both.
+        /// </summary>
+        public static float Lens(CameraPreset preset, float distance, float bandHeight, float chosen)
+        {
+            if (chosen > 0f)
+            {
+                return Mathf.Clamp(chosen, MinFieldOfView, MaxFieldOfView);
+            }
+
+            return preset.HoldsBandMiddle
+                ? FieldOfViewFor(distance, WholeBandHeightOf(bandHeight))
+                : preset.FieldOfView;
+        }
+
         /// <summary>The preset every run starts on - see <see cref="DefaultIndex"/>.</summary>
         public static CameraPreset Default => Presets[DefaultIndex];
 

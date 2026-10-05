@@ -6,7 +6,9 @@ namespace SurvivalChaos
     /// Puts the main camera into one of <see cref="CameraFraming.Presets"/>.
     /// It sits on the Game scene's camera and starts every run on
     /// <see cref="CameraFraming.DefaultIndex"/>; the debug menu cycles through
-    /// the rest, and adds this to a camera that lacks it.
+    /// the rest, and adds this to a camera that lacks it. The debug menu's two
+    /// sliders move the distance and the lens off the preset's own, until the
+    /// next preset is chosen.
     ///
     /// It moves only what a preset names: the camera's distance outside the
     /// lane, through its own SnapToOrbit, and its field of view. Round the ring
@@ -34,6 +36,12 @@ namespace SurvivalChaos
         private ApplyBounds bounds;
         private int current;
 
+        /// <summary>How far outside the lane the camera sits now: the preset's, or the slider's.</summary>
+        private float distance;
+
+        /// <summary>The lens chosen on the slider, or zero while the preset decides it.</summary>
+        private float lens;
+
         /// <summary>
         /// Whether a preset has been put on the camera yet. The debug menu adds
         /// this component and selects in the same call, and Start must not then
@@ -55,6 +63,76 @@ namespace SurvivalChaos
                     ? CameraFraming.Presets[switcher.current]
                     : CameraFraming.Presets[0];
             }
+        }
+
+        /// <summary>How far outside the lane the main camera sits, slider included.</summary>
+        public static float Distance
+        {
+            get
+            {
+                Camera main = Camera.main;
+                return main != null && main.TryGetComponent(out CameraPresetSwitcher switcher) && switcher.applied
+                    ? switcher.distance
+                    : Current.Distance;
+            }
+        }
+
+        /// <summary>
+        /// Puts the main camera <paramref name="value"/> outside the lane,
+        /// keeping its preset. A whole-band preset refits its lens to the band
+        /// from there, unless a lens has been chosen as well.
+        /// </summary>
+        public static void SetDistance(float value)
+        {
+            CameraPresetSwitcher switcher = OnMain();
+            if (switcher == null)
+            {
+                return;
+            }
+
+            switcher.distance = Mathf.Clamp(value, CameraFraming.MinDistance, CameraFraming.MaxDistance);
+            switcher.Place();
+        }
+
+        /// <summary>
+        /// Gives the main camera a lens of <paramref name="value"/> degrees,
+        /// which holds, band or no band, until the next preset is chosen.
+        /// </summary>
+        public static void SetFieldOfView(float value)
+        {
+            CameraPresetSwitcher switcher = OnMain();
+            if (switcher == null)
+            {
+                return;
+            }
+
+            switcher.lens = Mathf.Clamp(value, CameraFraming.MinFieldOfView, CameraFraming.MaxFieldOfView);
+            switcher.Place();
+        }
+
+        /// <summary>
+        /// The main camera's switcher, added if it lacks one and on a preset
+        /// either way. Null without a main camera.
+        /// </summary>
+        private static CameraPresetSwitcher OnMain()
+        {
+            Camera main = Camera.main;
+            if (main == null)
+            {
+                return null;
+            }
+
+            if (!main.TryGetComponent(out CameraPresetSwitcher switcher))
+            {
+                switcher = main.gameObject.AddComponent<CameraPresetSwitcher>();
+            }
+
+            if (!switcher.applied)
+            {
+                switcher.Apply(switcher.current);
+            }
+
+            return switcher;
         }
 
         /// <summary>Moves the main camera on to the next preset, wrapping round.</summary>
@@ -111,15 +189,9 @@ namespace SurvivalChaos
             current = index;
             applied = true;
 
-            if (snap != null)
-            {
-                snap.SetRadiusOffset(preset.Distance);
-            }
-
-            if (view != null)
-            {
-                view.fieldOfView = preset.FieldOfView;
-            }
+            // A new preset is the preset as written: the sliders start again.
+            distance = preset.Distance;
+            lens = 0f;
 
             // Back from holding the band's middle: the camera has to rejoin the
             // ship's height, or it would follow the ship's climbs from wherever it
@@ -133,6 +205,23 @@ namespace SurvivalChaos
                     position.y = player.transform.position.y;
                     transform.position = position;
                 }
+            }
+
+            Place();
+        }
+
+        /// <summary>Puts the camera at its distance and lens now.</summary>
+        private void Place()
+        {
+            if (snap != null)
+            {
+                snap.SetRadiusOffset(distance);
+            }
+
+            if (view != null)
+            {
+                view.fieldOfView = CameraFraming.Lens(
+                    CameraFraming.Presets[current], distance, CameraFraming.BandHeight, lens);
             }
 
             LateUpdate();
@@ -157,7 +246,7 @@ namespace SurvivalChaos
 
             if (view != null)
             {
-                view.fieldOfView = preset.FieldOfViewOn(ceiling - floor);
+                view.fieldOfView = CameraFraming.Lens(preset, distance, ceiling - floor, lens);
             }
         }
     }

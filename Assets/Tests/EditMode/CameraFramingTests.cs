@@ -236,6 +236,60 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
+        /// The debug menu's distance slider, left alone by the lens slider: a
+        /// whole-band preset still shows the whole band from wherever it is
+        /// put, and at its own distance it is the preset.
+        /// </summary>
+        [Test]
+        public void MovedByTheSlider_AWholeBandPresetStillFitsTheBand()
+        {
+            CameraPreset preset = CameraFraming.Default;
+
+            foreach (float distance in new[] { CameraFraming.MinDistance, 8.5f, 17f, CameraFraming.MaxDistance })
+            {
+                float lens = CameraFraming.Lens(preset, distance, 10.5f, 0f);
+                Assert.AreEqual(CameraFraming.WholeBandHeightOf(10.5f),
+                    CameraFraming.VisibleHeight(distance, lens), 1e-3f, distance.ToString());
+            }
+
+            Assert.AreEqual(preset.FieldOfViewOn(10.5f),
+                CameraFraming.Lens(preset, preset.Distance, 10.5f, 0f), 1e-4f);
+        }
+
+        /// <summary>
+        /// The lens slider wins over the preset and over the band, inside its
+        /// own range; a lens preset moved by the distance slider keeps its lens.
+        /// </summary>
+        [Test]
+        public void ALensChosenOnTheSlider_IsTheLens()
+        {
+            foreach (CameraPreset preset in CameraFraming.Presets)
+            {
+                Assert.AreEqual(40f, CameraFraming.Lens(preset, 12f, 10.5f, 40f), preset.Name);
+                Assert.AreEqual(CameraFraming.MaxFieldOfView, CameraFraming.Lens(preset, 12f, 10.5f, 170f), preset.Name);
+
+                if (!preset.HoldsBandMiddle)
+                {
+                    Assert.AreEqual(preset.FieldOfView, CameraFraming.Lens(preset, 12f, 10.5f, 0f), preset.Name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Every preset is somewhere both sliders can reach, so opening the
+        /// menu never moves the camera by clamping it.
+        /// </summary>
+        [Test]
+        public void EveryPreset_IsInsideTheSlidersRange()
+        {
+            foreach (CameraPreset preset in CameraFraming.Presets)
+            {
+                Assert.That(preset.Distance, Is.InRange(CameraFraming.MinDistance, CameraFraming.MaxDistance), preset.Name);
+                Assert.That(preset.FieldOfViewOn(10.5f), Is.InRange(CameraFraming.MinFieldOfView, CameraFraming.MaxFieldOfView), preset.Name);
+            }
+        }
+
+        /// <summary>
         /// What the far lens is for: ten units round the ring, the close camera
         /// draws things at two thirds size, and the far one at five sixths.
         /// </summary>

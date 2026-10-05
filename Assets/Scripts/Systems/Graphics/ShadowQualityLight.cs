@@ -14,9 +14,16 @@ namespace SurvivalChaos
     /// A row raising every point light's resolution would spend six faces a light
     /// on bullets the pool had deliberately kept cheap.
     ///
-    /// So this sits on the Directional Light and on Lava Light 2, the one lava
-    /// light that casts. A light that starts casting later needs it added to
-    /// follow the row.
+    /// So this sits on the Directional Light and on the six lava lights. A
+    /// light that starts casting later needs it added to follow the row.
+    ///
+    /// Until 2 October 2026 only Lava Light 2 of the six cast, and the other
+    /// five lit the far side of the volcano, the underside of the island and
+    /// the fog behind both, straight through the rock. They cast now, cached
+    /// like Lava Light 2, but at a fixed 256 a face (<see cref="fixedResolution"/>)
+    /// rather than the row's level: six point lights are thirty-six faces, and
+    /// at the row's level they outgrow the cached atlas on every tier. For
+    /// them the row only decides whether they cast at all.
     ///
     /// Each rung picks one of the tier's own shadow resolution levels - Low,
     /// Medium or High out of the pipeline asset's table - so the tiers still
@@ -44,6 +51,12 @@ namespace SurvivalChaos
     public sealed class ShadowQualityLight : MonoBehaviour
     {
         private static readonly List<ShadowQualityLight> Active = new List<ShadowQualityLight>();
+
+        [SerializeField]
+        [Tooltip("Shadow map size, a face, that this light keeps whatever the Shadows setting says. " +
+                 "Zero follows the setting's level. For fill lights whose shadows only need to stop " +
+                 "them shining through things.")]
+        private int fixedResolution;
 
         private Light source;
         private HDAdditionalLightData hdData;
@@ -117,6 +130,13 @@ namespace SurvivalChaos
             {
                 // Off the override so the level is what counts. The setters only
                 // refresh HDRP's cached shadow when the value actually moves.
+                if (fixedResolution > 0)
+                {
+                    hdData.SetShadowResolutionOverride(true);
+                    hdData.SetShadowResolution(fixedResolution);
+                    return;
+                }
+
                 hdData.SetShadowResolutionOverride(false);
                 hdData.SetShadowResolutionLevel(ShadowLadder.LightLevel(quality));
             }

@@ -280,11 +280,11 @@ namespace SurvivalChaos
             statusContent.text = status.ToString();
             float statusHeight = labelStyle.CalcHeight(statusContent, width);
 
-            // Fourteen buttons, separators, title and status block.
+            // Fourteen buttons, two sliders, separators, title and status block.
             float height = pad * 2f
                            + row + gap
                            + statusHeight + gap
-                           + row * 14f + gap * 13f
+                           + row * 16f + gap * 15f
                            + gap * 3f;
 
             Rect panel = new Rect(Screen.width - width - pad * 2f - pad, pad, width + pad * 2f, height);
@@ -335,6 +335,28 @@ namespace SurvivalChaos
             {
                 CameraPresetSwitcher.Cycle();
             }
+
+            // Asked for on 2 October 2026, to try distances and lenses between
+            // the presets. They move off the preset above and it takes them
+            // back when it is cycled; on a whole-band preset the distance alone
+            // keeps the band fitted.
+            if (view != null)
+            {
+                float distance = CameraPresetSwitcher.Distance;
+                float moved = Slide(x, ref y, width, row, gap, "Distance " + distance.ToString("0.0"),
+                    distance, CameraFraming.MinDistance, CameraFraming.MaxDistance);
+                if (!Mathf.Approximately(moved, distance)) { CameraPresetSwitcher.SetDistance(moved); }
+
+                float fov = view.fieldOfView;
+                float turned = Slide(x, ref y, width, row, gap, "FOV      " + fov.ToString("0.0") + "\u00B0",
+                    fov, CameraFraming.MinFieldOfView, CameraFraming.MaxFieldOfView);
+                if (!Mathf.Approximately(turned, fov)) { CameraPresetSwitcher.SetFieldOfView(turned); }
+            }
+            else
+            {
+                y += (row + gap) * 2f;
+            }
+
             if (Draw(x, ref y, width, row, gap, "Generate offer (no level)", skills != null && running)) { RunRecords.MarkAssisted(); skills.PickSkill(); }
             if (Draw(x, ref y, width, row, gap, "Kill enemies + reward XP", running)) { ClearArena(reward: true); }
             BossEmitter boss = BossEmitter.Active;
@@ -361,6 +383,35 @@ namespace SurvivalChaos
             GUI.enabled = was;
             y += row + gap;
             return clicked;
+        }
+
+        /// <summary>
+        /// One slider row: its name and value on the left, the slider on the
+        /// right. Returns where the slider stands, which is the value it was
+        /// given unless it is being dragged.
+        /// </summary>
+        private float Slide(float x, ref float y, float width, float row, float gap, string label,
+            float value, float min, float max)
+        {
+            float labelWidth = width * 0.45f;
+            GUI.Label(new Rect(x, y, labelWidth, row), label, labelStyle);
+
+            // The skin's slider is a fixed 12 pixels or so tall; centred in the
+            // row, so it lines up with the label at any screen height.
+            float sliderHeight = GUI.skin.horizontalSlider.fixedHeight > 0f ? GUI.skin.horizontalSlider.fixedHeight : 12f;
+            Rect track = new Rect(x + labelWidth, y + (row - sliderHeight) * 0.5f, width - labelWidth, sliderHeight);
+
+            // The skin's own track is near black on this panel, so a pale line
+            // goes under it to show how far the thumb can travel.
+            Color was = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.35f);
+            GUI.DrawTexture(new Rect(track.x, y + row * 0.5f - 1f, track.width, 2f), Texture2D.whiteTexture);
+            GUI.color = was;
+
+            float result = GUI.HorizontalSlider(track, value, min, max);
+
+            y += row + gap;
+            return result;
         }
 
         private void BuildStatus()
