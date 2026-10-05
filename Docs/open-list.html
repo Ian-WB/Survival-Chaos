@@ -328,18 +328,18 @@
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
     id: "play-thefight",
-    title: "Look at the violet fire and the toned-down ships in a build",
+    title: "Fly the closer camera, with the violet fire and the toned-down ships",
     effort: "one run to the Leviathan, about 9 minutes",
-    lede: "<strong>You looked at the 12:34 build on 5 October and flagged two things:</strong> the cyan fire did not look like an enemy’s, and the ships were lit too hard, yours most of all, which looked as if it glowed. Both are changed, in <code>Builds/26_1005-1358_theFight</code>, with the debug menu: commit <code>b42d7e1</code> plus the afternoon’s changes, which are not committed yet.</p><p><strong>The fire is violet now, and dimmer.</strong> The cyan came out of the tonemapper as a pale ice blue, the colour of the pickups and the HUD. Brightness did that as much as hue: at the brightness the rounds had, every colour turns pastel, a red into salmon and a violet into pink. So the rounds are about half as bright, where the colour holds, and purple. Measured against what is behind them, they stand out more than the cyan or the old orange did in every place I checked, for red-green colour-blind eyes too. The pods stay red, so red is what to shoot and violet is what to dodge.</p><p><strong>If violet is wrong too,</strong> the sheet I sent in chat has the others at the same brightness: magenta, red, and the old orange. Red reads as the most hostile and is the hardest to tell from the lava, worst of all for colour-blind eyes. Changing it is three numbers in one file.</p><p><strong>The ships are lit less.</strong> The enemies’ key went from 4 lux to 3, the rim from 5 to 4 and the warm fill from 6000 lumens to 5000. Your ship has a key of its own at 1.5: it has the lightest paint and flies nearest the camera, so the enemies’ key turned it pastel.",
+    lede: "<strong>Built on 5 October</strong> as <code>Builds/26_1005-1428_camera9</code>, with the debug menu: commit <code>2b12d8b</code> plus the camera change, which is not committed yet. It carries three things you have not judged in a build: the closer camera, the violet fire and the toned-down ship lights.</p><p><strong>The camera is 9 out at 65°,</strong> as you asked, where it was 10 out at about 70°. Everything is drawn about a fifth larger, and you see about a fifth less of the ring to either side. The band came in from 10.5 tall to 9.23 to fit. That is the most this camera shows clear of the top bars, and nearly the least the Leviathan allows: its keel and crown weak points are 9.16 apart. So those two sit on the floor and the ceiling now, where there used to be room to fly past them, and the Leviathan flies 0.22 lower to centre them. The ship on the ceiling clears the bars by a sliver; the room there went from 0.65 to 0.2.</p><p><strong>The fire is violet, and dimmer.</strong> You said the cyan did not look like an enemy’s. It came out of the tonemapper as a pale ice blue, and brightness did that as much as hue, so the rounds are about half as bright, where the colour holds, and purple. The pods stay red: red to shoot, violet to dodge. If violet is wrong too, the sheet I sent in chat has magenta, red and the old orange at the same brightness; changing it is three numbers in one file.</p><p><strong>The ships are lit less.</strong> The enemies’ key went from 4 lux to 3, the rim from 5 to 4 and the warm fill from 6000 lumens to 5000, and your ship has a key of its own at 1.5, because the enemies’ key turned its light paint pastel.",
     watch: [
-      "Enemy rounds, the Leviathan’s torpedoes, discs and lance, and the glow on a muzzle about to fire are violet. Say whether it reads as an enemy’s.",
-      "Watch a round cross the lava, and the lance in the second act. They should stay purple and not wash out to pink or white.",
+      "The view is closer and tighter. Say whether 9 and 65 are still the numbers once you fly it, and whether you miss seeing further round the ring.",
+      "Fly along the ceiling and along the floor. The ship should sit just clear of the top bars, and the space between is about an eighth shorter than it was.",
+      "The Leviathan is larger on screen and sits nearer the screen’s edge. Its crown weak point is at the ceiling and its keel one at the floor; say if either is awkward to shoot. The crown’s top edge can slip behind the left end of the health bar.",
+      "A torpedo is easier to dive away from: the dive to the floor works from 0.8 to 1.5 s before it arrives, where it was 0.8 to 1.15.",
+      "Enemy rounds, the Leviathan’s torpedoes, discs and lance, and the glow on a muzzle about to fire are violet. Say whether it reads as an enemy’s, and whether it stays purple over the lava.",
       "Your ship should look lit, not lit from inside. Say if it is now too dark, or still too bright.",
-      "Enemies are a little dimmer than in the 12:34 build and should still show their colours on every side of the ring. The Leviathan’s hull is dimmer too; say if it competes with its pods.",
       "The pods are still red. Check they still read as the thing to shoot.",
-      "Two pickups, Magnet and Max Health, are near the fire’s colour. Say if you ever take one for a round.",
-      "Each round throws a small violet light. If it shows on the island’s rim as rounds pass, tell me.",
-      "The Drone’s dark green body, the steady exposure, the island, its bake and the fog are as they were in the 12:34 build."
+      "Two pickups, Magnet and Max Health, are near the fire’s colour. Say if you ever take one for a round."
     ]
   };
 
@@ -465,7 +465,9 @@
             "The player’s radius offset now moves the whole lane, so it is a real design dial rather than a way to strand the ship. Waves spawn from 21.45 out, so offsets up to about +7.7 keep every arrival outside the lane. At +5 the boss’s emplacements sit about 0.17 inside it, well within their hitboxes.",
             "Tick this once the view feels right. Nothing else waits on it.",
             "<strong>Settled on 24 September, by playing: the whole band from 10 out at 54\u00b0</strong> (commit <code>6caf224</code>). Every run starts on it and nothing picked from the menu is saved; the other six presets stay on the debug menu. The audio listener moved to the ship with it, so where the camera sits no longer changes what you hear.",
-            "<strong>Since 25 September the lens follows the band.</strong> The whole-band cameras fit their field of view to the band\u2019s live height and keep the top and bottom 8% of the screen clear, so a ship on the ceiling is drawn below the countdown and the boss\u2019s bar. It is about 70\u00b0 on the 10.5 band."
+            "<strong>Since 25 September the lens follows the band.</strong> The whole-band cameras fit their field of view to the band\u2019s live height and keep the top and bottom 8% of the screen clear, so a ship on the ceiling is drawn below the countdown and the boss\u2019s bar. It is about 70\u00b0 on the 10.5 band.",
+            "<strong>Moved on 5 October, at your word: 9 out at 65°.</strong> It draws everything about a fifth larger than the camera above and shows about a fifth less of the ring to either side. The lens still follows the band, so the band was sized to land on those numbers: 9.23 tall, 3.42 to 12.65, about the middle it had. That is as far as it could shrink. By the old rule, 0.65 of room under the top bars, this camera fits a band of 8.33, and the Leviathan’s keel and crown weak points are 9.16 apart. So the room came down to 0.2, which the ship, 0.33 tall, still clears, and the Leviathan flies 0.22 lower so that both weak points are inside the band, 0.04 from its edges. On the old band there was room to fly past them: 0.89 under the keel and 0.45 over the crown.",
+            "Checked in play: a ship on the ceiling is drawn 9.7% down the screen, under the countdown and the Leviathan’s bar; the bot destroyed the prow and crown weak points and a ship held on the floor destroyed the keel one. The shorter band also widened the torpedo’s floor dive, from 0.8 to 1.15 s before it arrives to 0.8 to 1.5. 704 tests pass. <strong>If the weak points at the very edges feel wrong,</strong> the fix that keeps this camera is a Leviathan about a tenth smaller, which would undo part of the 25 September growth; say if you want it."
           ]
         },
         {
@@ -1902,6 +1904,15 @@
           why: [
             "From the environment roadmap’s first four. Three things are feel, each with a dial: how bright the ships are (the four ship lights), whether the Leviathan’s lit hull competes with its pods, and whether violet fire reads as an enemy’s. The first look, on 5 October, flagged the cyan and the brightness; both were changed that afternoon, so this is for the build after.",
             "<strong>If you do not flag it:</strong> the brightnesses, the fixed exposure, the violet and the Drone’s green stand."
+          ]
+        },
+        {
+          id: "camera9-look",
+          title: "Judge the closer camera and the shorter band",
+          effort: "one run",
+          why: [
+            "The default camera moved to 9 out at 65° on 5 October, and the band came in to 9.23 to fit it; see ‘Settle the camera’. Three things are feel: whether the view is the one you wanted, whether the Leviathan’s keel and crown weak points sitting on the floor and the ceiling makes them awkward, and whether the ship on the ceiling is too close to the top bars.",
+            "<strong>If you do not flag it:</strong> 9 out at 65°, the 9.23 band and the Leviathan’s height stand."
           ]
         }
       ]

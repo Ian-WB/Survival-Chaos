@@ -785,7 +785,7 @@ MonoBehaviour:
   definition: {fileID: 11400000, guid: c42f7f73dcd21af47bfd4f1f671fbde1, type: 2}
   healthPoints: 600
   enemyShip: {fileID: 2752971980227408059}
-  heightFromBandMiddle: -1.35
+  heightFromBandMiddle: -1.568
   hullBox: {fileID: 4020032344993825383}
   hullModel: {fileID: 5370075884527340666}
   hullOverhang: 1

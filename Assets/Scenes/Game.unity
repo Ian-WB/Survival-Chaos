@@ -26263,7 +26263,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 1000
-  field of view: 54.043163
+  field of view: 65
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -26290,7 +26290,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 7.1696997, z: -28.720001}
+  m_LocalPosition: {x: 0, y: 8.037538, z: -28.720001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -26341,7 +26341,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.SnapToOrbit
   center: {fileID: 206122948}
   definesLane: 0
-  radiusOffset: 10
+  radiusOffset: 9
 --- !u!114 &963194234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26737,7 +26737,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 3.5, y: 3.5}
+  m_Size: {x: 3.5, y: 3.0766666}
   m_EdgeRadius: 0
 --- !u!1 &976918764
 GameObject:

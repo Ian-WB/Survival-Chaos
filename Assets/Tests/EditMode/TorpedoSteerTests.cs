@@ -305,10 +305,16 @@ namespace SurvivalChaos.Tests
         /// The bigger ship made no difference to it, and the short dodge above
         /// barely moved. Nobody chose the change; whether to win the early half
         /// of the window back is a tuning question.
+        ///
+        /// On 5 October 2026 the band came in to 9.23, for a camera 9 out, and
+        /// the floor rose 0.63. The late edge did not move and the early one
+        /// did: a dive escapes from 0.8 to 1.5s before it arrives now (0.05s
+        /// steps again), so it is the widest the window has been. A climb to
+        /// the ceiling escapes from 0.85 to 1.35s.
         /// </summary>
         [Test]
         public void DivingToTheFloor_EscapesOnlyIfTimed_Today() =>
-            DivingToTheFloor(Current(), new[] { 1.1f, 1f, 0.9f }, new[] { 1.5f, 0.7f, 0.5f, 0.3f });
+            DivingToTheFloor(Current(), new[] { 1.4f, 1.2f, 1f, 0.9f }, new[] { 2f, 0.5f, 0.3f });
 
         /// <summary>
         /// A player behind the muzzle at launch: it runs out, turns round along

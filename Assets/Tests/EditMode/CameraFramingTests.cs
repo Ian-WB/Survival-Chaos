@@ -85,25 +85,38 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// The camera a run starts on, picked by playing on 24 September 2026.
-        /// Pinned so that reordering the list cannot quietly move the default to
-        /// a neighbour.
+        /// The camera a run starts on: 9 out at 65 degrees, asked for as those
+        /// two numbers on 5 October 2026. Pinned so that reordering the list
+        /// cannot quietly move the default to a neighbour, and so that the
+        /// margin or the table's band cannot move the lens off what was asked.
         /// </summary>
         [Test]
-        public void TheDefault_IsTheWholeBandFromTenOut()
+        public void TheDefault_IsTheWholeBandFromNineOut_At65Degrees()
         {
             CameraPreset preset = CameraFraming.Default;
 
-            Assert.AreEqual(10f, preset.Distance);
+            Assert.AreEqual(9f, preset.Distance);
             Assert.IsTrue(preset.HoldsBandMiddle);
-            // 54 as it was picked; the rest is the HUD's share at the top and
-            // the same at the bottom.
-            Assert.AreEqual(62.53f, preset.FieldOfView, 0.01f);
-            Assert.AreEqual("Whole band, 10 out", preset.Name);
+            Assert.AreEqual(65f, preset.FieldOfView, 0.05f);
+            Assert.AreEqual("Whole band, 9 out", preset.Name);
         }
 
-        /// <summary>PlayerBounds when the default was picked, 2.72 to 11.62.</summary>
-        private const float PickedBandHeight = 11.618166f - 2.721233f;
+        /// <summary>
+        /// The lens follows the band's live height, so the 65 degrees is only
+        /// true while PlayerBounds in the Game scene is the band the table is
+        /// written for. Resizing the box moves the lens, and this says so.
+        /// </summary>
+        [Test]
+        public void OnTheGameScenesBand_TheDefaultIs65Degrees()
+        {
+            SavedScene.Load("Assets/Scenes/Game.unity").Band("Player", out float floor, out float ceiling);
+
+            Assert.AreEqual(CameraFraming.BandHeight, ceiling - floor, 0.01f);
+            Assert.AreEqual(65f, CameraFraming.Default.FieldOfViewOn(ceiling - floor), 0.05f);
+        }
+
+        /// <summary>PlayerBounds when the default was picked, 3.4225 to 12.6525.</summary>
+        private const float PickedBandHeight = 12.6525f - 3.4225f;
 
         /// <summary>
         /// Since 25 September 2026 the whole-band presets frame the band's live
@@ -131,10 +144,10 @@ namespace SurvivalChaos.Tests
         private const float BossBarShare = 0.081f;
 
         /// <summary>
-        /// Half the ship's drawn height: its model is 0.26 tall since it grew by a
-        /// quarter on 25 September 2026, 0.21 before.
+        /// Half the ship's drawn height: its renderers span 0.33, measured on
+        /// the prefab on 5 October 2026. The hull alone is 0.26.
         /// </summary>
-        private const float ShipHalfHeight = 0.14f;
+        private const float ShipHalfHeight = 0.165f;
 
         /// <summary>
         /// Where a whole-band preset draws a height, as a share of the screen
@@ -151,12 +164,14 @@ namespace SurvivalChaos.Tests
         /// screen, under the countdown and the boss bar, which sit across the
         /// top at the same place left to right as the ship. The frame now leaves
         /// the HUD its share and a ship on the ceiling clears the lower of them.
-        /// 8.615 is the band Ian had in the scene when he saw it, and 10.5 the one
-        /// he gave the bigger ships and boss that evening.
+        /// 8.615 is the band Ian had in the scene when he saw it, 10.5 the one
+        /// he gave the bigger ships and boss that evening, and 9.23 the one
+        /// the 9-out camera has had since 5 October.
         /// </summary>
         [TestCase(6f)]
         [TestCase(8.615f)]
         [TestCase(8.9f)]
+        [TestCase(9.23f)]
         [TestCase(10.5f)]
         [TestCase(12f)]
         public void AShipOnTheCeiling_IsDrawnBelowTheTopHud(float bandHeight)
@@ -199,7 +214,7 @@ namespace SurvivalChaos.Tests
 
         /// <summary>
         /// On the band it was picked on the default keeps the lens it was picked
-        /// at: that band was 8.897 against the table's 8.9, a fiftieth of a degree.
+        /// at.
         /// </summary>
         [Test]
         public void OnTheBandItWasPickedOn_TheDefaultKeepsItsLens()

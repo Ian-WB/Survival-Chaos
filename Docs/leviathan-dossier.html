@@ -329,8 +329,8 @@
         <h3>You cannot fly over it</h3>
         <p class="dim">
           The hull trigger is <span class="mono">19.1</span> units tall against a playable band of
-          <span class="mono">10.5</span>. It spans <span class="mono">y&nbsp;&minus;1.5&ndash;17.6</span>;
-          you live in <span class="mono">y&nbsp;2.8&ndash;13.3</span>. It follows the band wherever the band
+          <span class="mono">9.23</span>. It spans <span class="mono">y&nbsp;&minus;1.8&ndash;17.4</span>;
+          you live in <span class="mono">y&nbsp;3.4&ndash;12.7</span>. It follows the band wherever the band
           goes, and stretches upright to reach a unit past both edges of one too tall for it.
           <span class="em">The boss is a moving wall</span> &mdash; the Stormruler shape, already
           built. The only way past it is around, which makes the direction flip the most
@@ -346,9 +346,9 @@
         </thead>
         <tbody>
           <tr><td>Lane radius</td><td class="num">19.72</td><td class="dim">the ring everything shares &mdash; the arena&rsquo;s 13.72, moved out by the player&rsquo;s offset: 5 from 14 September, 6 from 25 September</td></tr>
-          <tr><td>Playable band</td><td class="num">y 2.79 &rarr; 13.29</td><td class="dim">10.50 units tall since the evening of 25 September, to make room for a boss a quarter bigger &mdash; 8.90 before, after moving down 1.7 on 21 September; the boss follows it now</td></tr>
+          <tr><td>Playable band</td><td class="num">y 3.42 &rarr; 12.65</td><td class="dim">9.23 units tall since 5 October, when the camera moved to 9 out at 65&deg; and the band came in to fit it, about the same middle &mdash; 10.50 from 25 September, to make room for a boss a quarter bigger, and 8.90 before; the boss follows it</td></tr>
           <tr><td>Player orbit</td><td class="num">16.3&deg;/s</td><td class="dim">5.6 u/s, 22 s per lap &mdash; 7 until 22 September, when the whole game slowed by a fifth, and 17.1&deg;/s until the lane moved out on 25 September</td></tr>
-          <tr><td>Player climb</td><td class="num">5.6 u/s</td><td class="dim">1.88 s floor to ceiling</td></tr>
+          <tr><td>Player climb</td><td class="num">5.6 u/s</td><td class="dim">1.65 s floor to ceiling, 1.88 on the 10.5 band</td></tr>
           <tr><td>Player bullets</td><td class="num">150&deg;/s</td><td class="dim">2.4 s per lap</td></tr>
           <tr><td>Boss bullets</td><td class="num">80&deg;/s</td><td class="dim">27.5 u/s at the lane, 4.5 s per lap</td></tr>
           <tr><td>Keel discs</td><td class="num">40&deg;/s</td><td class="dim">13.8 u/s, 9 s per lap</td></tr>
@@ -374,64 +374,66 @@
     </p>
 
     <figure class="band-fig">
-      <svg class="band-svg" viewBox="0 0 300 430" role="img"
-           aria-label="Vertical section of the arena showing the playable band from y 2.8 to y 13.3, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
+      <svg class="band-svg" viewBox="0 0 300 450" role="img"
+           aria-label="Vertical section of the arena showing the playable band from y 3.4 to y 12.7, with the keel bank at the floor, the prow at mid height, and the crown at the ceiling.">
         <!-- band -->
-        <rect x="86" y="30" width="128" height="360" fill="var(--ember-soft)" stroke="var(--line)"/>
+        <rect x="86" y="60" width="128" height="320" fill="var(--ember-soft)" stroke="var(--line)"/>
 
         <!-- ceiling / floor labels -->
-        <line x1="70" y1="30" x2="230" y2="30" stroke="var(--line)" stroke-dasharray="3 3"/>
-        <line x1="70" y1="390" x2="230" y2="390" stroke="var(--line)" stroke-dasharray="3 3"/>
-        <text x="64" y="27" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">13.29</text>
-        <text x="64" y="399" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">2.79</text>
-        <text x="238" y="27" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">CEILING</text>
-        <text x="238" y="399" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">FLOOR</text>
+        <line x1="70" y1="60" x2="230" y2="60" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <line x1="70" y1="380" x2="230" y2="380" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <text x="64" y="57" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">12.65</text>
+        <text x="64" y="389" text-anchor="end" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="9">3.42</text>
+        <text x="238" y="57" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">CEILING</text>
+        <text x="238" y="389" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9" letter-spacing="1">FLOOR</text>
 
-        <!-- CROWN rows: world y 13.71, 13.66, 13.65, 13.05, 13.03, 12.48, 12.46, 11.96 -> map y=2.79..13.29 to 390..30.
-             The boss grew a quarter on 25 September and the band 18% against the 8.9 it had been placed on,
-             so the outer rows sit a little further out than they did. -->
+        <!-- CROWN rows: world y 13.49, 13.44, 13.43, 12.83, 12.81, 12.26, 12.24, 11.74 -> map y=3.4225..12.6525 to 380..60.
+             Read off the prefab on 5 October 2026, with the boss at 6.47 on the 9.23 band. The band is
+             shorter than the 10.5 the boss was last placed on, so more of each outer bank is outside it. -->
         <g stroke="var(--weak)" stroke-width="2">
-          <line x1="96" y1="15.5" x2="204" y2="15.5"/>
-          <line x1="96" y1="17.2" x2="204" y2="17.2"/>
-          <line x1="96" y1="17.6" x2="204" y2="17.6"/>
-          <line x1="96" y1="38.1" x2="204" y2="38.1"/>
-          <line x1="96" y1="38.8" x2="204" y2="38.8"/>
-          <line x1="96" y1="57.7" x2="204" y2="57.7"/>
-          <line x1="96" y1="58.4" x2="204" y2="58.4"/>
-          <line x1="96" y1="75.5" x2="204" y2="75.5"/>
+          <line x1="96" y1="30.9" x2="204" y2="30.9"/>
+          <line x1="96" y1="32.5" x2="204" y2="32.5"/>
+          <line x1="96" y1="33.0" x2="204" y2="33.0"/>
+          <line x1="96" y1="53.7" x2="204" y2="53.7"/>
+          <line x1="96" y1="54.6" x2="204" y2="54.6"/>
+          <line x1="96" y1="73.6" x2="204" y2="73.6"/>
+          <line x1="96" y1="74.1" x2="204" y2="74.1"/>
+          <line x1="96" y1="91.7" x2="204" y2="91.7"/>
         </g>
-        <text x="238" y="60" fill="var(--weak)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">CROWN</text>
-        <text x="238" y="73" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">16 muzzles</text>
+        <text x="238" y="76" fill="var(--weak)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">CROWN</text>
+        <text x="238" y="89" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">16 muzzles</text>
 
-        <!-- PROW: world y 8.41 -->
-        <line x1="96" y1="197.2" x2="204" y2="197.2" stroke="var(--ember)" stroke-width="3"/>
-        <text x="238" y="196" fill="var(--ember)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">PROW</text>
-        <text x="238" y="209" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">4 muzzles</text>
+        <!-- PROW: world y 8.19 -->
+        <line x1="96" y1="214.7" x2="204" y2="214.7" stroke="var(--ember)" stroke-width="3"/>
+        <text x="238" y="213" fill="var(--ember)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">PROW</text>
+        <text x="238" y="226" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">4 muzzles</text>
 
-        <!-- KEEL rows: world y 5.26, 5.23, 3.63, 3.55, 3.54, 2.13, 2.12, 2.10 -->
+        <!-- KEEL rows: world y 5.04, 5.02, 3.42, 3.33, 3.32, 1.92, 1.90, 1.88 -->
         <g stroke="var(--holo)" stroke-width="2">
-          <line x1="96" y1="305.2" x2="204" y2="305.2"/>
-          <line x1="96" y1="306.3" x2="204" y2="306.3"/>
-          <line x1="96" y1="361.1" x2="204" y2="361.1"/>
-          <line x1="96" y1="363.9" x2="204" y2="363.9"/>
-          <line x1="96" y1="364.2" x2="204" y2="364.2"/>
-          <line x1="96" y1="412.5" x2="204" y2="412.5"/>
-          <line x1="96" y1="412.9" x2="204" y2="412.9"/>
-          <line x1="96" y1="413.6" x2="204" y2="413.6"/>
+          <line x1="96" y1="323.9" x2="204" y2="323.9"/>
+          <line x1="96" y1="324.8" x2="204" y2="324.8"/>
+          <line x1="96" y1="380.2" x2="204" y2="380.2"/>
+          <line x1="96" y1="383.3" x2="204" y2="383.3"/>
+          <line x1="96" y1="383.5" x2="204" y2="383.5"/>
+          <line x1="96" y1="432.2" x2="204" y2="432.2"/>
+          <line x1="96" y1="432.7" x2="204" y2="432.7"/>
+          <line x1="96" y1="433.5" x2="204" y2="433.5"/>
         </g>
-        <text x="238" y="330" fill="var(--holo)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">KEEL</text>
-        <text x="238" y="343" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">12 muzzles</text>
+        <text x="238" y="348" fill="var(--holo)" font-family="Chakra Petch, sans-serif" font-size="11" font-weight="600">KEEL</text>
+        <text x="238" y="361" fill="var(--ink-dim)" font-family="JetBrains Mono, monospace" font-size="8.5">12 muzzles</text>
 
-        <text x="10" y="215" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9"
-              letter-spacing="1.5" transform="rotate(-90 10 215)" text-anchor="middle">PLAYABLE BAND</text>
+        <text x="10" y="220" fill="var(--ink-dim)" font-family="Chakra Petch, sans-serif" font-size="9"
+              letter-spacing="1.5" transform="rotate(-90 10 220)" text-anchor="middle">PLAYABLE BAND</text>
       </svg>
       <figcaption>
-        Muzzle heights with the boss at 6.69, where it flies on the 2.79&ndash;13.29 band. The outermost
-        rows of each bank sit outside the band &mdash; the top crown row 0.42 above the ceiling, the bottom
-        keel row 0.69 below the floor. They sat 0.09 and 0.30 out until 25 September, when the boss grew by a
-        quarter and the band, to make room for it, by 18% against the 8.9 the boss had been placed on; a disc
-        from a slot under the floor is still thrown up into the band. Since the same day the boss takes its
-        height from the band as it arrives, 1.35 under its middle, so moving the band moves every bank with it.
+        Muzzle heights with the boss at 6.47, where it flies on the 3.42&ndash;12.65 band. The outer rows of
+        each bank sit outside the band: the top two crown rows, 0.16 and 0.84 above the ceiling, and the
+        bottom keel row, 1.54 below the floor, with the middle keel row on the floor itself. On the 10.5 band
+        only the outermost row of each was out, by 0.42 and 0.69; the band came in to 9.23 on 5 October to fit
+        a camera 9 out at 65&deg;, and the boss did not shrink. A disc from a slot under the floor is still
+        thrown up into the band. The boss takes its height from the band as it arrives &mdash; 1.568 under
+        its middle since that day, which puts the keel and crown weak points the same distance either side of
+        it, and 1.35 before &mdash; so moving the band moves every bank with it.
       </figcaption>
     </figure>
 
@@ -443,17 +445,17 @@
         <tbody>
           <tr>
             <td><span class="tag t-crown">Crown</span></td>
-            <td class="num">16</td><td class="num">11.96 &ndash; 13.71</td>
+            <td class="num">16</td><td class="num">11.74 &ndash; 13.49</td>
             <td class="dim">the upper wing, four rows of four</td>
           </tr>
           <tr>
             <td><span class="tag t-prow">Prow</span></td>
-            <td class="num">4</td><td class="num">8.41</td>
+            <td class="num">4</td><td class="num">8.19</td>
             <td class="dim">a single line at the furthest-forward point of the hull</td>
           </tr>
           <tr>
             <td><span class="tag t-keel">Keel</span></td>
-            <td class="num">12</td><td class="num">2.10 &ndash; 5.26</td>
+            <td class="num">12</td><td class="num">1.88 &ndash; 5.04</td>
             <td class="dim">three rows down the lower hull, both flanks</td>
           </tr>
         </tbody>
@@ -513,13 +515,20 @@
           warm family, and buys separation from value and saturation instead of from hue. The cost
           was written down at the time: a red pod on an orange ship over orange lava is the harder
           read. The 11 September playtest found them every time, so they stay red.
+          <span class="em">On 5 October the family split.</span> The pods kept their red and everything the
+          boss fires went violet &mdash; rounds, discs, torpedoes, the lance and the glow on a muzzle about to
+          fire &mdash; because fire the colour of the lava could not be seen crossing it. So red is what to
+          shoot and violet is what to dodge. It was cyan for a few hours first, which measured well and did
+          not read as an enemy&rsquo;s; and the rounds came down to about half their brightness, since at the
+          old one the tonemapper turned any hue into a pastel.
         </p>
         <p class="dim">
           Each pod sits at the centroid of its own bank&rsquo;s muzzle heights, averaged from the
           model at build time rather than typed in, so it cannot drift away from the guns it stands
-          for &mdash; world y <span class="mono">3.68</span>, <span class="mono">8.41</span> and
-          <span class="mono">12.83</span> on today&rsquo;s band, each 0.875 in radius since the boss grew a
-          quarter on 25 September. They are mounted proud of the hull, which is not
+          for &mdash; world y <span class="mono">3.46</span>, <span class="mono">8.19</span> and
+          <span class="mono">12.62</span> on today&rsquo;s band, each 0.875 in radius since the boss grew a
+          quarter on 25 September. Since 5 October the keel and crown ones sit 0.04 inside the floor and the
+          ceiling, where they had 0.89 and 0.46 of band beyond them: they are 9.16 apart and the band is 9.23. They are mounted proud of the hull, which is not
           decoration: the hull is a trigger that eats bullets, so a target inside it could never be
           hit at all.
         </p>
@@ -528,7 +537,7 @@
           the ram its flash; the curtain and the crown, which are most of the act, arrived
           unannounced &mdash; and the playtest&rsquo;s answer to a boss that read as scenery was
           clearer warnings rather than more damage. So a muzzle glows before it fires, in the
-          thruster shader and the boss&rsquo;s orange: the curtain lights every slot that will throw
+          thruster shader and the colour of the boss&rsquo;s fire, orange then and violet since 5 October: the curtain lights every slot that will throw
           for <span class="mono">0.6&thinsp;s</span> and leaves its gap row dark, so the gap is visible
           before the wall leaves, and each glow goes out as its own disc does; the crown lights only
           the one muzzle about to fire, for <span class="mono">0.5&thinsp;s</span>. The glows are
@@ -608,7 +617,9 @@
             in; move them in the last 0.3 to 0.7&thinsp;s and it passes where you were. Diving all the
             way to the floor is a timed escape now too &mdash; begun half a second to a second before it
             arrives it gets away, a second and a half early it follows you down, and 0.3&thinsp;s is too
-            late &mdash; where at 7.5 against 7 a dive was simply followed down. Run flat out along the
+            late &mdash; where at 7.5 against 7 a dive was simply followed down. The band&rsquo;s height moves
+            that window: on the 10.5 band a dive had to start 0.8 to 1.15&thinsp;s before the torpedo arrived, and
+            on the 9.23 band of 5 October it is 0.8 to 1.5, the widest it has been. Run flat out along the
             ring and it gains, to about 2.7 behind after six and a half seconds, but never catches you,
             because it steers at where it last saw you. One that misses swings round and comes back
             while its fuel lasts, though with the player inside its turning circle it tends to circle
@@ -629,7 +640,8 @@
             does not.</span> The boss holds altitude now, so what the lance actually does is own the
             middle of the band, which nothing else in the fight reaches. The 1.2&thinsp;s telegraph
             was sized as one full band crossing at the player&rsquo;s old 7&nbsp;u/s. At 5.6 it was three
-            quarters of one, and on the taller band of 25 September it is about two thirds; leaving the
+            quarters of one, on the taller band of 25 September about two thirds, and on the 9.23 band of
+            5 October nearly three quarters again; leaving the
             beam&rsquo;s height takes about half a unit, so it is still always escapable, never for free. <span class="em">Since 21 September it is the whole of the warning</span>
             &mdash; the laser is at full length a sixth of a second after it fires, so there is no
             watching it come. Shoot the pod
@@ -672,7 +684,8 @@
             thins out over another 0.15, hurting no one as it does. It runs the way the boss is
             travelling when it fires, follows the prow&rsquo;s bearing as the boss moves, and keeps the
             height it fired at, because that height is what the charge
-            warned about. It is drawn as a thin white-hot core inside a soft orange glow: two ribbons
+            warned about. It is drawn as a thin white-hot core inside a soft glow, orange until 5 October
+            and violet since: two ribbons
             turned to face the camera, the core opaque, the glow additive and writing its own motion
             vectors for FSR, so there is no face or edge to see from any angle.
           </p>
@@ -1137,8 +1150,9 @@
         the band; the spawn check had passed throughout, because the boss still appeared inside the band
         &mdash; it was the guns that left. Found before the build, by measuring the banks against the new
         band. <span class="em">Since 25 September it cannot happen again:</span> the boss takes its height
-        from the band as it arrives, 1.35 under its middle, and <code>BossBandHeightTests</code> holds every
-        emplacement inside the band for bands moved up and down.
+        from the band as it arrives, 1.568 under its middle since 5 October and 1.35 before, and
+        <code>BossBandHeightTests</code> holds every emplacement inside the band for bands moved up and down.
+        A band made shorter is the case that test exists for now: at 9.23 the keel and crown have 0.04 to spare.
       </p>
     </div>
 
@@ -1198,9 +1212,27 @@
   <hr class="rule">
 
   <section>
-    <div class="eyebrow">Settled</div>
+    <div class="eyebrow">Settled, but for the first</div>
     <h2>What was open, and how each was answered</h2>
     <div class="grid-2">
+      <div class="card">
+        <h3>A closer camera, a shorter band, violet fire &mdash; <span class="em">not yet played</span></h3>
+        <p class="dim">
+          All from 5 October, in <span class="mono">26_1005-1428_camera9</span>. The camera is 9 out at
+          65&deg; at your call, which draws the fight about a fifth larger and shows about a fifth less of
+          the ring either side; the Leviathan sits nearer the screen&rsquo;s edge, and the top of its crown
+          weak point can slip behind the left end of its health bar. The band came in to 9.23 to fit, which
+          is as short as this boss allows, so the keel and crown weak points are on the floor and the
+          ceiling and there is no flying past them. And the boss&rsquo;s fire is violet.
+        </p>
+        <p class="dim">
+          Checked, not judged: a ship held on the floor destroyed the keel weak point, and the playtest bot
+          took the prow at 108&thinsp;s and the crown at 121, 24 hits in 173&thinsp;s of fight, against 21 in
+          152 on the old band the same day. <span class="em">If the weak points on the very edges feel
+          wrong</span>, the fix that keeps the camera is a boss about a tenth smaller. If the violet does,
+          it is three numbers in <code>HostileFireColour</code>.
+        </p>
+      </div>
       <div class="card">
         <h3>The plates read only as a silhouette &mdash; <span class="em">settled</span></h3>
         <p class="dim">
@@ -1259,8 +1291,11 @@
           24 September by playing: the whole band from 10 out, holding the band&rsquo;s middle. Since 25
           September its lens fits the band&rsquo;s live height and keeps the top and bottom 8% of the screen
           clear, so a ship on the ceiling is drawn below the countdown and the boss&rsquo;s bar &mdash; about
-          70&deg; on today&rsquo;s 10.5 band, where it was 54&deg; on 8.9. The other six presets stay on the
-          debug menu (F8, then 9).
+          70&deg; on the 10.5 band, where it was 54&deg; on 8.9. <span class="em">On 5 October it moved to 9
+          out at 65&deg;</span>, at your call, and the band came in to 9.23 so that the lens that fits it is
+          that lens; the room under the bars went from 0.65 to 0.2, which a ship 0.33 tall still clears. That
+          one is in the first card here until it is played. The other six presets stay on the debug menu
+          (F8, then 9).
         </p>
       </div>
       <div class="card">
@@ -1317,9 +1352,11 @@
           middle and ceiling: the crown sits 0.46 under the ceiling, as it did before. The bot took all three
           weak points inside the band. Not all of it shows: the camera widens with the taller band, so on
           screen everything is only about 5% bigger than it was; the curtain&rsquo;s gaps are about 0.3 wider,
-          since the discs did not grow; and pods 1.75 across are easier to hit. The boss needs a band of about
-          9.6 &mdash; any shorter and the crown leaves it again. Played on 28 September and not flagged, so the
-          size stays.
+          since the discs did not grow; and pods 1.75 across are easier to hit. The boss needed a band of about
+          9.6 as it was placed &mdash; any shorter and the crown left it again. Played on 28 September and not
+          flagged, so the size stays. On 5 October the band did get shorter, 9.23 for the closer camera, so
+          the boss flies 0.22 lower to centre the keel and crown on it; 9.16, the distance between them, is
+          the least any band can be for a boss this size.
         </p>
       </div>
       <div class="card">

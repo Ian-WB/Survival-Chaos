@@ -16,12 +16,13 @@ namespace SurvivalChaos.Tests
     public class BossBandHeightTests
     {
         /// <summary>
-        /// PlayerBounds in the Game scene since the evening of 25 September 2026,
-        /// when the band grew to 10.5 to make room for a boss a quarter bigger.
-        /// It was 2.72 to 11.62 before, and the boss flew at 6.09 on it.
+        /// PlayerBounds in the Game scene since 5 October 2026: 9.23 tall, the
+        /// most a camera 9 out at 65 degrees shows clear of the HUD, about the
+        /// middle it already had. It was 2.7875 to 13.2875 from 25 September,
+        /// 10.5 tall, and the boss flew at 6.69 on it.
         /// </summary>
-        private const float Floor = 2.7875f;
-        private const float Ceiling = 13.2875f;
+        private const float Floor = 3.4225f;
+        private const float Ceiling = 12.6525f;
 
         /// <summary>
         /// Keeps the band above the Game scene's. Written out rather than read
@@ -66,15 +67,36 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// 1.35 under the band's middle, which puts the hull's own middle on it.
-        /// Pinned so the height cannot drift without the tests saying so.
+        /// 1.568 under the band's middle, which puts the keel and crown pods the
+        /// same distance either side of it. Pinned so the height cannot drift
+        /// without the tests saying so.
         /// </summary>
         [Test]
-        public void OnTheBandAsItIs_TheBossFliesAt6Point69()
+        public void OnTheBandAsItIs_TheBossFliesAt6Point47()
         {
             GameObject boss = Boss();
 
-            Assert.AreEqual(6.6875f, SpawnBand.Middle(Floor, Ceiling) + HeightFromBandMiddle(boss), 0.005f);
+            Assert.AreEqual(6.4695f, SpawnBand.Middle(Floor, Ceiling) + HeightFromBandMiddle(boss), 0.005f);
+        }
+
+        /// <summary>
+        /// The band is only 0.07 taller than the keel and crown pods are apart,
+        /// so the boss has to sit with them centred on it or one goes outside.
+        /// </summary>
+        [Test]
+        public void TheKeelAndTheCrown_AreTheSameDistanceFromTheBandsEdges()
+        {
+            GameObject boss = Boss();
+            float lowest = float.MaxValue, highest = float.MinValue;
+
+            foreach (BossWeakPoint pod in boss.GetComponentsInChildren<BossWeakPoint>(true))
+            {
+                float height = PodHeight(boss, pod, Floor, Ceiling);
+                lowest = Mathf.Min(lowest, height);
+                highest = Mathf.Max(highest, height);
+            }
+
+            Assert.AreEqual(lowest - Floor, Ceiling - highest, 0.01f);
         }
 
         [TestCase(0f)]
@@ -123,6 +145,7 @@ namespace SurvivalChaos.Tests
         /// for bands moved and made taller - up to 24, which the authored 19.1
         /// hull cannot span without stretching.
         /// </summary>
+        [TestCase(0f, 9.23f)]
         [TestCase(0f, 10.5f)]
         [TestCase(-1.7f, 10.5f)]
         [TestCase(3f, 10.5f)]
@@ -154,8 +177,9 @@ namespace SurvivalChaos.Tests
             float half = 0.5f * box.size.y;
 
             Assert.AreEqual(1f, BossEmitter.HullStretch(middle - half, middle + half, Floor, Ceiling, overhang));
-            // Centred on the band's middle, which is what makes any shift of the band safe.
-            Assert.AreEqual(SpawnBand.Middle(Floor, Ceiling), middle, 0.01f);
+            // 0.22 under the band's middle since 5 October 2026, when the pods
+            // took the centre instead. It has 4.7 to spare past either edge.
+            Assert.AreEqual(SpawnBand.Middle(Floor, Ceiling) - 0.218f, middle, 0.01f);
         }
 
         /// <summary>The box the ram hits with, off the prefab, and the model that stretches with it.</summary>

@@ -76,8 +76,9 @@ namespace SurvivalChaos
     /// the classic lens and its sense of scale; furthest flattens the ring
     /// almost to a corridor.
     ///
-    /// Playing settled it on 24 September 2026, on the whole band from 10 out -
-    /// see <see cref="DefaultIndex"/>. The other six stay on the debug menu.
+    /// Playing settled it on 24 September 2026, on the whole band from 10 out,
+    /// and moved it on 5 October to 9 out at 65 degrees - see
+    /// <see cref="DefaultIndex"/>. The other six stay on the debug menu.
     /// </summary>
     public static class CameraFraming
     {
@@ -96,8 +97,16 @@ namespace SurvivalChaos
         /// across the top, and the same again between the floor and the
         /// matching share kept clear at the bottom - so a ship on either edge
         /// is drawn clear of what is there.
+        ///
+        /// 0.65 until 5 October 2026, which was room to spare: the ship is
+        /// 0.33 tall. That day the default camera was asked for at 9 out and
+        /// 65 degrees, which shows 11.47 at the ship, and the band cannot
+        /// shrink to match as far as it would have to, because the
+        /// Leviathan's keel and crown emplacements are 9.16 apart and both
+        /// have to stay inside it. So the spare room went instead: 0.2 is the
+        /// ship's half height and a little over, and the band is 9.23.
         /// </summary>
-        public const float BandMargin = 0.65f;
+        public const float BandMargin = 0.2f;
 
         /// <summary>
         /// The share of the screen's height, from the top, that the whole-band
@@ -116,14 +125,14 @@ namespace SurvivalChaos
         public const float TopHudShare = 0.08f;
 
         /// <summary>
-        /// The band's height the preset table is written for: 8.9, the height of
-        /// the player's bounds box when the presets were picked (4.42 to 13.32,
-        /// then 2.72 to 11.62 from 21 September 2026). The stored lenses use
-        /// it; the camera itself frames the live band, through
-        /// <see cref="CameraPreset.FieldOfViewOn"/>, so resizing PlayerBounds
-        /// resizes the view with it.
+        /// The band's height the preset table is written for: 9.23, the height
+        /// of the player's bounds box since 5 October 2026 (3.42 to 12.65). It
+        /// was 8.9 when the presets were first picked and 10.5 from 25
+        /// September. The stored lenses use it; the camera itself frames the
+        /// live band, through <see cref="CameraPreset.FieldOfViewOn"/>, so
+        /// resizing PlayerBounds resizes the view with it.
         /// </summary>
-        public const float BandHeight = 8.9f;
+        public const float BandHeight = 9.23f;
 
         /// <summary>
         /// How far out the far presets sit. 14 puts something ten units round
@@ -148,8 +157,11 @@ namespace SurvivalChaos
             return (Mathf.Max(0f, bandHeight) + 2f * BandMargin) / (1f - 2f * TopHudShare);
         }
 
-        /// <summary>How far out the whole-band presets sit, closest first.</summary>
-        public static readonly float[] WholeBandDistances = { 7f, 10f, FarDistance, 20f };
+        /// <summary>
+        /// How far out the whole-band presets sit, closest first. The second
+        /// is the default, and was 10 until 5 October 2026.
+        /// </summary>
+        public static readonly float[] WholeBandDistances = { 7f, 9f, FarDistance, 20f };
 
         public static readonly CameraPreset[] Presets =
         {
@@ -163,13 +175,15 @@ namespace SurvivalChaos
         };
 
         /// <summary>
-        /// The preset every run starts on: the whole band from 10 out, picked by
-        /// playing on 24 September 2026 at 54 degrees. Since 25 September it is
-        /// 62.5 on an 8.9 band, the rest being the HUD's share across the top
-        /// and the same at the bottom (<see cref="TopHudShare"/>). CameraPresetSwitcher applies it
+        /// The preset every run starts on: the whole band from 9 out, which is
+        /// 65 degrees on the 9.23 band. Asked for as those two numbers on 5
+        /// October 2026; the band and <see cref="BandMargin"/> were sized so
+        /// that the lens that fits the band is that lens. It draws everything
+        /// about a fifth larger than the camera it replaced, the whole band
+        /// from 10 out, which was 70 degrees on the 10.5 band and had been
+        /// picked by playing on 24 September. CameraPresetSwitcher applies it
         /// as a run starts; the Game scene's camera is authored at the same
-        /// distance, and at the 54 it was picked at, which only the editor's
-        /// view before play shows.
+        /// distance and lens, which only the editor's view before play shows.
         /// </summary>
         public const int DefaultIndex = 4;
 

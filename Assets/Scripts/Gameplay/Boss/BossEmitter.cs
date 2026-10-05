@@ -43,12 +43,13 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("The height the boss flies at, measured from the middle of the player's band " +
                  "(PlayerBounds) - below it when negative. The boss takes this height as it " +
-                 "arrives, so moving the band moves the boss and its three banks with it. -1.35 " +
-                 "puts the hull's middle on the band's middle and the prow's lance 0.37 above it, " +
-                 "with the keel and crown pods near the floor and ceiling. It was -1.08 until the " +
-                 "boss grew by a quarter; that was 6.09 on the 2.72-11.62 band. The boss spawn " +
-                 "stream's own height is not used.")]
-        private float heightFromBandMiddle = -1.35f;
+                 "arrives, so moving the band moves the boss and its three banks with it. -1.568 " +
+                 "puts the keel and crown pods the same distance either side of the band's middle, " +
+                 "4.58, which a band of 9.23 holds with 0.04 to spare at each edge; the prow's " +
+                 "lance is 0.15 above the middle. It was -1.35 on the 10.5 band, which put the " +
+                 "hull's middle on the band's, and -1.08 before the boss grew by a quarter. The " +
+                 "boss spawn stream's own height is not used.")]
+        private float heightFromBandMiddle = -1.568f;
 
         [SerializeField]
         [Tooltip("The hull's hit box - what the ram hits the player with. Stretched upright with " +
