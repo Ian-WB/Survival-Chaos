@@ -83,6 +83,27 @@ namespace SurvivalChaos
             return strongest;
         }
 
+        /// <summary>How many of the surges have begun by <paramref name="elapsed"/>.</summary>
+        public static int Begun(float elapsed, IReadOnlyList<float> surges)
+        {
+            int begun = 0;
+
+            if (surges == null)
+            {
+                return begun;
+            }
+
+            for (int i = 0; i < surges.Count; i++)
+            {
+                if (elapsed >= surges[i])
+                {
+                    begun++;
+                }
+            }
+
+            return begun;
+        }
+
         /// <summary>
         /// The level itself. <paramref name="sinceBoss"/> is seconds since the
         /// Leviathan appeared, negative while it has not; once it has, the

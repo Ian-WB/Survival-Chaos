@@ -36,7 +36,7 @@ namespace SurvivalChaos.EditorTools
         public const string RootName = "Volcano Smoke";
 
         /// <summary>The mouth of the crater, in the Game scene.</summary>
-        private static readonly Vector3 Crater = new Vector3(0.2f, 12.6f, 0.8f);
+        public static readonly Vector3 Crater = new Vector3(0.2f, 12.6f, 0.8f);
 
         /// <summary>
         /// The box the plume is drawn in. The plume takes about four tenths of

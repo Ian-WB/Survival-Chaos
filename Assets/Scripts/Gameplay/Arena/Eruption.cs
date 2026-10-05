@@ -111,7 +111,7 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Tooltip("The warm fill on the ships.")]
-        private Vector2 shipFillBrightness = new Vector2(0.85f, 1.2f);
+        private Vector2 shipFillBrightness = new Vector2(0.8f, 1f);
 
         [Header("Trying it out")]
         [SerializeField]
@@ -154,6 +154,16 @@ namespace SurvivalChaos
 
         /// <summary>How far the eruption has got, 0 to 1.</summary>
         public float Level { get; private set; }
+
+        /// <summary>
+        /// Raised as a surge begins, with how hard it is: the surge height for
+        /// a new group of enemies, 1 for the Leviathan. The embers and the
+        /// lava bombs listen (<see cref="EruptionSparks"/>).
+        /// </summary>
+        public event System.Action<float> Surged;
+
+        /// <summary>How many of the wave's surges have begun.</summary>
+        private int surgesBegun;
 
         private void Start()
         {
@@ -227,7 +237,19 @@ namespace SurvivalChaos
             if (bossSeenAt < 0f && (BossEmitter.Active != null || elapsed >= bossAt))
             {
                 bossSeenAt = Time.time;
+                Surged?.Invoke(1f);
             }
+
+            // One call however many the clock passed: winding it on by a
+            // minute is a look ahead, not three surges owed.
+            int begun = EruptionCurve.Begun(elapsed, surges);
+
+            if (begun > surgesBegun && bossSeenAt < 0f)
+            {
+                Surged?.Invoke(surgeHeight);
+            }
+
+            surgesBegun = begun;
 
             return EruptionCurve.Level(
                 EruptionCurve.Resting(elapsed, bossAt, restingPeak, lateness),
