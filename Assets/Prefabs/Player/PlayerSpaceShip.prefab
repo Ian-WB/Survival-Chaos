@@ -116,9 +116,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -7501815100254853976, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -6377199311275300236, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -2376149739102100077, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -1004385857308063228, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -871262171774199730, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
       propertyPath: m_Name
       value: nave 01_v06_unity
+      objectReference: {fileID: 0}
+    - target: {fileID: 4811208497784117722, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

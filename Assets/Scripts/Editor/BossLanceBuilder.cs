@@ -54,13 +54,15 @@ namespace SurvivalChaos.EditorTools
         /// <summary>
         /// The core's centre, pale and hot. A blob this bright reads as a star -
         /// the boss pods' problem - but a line this thin reads as a laser, and the
-        /// glow around it carries the colour.
+        /// glow around it carries the colour. The three colours here are
+        /// <see cref="HostileFireColour"/>'s, so the lance is the colour the
+        /// rounds are and running this cannot put the old orange back.
         /// </summary>
-        private static readonly Vector3 CoreColour = new Vector3(1.00f, 0.85f, 0.60f);
+        private static readonly Vector3 CoreColour = HostileFireColour.Core;
         private const float CoreIntensity = 4f;
 
         /// <summary>The core's edges, where it hands over to the glow.</summary>
-        private static readonly Vector3 BodyColour = new Vector3(1.00f, 0.45f, 0.10f);
+        private static readonly Vector3 BodyColour = HostileFireColour.Bright;
         private const float BodyIntensity = 3f;
 
         /// <summary>
@@ -74,11 +76,11 @@ namespace SurvivalChaos.EditorTools
         private const float PulseDepth = 0.25f;
 
         /// <summary>
-        /// The halo's colour: the lance's old red-orange, the one it had in the
-        /// boss's warm family, so the weapon is still the same colour from a
-        /// distance.
+        /// The halo's colour: the deeper of the two hostile shades, the one a
+        /// round's shell wears, so the weapon is the colour of the rest of the
+        /// boss's fire from a distance.
         /// </summary>
-        private static readonly Vector3 GlowColour = new Vector3(1.00f, 0.30f, 0.05f);
+        private static readonly Vector3 GlowColour = HostileFireColour.Deep;
         private const float GlowIntensity = 2f;
 
         [MenuItem("Survival Chaos/Build Boss Lance", priority = 54)]

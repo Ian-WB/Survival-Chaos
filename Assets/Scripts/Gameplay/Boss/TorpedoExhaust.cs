@@ -31,7 +31,7 @@ namespace SurvivalChaos
 
         /// <summary>
         /// Emission at full burn. The ship's main engine runs at 6; this is a
-        /// little under, so the hostile orange stays orange rather than blowing
+        /// little under, so the hostile colour keeps its hue rather than blowing
         /// out to white, which is what the boss's pods taught.
         /// </summary>
         private const float Brightness = 5f;

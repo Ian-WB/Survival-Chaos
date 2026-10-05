@@ -107,6 +107,25 @@ namespace SurvivalChaos.Tests
             return Parse(Field(id, field, Number).Groups[1].Value);
         }
 
+        /// <summary>A number one level down, such as m_Type under m_Shadows on a light.</summary>
+        public float Float(string id, string parent, string field)
+        {
+            Match match = Regex.Match(objects[id].Body,
+                @"\n  " + Regex.Escape(parent) + @":\r?\n(?:    .*\r?\n)*?    " + Regex.Escape(field) + ": " + Number);
+            Assert(match.Success, id + " has no " + parent + "." + field);
+            return Parse(match.Groups[1].Value);
+        }
+
+        /// <summary>A colour field. Alpha is not read.</summary>
+        public Color Colour(string id, string field)
+        {
+            Match match = Field(id, field, @"\{r: " + Number + ", g: " + Number + ", b: " + Number);
+            return new Color(
+                Parse(match.Groups[1].Value),
+                Parse(match.Groups[2].Value),
+                Parse(match.Groups[3].Value));
+        }
+
         /// <summary>A vector field, with z 0 when it has none (a 2D offset or size).</summary>
         public Vector3 Vector(string id, string field)
         {

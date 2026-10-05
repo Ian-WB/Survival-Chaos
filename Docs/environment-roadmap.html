@@ -264,7 +264,7 @@
     <div class="kicker">Survival Chaos · 5 October 2026 · at <span class="mono">2e9d94c</span></div>
     <h1>Environment Roadmap</h1>
     <p class="lede">Sixteen changes to the island, its sky and its light. They come from reading the Game scene as it stands and flying round it once in play. The design stays: an erupting volcano on a floating island, space behind it and cloud around it. None of this is built.</p>
-    <p class="how"><strong>How to answer:</strong> reply with the numbers, as before: “yes 33 to 36, no 39”. Every item carries my pick. The numbers carry on from the two polish roadmaps, which were 1 to 32. This time nothing is held back because you decided it earlier; where an item reopens a decision, it says so.</p>
+    <p class="how"><strong>Answered on 5 October:</strong> 33 to 36 yes. 33, 35 and 36 were built the same day, checked in play with the bot flying, and are in <code>Builds/26_1005-1234_theFight</code>. 34 was measured and not built; its entry says why. <strong>37 to 48 are unanswered:</strong> reply with the numbers, as before. The numbers carry on from the two polish roadmaps, which were 1 to 32. Everything answered is tracked on the open list.</p>
   </header>
 
   <section class="gate" aria-labelledby="gate-title">
@@ -304,7 +304,7 @@
         </thead>
         <tbody>
           <tr><td class="n">33</td><td><a href="#i33">Light the lane</a></td><td class="ph">The fight</td><td><span class="ans yes">Yes</span></td><td class="t">2–3 h</td></tr>
-          <tr><td class="n">34</td><td><a href="#i34">Put the lava in the reflections</a></td><td class="ph">The fight</td><td><span class="ans yes">Yes</span></td><td class="t">1 h</td></tr>
+          <tr><td class="n">34</td><td><a href="#i34">Put the lava in the reflections</a></td><td class="ph">The fight</td><td><span class="ans no">No, measured</span></td><td class="t">1 h</td></tr>
           <tr><td class="n">35</td><td><a href="#i35">Hold the exposure still</a></td><td class="ph">The fight</td><td><span class="ans yes">Yes</span></td><td class="t">45 min</td></tr>
           <tr><td class="n">36</td><td><a href="#i36">Take hostile fire off the lava’s colour</a></td><td class="ph">The fight</td><td><span class="ans yes">Yes</span></td><td class="t">1.5 h</td></tr>
           <tr class="split"><td class="n">37</td><td><a href="#i37">Make the eruption the run’s clock</a></td><td class="ph">The eruption</td><td><span class="ans yes">Yes</span></td><td class="t">4–5 h</td></tr>
@@ -341,6 +341,7 @@
         <div class="part"><span class="lab">Change</span><div><p>Three lights that touch ships and nothing else:</p><ul><li>a cool key and a rim that ride with the camera, so a ship is shaded the same way wherever you are on the ring;</li><li>a warm fill from the island’s centre, so the side of every ship that faces the volcano is orange.</li></ul><p>Ships go on their own rendering layer. The island, the fog and the bake stay exactly as they are.</p></div></div>
         <div class="part"><span class="lab">Cost</span><div><p>Three lights without shadows on a hundred small ships at most. All the lighting in the scene was 0.52 ms; I expect no change I can measure.</p></div></div>
         <div class="part dial"><span class="lab">The dials</span><div><p>The three brightnesses.</p></div></div>
+        <div class="part"><span class="lab">Built</span><div><p>A key of 4 lux and a rim of 5 on the camera, and a fill of 6000 lumens, 4 units across, on the island’s axis. On a frozen frame, switching them changed 0.43% of the picture, all of it ships, and the whole camera cost the same either way, to within the 0.3 ms the reading wanders by.</p><p>The Drone was the exception: its body was painted almost black, so light had nothing to show. At your word it is dark green since the same day.</p></div></div>
       </div>
     </article>
 
@@ -348,11 +349,12 @@
       <div class="num">34</div>
       <div class="body">
         <h3>Put the lava in the reflections</h3>
-        <div class="meta"><span class="ans yes">Yes</span><span class="t">1 h</span><span class="who">me</span></div>
+        <div class="meta"><span class="ans no">No, measured</span><span class="t">1 h</span><span class="who">me</span></div>
         <div class="part"><span class="lab">Today</span><div><p>The scene has no reflection probe. Glossy surfaces reflect the sky, plus whatever screen-space reflection finds on screen: the ship canopies at smoothness 1.0, the cone’s tip at 0.69, the ruins at 0.6. The lava is the brightest thing in the scene and is in no reflection unless it happens to be on screen at the right angle.</p></div></div>
         <div class="part"><span class="lab">Change</span><div><p>One probe at the island’s centre, covering the island and the lane, captured once behind the loading screen. Canopies and the cone pick up the lava’s orange. If 37 goes in, it is captured again each time the eruption steps up.</p></div></div>
         <div class="part"><span class="lab">Cost</span><div><p>One capture at load and no work per frame. HDRP already does the lookup against the sky.</p></div></div>
         <div class="part dial"><span class="lab">Limit</span><div><p>A probe taken at the centre is only roughly right for a ship 20 units away. That is fine for a glow and wrong for a mirror, and nothing here is a mirror.</p></div></div>
+        <div class="part"><span class="lab">Measured</span><div><p><strong>Not built, on two counts.</strong> A probe at the centre would have shown each ship the far side of the island, not the side it faces: I had the geometry backwards. One placed on the lane beside the ships, which is the right place, changed 0.009% of the frame’s pixels, against a floor of 0.007% between two captures of the same thing.</p><p>The fill light in 33 is 4 units across, which already puts the orange glint on canopies.</p></div></div>
       </div>
     </article>
 
@@ -364,6 +366,7 @@
         <div class="part"><span class="lab">Today</span><div><p>Exposure is automatic, free to move between −1 and 14 EV. In my captures the clouds were darkest from the lava side, which is what automatic exposure does when the lava fills the frame. I did not isolate it from the clouds drifting.</p><p>If that is what’s happening, a round or a pickup is a different brightness on each side of the ring, and the emissive ladder’s one rung means different things in different places.</p></div></div>
         <div class="part"><span class="lab">Change</span><div><p>First measure the settled exposure on four sides, which takes ten minutes. If it moves, fix it at the dark side’s value, or let it move half a stop either way and no more.</p></div></div>
         <div class="part dial"><span class="lab">The dial</span><div><p>The fixed value.</p></div></div>
+        <div class="part"><span class="lab">Measured</span><div><p>My guess was wrong about the size. On eight sides of the ring the exposure sat on its −1 EV floor on five, and rose to −0.77 where the lava flow faces the camera: a quarter of a stop. The darker clouds in the second capture above were the clouds themselves. It is fixed at −1 EV now, which is what most of the ring already was.</p></div></div>
       </div>
     </article>
 
@@ -375,6 +378,8 @@
         <div class="part"><span class="lab">Today</span><div><p>The lava’s hot colour sits at hue 12°. Enemy rounds are at 12°, the Leviathan’s rounds at 14°, its discs at 13°, its emplacements at 1° and the lance’s glow at 16°. Everything that can hurt you is the colour of the largest bright thing on screen, and a round crossing the lava flow is orange on orange.</p></div></div>
         <div class="part"><span class="lab">Change</span><div><p>Two candidates, each run through the first roadmap’s colour check (7) against the lava, the sky and the pickups before you see them:</p><ul><li><strong>Cyan-white.</strong> It is the lava’s complement, and nothing in the playfield uses it; the HUD does.</li><li><strong>Keep the red, change the value.</strong> A white-hot core and a dark rim on every hostile round, so it separates from the lava by brightness and edge.</li></ul><p>Your rounds stay green. The pickups already use magenta, violet and green, which is why violet is not a candidate.</p></div></div>
         <div class="part dial"><span class="lab">From you</span><div><p>The choice. This changes how the Leviathan’s attacks look, which is more than scenery.</p></div></div>
+        <div class="part"><span class="lab">Built</span><div><p>Cyan, as my pick until you say otherwise. On a frozen frame an enemy round over the lava went from 13 apart to 72, and a Leviathan round from 23 to 62, where about 10 is a clear difference; under protanopia, 52 and 50. The white-core candidate measured 43 to 49 against the lava’s body and 14 to 18 against its brightest pixels, which are nearly white.</p><p>The pods stay red, so red is what to shoot and cyan is what to dodge. Cyan gives up distance from the clouds: 34 where the orange had 66.</p></div></div>
+        <div class="part dial"><span class="lab">Reopens</span><div><p>I missed this when I wrote the item. On 5 September the Leviathan’s fire and pods were brought into one warm family, and on 8 September a pink-and-green palette was reverted the same day. This moves the fire only. Going back is nine materials and one light.</p></div></div>
       </div>
     </article>
   </section>
@@ -584,5 +589,5 @@
     <p>New arenas, weather that changes the fight, and destructible scenery are content, not environment polish.</p>
   </section>
 
-  <footer>Written on 5 October 2026 from the Game scene at <span class="mono">2e9d94c</span>: its lights, both volume profiles, the four pipeline assets, the bake settings, the scenery and ship materials, and four play-mode captures the same day. Frame costs are from the 1 October scan. Items you say yes to move onto the open list.</footer>
+  <footer>Written on 5 October 2026 from the Game scene at <span class="mono">2e9d94c</span>: its lights, both volume profiles, the four pipeline assets, the bake settings, the scenery and ship materials, and four play-mode captures the same day. Frame costs are from the 1 October scan. 33, 35 and 36 were built on 5 October. Items you say yes to move onto the open list.</footer>
 </div>

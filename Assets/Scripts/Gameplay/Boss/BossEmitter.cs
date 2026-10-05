@@ -160,7 +160,7 @@ namespace SurvivalChaos
         private Mesh tellMesh;
 
         [SerializeField]
-        [Tooltip("Material for the muzzle glows: the thruster shader in hostile orange.")]
+        [Tooltip("Material for the muzzle glows: the thruster shader in the hostile colour.")]
         private Material tellMaterial;
 
         [SerializeField]
@@ -176,7 +176,7 @@ namespace SurvivalChaos
         private Mesh exhaustMesh;
 
         [SerializeField]
-        [Tooltip("Material for the torpedo plume: the thruster shader in hostile orange, the same " +
+        [Tooltip("Material for the torpedo plume: the thruster shader in the hostile colour, the same " +
                  "as the muzzle glows, so the boss's fire is one colour.")]
         private Material exhaustMaterial;
 

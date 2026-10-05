@@ -148,7 +148,7 @@ MonoBehaviour:
   leftOrRight: 0
   turnDeadbandDegrees: 20
   turnCooldownSeconds: 0
-  keepPaceWithPlayer: 0
+  playerSpeedRatio: 0
   spawnSpeed: 0.2
   chaseRadiusFraction: 1.2
 --- !u!114 &6340613703622318322
@@ -273,6 +273,10 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 84fbfc1a4a870d149b3d785bf89dd015, type: 3}
       propertyPath: m_Name

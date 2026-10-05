@@ -53,11 +53,11 @@ namespace SurvivalChaos.EditorTools
         private const string PlumeMeshPath = "Assets/Art/Models/VFX/ShipThrusterPlume.asset";
 
         /// <summary>
-        /// The hue of the boss's own rounds, whose emission runs 3.0 : 0.7 : 0.02
-        /// - so a glow on a muzzle is read as the fire it is about to become, and
+        /// The hue of the boss's own rounds, taken from where they take it -
+        /// so a glow on a muzzle is read as the fire it is about to become, and
         /// never as the player's green.
         /// </summary>
-        private static readonly Vector3 TellColour = new Vector3(1.0f, 0.3f, 0.03f);
+        private static readonly Vector3 TellColour = HostileFireColour.Bright;
 
         /// <summary>
         /// The keel's rounds, one per direction of travel like the rest.
@@ -589,6 +589,12 @@ namespace SurvivalChaos.EditorTools
             // The cost is real and known - a red pod against orange lava is a
             // harder read than a green one was. This is the first thing to
             // question if the armoured phase turns out to be hard to aim at.
+            //
+            // Since 2026-10-05 the pods are the only part of that family still
+            // warm. The rounds, the discs, the lance and the muzzle glows moved
+            // to cyan - see HostileFireColour - because fire the colour of the
+            // lava could not be seen crossing it. So red is what to shoot and
+            // cyan is what to dodge.
             var red = new Color(2.2f, 0.09f, 0.04f);
 
             skin.SetColor("_UnlitColor", red);
@@ -1595,7 +1601,7 @@ namespace SurvivalChaos.EditorTools
             Material tell = BuildTellMaterial();
             emitter.FindProperty("tellMaterial").objectReferenceValue = tell;
 
-            // The torpedoes' plume is the ship's own, in the tells' orange.
+            // The torpedoes' plume is the ship's own, in the tells' colour.
             emitter.FindProperty("exhaustMesh").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Mesh>(PlumeMeshPath);
             emitter.FindProperty("exhaustMaterial").objectReferenceValue = tell;
         }
@@ -1815,7 +1821,7 @@ namespace SurvivalChaos.EditorTools
         /// muzzle glow a white four-point sparkle - seen in play on 21 September
         /// 2026 it read as the sparks off the hull, not as the boss's fire about
         /// to leave. Centred at 0.35 instead, the core is a fifth white at most
-        /// and the glow reads as the orange the rounds are.
+        /// and the glow reads as the colour the rounds are.
         /// </summary>
         private static Mesh BuildTellMesh()
         {

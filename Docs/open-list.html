@@ -318,7 +318,7 @@
 
 <div class="wrap" id="app"></div>
 
-<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true,"audit-1001":true,"enemy-spacing":true,"ability-levels":true,"balance-1001":true,"run-400":true,"play-run400":true,"boss-pace":true,"perf-scan":true,"play-cloudladder":true,"cloud-ladder-look":true,"balance-feel":true,"run400-feel":true,"music-hear":true,"polish2-feel":true,"unity-664":true,"roadmap2-answers":true,"nvidia-marks":true,"loading-tips":true,"volume-preview":true,"game-icon":true,"credits-rebuild":true,"screenshot-key":true,"hitch-log":true,"runtime-notices":true,"scan-1002":true,"play-shipping":true,"shipping-look":true,"release-check":true},"updated":"2 October 2026"}</script>
+<script id="state" type="application/json">{"done":{"pool-soak":true,"fog-scale":true,"code-variant":true,"cloud-bank":true,"charge-sound":true,"enemy-shot-glow":true,"play-boss":true,"identity":true,"stray-log":true,"commit-files":true,"shadow-count":true,"play-islandsplit":true,"pod-visibility":true,"lance-legibility":true,"lane-tests":true,"scale-down":true,"fog-tiers":true,"dash-feel":true,"ship-handling":true,"player-round-look":true,"round-scale":true,"lane-offset":true,"enemy-landing":true,"hit-tunnelling":true,"enemy-height-hits":true,"shadows-row":true,"ship-thrusters":true,"boss-tells":true,"boss-routes":true,"lane-easing":true,"lance-energy":true,"band-boss":true,"salvage":true,"slow-down":true,"playtest-bot":true,"camera-framing":true,"readme":true,"dash-tooltips":true,"codex-doc":true,"band-follow":true,"hud-clearance":true,"slowmo-live":true,"scale-up":true,"bake-links":true,"frame-limiter":true,"audit-0926":true,"cloud-row":true,"scan-0928":true,"asset-cleanup":true,"hit-clip":true,"jam-branches":true,"torpedo-dive":true,"placer-divergence":true,"spawn-direction":true,"scan-0928-second":true,"late-waves":true,"salvage-pace":true,"round-timing":true,"shadow-spike":true,"xp-carry":true,"listener-mix":true,"dash-slowmo":true,"big-ships":true,"enemy3-silhouette":true,"boss-slower-ship":true,"play-0928":true,"gun-variety":true,"keep-pace":true,"fsr3":true,"amd-notice":true,"fsr3-release":true,"intro-fix":true,"audit-0929":true,"audit-followups":true,"options-tabs":true,"fsr3-reactive":true,"boss-aggression":true,"build-pacing":true,"intro-run":true,"music-stream":true,"sky-bc7":true,"play-0928-pace":true,"real-pad":true,"fsr3-motion":true,"play-0930":true,"focus-pause":true,"hide-cursor":true,"build-stamp":true,"control-hints":true,"controls-tab":true,"best-runs":true,"colour-check":true,"death-beat":true,"hit-stop":true,"boss-horn":true,"low-hp":true,"rumble":true,"moment-sounds":true,"music-answers":true,"play-polish":true,"polish-feel":true,"polish-sounds":true,"boss-track":true,"music-licensed":true,"polish-pad":true,"leviathan-death":true,"enemy-arrival":true,"pause-restart":true,"card-guard":true,"music-fades":true,"pad-unplug":true,"pause-summary":true,"hit-source":true,"audit-1001":true,"enemy-spacing":true,"ability-levels":true,"balance-1001":true,"run-400":true,"play-run400":true,"boss-pace":true,"perf-scan":true,"play-cloudladder":true,"cloud-ladder-look":true,"balance-feel":true,"run400-feel":true,"music-hear":true,"polish2-feel":true,"unity-664":true,"roadmap2-answers":true,"nvidia-marks":true,"loading-tips":true,"volume-preview":true,"game-icon":true,"credits-rebuild":true,"screenshot-key":true,"hitch-log":true,"runtime-notices":true,"scan-1002":true,"play-shipping":true,"shipping-look":true,"release-check":true,"ship-lights":true,"exposure-fixed":true,"hostile-cyan":true,"drone-black":true},"updated":"5 October 2026"}</script>
 
 <script id="app-src">
 (function () {
@@ -327,15 +327,19 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-shipping",
-    title: "Try the last six polish items in a build",
-    effort: "10 minutes, and one run to the Leviathan",
-    lede: "<strong>Played on 2 October,</strong> in <code>Builds/26_1002-1057_scanFixes</code>, to the Leviathan’s death. You flagged nothing and said to tick the defaults, so the volcano, the eleven tips and the credits stand.</p><p><strong>Everything on this list is done.</strong> What the run’s log said is below. Nothing else is waiting. Microsoft’s terms for the two libraries that come with the engine were read on 2 October; what they say is under ‘Check the notices for the other libraries Unity ships’. The other two loose ends were closed the same day: the reference now covers 28 to 30 September, and a Release build was made and read, <code>Builds/26_1002-1314_release</code>, which nobody has played yet.",
+    id: "play-thefight",
+    title: "Look at the lit ships and the cyan fire in a build",
+    effort: "one run to the Leviathan, about 9 minutes",
+    lede: "<strong>Built on 5 October</strong> as <code>Builds/26_1005-1234_theFight</code>, with the debug menu: commit <code>a73e0e3</code> plus the day’s work, which is not committed yet. It carries the first four items of the <a href='https://claude.ai/artifact/LUm4hJpvYPD7jHakSrL4wE'>environment roadmap</a>, 33 to 36, which you said yes to that day. Three are in: lights that fall on ships only, a fixed exposure, and hostile fire in cyan. The fourth, a reflection probe, was measured and not built. The Drone’s body went from black to dark green the same day, and this build has that too; the one made fifteen minutes earlier, <code>26_1005-1219_theFight</code>, does not.</p><p><strong>The cyan reopens a call you have made twice.</strong> On 5 September the Leviathan’s fire and pods became one warm family, and on 8 September a pink-and-green palette was reverted the same day. This time the pods stay red and only the fire moved, so red is what to shoot and cyan is what to dodge. If it is wrong, going back is nine materials and one light.",
     watch: [
-      "The fight has no slow frame in it: none at the Leviathan’s arrival, at any act, at any attack’s first volley, or at its death. So the draw states do not need building ahead, and that work is not planned.",
-      "One frame of 178 ms came 24 seconds into the run, with nothing the game notes attached to it. That was you opening the debug menu for the first time, so it is not something a player meets.",
-      "Upscaling is answered: the log shows FSR 3.1.5 running. It does not say which quality preset.",
-      "The launch before that one asked for exclusive fullscreen at 3840 by 2160, was refused twice and fell back to 2560 by 1440, at a cost of two frames of over three seconds on the title screen. The next launch started at 1440p. The 4K was your own pick, so nothing is wrong with the saved settings."
+      "Enemies and your own ship should show their colours on every side of the ring, with an orange edge on the side facing the volcano. Before, they drew as black shapes.",
+      "The Leviathan’s hull is lit for the first time. Say if it is now too bright against its pods.",
+      "The Drone, the flat eight-pointed star, has a dark green body where it was black. It is the faintest of the changes; say if it wants to be lighter.",
+      "Enemy rounds, the Leviathan’s torpedoes, discs and lance, and the glow on a muzzle about to fire are cyan. Watch a round cross the lava, and the lance in the second act.",
+      "The pods are still red. Check they still read as the thing to shoot.",
+      "Brightness should hold steady all the way round the ring. It used to dip by up to a quarter of a stop where the lava faces the camera.",
+      "Each round throws a small cyan light now, where it was red. If it shows on the island’s rim as rounds pass, tell me.",
+      "The island, its bake and the fog should look exactly as they did."
     ]
   };
 
@@ -586,6 +590,37 @@
           effort: "5 min",
           why: [
             "Answered on 2 October: yes to all six, 27 to 32. The tips went in too, where my pick had been later. All six were built the same day; each is a done item under ‘I can do these alone’."
+          ]
+        },
+        {
+          id: "play-shipping",
+          title: "Try the last six polish items in a build",
+          effort: "10 minutes, and one run to the Leviathan",
+          why: [
+            "<strong>Played on 2 October,</strong> in <code>Builds/26_1002-1057_scanFixes</code>, to the Leviathan’s death. You flagged nothing and said to tick the defaults, so the volcano, the eleven tips and the credits stand.",
+            "<strong>Everything on this list is done.</strong> What the run’s log said is below. Nothing else is waiting. Microsoft’s terms for the two libraries that come with the engine were read on 2 October; what they say is under ‘Check the notices for the other libraries Unity ships’. The other two loose ends were closed the same day: the reference now covers 28 to 30 September, and a Release build was made and read, <code>Builds/26_1002-1314_release</code>, which nobody has played yet.",
+            "The fight has no slow frame in it: none at the Leviathan’s arrival, at any act, at any attack’s first volley, or at its death. So the draw states do not need building ahead, and that work is not planned.",
+            "One frame of 178 ms came 24 seconds into the run, with nothing the game notes attached to it. That was you opening the debug menu for the first time, so it is not something a player meets.",
+            "Upscaling is answered: the log shows FSR 3.1.5 running. It does not say which quality preset.",
+            "The launch before that one asked for exclusive fullscreen at 3840 by 2160, was refused twice and fell back to 2560 by 1440, at a cost of two frames of over three seconds on the title screen. The next launch started at 1440p. The 4K was your own pick, so nothing is wrong with the saved settings."
+          ]
+        },
+        {
+          id: "drone-black",
+          title: "Decide whether the Drone should stay black",
+          effort: "2 min to decide",
+          why: [
+            "Found lighting the ships on 5 October. The Drone, the flat eight-pointed star, has a body painted (0, 0.027, 0.005): about 3% grey-green, and glossy. Light has nothing to show on it, so under the new lights it gains lit ridges on the side facing the volcano and is otherwise still a dark shape. The other three enemies and the Leviathan show their colours.",
+            "My pick is to lift the body to a dark green, about (0.02, 0.15, 0.05), which keeps it the darkest enemy and lets the key light shape it. That is one material on <code>Enemy 3</code>, and it is ship art, which is why it is yours. Leaving it black is a fair answer too: a black star against lit cloud is a silhouette you can read.",
+            "<strong>Done on 5 October, at your word.</strong> The body is (0.02, 0.15, 0.05) now, on a material of its own, <code>DroneBody</code>, because the old one lives inside the model file and cannot be edited there. On a frozen frame a Drone 15 units from the camera showed dark green faces where they were black; one across the ring looked the same either way, since at that size the orange fill is all there is to see. It is the faintest change in the build. The dial is that material’s Base colour."
+          ]
+        },
+        {
+          id: "env-roadmap-answers",
+          title: "Answer the rest of the environment roadmap",
+          effort: "10 min",
+          why: [
+            "Twelve items are unanswered, 37 to 48, on the <a href='https://claude.ai/artifact/LUm4hJpvYPD7jHakSrL4wE'>Environment Roadmap</a>: the eruption as the run’s clock, the sky, the island’s surfaces and its bake, and the grade. Each carries my pick. The cloud item, 40, starts with a two-hour spike before anything is built."
           ]
         }
       ]
@@ -1516,6 +1551,37 @@
             "<strong>One library does stay:</strong> Newtonsoft.Json, 0.7 MB, which comes with the same package and is MIT. The notices file has its notice now, and a test fails if the library is installed and the notice is missing. The notice was added after the build was made, so I copied the new file into the build’s folder by hand; the build itself was not remade.",
             "Read, not played. It starts on the title screen like any other build, and with no debug menu the Leviathan is 400 seconds of play away."
           ]
+        },
+        {
+          id: "ship-lights",
+          title: "Light the ships, and nothing else",
+          effort: "3 h",
+          why: [
+            "Environment roadmap, item 33. Nothing lit the lane: the moon is 1 lux, the sky a fifth of that, and by my arithmetic the nearest live lava light put about 0.14 lux on a ship. Every enemy drew as a black shape whatever colour its materials were. The 10 September measurement under ‘See whether enemies get lost against the island’ said the same thing another way, and named a rim light as the lever.",
+            "<strong>Three lights that reach ships only</strong>, through a rendering layer called Ships that every enemy, the Leviathan, its wreckage and your ship are on. A cool key of 4 lux and a rim of 5 ride on the camera, so a ship is shaded the same way all round the ring. A warm fill of 6000 lumens stands on the island’s axis, 4 units across, so the side facing the volcano is orange and glossy canopies catch it. None casts a shadow or lights the fog.",
+            "Checked on a frozen frame with the lights switched off and on: 0.43% of the picture changed, all of it ships, against 0.007% between two captures of the same thing. The island did not move. The whole camera took 18.4 ms either way in the editor on Ultra, inside the 0.3 ms the reading wanders by. <code>ShipLightsTests</code> fails if a ship leaves the layer or a light gets off it. The dials are the three brightnesses: Ship Key Light and Ship Rim Light under the Main Camera, and Ship Fill Light.",
+            "<strong>One enemy was not helped by light alone:</strong> the Drone, whose body was painted black. It is dark green since the same day; see ‘Decide whether the Drone should stay black’."
+          ]
+        },
+        {
+          id: "exposure-fixed",
+          title: "Hold the exposure still",
+          effort: "45 min",
+          why: [
+            "Environment roadmap, item 35. I had guessed that automatic exposure was darkening the picture on the lava side. Measured on eight sides of the ring, it sat on its floor of −1 EV on five and rose to −0.77 where the lava flow faces the camera: a quarter of a stop at most. So the darker clouds in my captures were the clouds themselves.",
+            "It is fixed at −1 EV now, which is what most of the ring already was, so the dip is gone and no light added later can move it. <code>ShipLightsTests</code> holds the mode. The dial is Fixed Exposure on the Game scene’s volume profile."
+          ]
+        },
+        {
+          id: "hostile-cyan",
+          title: "Take hostile fire off the lava’s colour",
+          effort: "3 h",
+          why: [
+            "Environment roadmap, item 36. The lava’s hot colour is hue 12. Enemy rounds were 12, the Leviathan’s rounds 14, its discs 13 and the lance’s glow 16. With rounds laid out across a frozen frame, an enemy round over the lava flow measured 13 apart from it and a Leviathan round 23, on the scale where 10 is a clear difference.",
+            "<strong>They are cyan now</strong>, hue 199, each at the brightness it had: enemy rounds, the Leviathan’s torpedoes, discs and lance, the glow on a muzzle before it fires, the torpedoes’ plume, and the small light each round carries. The same frame gives 72 and 62, and 52 and 50 under protanopia. What it gives up is distance from the clouds, 34 where the orange had 66. The other candidate, red with a white-hot core and a black tip, measured 43 to 49 against the lava’s body but 14 to 18 against its brightest pixels, which are nearly white too.",
+            "<strong>The pods stay red</strong>, so red is what to shoot and cyan is what to dodge. This reopens a call made twice: the one warm family of 5 September, and the pink-and-green palette reverted on 8 September, whose green pod lights washed the island. Nothing here lights the island but the rounds’ own small light.",
+            "The colour lives in one place, <code>HostileFireColour</code>, a menu item under Survival Chaos; the lance and tell builders read it, so running them cannot put the orange back. <code>HostileFireColourTests</code> fails if a hostile surface comes within 120° of the lava’s hue. Flown by the bot through the waves and 114 s of the Leviathan with no errors; 698 tests pass. The weakest pair left is a Leviathan round against the Attack Speed pickup’s core, 12 apart, told apart by shape and label."
+          ]
         }
       ]
     },
@@ -1825,6 +1891,15 @@
             "<strong>If you do not flag it:</strong> the volcano, the eleven tips and the credits stand.",
             "<strong>Ticked on 2 October:</strong> not flagged in your run, so all three stand."
           ]
+        },
+        {
+          id: "fight-look",
+          title: "Judge the ship lights and the cyan fire",
+          effort: "one run",
+          why: [
+            "From the environment roadmap’s first four. Three things are feel, each with a dial: how bright the ships are (the three ship lights), whether the Leviathan’s lit hull competes with its pods, and whether cyan fire reads as hostile beside a ship whose own rounds are green.",
+            "<strong>If you do not flag it:</strong> the three brightnesses, the fixed exposure, the cyan and the Drone’s green stand."
+          ]
         }
       ]
     }
@@ -1852,7 +1927,8 @@
     ["FSR 2 as a fallback on DirectX 11", "Removed with the rest of FSR 2 on 29 September, at your pick. FSR 3 needs DirectX 12, which the game asks for first, so only a machine that falls back to DirectX 11 goes without FSR."],
     ["A ship you ram goes up", "Roadmap 2, item 18, answered no on 30 September. Ramming still takes the enemy off the ring without an explosion or a sound."],
     ["A moment’s grace after a hit", "Roadmap 2, item 20, answered no on 30 September. Two rounds from one volley can still take two hit points at once; the dash and the Deflector stay the only protection."],
-    ["Rebinding the keys", "Roadmap item 16, answered ‘not now’ on 30 September. The game reads each key directly, so rebinding means moving input onto Input System actions and adding a rebind per action to the Controls tab, about a day and a half. Worth it once other people play the game, and not before."]
+    ["Rebinding the keys", "Roadmap item 16, answered ‘not now’ on 30 September. The game reads each key directly, so rebinding means moving input onto Input System actions and adding a rebind per action to the Controls tab, about a day and a half. Worth it once other people play the game, and not before."],
+    ["A reflection probe for the lava", "Environment roadmap, item 34, measured on 5 October and not built. A probe at the island’s centre, as the roadmap drew it, would have shown each ship the far side of the island and not the side it faces. One placed on the lane beside the ships, which is the right place, changed 0.009% of the picture against a floor of 0.007%. The fill light on the ships already puts the orange glint on canopies."]
   ];
 
   var ALL = [];

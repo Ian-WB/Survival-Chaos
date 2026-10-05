@@ -92,7 +92,7 @@ Material:
     m_Colors:
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _FlameColor: {r: 1, g: 0.3, b: 0.03, a: 0}
+    - _FlameColor: {r: 0.05, g: 0.7, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &8891002959806753984
