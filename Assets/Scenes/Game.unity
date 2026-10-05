@@ -14053,6 +14053,69 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 427913218}
   m_CullTransparentMesh: 1
+--- !u!1 &430549686
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 430549688}
+  - component: {fileID: 430549687}
+  m_Layer: 0
+  m_Name: Eruption
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &430549687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430549686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 477b6eb1ab4921e40a615026647cdf47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.Eruption
+  lava: {fileID: 1816690656}
+  craterLight: {fileID: 33292329}
+  smoke: {fileID: 224188071}
+  shipFill: {fileID: 1164817744}
+  lateness: 1
+  restingPeak: 0.75
+  surgeHeight: 0.25
+  surgeRise: 0.8
+  surgeFall: 9
+  quietGap: 30
+  arrivalSeconds: 3
+  glow: {x: 0.2, y: 1.5}
+  molten: {x: 0.6, y: 1.5}
+  flow: {x: 0.6, y: 2}
+  craterBrightness: {x: 0.4, y: 4}
+  plumeHeight: {x: 0.6, y: 1.25}
+  plumeThickness: {x: 0.35, y: 2}
+  shipFillBrightness: {x: 0.85, y: 1.2}
+  holdAt: -1
+--- !u!4 &430549688
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430549686}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &432882357
 GameObject:
   m_ObjectHideFlags: 0
@@ -51798,4 +51861,5 @@ SceneRoots:
   - {fileID: 1251430509}
   - {fileID: 206122947}
   - {fileID: 224188070}
+  - {fileID: 430549688}
   - {fileID: 1164817745}
