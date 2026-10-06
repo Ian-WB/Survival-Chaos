@@ -110,7 +110,7 @@ MonoBehaviour:
     m_Value: 3
   anisotropy:
     m_OverrideState: 1
-    m_Value: 0.6
+    m_Value: 0.15
   sliceDistributionUniformity:
     m_OverrideState: 0
     m_Value: 0.75
