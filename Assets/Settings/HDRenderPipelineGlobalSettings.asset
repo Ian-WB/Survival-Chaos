@@ -282,8 +282,8 @@ MonoBehaviour:
       type: {class: VolumetricCloudsRuntimeResources, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_VolumetricCloudsCS: {fileID: 7200000, guid: f911a8577fa9a4546a6b255bcf888baf, type: 3}
-        m_VolumetricCloudsTraceCS: {fileID: 7200000, guid: 66eaa9becc91a8646a88c15375af8b86, type: 3}
-        m_VolumetricCloudsTraceShadowsCS: {fileID: 7200000, guid: f350c5c3b41fd1b408aac9076f96610e, type: 3}
+        m_VolumetricCloudsTraceCS: {fileID: 7200000, guid: fa0083b168e09d94da2c95f39c82ae76, type: 3}
+        m_VolumetricCloudsTraceShadowsCS: {fileID: 7200000, guid: 42a02f7384f31fb4281c1fdb8cb17c4a, type: 3}
         m_VolumetricCloudsShadowFilterCS: {fileID: 7200000, guid: 771ea9a52996c024095906ac37a8a71f, type: 3}
         m_VolumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb, type: 3}
         m_VolumetricCloudsCombinePS: {fileID: 4800000, guid: af4412cb121a45c4892ac99015133508, type: 3}

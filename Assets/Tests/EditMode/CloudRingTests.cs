@@ -188,10 +188,12 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// The moon stands 40 degrees up, so the cloud that shades the island
-        /// is 450 over it and some 550 out. The deck has to be there on every
+        /// With the moon 40 degrees up, the cloud that shades the island is
+        /// 450 over it and some 550 out. The deck has to be there on every
         /// bearing, because where the moon is is the lighting's business, and
-        /// heavy, or its shadow is a tint.
+        /// heavy, or its shadow is a tint. (Since 6 October the moon is 15
+        /// degrees up and the wall shades the island instead; the deck is
+        /// what puts the dark spells back if the moon is raised again.)
         /// </summary>
         [Test]
         public void ADeckOfHeavyCloud_RidesOverTheEye()

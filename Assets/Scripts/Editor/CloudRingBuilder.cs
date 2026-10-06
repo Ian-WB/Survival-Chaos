@@ -8,26 +8,51 @@ namespace SurvivalChaos.EditorTools
 {
     /// <summary>
     /// The clouds as an eye of the storm: the two textures that say where
-    /// cloud stands, and the settings on the Game scene's volume profile that
-    /// use them.
+    /// cloud stands, the settings on the Game scene's volume profile that
+    /// use them, and the cloud tracers that make the storm turn.
     ///
     /// Environment roadmap, item 40, 5 October 2026. The clouds were HDRP's
     /// Simple preset, one layer seven kilometres deep with the arena inside
     /// it: cloud on every side and overhead, and the stars only through gaps.
     /// Now a painted map holds a clear eye over the island, a wall of cloud
     /// round it behind the lane, a floor of cloud under it, and broken
-    /// cloud drifting high over it. Ian chose the low wall, about ten degrees
-    /// high from the camera, from a test that also showed a tall one.
+    /// cloud high over it, and all of it circles the island once a minute.
     ///
-    /// **The drifting cloud is there for the light.** The first build of this
-    /// left the sky over the eye empty, and Ian found the scene had stopped
-    /// going dark: the old layer crossed the moon every ten to thirty
-    /// seconds and took the island's moonlit rock down to a third of its
-    /// brightness, which nobody had written down as a feature. So a broken
-    /// deck rides over the eye, high enough that nothing flies in it, and the
-    /// wind carries it across the moon. Measured on the same rock over two
-    /// minutes, it swings between 14 and 40 where the old clouds swung
-    /// between 12 and 39; with no deck it sat at 39.
+    /// It took three builds. The first had a low wall, an empty sky over the
+    /// eye and a slow straight wind. Ian found the scene had stopped going
+    /// dark, then that the clouds were too slow and that it did not look
+    /// like an eye of the storm.
+    ///
+    /// **The cloud over the eye is there for the light.** The old layer
+    /// crossed the moon and took the island's moonlit rock down to a third
+    /// of its brightness for up to half a minute at a time, which nobody had
+    /// written down as a feature. So a broken deck rides over the eye, high
+    /// enough that nothing flies in it, and crosses the moon as the storm
+    /// turns. Measured on the same rock over two and a half minutes, it
+    /// swings between 12 and 39, as the old clouds did; with no deck it sat
+    /// at 39.
+    ///
+    /// That was with the moon 40 degrees up. Ian lowered it to 15 on
+    /// 6 October, and at 15 the light on the island hardly moves, with this
+    /// wall or a taller one: the moon gives the island little at that angle,
+    /// and what shades it is no longer the deck but the wall, which is
+    /// always there. Tried in play, brief dark spells come back with the moon
+    /// at about 25 and there are more of them at 32.
+    ///
+    /// **The storm turns, which HDRP's wind cannot do.** Its wind pushes the
+    /// clouds in a straight line. The project carries copies of HDRP's two
+    /// cloud tracers and the include they share, where every point is
+    /// turned about the island before anything is read
+    /// (Assets/Art/Shaders/VolumetricCloudsUtilities.hlsl says how), and this
+    /// builder points the pipeline at them. The scene's wind is then the
+    /// speed of the cloud <see cref="TurnRadius"/> out, and
+    /// <see cref="TurnSeconds"/> is the number to change.
+    ///
+    /// **The wall is low and steep.** Ian picked the low wall from the
+    /// test's stills. The third build raised it, the layer 2000 deep, so
+    /// that it would read as a storm; once it turned he had it lowered
+    /// again. It reaches its height within 500 units, where the first
+    /// build's took 700.
     ///
     /// **The map** is seen from above, <see cref="Span"/> across, centred on
     /// the island. HDRP centres it over the middle of the planet, and the
@@ -47,23 +72,30 @@ namespace SurvivalChaos.EditorTools
     /// kind's top, and the eye's column has the deck as a second band over
     /// the gap the ships fly in.
     ///
-    /// The map does not move: Cloud Map Speed is 0. The wind still moves the
-    /// shapes inside it, slower than it did, because the wall is a kilometre
-    /// and a half away where the old layer was seen across several.
+    /// The wind's straight push is nearly switched off: none for the map,
+    /// a tenth for the shapes and a quarter for the fine detail. That little
+    /// is what stops each turn of the storm being the last one over again.
     ///
     /// It is not a saving. On a frozen frame in the editor the old clouds
-    /// cost 2.4 ms on the High row and 1.0 on Low; this costs 3.1 and 1.0.
-    /// Without the deck it was 2.8 on High.
+    /// cost 2.1 ms on the High row and 0.9 on Low; this costs 3.4 and 1.1.
     ///
-    /// Re-running repaints both textures and puts every setting named here
-    /// back. Anything else on the clouds - the step counts, the shadows, the
-    /// density - is left as the scene has it.
+    /// Re-running repaints both textures, puts every setting named here
+    /// back and points the pipeline at the project's tracers again. Anything
+    /// else on the clouds - the step counts, the shadows, the density - is
+    /// left as the scene has it.
     /// </summary>
     public static class CloudRingBuilder
     {
         public const string MapPath = "Assets/Art/Textures/CloudRingMap.png";
         public const string LookupPath = "Assets/Art/Textures/CloudRingLookup.png";
         public const string ProfilePath = "Assets/Scenes/Game/Scene Volume Profile.asset";
+        public const string TracerPath = "Assets/Art/Shaders/VolumetricCloudsTrace.compute";
+        public const string ShadowTracerPath = "Assets/Art/Shaders/VolumetricCloudsTraceShadows.compute";
+
+        /// <summary>HDRP keeps its cloud shaders in a settings class it does not show, so they are reached by name.</summary>
+        private const string ResourcesType =
+            "UnityEngine.Rendering.HighDefinition.VolumetricCloudsRuntimeResources, " +
+            "Unity.RenderPipelines.HighDefinition.Runtime";
 
         // The layer, in altitude over the planet's surface. The arena is at
         // 1000: see the Visual Environment's planet centre.
@@ -71,20 +103,32 @@ namespace SurvivalChaos.EditorTools
         /// <summary>The floor's underside.</summary>
         public const float Bottom = 250f;
 
-        /// <summary>From there to the top of the tallest wall.</summary>
+        /// <summary>
+        /// From there to the top of the tallest wall: 750 over the arena, the
+        /// low wall. At 2000 it stands between fifteen and thirty degrees
+        /// high from the camera; the shares below then have to move with it.
+        /// </summary>
         public const float Range = 1500f;
 
         /// <summary>The floor's top, as a share of the layer: 250 under the arena.</summary>
         private const float FloorTop = 1f / 3f;
 
-        /// <summary>Where the drifting deck starts, as a share of the layer: 240 over the arena, and whole 75 higher.</summary>
+        /// <summary>
+        /// The deck over the eye, as shares of the layer: from 240 over the
+        /// arena to the layer's top, fading in and out over a twentieth of
+        /// the layer at each end. With the moon 40 degrees up the cloud that
+        /// shades the island is 290 to 900 out, inside the eye, which is
+        /// where the deck is. With the moon at 15 it is 900 to 2800 out,
+        /// which is the wall.
+        /// </summary>
         private const float DeckFrom = 0.66f;
+        private const float DeckTo = 1f;
 
         /// <summary>
-        /// How much of the shape noise the deck keeps. Lower leaves more sky
-        /// between the clouds and more time with the moon out.
+        /// How much of the shape noise the deck keeps. At 0.6 on a thinner
+        /// band the rock never fell below 33; this is what takes it to 13.
         /// </summary>
-        private const float Deck = 0.75f;
+        private const float Deck = 1f;
 
         // The map.
 
@@ -95,8 +139,8 @@ namespace SurvivalChaos.EditorTools
         private const float Eye = 1100f;
         private const float EyeWander = 0.18f;
 
-        /// <summary>How far the wall takes to reach its height.</summary>
-        private const float Rim = 700f;
+        /// <summary>How far the wall takes to reach its height. The first build had 700, a gentler face.</summary>
+        private const float Rim = 500f;
 
         private const int MapSize = 512;
         private const int LookupWidth = 64;
@@ -109,12 +153,25 @@ namespace SurvivalChaos.EditorTools
         private const float ErosionScale = 250f;
 
         /// <summary>
-        /// In km/h, as HDRP counts it. It was 900, which at this distance
-        /// replaced every shape in the wall within a minute. The first build
-        /// had 60, which Ian found too slow. It also sets how often the deck
-        /// crosses the moon.
+        /// How long the storm takes to go round the island. Ian found a
+        /// straight wind of 60 km/h too slow, then 200. This is 565 at the
+        /// wall and turns the sky six degrees a second.
         /// </summary>
-        private const float Wind = 200f;
+        public const float TurnSeconds = 60f;
+
+        /// <summary>
+        /// STORM_TURN_RADIUS in the project's VolumetricCloudsUtilities.hlsl:
+        /// how far out the cloud moves at the wind's own speed. The two have
+        /// to agree, and CloudRingTests reads the shader's to check.
+        /// </summary>
+        public const float TurnRadius = 1500f;
+
+        /// <summary>The scene's Global Wind Speed, in km/h as HDRP counts it.</summary>
+        public static float Wind => 2f * Mathf.PI * TurnRadius / TurnSeconds * 3.6f;
+
+        /// <summary>The shares of the wind's straight push the shapes and the fine detail still take.</summary>
+        private const float ShapeDrift = 0.1f;
+        private const float DetailDrift = 0.25f;
 
         /// <summary>
         /// The clouds start this close to the camera and are whole this much
@@ -190,7 +247,7 @@ namespace SurvivalChaos.EditorTools
             // The deck belongs to the eye and thins out as the wall takes over.
             float deck = Deck * (1f - kind)
                 * Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(DeckFrom, DeckFrom + 0.05f, height))
-                * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.95f, 1f, height)));
+                * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(DeckTo - 0.05f, DeckTo, height)));
 
             return Mathf.Max(rise * fall, deck);
         }
@@ -247,6 +304,8 @@ namespace SurvivalChaos.EditorTools
             clouds.fadeInStart.Override(FadeStart);
             clouds.fadeInDistance.Override(FadeDistance);
             clouds.cloudMapSpeedMultiplier.Override(0f);
+            clouds.shapeSpeedMultiplier.Override(ShapeDrift);
+            clouds.erosionSpeedMultiplier.Override(DetailDrift);
             clouds.shapeScale.Override(ShapeScale);
             clouds.erosionScale.Override(ErosionScale);
             clouds.globalWindSpeed.Override(new WindParameter.WindParamaterValue
@@ -261,7 +320,47 @@ namespace SurvivalChaos.EditorTools
             EditorUtility.SetDirty(profile);
             // Not SaveAssets: that would also write whatever else is being tuned unsaved.
             AssetDatabase.SaveAssetIfDirty(profile);
-            Debug.Log("Cloud ring built: " + MapPath + " and " + LookupPath + ", tiling " + tiling.ToString("0.00") + ".", profile);
+
+            bool turning = UseTheProjectsTracers();
+            Debug.Log("Cloud ring built: " + MapPath + " and " + LookupPath + ", tiling " + tiling.ToString("0.00") +
+                      ", wind " + Wind.ToString("0") + (turning ? ", turning." : ", NOT turning: see the error above."), profile);
+        }
+
+        /// <summary>
+        /// Points the pipeline's two cloud tracers at the project's copies,
+        /// the ones that turn the storm. An HDRP upgrade or a Reset on the
+        /// global settings puts the package's back; CloudStormShaderTests
+        /// says so when it happens.
+        /// </summary>
+        private static bool UseTheProjectsTracers()
+        {
+            ComputeShader tracer = AssetDatabase.LoadAssetAtPath<ComputeShader>(TracerPath);
+            ComputeShader shadowTracer = AssetDatabase.LoadAssetAtPath<ComputeShader>(ShadowTracerPath);
+            System.Type resources = System.Type.GetType(ResourcesType);
+            if (tracer == null || shadowTracer == null || resources == null)
+            {
+                Debug.LogError("Cloud ring: the project's cloud tracers are missing, or HDRP no longer keeps its own in " +
+                               "VolumetricCloudsRuntimeResources. The clouds will drift in a line instead of turning.");
+                return false;
+            }
+
+            object settings = typeof(GraphicsSettings)
+                .GetMethod(nameof(GraphicsSettings.GetRenderPipelineSettings), System.Type.EmptyTypes)
+                .MakeGenericMethod(resources)
+                .Invoke(null, null);
+
+            resources.GetProperty("volumetricCloudsTraceCS").SetValue(settings, tracer);
+            resources.GetProperty("volumetricCloudsTraceShadowsCS").SetValue(settings, shadowTracer);
+
+            // The settings class lives inside the pipeline's global settings asset.
+            Object owner = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>();
+            if (owner != null)
+            {
+                EditorUtility.SetDirty(owner);
+                AssetDatabase.SaveAssetIfDirty(owner);
+            }
+
+            return true;
         }
 
         /// <summary>

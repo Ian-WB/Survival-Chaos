@@ -328,16 +328,16 @@
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
     id: "play-cloudring",
-    title: "Look at the eye of the storm again, with dimmer ships",
+    title: "Look at the storm with the low wall and your moon",
     effort: "one run to the Leviathan, about 9 minutes",
-    lede: "<strong>Rebuilt on 5 October</strong> as <code>Builds/26_1005-2240_dimmerShips</code>, with the debug menu: commit <code>e193ada</code> plus the cloud ring and the dimmer ship lights, neither committed yet. You looked at the first ring build and said two things: the clouds move too slowly, and the scene no longer goes dark, because nothing crosses the moon any more.</p><p><strong>The dark is back.</strong> Broken cloud drifts high over the eye now and crosses the moon. I measured the old clouds first: over ninety seconds the island’s moonlit rock swung between 12 and 39, dark for up to half a minute at a time. The first ring sat at 39 and never moved. This one swings between 14 and 40, in about the same rhythm.</p><p><strong>The wind is 200,</strong> where the first ring had 60 and the old clouds 900. It moves the wall and the cloud overhead, and sets how often the moon is covered.</p><p>The price is sky: the cloud overhead covers roughly half of it at any moment, by eye, with stars in the gaps. The wall, the clear eye and the floor are as you saw them.</p><p><strong>The ships are down to a third,</strong> after you said they were still too bright: the enemies’ key is 0.7 lux where it was 2, the rim 1 where it was 3, the fill 1200 lumens where it was 3500, and your own key 0.35 where it was 1. A sheet in chat shows the same ships before, now, and with no ship lights at all, which is the only step left.",
+    lede: "<strong>Rebuilt on 6 October</strong> as <code>Builds/26_1006-1007_stormLowWall</code>, with the debug menu: commit <code>8ca0d78</code> plus the turning storm, the low wall and your moon, none committed yet. You said the wall can be lower, and that you had turned the moon.</p><p><strong>The wall is the low one again,</strong> the one you picked from the test, and it still turns once a minute with the cloud overhead. Its face is a little steeper than in the first build.</p><p><strong>Your moon is in:</strong> 15 degrees up where it was 40, saved in the scene as you left it. Seen towards the moon, the clouds are lit from behind and the haze round the island glows; from the far side the island is darker.</p><p><strong>One thing to know about the moon that low: the dark spells are gone.</strong> The island’s moonlit rock sat between 47 and 55 over two and a half minutes, and from the far side between 28 and 33, with this wall and with the tall one alike. At 15 degrees the moon gives the island little, and what stands between them is the wall, all the time, where at 40 it was passing cloud. I tried two more angles in play without saving them: at 25 brief dark spells return, down to 13, and at 32 there are more of them. So it is your call between the low moon’s look and the dark spells; I left the moon where you put it.",
     watch: [
-      "The light going dark and coming back as cloud crosses the moon. Say if it is dark for too long, not long enough, or not dark enough.",
-      "The cloud overhead: broken, with stars between. Say if it is too much sky lost, or if you want more of it.",
-      "The speed of the clouds now. Say faster or slower; it is one number.",
-      "The wall, as you fly a lap: too low, too high, too soft or too plain?",
-      "The ships, yours included, at a third of the light. Say if they are right, still too bright, or now too dark. The dark Drones are the ones that could go missing.",
-      "The frame rate. On the High cloud row this costs about half a millisecond more than the old clouds did; on Low, the same."
+      "The wall at this height, turning. Say if it is right now.",
+      "The speed, one turn a minute. Say faster or slower.",
+      "Your moon in a real run, from every side as you fly a lap: the glow in the haze on one side, the darker island on the other.",
+      "Whether you miss the dark spells. If you do, the moon at about 30 degrees gets them back; say so and I will set it, or turn it yourself.",
+      "The ships at a third of the light, and the dark Drones against this sky.",
+      "The frame rate. On the High cloud row this costs about 1.4 ms more than the old clouds; on Low, about the same as they did."
     ]
   };
 
@@ -1683,7 +1683,15 @@
             "<strong>Changed the same evening, after you looked at it.</strong> You said the clouds moved too slowly and the scene no longer went dark. The second was my miss: I had measured the island on one frozen frame, found it as bright as before, and called the light unchanged. The old clouds crossed the moon and took the moonlit rock from 39 down to 12, for up to half a minute at a time, and the ring had nothing overhead to do it.",
             "<strong>So a deck of broken cloud rides over the eye,</strong> from 240 units over the arena to the top of the layer, heavy enough to throw a real shadow, and thinning out where the wall takes over. Measured over two minutes, the same rock swings between 14 and 40. Roughly half the sky overhead is cloud at any moment. Nothing flies anywhere near it: the eye is clear from the cloud floor up to 200 over the arena, and a test holds that.",
             "<strong>The wind is 200</strong> where the first build had 60. It is also what sets how often the moon is covered.",
-            "<strong>Cost, measured again:</strong> on a frozen frame the old clouds were 2.4 ms on the High row and this is 3.1; on the Low row both are 1.0. 741 tests pass, 11 of them for the ring. The build is <code>Builds/26_1005-2218_cloudRing</code>; the first, <code>26_1005-2146_cloudRing</code>, has the empty sky and the slow wind."
+            "<strong>Cost, measured again:</strong> on a frozen frame the old clouds were 2.4 ms on the High row and this is 3.1; on the Low row both are 1.0. 741 tests pass, 11 of them for the ring. The build is <code>Builds/26_1005-2218_cloudRing</code>; the first, <code>26_1005-2146_cloudRing</code>, has the empty sky and the slow wind.",
+            "<strong>Changed again on 6 October: the storm turns.</strong> You said the clouds were still too slow and that it did not look like an eye of the storm. HDRP’s wind pushes cloud in a straight line, and a storm seen from its eye goes round. So the project carries copies of HDRP’s two cloud tracers and the file they share, with one change: every point is turned about the island before the cloud map and the noise are read. The wall, the eye’s outline and every shape circle the island as one body, and the shadow they throw turns with them.",
+            "<strong>One turn a minute.</strong> The scene’s wind is now the speed of the cloud 1500 units out, where the wall stands: 565, against the 200 you found too slow. The straight push that is left is nearly off, with just enough on the shapes that one turn is not a repeat of the last.",
+            "<strong>A taller, steeper wall, against your pick.</strong> You chose the low wall from stills. Turning, a low bank still read as a horizon, so the layer is 2000 deep where it was 1500 and the wall reaches its height within 500 units. From the camera it stands between about fifteen and thirty degrees high as it goes round. The cloud over the eye is heavier too, from 240 to 850 over the arena. The low wall with the turn kept is the layer’s depth put back to 1500.",
+            "<strong>The light:</strong> over two and a half minutes the moonlit rock swung between 12 and 39, with one dark spell of half a minute, as under the old clouds. <strong>Cost:</strong> on a frozen frame the old clouds were 2.3 ms on the High row and 0.9 on Low; this is 3.4 and 1.1.",
+            "The copies have to be kept in step with HDRP: a test fails if the package’s files change, and another if anything puts HDRP’s own tracers back. 751 tests pass. The build is <code>Builds/26_1006-0925_storm</code>.",
+            "<strong>Lowered again the same morning.</strong> You said the wall can be lower, and that you had turned the moon. The layer is 1500 deep again, the low wall you picked, with the turn, the speed and the steeper face kept. The cloud over the eye runs from 240 over the arena to the layer’s top.",
+            "<strong>Your moon is 15 degrees up,</strong> where it was 40, and it is the only change in the scene file. At that angle the island’s light hardly moves: the moonlit rock read 47 to 55 over two and a half minutes and the far side 28 to 33, with the low wall and the tall one alike. Measured on a frozen frame, the moon adds about a quarter to the island seen from the far side and about a twentieth seen from the side, and switching the clouds’ shadow off changes neither. Tried in play and not saved: at 25 degrees brief dark spells return (13 to 51), at 32 more of them (14 to 45).",
+            "<strong>Cost with the low wall:</strong> 3.4 ms on the High cloud row against 2.1 for the old clouds, 1.1 against 0.9 on Low. The cloud over the eye is what costs; the wall’s height made no difference. The build is <code>Builds/26_1006-1007_stormLowWall</code>."
           ]
         },
         {
@@ -2050,7 +2058,7 @@
           title: "Judge the cloud ring",
           effort: "one run",
           why: [
-            "Item 40 is a look: how tall the wall is, how soft, how fast the clouds move, and whether the light goes dark and comes back the way it used to. The watch list is on the card at the top.",
+            "Item 40 is a look: whether it reads as an eye of the storm, how fast it turns, how tall the wall is, and whether the light goes dark and comes back the way it used to. The watch list is on the card at the top.",
             "One thing only a run shows: ships near the top of the band have night or cloud behind them by turns. The dark Drones are the ones to check.",
             "<strong>If you do not flag it:</strong> the ring stands as built, and item 41, the new sky, goes ahead."
           ]
