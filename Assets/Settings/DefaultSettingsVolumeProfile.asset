@@ -346,21 +346,6 @@ MonoBehaviour:
   maximumIntensity:
     m_OverrideState: 1
     m_Value: 10
-  denoising:
-    m_OverrideState: 1
-    m_Value: 1
-  useAOVs:
-    m_OverrideState: 1
-    m_Value: 1
-  temporal:
-    m_OverrideState: 1
-    m_Value: 0
-  separateVolumetrics:
-    m_OverrideState: 1
-    m_Value: 0
-  asyncDenoising:
-    m_OverrideState: 1
-    m_Value: 1
   skyImportanceSampling:
     m_OverrideState: 1
     m_Value: 0
@@ -624,7 +609,7 @@ MonoBehaviour:
     m_Value: 1
   hdriSky:
     m_OverrideState: 1
-    m_Value: {fileID: 8900000, guid: 412a5cae74c553641876180b52468e65, type: 3}
+    m_Value: {fileID: 8900000, guid: b2794f957efc18449bca88b36a9fb3ce, type: 3}
   distortionMode:
     m_OverrideState: 1
     m_Value: 0

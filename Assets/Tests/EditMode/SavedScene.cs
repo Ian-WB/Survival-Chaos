@@ -136,6 +136,25 @@ namespace SurvivalChaos.Tests
                 match.Groups[3].Success ? Parse(match.Groups[3].Value) : 0f);
         }
 
+        /// <summary>A transform's rotation in the world: every parent's, then its own.</summary>
+        public Quaternion WorldRotation(string transform)
+        {
+            Quaternion rotation = Quaternion.identity;
+
+            for (string id = transform; id != "0"; id = Reference(id, "m_Father"))
+            {
+                Match local = Field(id, "m_LocalRotation",
+                    @"\{x: " + Number + ", y: " + Number + ", z: " + Number + ", w: " + Number);
+                rotation = new Quaternion(
+                    Parse(local.Groups[1].Value),
+                    Parse(local.Groups[2].Value),
+                    Parse(local.Groups[3].Value),
+                    Parse(local.Groups[4].Value)) * rotation;
+            }
+
+            return rotation;
+        }
+
         /// <summary>
         /// Where a height <paramref name="localY"/> in a transform's own space
         /// sits in the world, and what a unit of that space measures there. Only
