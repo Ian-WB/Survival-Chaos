@@ -5,13 +5,21 @@
 // of the storm (environment roadmap, item 40; see CloudRingBuilder), and a storm seen
 // from its eye goes round. So every point is turned about the planet's axis, which the
 // scene's Visual Environment puts straight under the island, before the cloud map and
-// the two noises are read: the wall, the eye's outline and every shape in them circle
-// the island as one body. It is TurnWithTheStorm, called first thing in the three
+// the two noises are read. It is TurnWithTheStorm, called first thing in the three
 // Animate functions, and nothing else in this file differs from the package's.
 //
 // The angle is how far the wind has blown, which HDRP already keeps as _WindVector,
 // over STORM_TURN_RADIUS. So the scene's Global Wind Speed is the speed of the cloud
-// that far out, which is where the wall stands, and the whole sky turns at that rate.
+// that far out, which is where the wall stands.
+//
+// The three reads turn at three rates, each one rigid. The cloud's shapes turn at the
+// wind's rate. The map, which is the eye's outline and the wall's height, turns at
+// STORM_OUTLINE_TURN of that, and the fine detail at STORM_DETAIL_TURN of it. So the
+// cloud streams along a wall that all but holds its shape, and frays as it goes. Until
+// 7 October all three turned as one body, which reads as a backdrop being wound past.
+// A rate that changed with distance from the island would look more like weather for
+// about a minute, and then have wound every shape into a thread.
+//
 // The wind's straight push is still there after the turn; the scene sets the map's and
 // the shapes' share of it to nothing and leaves the fine detail a little, so the storm
 // frays as it goes round.
@@ -247,25 +255,29 @@ float EvaluateNormalizedCloudHeight(float3 positionPS)
 // Survival Chaos: how far out the cloud moves at the wind's own speed.
 #define STORM_TURN_RADIUS 1500.0
 
+// Survival Chaos: how fast the eye's outline and the fine detail turn, as shares of the shapes' rate.
+#define STORM_OUTLINE_TURN 0.1667
+#define STORM_DETAIL_TURN 1.1667
+
 // Survival Chaos: the storm turns about the planet's axis, under the island.
-float3 TurnWithTheStorm(float3 positionPS)
+float3 TurnWithTheStorm(float3 positionPS, float share)
 {
     float s, c;
-    sincos(length(_WindVector) / STORM_TURN_RADIUS, s, c);
+    sincos(length(_WindVector) / STORM_TURN_RADIUS * share, s, c);
     return float3(c * positionPS.x - s * positionPS.z, positionPS.y, s * positionPS.x + c * positionPS.z);
 }
 
 // Animation of the cloud map position
 float3 AnimateCloudMapPosition(float3 positionPS)
 {
-    positionPS = TurnWithTheStorm(positionPS);
+    positionPS = TurnWithTheStorm(positionPS, STORM_OUTLINE_TURN);
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _LargeWindSpeed;
 }
 
 // Animation of the cloud shape position
 float3 AnimateShapeNoisePosition(float3 positionPS)
 {
-    positionPS = TurnWithTheStorm(positionPS);
+    positionPS = TurnWithTheStorm(positionPS, 1.0);
     // We reduce the top-view repetition of the pattern
     positionPS.y += (positionPS.x / 3.0f + positionPS.z / 7.0f);
     // We add the contribution of the wind displacements
@@ -275,7 +287,7 @@ float3 AnimateShapeNoisePosition(float3 positionPS)
 // Animation of the cloud erosion position
 float3 AnimateErosionNoisePosition(float3 positionPS)
 {
-    positionPS = TurnWithTheStorm(positionPS);
+    positionPS = TurnWithTheStorm(positionPS, STORM_DETAIL_TURN);
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed + float3(0.0, _VerticalErosionWindDisplacement, 0.0);
 }
 

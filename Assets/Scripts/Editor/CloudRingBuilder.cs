@@ -16,7 +16,7 @@ namespace SurvivalChaos.EditorTools
     /// it: cloud on every side and overhead, and the stars only through gaps.
     /// Now a painted map holds a clear eye over the island, a wall of cloud
     /// round it behind the lane, a floor of cloud under it, and broken
-    /// cloud high over it, and all of it circles the island once a minute.
+    /// cloud high over it, and the cloud circles the island once a minute.
     ///
     /// It took three builds. The first had a low wall, an empty sky over the
     /// eye and a slow straight wind. Ian found the scene had stopped going
@@ -47,6 +47,17 @@ namespace SurvivalChaos.EditorTools
     /// builder points the pipeline at them. The scene's wind is then the
     /// speed of the cloud <see cref="TurnRadius"/> out, and
     /// <see cref="TurnSeconds"/> is the number to change.
+    ///
+    /// **It turns at three rates, since 7 October.** Until then the map and
+    /// both noises turned as one body, and the storm read as a backdrop
+    /// being wound past. Now the cloud's shapes keep that rate, the map,
+    /// which is the eye's outline and the wall's height, turns at a sixth of
+    /// it, and the fine detail a sixth faster: cloud streams along a wall
+    /// that all but holds its shape, and frays as it goes. The two shares
+    /// are STORM_OUTLINE_TURN and STORM_DETAIL_TURN in the shader. Each
+    /// rate is rigid. The review that asked for this wanted the rate to
+    /// fall with distance from the island, which winds the wall's cloud
+    /// through 160 degrees in a minute and every shape into a thread.
     ///
     /// **The wall is low.** Ian picked the low wall from the test's stills.
     /// The third build raised it, the layer 2000 deep, so that it would
@@ -203,9 +214,10 @@ namespace SurvivalChaos.EditorTools
         private const float ErosionScale = 250f;
 
         /// <summary>
-        /// How long the storm takes to go round the island. Ian found a
+        /// How long the cloud takes to go round the island. Ian found a
         /// straight wind of 60 km/h too slow, then 200. This is 565 at the
-        /// wall and turns the sky six degrees a second.
+        /// wall and turns the cloud's shapes six degrees a second; the eye's
+        /// outline goes round in six of these.
         /// </summary>
         public const float TurnSeconds = 60f;
 

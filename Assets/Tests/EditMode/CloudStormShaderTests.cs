@@ -24,6 +24,10 @@ namespace SurvivalChaos.Tests
     /// pipeline no longer feeds the way they expect. And the wind in the
     /// scene only means a turn a minute while the shader and the builder
     /// agree on how far out the wind's own speed is.
+    ///
+    /// Since 7 October the storm turns at three rates: the cloud's shapes
+    /// at the wind's, the eye's outline at a sixth of that, the fine detail
+    /// a sixth faster. Each is rigid, so nothing winds up.
     /// </summary>
     public class CloudStormShaderTests
     {
@@ -72,18 +76,44 @@ namespace SurvivalChaos.Tests
                 file + " reads the package's include, so it traces clouds that do not turn.");
         }
 
-        /// <summary>The map and both noises: miss one and the wall turns while its shapes stand still, or the other way round.</summary>
-        [Test]
-        public void EveryRead_IsTurnedFirst()
+        /// <summary>
+        /// The map and both noises, each at its own rate: miss one and that
+        /// part of the storm stands still while the rest goes round it.
+        /// </summary>
+        [TestCase("AnimateCloudMapPosition", "STORM_OUTLINE_TURN")]
+        [TestCase("AnimateShapeNoisePosition", "1.0")]
+        [TestCase("AnimateErosionNoisePosition", "STORM_DETAIL_TURN")]
+        public void EveryRead_IsTurnedFirst(string function, string share)
         {
             string text = File.ReadAllText(Folder + Include);
 
-            foreach (string function in new[] { "AnimateCloudMapPosition", "AnimateShapeNoisePosition", "AnimateErosionNoisePosition" })
-            {
-                Match body = Regex.Match(text, @"float3 " + function + @"\(float3 positionPS\)\s*\{\s*(.*?);", RegexOptions.Singleline);
-                Assert.IsTrue(body.Success, function + " is gone from the project's include.");
-                Assert.AreEqual("positionPS = TurnWithTheStorm(positionPS)", body.Groups[1].Value.Trim(), function + " does not turn before it reads.");
-            }
+            Match body = Regex.Match(text, @"float3 " + function + @"\(float3 positionPS\)\s*\{\s*(.*?);", RegexOptions.Singleline);
+            Assert.IsTrue(body.Success, function + " is gone from the project's include.");
+            Assert.AreEqual("positionPS = TurnWithTheStorm(positionPS, " + share + ")", body.Groups[1].Value.Trim(),
+                function + " does not turn before it reads, or not at its own rate.");
+        }
+
+        /// <summary>
+        /// The eye's outline has to turn, or the wall is a fixed fence with
+        /// cloud sliding along it; and slowly, or the storm is one body
+        /// again, a backdrop wound past. The fine detail has to creep over
+        /// the shapes, and no faster: at this wind a tenth of the rate is
+        /// 16 metres a second at the wall, and much more of that boils.
+        /// </summary>
+        [Test]
+        public void TheOutlineTurnsSlowly_AndTheDetailALittleFaster()
+        {
+            string text = File.ReadAllText(Folder + Include);
+
+            Assert.That(Share(text, "STORM_OUTLINE_TURN"), Is.InRange(0.05f, 0.4f));
+            Assert.That(Share(text, "STORM_DETAIL_TURN"), Is.InRange(1.05f, 1.4f));
+        }
+
+        private static float Share(string text, string name)
+        {
+            Match define = Regex.Match(text, @"#define " + name + @" ([0-9.]+)");
+            Assert.IsTrue(define.Success, "the project's include no longer defines " + name);
+            return float.Parse(define.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -125,7 +155,8 @@ namespace SurvivalChaos.Tests
         /// The shader turns the sky by how far the wind has blown over
         /// STORM_TURN_RADIUS, so the scene's wind is the speed of the cloud
         /// that far out. Between them they have to make a turn of about a
-        /// minute: Ian found a wall moving at a third of this too slow.
+        /// minute: Ian found a wall moving at a third of this too slow. It
+        /// is the cloud's shapes that turn at this rate.
         /// </summary>
         [Test]
         public void TheStorm_GoesRoundInAboutAMinute()
