@@ -188,6 +188,80 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
+        /// The wall is one bank with heads on it, not towers with the stars
+        /// between them. The lookup's green is how much the noise shapes the
+        /// cloud: at nine tenths the cloud is whatever the noise leaves, and
+        /// that is right for the wall's top and wrong for its body.
+        /// </summary>
+        [Test]
+        public void TheWallsBody_IsSolid_UnderARaggedTop()
+        {
+            Texture2D map = Read(MapPath);
+            Texture2D lookup = Read(LookupPath);
+            VolumetricClouds clouds = Clouds();
+
+            for (int bearing = 0; bearing < 360; bearing += 15)
+            {
+                Color over = MapOver(map, 2100f * Mathf.Cos(bearing * Mathf.Deg2Rad), 2100f * Mathf.Sin(bearing * Mathf.Deg2Rad));
+                float level = (ArenaAltitude() - clouds.bottomAltitude.value) / clouds.altitudeRange.value;
+                float top = level;
+                while (top < 1f && lookup.GetPixelBilinear(over.b, top).r > 0.5f)
+                {
+                    top += 1f / lookup.height;
+                }
+
+                Assert.That(lookup.GetPixelBilinear(over.b, level).g, Is.LessThan(0.7f), "the wall is towers level with the arena at " + bearing);
+                Assert.That(lookup.GetPixelBilinear(over.b, top).g, Is.GreaterThan(0.85f), "the wall's top is a smooth bank at " + bearing);
+            }
+
+            Object.DestroyImmediate(map);
+            Object.DestroyImmediate(lookup);
+        }
+
+        /// <summary>
+        /// The low wall, which is the one Ian picked: every bearing stands
+        /// well clear of the horizon, and none reaches the layer's top. From
+        /// the camera that is heads between eight and fifteen degrees up.
+        /// </summary>
+        [Test]
+        public void TheWall_IsHighAllTheWayRound_AndNowhereTall()
+        {
+            Texture2D map = Read(MapPath);
+            Texture2D lookup = Read(LookupPath);
+
+            for (int bearing = 0; bearing < 360; bearing += 5)
+            {
+                float x = 2100f * Mathf.Cos(bearing * Mathf.Deg2Rad);
+                float z = 2100f * Mathf.Sin(bearing * Mathf.Deg2Rad);
+
+                Assert.That(CloudAt(map, lookup, x, z, 250f), Is.GreaterThan(0.5f), "the wall is under seven degrees high at " + bearing);
+                Assert.That(CloudAt(map, lookup, x, z, 650f), Is.LessThan(0.35f), "the wall is over seventeen degrees high at " + bearing);
+            }
+
+            Object.DestroyImmediate(map);
+            Object.DestroyImmediate(lookup);
+        }
+
+        /// <summary>
+        /// The map's green is how fast the cloud swallows light. Every tier
+        /// starts the clouds on six light steps, and with so few a heavy wall
+        /// shows a grain of dark specks on its lit side: plain at 0.35.
+        /// </summary>
+        [Test]
+        public void TheWallsCloud_IsLightEnoughForSixLightSteps()
+        {
+            Texture2D map = Read(MapPath);
+
+            for (int bearing = 0; bearing < 360; bearing += 5)
+            {
+                float weight = MapOver(map, 2500f * Mathf.Cos(bearing * Mathf.Deg2Rad), 2500f * Mathf.Sin(bearing * Mathf.Deg2Rad)).g;
+                Assert.That(weight, Is.LessThan(0.32f), "the wall at " + bearing + " is heavy enough to grain");
+            }
+
+            Object.DestroyImmediate(map);
+        }
+
+        /// <summary>
         /// With the moon 40 degrees up, the cloud that shades the island is
         /// 450 over it and some 550 out. The deck has to be there on every
         /// bearing, because where the moon is is the lighting's business, and

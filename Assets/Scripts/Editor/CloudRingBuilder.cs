@@ -48,19 +48,32 @@ namespace SurvivalChaos.EditorTools
     /// speed of the cloud <see cref="TurnRadius"/> out, and
     /// <see cref="TurnSeconds"/> is the number to change.
     ///
-    /// **The wall is low and steep.** Ian picked the low wall from the
-    /// test's stills. The third build raised it, the layer 2000 deep, so
-    /// that it would read as a storm; once it turned he had it lowered
-    /// again. It reaches its height within 500 units, where the first
-    /// build's took 700.
+    /// **The wall is low.** Ian picked the low wall from the test's stills.
+    /// The third build raised it, the layer 2000 deep, so that it would
+    /// read as a storm; once it turned he had it lowered again.
+    ///
+    /// **The wall is one bank, since 7 October.** Until then it was
+    /// whatever the noise left standing: separate towers with the stars
+    /// between them down to the horizon, an island over clouds and not an
+    /// island inside a storm. That was an outside review's reading of the
+    /// stills, and it was right. Now the noise only dents the lower part of
+    /// each column (<see cref="Solid"/>) and shapes the top of it as before
+    /// (<see cref="Ragged"/>), so the heads stand on a bank with no gaps in
+    /// it. The top climbs in two rises with a shoulder between
+    /// (<see cref="Top"/>), over 750 units where it took 500, the eye's
+    /// outline wanders by a twelfth and not a fifth, and every bearing
+    /// reaches the shoulder. From the camera the heads stand between eight
+    /// and fifteen degrees up.
     ///
     /// **The map** is seen from above, <see cref="Span"/> across, centred on
     /// the island. HDRP centres it over the middle of the planet, and the
     /// scene's Visual Environment puts that straight under the island. Red is
     /// cover, and is full everywhere, because the floor is everywhere. Green
     /// is how heavy the cloud is, and is full inside the eye, so the deck
-    /// throws a shadow worth the name. Blue is the kind of cloud, from 0, the
-    /// eye's floor and deck, to 1, the wall at its tallest. Alpha
+    /// throws a shadow worth the name, and a fifth of that in the wall
+    /// (<see cref="WallWeight"/> says why no more). Blue is the kind of
+    /// cloud, from 0, the eye's floor and deck, to 1, the wall at its
+    /// tallest. Alpha
     /// is a ceiling HDRP would cut the cloud off at; it is left at 1, because
     /// a cut is flat, and the lookup shapes the tops instead. Outside the map
     /// the edge repeats, so the wall runs to the horizon.
@@ -70,14 +83,20 @@ namespace SurvivalChaos.EditorTools
     /// cloud, and at 0 there is none. So each kind is a column that is full
     /// from just over the layer's bottom and thins out to nothing at that
     /// kind's top, and the eye's column has the deck as a second band over
-    /// the gap the ships fly in.
+    /// the gap the ships fly in. Its green is how much the noise shapes the
+    /// cloud, which is what makes the wall's body solid. Its blue is how
+    /// much of the sky's light the cloud takes, and it hardly matters: the
+    /// moon lights these clouds (<see cref="Ambient"/>).
     ///
     /// The wind's straight push is nearly switched off: none for the map,
     /// a tenth for the shapes and a quarter for the fine detail. That little
     /// is what stops each turn of the storm being the last one over again.
     ///
     /// It is not a saving. On a frozen frame in the editor the old clouds
-    /// cost 2.1 ms on the High row and 0.9 on Low; this costs 3.4 and 1.1.
+    /// cost 2.1 ms on the High row and 0.9 on Low; the turning storm cost 3.4
+    /// and 1.1. The solid wall is about a fifth cheaper than that storm on
+    /// every row, measured on one frame at 3840x2160 (3.8 ms against 4.7 on
+    /// Low, 5.4 against 6.5 on High): a ray that meets solid cloud stops.
     ///
     /// Re-running repaints both textures, puts every setting named here
     /// back and points the pipeline at the project's tracers again. Anything
@@ -136,11 +155,42 @@ namespace SurvivalChaos.EditorTools
         public const float Span = 16000f;
 
         /// <summary>How far out the wall starts, give or take <see cref="EyeWander"/> by bearing.</summary>
-        private const float Eye = 1100f;
-        private const float EyeWander = 0.18f;
+        private const float Eye = 1050f;
+        private const float EyeWander = 0.08f;
 
-        /// <summary>How far the wall takes to reach its height. The first build had 700, a gentler face.</summary>
-        private const float Rim = 500f;
+        /// <summary>How far the wall takes to reach its height.</summary>
+        private const float Rim = 750f;
+
+        // The wall's face, as shares of the layer: where its top stands at
+        // the end of the first rise, on the shoulder behind that, and at the
+        // crown. The arena is at a half.
+        private const float FaceTop = 0.66f;
+        private const float ShoulderTop = 0.84f;
+        private const float CrownTop = 0.9f;
+
+        /// <summary>
+        /// How much of the noise shapes the cloud, in the lookup's green. At
+        /// <see cref="Ragged"/> the cloud is whatever the noise leaves, which
+        /// is separate towers; at <see cref="Solid"/> the noise only dents it.
+        /// </summary>
+        private const float Ragged = 0.92f;
+        private const float Solid = 0.62f;
+
+        /// <summary>
+        /// How heavy the wall's cloud is, in the map's green, give or take
+        /// <see cref="WallWeightWander"/> by bearing. The eye's is 1. HDRP
+        /// reads it as how fast the cloud swallows light: at 0, which the
+        /// wall had, a third as fast as at 1. Heavier gives the wall dark
+        /// bodies and lit edges, and on the cloud row every tier starts on,
+        /// six light steps, it gives its lit side a grain of dark specks:
+        /// plain at 0.35, worse at 0.68, which is where the review wanted it.
+        /// </summary>
+        private const float WallWeight = 0.2f;
+        private const float WallWeightWander = 0.1f;
+
+        /// <summary>The sky's light on the wall, at its foot and at its crown, in the lookup's blue.</summary>
+        private const float WallFootLight = 0.12f;
+        private const float WallCrownLight = 0.75f;
 
         private const int MapSize = 512;
         private const int LookupWidth = 64;
@@ -192,6 +242,11 @@ namespace SurvivalChaos.EditorTools
             new Vector2(2f, 2.8815f), new Vector2(3f, 5.5158f), new Vector2(5f, 0.2001f), new Vector2(8f, 1.7745f)
         };
 
+        private static readonly Vector2[] WeightWaves =
+        {
+            new Vector2(1f, 4.1f), new Vector2(2f, 0.7f), new Vector2(3f, 2.2f)
+        };
+
         private static readonly Vector2[] CrownWaves =
         {
             new Vector2(1f, 2.394f), new Vector2(3f, 1.4497f), new Vector2(4f, 1.0432f), new Vector2(7f, 5.7418f),
@@ -215,7 +270,14 @@ namespace SurvivalChaos.EditorTools
         {
             float distance = Mathf.Sqrt(x * x + z * z);
             float start = Eye * (1f + EyeWander * Waves(EdgeWaves, Mathf.Atan2(z, x)));
-            return Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(start, start + Rim, distance));
+            return Ramp(start, start + Rim, distance);
+        }
+
+        /// <summary>How heavy the cloud over a point is, in metres from the island: 1 in the eye, the wall's own weight in the wall.</summary>
+        public static float Weight(float x, float z)
+        {
+            float wall = WallWeight + WallWeightWander * Waves(WeightWaves, Mathf.Atan2(z, x));
+            return Mathf.Lerp(1f, wall, Wall(x, z));
         }
 
         /// <summary>The kind of cloud over a point, in metres from the island: 0 the eye, up to 1 wall.</summary>
@@ -226,30 +288,77 @@ namespace SurvivalChaos.EditorTools
             float wall = Wall(x, z);
 
             float crown = Waves(CrownWaves, bearing);
-            float tall = 0.82f + 0.18f * crown;
+            float tall = 0.9f + 0.1f * crown;
             // A second, lower shelf further out, so the far wall is not one height.
-            tall *= 0.9f + 0.1f * Mathf.Sin(distance / 900f + 3f * Waves(CrownWaves, bearing + 1f));
+            tall *= 0.94f + 0.06f * Mathf.Sin(distance / 900f + 3f * Waves(CrownWaves, bearing + 1f));
 
             return wall * tall;
+        }
+
+        /// <summary>
+        /// Where a kind of cloud's top stands, as a share of the layer. It
+        /// climbs in two rises with a shoulder between, so the wall leans
+        /// outward as it goes up and its face is stepped, not a ramp.
+        /// </summary>
+        public static float Top(float kind)
+        {
+            return FloorTop
+                + (FaceTop - FloorTop) * Ramp(0.05f, 0.42f, kind)
+                + (ShoulderTop - FaceTop) * Ramp(0.55f, 0.8f, kind)
+                + (CrownTop - ShoulderTop) * Ramp(0.8f, 1f, kind);
         }
 
         /// <summary>How much of the shape noise is cloud, for a kind of cloud at a height in the layer, both 0 to 1.</summary>
         public static float Fill(float kind, float height)
         {
-            float top = Mathf.Lerp(FloorTop, 1f, kind);
-            float rise = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, 0.04f, height));
+            float top = Top(kind);
+            float rise = Ramp(0f, 0.04f, height);
             // The floor thins out from just over half its height, which
             // leaves it soft on top; the wall holds to four fifths, so it
             // stands up.
-            float thinsFrom = top * (0.55f + 0.27f * kind);
-            float fall = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(thinsFrom, top, height));
+            float thinsFrom = top * (0.55f + 0.3f * kind);
+            float fall = 1f - Ramp(thinsFrom, top, height);
 
             // The deck belongs to the eye and thins out as the wall takes over.
             float deck = Deck * (1f - kind)
-                * Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(DeckFrom, DeckFrom + 0.05f, height))
-                * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(DeckTo - 0.05f, DeckTo, height)));
+                * Ramp(DeckFrom, DeckFrom + 0.05f, height)
+                * (1f - Ramp(DeckTo - 0.05f, DeckTo, height));
 
             return Mathf.Max(rise * fall, deck);
+        }
+
+        /// <summary>
+        /// How much the noise shapes a kind of cloud at a height in the
+        /// layer. The wall's body is solid, so it reads as one bank from the
+        /// floor up; its crown, the floor and the deck are left ragged.
+        /// </summary>
+        public static float Detail(float kind, float height)
+        {
+            float body = Ramp(0.1f, 0.4f, kind) * (1f - Ramp(0.55f, 0.72f, height / Top(kind)));
+            return Mathf.Lerp(Ragged, Solid, body);
+        }
+
+        /// <summary>
+        /// How much of the sky's light a kind of cloud takes at a height in
+        /// the layer, in the lookup's blue: the wall dark at its foot and
+        /// light at its crown, the eye's floor and deck as they were. Until
+        /// 7 October the wall's was the other way up. Neither shows: under
+        /// this sky, switching the clouds' ambient light off altogether
+        /// moved the wall's brightness by less than one part in a hundred.
+        /// It is here so that a brighter sky would light the wall the right
+        /// way up.
+        /// </summary>
+        public static float Ambient(float kind, float height)
+        {
+            float eye = 0.4f * (1f - Ramp(0f, FloorTop, height));
+            float wall = Mathf.Lerp(WallFootLight, WallCrownLight, Ramp(0.3f, 0.85f, height));
+            return Mathf.Lerp(eye, wall, Ramp(0.1f, 0.4f, kind));
+        }
+
+        /// <summary>Unity's SmoothStep eases between two values; this is the shader's, 0 to 1 as a value crosses a range.</summary>
+        private static float Ramp(float from, float to, float value)
+        {
+            return Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(from, to, value));
         }
 
         private static float Waves(Vector2[] waves, float bearing)
@@ -279,17 +388,15 @@ namespace SurvivalChaos.EditorTools
             {
                 float x = (u - 0.5f) * Span;
                 float z = (v - 0.5f) * Span;
-                return new Color(1f, 1f - Wall(x, z), Kind(x, z), 1f);
+                return new Color(1f, Weight(x, z), Kind(x, z), 1f);
             });
 
             Texture2D lookup = Paint(LookupPath, LookupWidth, LookupHeight, (u, v) =>
             {
                 // Across, the first and last columns are kinds 0 and 1 exactly.
                 float kind = Mathf.InverseLerp(0.5f / LookupWidth, 1f - 0.5f / LookupWidth, u);
-                float top = Mathf.Lerp(FloorTop, 1f, kind);
-                float shade = 0.4f * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, top, v)));
-                // Green is how much the detail noise eats; blue how much the cloud shades itself low down.
-                return new Color(Fill(kind, v), 0.92f, shade, 1f);
+                // Green is how much the noise shapes the cloud; blue how much of the sky's light it takes.
+                return new Color(Fill(kind, v), Detail(kind, v), Ambient(kind, v), 1f);
             });
 
             clouds.cloudControl.Override(VolumetricClouds.CloudControl.Manual);
