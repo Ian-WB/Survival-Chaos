@@ -119,7 +119,8 @@ namespace SurvivalChaos.Tests
         /// <summary>
         /// The copies were made from these, as Unity 6000.6.4f1 ships them.
         /// If this fails HDRP has changed one: diff it against the project's
-        /// copy, re-copy, put TurnWithTheStorm back, and put the new hash here.
+        /// copy, re-copy, put TurnWithTheStorm and the lightning back, and put
+        /// the new hash here.
         /// </summary>
         [TestCase("VolumetricCloudsTrace.compute", "385b4f4f1ffef03814ebfd6eb4093a9b2aa72601a8dfbb087fc14af260a402a9")]
         [TestCase("VolumetricCloudsTraceShadows.compute", "50fe985c30e62cd6b9b8d36ec838c1cdac1e7afd467bc22ed4031c1158268a1d")]

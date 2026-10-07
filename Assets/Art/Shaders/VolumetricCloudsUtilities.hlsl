@@ -1,12 +1,13 @@
 // HDRP's VolumetricCloudsUtilities.hlsl (com.unity.render-pipelines.high-definition 17,
-// Unity 6000.6.4f1), copied with one change: the clouds turn about the island.
+// Unity 6000.6.4f1), copied with two changes: the clouds turn about the island, and
+// lightning lights them from inside.
 //
 // HDRP's wind carries the clouds in a straight line. The Game scene's clouds are an eye
 // of the storm (environment roadmap, item 40; see CloudRingBuilder), and a storm seen
 // from its eye goes round. So every point is turned about the planet's axis, which the
 // scene's Visual Environment puts straight under the island, before the cloud map and
 // the two noises are read. It is TurnWithTheStorm, called first thing in the three
-// Animate functions, and nothing else in this file differs from the package's.
+// Animate functions.
 //
 // The angle is how far the wind has blown, which HDRP already keeps as _WindVector,
 // over STORM_TURN_RADIUS. So the scene's Global Wind Speed is the speed of the cloud
@@ -24,10 +25,17 @@
 // the shapes' share of it to nothing and leaves the fine detail a little, so the storm
 // frays as it goes round.
 //
+// Since 7 October there is a second change: lightning inside the cloud. HDRP's clouds
+// are lit by the sun and the sky only, so a glow round one point is gathered along each
+// ray beside those two (StormFlashReach, and the flash in VolumetricRayResult) and added
+// to the cloud's light at the end. The cloud in front of the point hides it as it hides
+// everything else. StormLightning, in the Game scene, sets _StormFlash and
+// _StormFlashLight on the tracer; left unset they are zero and the clouds are as before.
+//
 // Used by the project's copies of VolumetricCloudsTrace.compute and
 // VolumetricCloudsTraceShadows.compute, so the clouds and the shadow they throw turn
 // together. After an HDRP upgrade CloudStormShaderTests fails if the package's files
-// changed: re-copy all three and reapply this.
+// changed: re-copy all three and reapply both changes.
 
 #ifndef VOLUMETRIC_CLOUD_UTILITIES_H
 #define VOLUMETRIC_CLOUD_UTILITIES_H
@@ -291,6 +299,23 @@ float3 AnimateErosionNoisePosition(float3 positionPS)
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed + float3(0.0, _VerticalErosionWindDisplacement, 0.0);
 }
 
+// Survival Chaos: lightning inside the cloud. xyz is where it is, in the world; w is how
+// far its light reaches, in metres. StormLightning sets both on the tracer.
+float4 _StormFlash;
+
+// Survival Chaos: the lightning's colour times how bright it is now, against the moon's
+// light. Black is no lightning.
+float4 _StormFlashLight;
+
+// Survival Chaos: how much of the lightning's light reaches a point: all of it at the
+// lightning, a quarter one reach away, a twenty-fifth at two.
+float StormFlashReach(float3 positionPS)
+{
+    float3 away = (positionPS - ConvertToPS(_StormFlash.xyz)) / max(_StormFlash.w, 1.0);
+    float far = 1.0 + dot(away, away);
+    return 1.0 / (far * far);
+}
+
 struct CloudProperties
 {
     // Normalized float that tells the "amount" of clouds that is at a given location
@@ -428,6 +453,8 @@ struct VolumetricRayResult
     // They are combine at the end of tracing
     float3 scattering;
     float ambient;
+    // Survival Chaos: the lightning's, kept apart for the same reason
+    float flash;
     // Transmittance through the clouds
     float transmittance;
     // Mean distance of the clouds
@@ -511,6 +538,8 @@ void EvaluateCloud(CloudProperties cloudProperties, EnvironmentLighting envLight
     // Note: this is not true anymore when _ScatteringTint is modified, but it still looks correct
     volumetricRay.scattering += sunLuminance     * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
     volumetricRay.ambient    += ambientLuminance * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
+    // Survival Chaos: the cloud scatters the lightning as it does the sky, so cloud in front of it hides it
+    volumetricRay.flash      += StormFlashReach(currentPositionPS) * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
     volumetricRay.transmittance *= transmittance;
 }
 
@@ -532,6 +561,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
     VolumetricRayResult volumetricRay;
     volumetricRay.scattering = 0.0;
     volumetricRay.ambient = 0.0;
+    volumetricRay.flash = 0.0;
     volumetricRay.transmittance = 1.0;
     volumetricRay.meanDistance = FLT_MAX;
     volumetricRay.invalidRay = true;
@@ -678,6 +708,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 
                 volumetricRay.scattering = sunColor * volumetricRay.scattering;
                 volumetricRay.scattering += ambient * volumetricRay.ambient;
+                volumetricRay.scattering += _StormFlashLight.rgb * volumetricRay.flash;
                 volumetricRay.scattering *= GetCurrentExposureMultiplier();
             }
         }
