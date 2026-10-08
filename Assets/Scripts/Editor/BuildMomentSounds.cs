@@ -15,8 +15,8 @@ namespace SurvivalChaos.EditorTools
     ///
     /// Seven come from the Kenney packs already in the project, which sit in
     /// folders Unity ignores (the trailing ~). Each is copied in for as long as
-    /// it takes to read, cut and balanced the way BalanceSoundLevels balances
-    /// every other clip, and written to Balanced/ like the rest. The Sonniss
+    /// it takes to read, cut and balanced by BalanceSoundLevels' arithmetic, as
+    /// every other clip was, and written to Balanced/ like the rest. The Sonniss
     /// folder holds only the three clips already in use.
     ///
     /// Neither pack has a horn or a heartbeat, so those two are synthesised
@@ -28,8 +28,7 @@ namespace SurvivalChaos.EditorTools
     /// starting; maximize_* rises, which is it ending). Each has two
     /// alternatives written beside it; swapping one in is a change to that
     /// line and a run of this tool. Levels come from BalanceSoundLevels'
-    /// IntentDb, which is where every other sound's are, so the two tools and
-    /// DefaultSoundAssets agree (see the note on IntentDb).
+    /// IntentDb, which holds these nine and no others (see the note on it).
     ///
     /// Safe to run again: it rebuilds the nine clips and definitions and
     /// touches nothing else.
@@ -120,13 +119,13 @@ namespace SurvivalChaos.EditorTools
                 "drop_002 or impactMetal_004, played at half pitch")
         };
 
-        [MenuItem("Survival Chaos/Build Moment Sounds", priority = 47)]
+        [MenuItem("Survival Chaos/Audio/Build Moment Sounds", priority = 105)]
         public static void Build()
         {
             GameSounds registry = AssetDatabase.LoadAssetAtPath<GameSounds>(GameSoundsPath);
             if (registry == null)
             {
-                Debug.LogError($"No GameSounds at {GameSoundsPath}. Run Create Default Sound Assets first.");
+                Debug.LogError($"No GameSounds at {GameSoundsPath}. It names every sound the game plays, and this tool does not make it.");
                 return;
             }
 
@@ -219,7 +218,7 @@ namespace SurvivalChaos.EditorTools
             return true;
         }
 
-        /// <summary>To the same loudness as every other clip, peak-limited, as BalanceSoundLevels does.</summary>
+        /// <summary>To the same loudness as every other clip, peak-limited, by BalanceSoundLevels' arithmetic.</summary>
         private static float Balance(float[] samples)
         {
             float rms = BalanceSoundLevels.GatedRms(samples);

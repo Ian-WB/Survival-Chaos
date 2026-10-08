@@ -44,7 +44,7 @@ namespace SurvivalChaos.Tests
         [OneTimeSetUp]
         public void ReadTheSheet()
         {
-            Assert.IsTrue(File.Exists(SkyPath), SkyPath + " is missing: run Survival Chaos > Build Storm Sky");
+            Assert.IsTrue(File.Exists(SkyPath), SkyPath + " is missing: run Survival Chaos > Environment > Build Storm Sky");
             sheet = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             sheet.LoadImage(File.ReadAllBytes(SkyPath));
 
@@ -173,7 +173,7 @@ namespace SurvivalChaos.Tests
             if (fallback.TryGet(out HDRISky sky) && sky.hdriSky.value != null)
             {
                 Assert.AreEqual(SkyPath, AssetDatabase.GetAssetPath(sky.hdriSky.value),
-                    "The default profile names another sky, so two are built in. Run Survival Chaos > Build Storm Sky.");
+                    "The default profile names another sky, so two are built in. Run Survival Chaos > Environment > Build Storm Sky.");
             }
 
             string guid = AssetDatabase.AssetPathToGUID(OldSkyPath);
@@ -189,7 +189,7 @@ namespace SurvivalChaos.Tests
             Vector3 toMoon = ToTheMoon();
             string where = " The moon is " + (Mathf.Asin(toMoon.y) * Mathf.Rad2Deg).ToString("0.0") +
                            " degrees up towards " + toMoon.ToString("0.00") +
-                           ". If the light has been turned, run Survival Chaos > Build Storm Sky with the Game scene open.";
+                           ". If the light has been turned, run Survival Chaos > Environment > Build Storm Sky with the Game scene open.";
 
             // Half way out from its middle the moon is lit all the way round:
             // it is nearly full. (Until 7 October it was a planet showing a

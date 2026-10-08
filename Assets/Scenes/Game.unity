@@ -40027,7 +40027,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.Timer
   bossHpBar: {fileID: 501978592}
-  gameTime: 600
+  gameTime: 400
   timerSlider: {fileID: 1059922904}
   timerBar: {fileID: 1059922901}
   timeValue: 0

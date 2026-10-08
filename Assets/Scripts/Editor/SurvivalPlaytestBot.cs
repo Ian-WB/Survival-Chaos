@@ -20,7 +20,7 @@ namespace SurvivalChaos.EditorTools
         private float reaction = .25f;
         private Vector2 scroll;
 
-        [MenuItem("Survival Chaos/Playtest Bot")]
+        [MenuItem("Survival Chaos/Playtest Bot", priority = 200)]
         public static void Open() => GetWindow<SurvivalPlaytestBot>("Playtest Bot");
 
         public static string StartSession()

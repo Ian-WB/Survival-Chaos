@@ -27,7 +27,7 @@ namespace SurvivalChaos.Tests
         private static GameObject Prefab()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            Assert.IsNotNull(prefab, PrefabPath + " is missing: run Survival Chaos > Build Eruption Sparks");
+            Assert.IsNotNull(prefab, PrefabPath + " is missing: run Survival Chaos > Environment > Build Eruption Sparks");
             return prefab;
         }
 
@@ -258,7 +258,7 @@ namespace SurvivalChaos.Tests
 
             SerializedProperty baked = new SerializedObject(mesh).FindProperty("m_PreBakeTriangleCollisionMesh");
             Assert.IsNotNull(baked, "this Unity keeps the setting under another name");
-            Assert.IsTrue(baked.boolValue, path + ": run Survival Chaos > Build Eruption Sparks");
+            Assert.IsTrue(baked.boolValue, path + ": run Survival Chaos > Environment > Build Eruption Sparks");
         }
 
         [Test]

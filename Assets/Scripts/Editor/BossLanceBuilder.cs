@@ -83,7 +83,7 @@ namespace SurvivalChaos.EditorTools
         private static readonly Vector3 GlowColour = HostileFireColour.Deep;
         private const float GlowIntensity = 2f;
 
-        [MenuItem("Survival Chaos/Build Boss Lance", priority = 54)]
+        [MenuItem("Survival Chaos/Gameplay/Build Boss Lance", priority = 127)]
         public static void BuildFromMenu()
         {
             Debug.Log(Build());

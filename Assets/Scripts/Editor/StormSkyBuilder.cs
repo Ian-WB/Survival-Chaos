@@ -233,7 +233,7 @@ namespace SurvivalChaos.EditorTools
             return Mathf.Exp(-off * off);
         }
 
-        [MenuItem("Survival Chaos/Build Storm Sky", priority = 60)]
+        [MenuItem("Survival Chaos/Environment/Build Storm Sky", priority = 114)]
         public static void Build()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);

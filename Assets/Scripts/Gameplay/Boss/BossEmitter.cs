@@ -156,8 +156,8 @@ namespace SurvivalChaos
 
         [Header("Muzzle tells")]
         [SerializeField]
-        [Tooltip("The glow shown on a muzzle before it fires. Built by Survival Chaos/Apply Boss " +
-                 "Tells and Routes: the ship's dash-ready glow, with its white-hot centre taken out.")]
+        [Tooltip("The glow shown on a muzzle before it fires: the ship's dash-ready glow, with its " +
+                 "white-hot centre taken out. The mesh is BossTellGlow, in Art/Models/VFX.")]
         private Mesh tellMesh;
 
         [SerializeField]
@@ -173,7 +173,7 @@ namespace SurvivalChaos
         [Header("Torpedo exhaust")]
         [SerializeField]
         [Tooltip("The plume out of a torpedo's tail: the ship's own thruster plume, a unit long " +
-                 "along +X. Set by Survival Chaos/Apply Boss Tells and Routes.")]
+                 "along +X.")]
         private Mesh exhaustMesh;
 
         [SerializeField]
@@ -389,7 +389,7 @@ namespace SurvivalChaos
             {
                 Debug.LogWarning(
                     "BossEmitter has attacks with a tell but no glow to show it, so they will fire " +
-                    "unannounced. Run Survival Chaos/Apply Boss Tells and Routes.", this);
+                    "unannounced. Assign the tell's mesh and material on the Boss prefab's emitter.", this);
                 return;
             }
 

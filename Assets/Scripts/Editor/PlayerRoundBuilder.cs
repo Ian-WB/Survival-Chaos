@@ -104,7 +104,7 @@ namespace SurvivalChaos.EditorTools
         private static readonly Vector3 TrailColour = new Vector3(0.12f, 1.00f, 0.25f);
         private const float TrailIntensity = 1.5f;
 
-        [MenuItem("Survival Chaos/Build Player Round", priority = 49)]
+        [MenuItem("Survival Chaos/Gameplay/Build Player Round", priority = 122)]
         public static void BuildFromMenu()
         {
             Debug.Log(Build());

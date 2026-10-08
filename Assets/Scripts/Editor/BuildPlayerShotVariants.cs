@@ -26,9 +26,9 @@ namespace SurvivalChaos.EditorTools
     /// the transient. Two sources times four cuts is eight clips, which the
     /// no-repeat rule shuffles rather than alternates.
     ///
-    /// Balanced exactly as BalanceSoundLevels balances, so running that
-    /// afterwards leaves them where they are. The level against the rest of the
-    /// mix is still IntentDb's job. The source clips stay in Balanced, so
+    /// Balanced by BalanceSoundLevels' arithmetic, as every other clip was. The
+    /// level against the rest of the mix is the volume on PlayerShot's own
+    /// definition. The source clips stay in Balanced, so
     /// pointing PlayerShot back at them is a straight swap.
     /// </summary>
     public static class BuildPlayerShotVariants
@@ -58,7 +58,7 @@ namespace SurvivalChaos.EditorTools
             ("full_dark", 0.20f, 0.24f, 3200f),
         };
 
-        [MenuItem("Survival Chaos/Build Player Shot Variants", priority = 46)]
+        [MenuItem("Survival Chaos/Audio/Build Player Shot Variants", priority = 104)]
         public static void Build()
         {
             SoundDefinition definition = AssetDatabase.LoadAssetAtPath<SoundDefinition>(DefinitionPath);
@@ -183,7 +183,7 @@ namespace SurvivalChaos.EditorTools
             }
         }
 
-        /// <summary>Equal gated RMS, peak-limited, exactly as BalanceSoundLevels does it.</summary>
+        /// <summary>Equal gated RMS, peak-limited, by BalanceSoundLevels' arithmetic.</summary>
         private static float Balance(float[] samples)
         {
             float rms = BalanceSoundLevels.GatedRms(samples);

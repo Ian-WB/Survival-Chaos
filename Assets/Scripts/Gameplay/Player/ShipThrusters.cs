@@ -32,7 +32,7 @@ namespace SurvivalChaos
     /// anything until the run starts: <see cref="Player"/> instantiates the model
     /// at Start, so there is no edit-time hierarchy to place them against and
     /// nothing to look at if there were. The offsets below were measured off the
-    /// model's own meshes by <c>ShipThrusterBuilder</c> - the rocket's back face,
+    /// model's own meshes - the rocket's back face,
     /// the two under-nose blocks, the top of the hull - and they are the thing to
     /// edit if a flare sits wrong.
     /// </para>
@@ -203,7 +203,7 @@ namespace SurvivalChaos
             {
                 Debug.LogWarning(
                     "ShipThrusters has no mesh or material, so the ship would fly with no " +
-                    "exhaust. Run Survival Chaos/Build Ship Thrusters.", this);
+                    "exhaust. Assign them on the ship's prefab.", this);
                 enabled = false;
                 return;
             }

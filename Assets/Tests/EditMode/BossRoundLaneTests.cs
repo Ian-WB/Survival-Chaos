@@ -24,9 +24,9 @@ namespace SurvivalChaos.Tests
         private const string BossPath = "Assets/Prefabs/Boss/Boss.prefab";
 
         /// <summary>
-        /// BuildBossRig.RoundLaneResponse. The editor assembly is not referenced
-        /// from the tests, so the number is repeated here and has to move with
-        /// the rig's.
+        /// The lane response every round of the boss's is given. The tool that
+        /// built the rig held this number until it was removed; it is on the
+        /// boss's rounds now, and here.
         /// </summary>
         private const float RigLaneResponse = 5f;
 

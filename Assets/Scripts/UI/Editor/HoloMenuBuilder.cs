@@ -25,7 +25,7 @@ namespace SurvivalChaos.EditorTools
         private static readonly Vector2 ButtonSize = new Vector2(420f, 72f);
         private const float ButtonStep = 88f;
 
-        [MenuItem("Survival Chaos/UI/Rebuild Menus", priority = 21)]
+        [MenuItem("Survival Chaos/UI/Rebuild Menus", priority = 143)]
         public static void RebuildMenus()
         {
             Canvas canvas = FindCanvas();

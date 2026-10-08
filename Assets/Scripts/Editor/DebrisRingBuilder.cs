@@ -95,7 +95,7 @@ namespace SurvivalChaos.EditorTools
         private const float SlowestTumble = 2f;
         private const float FastestTumble = 7f;
 
-        [MenuItem("Survival Chaos/Build Debris Ring", priority = 60)]
+        [MenuItem("Survival Chaos/Environment/Build Debris Ring", priority = 113)]
         public static void Build()
         {
             System.Random dice = new System.Random(Seed);

@@ -91,7 +91,7 @@ namespace SurvivalChaos.EditorTools
         public const float VignetteIntensity = 0.2f;
         public const float VignetteSmoothness = 0.4f;
 
-        [MenuItem("Survival Chaos/Apply Picture Grade", priority = 63)]
+        [MenuItem("Survival Chaos/Environment/Apply Picture Grade", priority = 117)]
         public static void Apply()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);

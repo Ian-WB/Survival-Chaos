@@ -58,7 +58,7 @@ namespace SurvivalChaos.EditorTools
         private const float GlowRange = 16f;
         private const float GlowInHaze = 0.5f;
 
-        [MenuItem("Survival Chaos/Build Island Underside", priority = 62)]
+        [MenuItem("Survival Chaos/Environment/Build Island Underside", priority = 116)]
         public static void Build()
         {
             GameObject island = GameObject.Find(IslandName);

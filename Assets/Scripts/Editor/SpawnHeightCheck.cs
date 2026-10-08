@@ -17,7 +17,7 @@ namespace SurvivalChaos.EditorTools
     /// </summary>
     public static class SpawnHeightCheck
     {
-        [MenuItem("Survival Chaos/Waves/Check Spawn Heights", priority = 61)]
+        [MenuItem("Survival Chaos/Waves/Check Spawn Heights", priority = 150)]
         public static void Check()
         {
             WaveDirector director = Object.FindAnyObjectByType<WaveDirector>();

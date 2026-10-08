@@ -59,7 +59,7 @@ namespace SurvivalChaos.EditorTools
         /// <summary>How far light gets through the thickest of it, at the mouth.</summary>
         private const float FogDistance = 0.3f;
 
-        [MenuItem("Survival Chaos/Build Volcano Smoke", priority = 57)]
+        [MenuItem("Survival Chaos/Environment/Build Volcano Smoke", priority = 110)]
         public static void Build()
         {
             Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(ShaderPath);

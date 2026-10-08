@@ -416,7 +416,7 @@ namespace SurvivalChaos.EditorTools
             return sum / weight;
         }
 
-        [MenuItem("Survival Chaos/Build Cloud Ring", priority = 59)]
+        [MenuItem("Survival Chaos/Environment/Build Cloud Ring", priority = 112)]
         public static void Build()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);

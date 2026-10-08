@@ -6,7 +6,7 @@ namespace SurvivalChaos.Tests
     /// <summary>
     /// A boss round thrown at an angle, bouncing off the band's floor and ceiling.
     ///
-    /// Pinned against the real band and the throw BuildBossRig authors, because
+    /// Pinned against the real band and the throw the boss's prefab has, because
     /// what matters is spatial: the disc leaves from its muzzle, never leaves the
     /// band once inside it, turns back at each edge rather than passing through,
     /// and is never thrown straight out of the fight from a muzzle that sits
@@ -18,7 +18,7 @@ namespace SurvivalChaos.Tests
         private const float Floor = 4.42f;
         private const float Ceiling = 13.32f;
 
-        /// <summary>What BuildBossRig throws the keel's discs at.</summary>
+        /// <summary>What the keel's discs are thrown at.</summary>
         private const float Throw = 4f;
 
         /// <summary>The player's climb speed, which a thrown wall must stay under.</summary>

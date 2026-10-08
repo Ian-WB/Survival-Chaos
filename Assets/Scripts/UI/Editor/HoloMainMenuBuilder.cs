@@ -31,7 +31,7 @@ namespace SurvivalChaos.EditorTools
         /// <summary>Old panels. MainMenu sits on MenuPrincipal, so it moves first.</summary>
         private static readonly string[] OldScreens = { "MenuPrincipal", "MenuOpcoes", "Credits" };
 
-        [MenuItem("Survival Chaos/UI/Rebuild Main Menu", priority = 22)]
+        [MenuItem("Survival Chaos/UI/Rebuild Main Menu", priority = 144)]
         public static void RebuildMainMenu()
         {
             Canvas canvas = FindCanvas();

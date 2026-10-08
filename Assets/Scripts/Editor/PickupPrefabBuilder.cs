@@ -52,7 +52,7 @@ namespace SurvivalChaos.EditorTools
         /// <summary>Where the caption board goes: a child of the overlay canvas.</summary>
         private const string BoardName = "Pickup Labels (Holo)";
 
-        [MenuItem("Survival Chaos/Build Pickup Prefab", priority = 48)]
+        [MenuItem("Survival Chaos/Gameplay/Build Pickup Prefab", priority = 120)]
         public static void Build()
         {
             Material glow = BuildMaterial();
@@ -173,7 +173,7 @@ namespace SurvivalChaos.EditorTools
         /// Screen Space - Camera canvas is drawn inside the frame and would be
         /// smeared exactly as the world-space labels were.
         /// </summary>
-        [MenuItem("Survival Chaos/Build Pickup Label Board", priority = 49)]
+        [MenuItem("Survival Chaos/Gameplay/Build Pickup Label Board", priority = 121)]
         public static void BuildBoard()
         {
             Canvas canvas = null;

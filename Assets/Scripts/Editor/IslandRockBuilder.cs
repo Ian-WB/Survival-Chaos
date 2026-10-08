@@ -66,7 +66,7 @@ namespace SurvivalChaos.EditorTools
         private const int CrackCells = 5;
         private const int FineCells = 11;
 
-        [MenuItem("Survival Chaos/Build Island Rock", priority = 61)]
+        [MenuItem("Survival Chaos/Environment/Build Island Rock", priority = 115)]
         public static void Build()
         {
             Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(ShaderPath);

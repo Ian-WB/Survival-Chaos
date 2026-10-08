@@ -61,7 +61,7 @@ namespace SurvivalChaos.Tests
             Assert.IsNotNull(ours, Folder + file + " is missing.");
             Assert.IsTrue(inUse == ours,
                 "The clouds are traced by " + (inUse != null ? AssetDatabase.GetAssetPath(inUse) : "nothing") +
-                ", so the storm no longer turns. Run Survival Chaos > Build Cloud Ring.");
+                ", so the storm no longer turns. Run Survival Chaos > Environment > Build Cloud Ring.");
             Assert.IsTrue(ours.HasKernel(kernel), Folder + file + " has no " + kernel + " kernel: it did not compile.");
         }
 

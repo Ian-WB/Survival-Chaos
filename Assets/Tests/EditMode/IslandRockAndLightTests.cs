@@ -52,7 +52,7 @@ namespace SurvivalChaos.Tests
                 string path = "Assets/Art/Materials/Scenario/" + name + ".mat";
                 Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
                 Assert.IsNotNull(material, path);
-                Assert.AreEqual(ShaderName, material.shader.name, name + ": run Survival Chaos > Build Island Rock");
+                Assert.AreEqual(ShaderName, material.shader.name, name + ": run Survival Chaos > Environment > Build Island Rock");
 
                 Color kept = material.GetColor("_Tint");
                 Assert.AreEqual(tint.r, kept.r, 0.002f, name);
@@ -153,7 +153,7 @@ namespace SurvivalChaos.Tests
             string text = File.ReadAllText(ScenePath);
             SavedScene scene = SavedScene.Load(ScenePath);
 
-            Assert.IsNotNull(scene.GameObjectNamed("Island Underside"), "run Survival Chaos > Build Island Underside, and save the scene");
+            Assert.IsNotNull(scene.GameObjectNamed("Island Underside"), "run Survival Chaos > Environment > Build Island Underside, and save the scene");
             Assert.That(Regex.Matches(text, @"m_Name: Hanging Rock \d+").Count, Is.GreaterThanOrEqualTo(20), "hardly any rock hangs under the island");
 
             string glow = scene.GameObjectNamed("Underglow");

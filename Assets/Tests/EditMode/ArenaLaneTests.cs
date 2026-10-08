@@ -17,7 +17,7 @@ namespace SurvivalChaos.Tests
 
         private const float Radius = ArenaGeometry.OrbitRadius;
 
-        // The boss's geometry, as BuildBossRig measured it on the rig: muzzles
+        // The boss's geometry, as measured on the rig: muzzles
         // from 13.16 to 15.02 from the axis, and a player who can only be touched
         // between about 13.48 and 13.93. Written as distances from the lane rather than
         // as positions, because positions are what broke these tests last time -
@@ -68,8 +68,8 @@ namespace SurvivalChaos.Tests
         /// <summary>
         /// The number the boss is authored against: the worst-placed muzzle's
         /// shot has to be inside the band the player can be touched in before it
-        /// has flown far enough to have missed its chance. BuildBossRig's
-        /// RoundLaneResponse of 5 gets it there in about 0.36 seconds against
+        /// has flown far enough to have missed its chance. The rounds' lane
+        /// response of 5 gets it there in about 0.36 seconds against
         /// the half-size ship; this checks it at 0.4, twenty-four frames at 60.
         /// </summary>
         [Test]

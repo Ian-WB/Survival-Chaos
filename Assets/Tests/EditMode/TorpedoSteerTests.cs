@@ -37,7 +37,7 @@ namespace SurvivalChaos.Tests
 
         private const float Frame = 1f / 60f;
 
-        // What BuildBossRig gives the crown.
+        // What the crown has on the boss's prefab.
         private static readonly TorpedoHandling Crown = new TorpedoHandling
         {
             LaunchSpeed = 3f,

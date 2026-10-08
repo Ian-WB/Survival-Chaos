@@ -27,7 +27,7 @@ namespace SurvivalChaos.Tests
         public void TheMaterial_IsOnItsOwnShader_AndItCompiles()
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
-            Assert.IsNotNull(material, MaterialPath + " is missing: run Survival Chaos > Build Volcano Smoke");
+            Assert.IsNotNull(material, MaterialPath + " is missing: run Survival Chaos > Environment > Build Volcano Smoke");
 
             Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(ShaderPath);
             Assert.IsNotNull(shader, ShaderPath);

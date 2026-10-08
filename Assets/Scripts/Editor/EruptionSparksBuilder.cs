@@ -67,7 +67,7 @@ namespace SurvivalChaos.EditorTools
         /// <summary>The scenery a bomb can land on.</summary>
         private static readonly string[] Ground = { "ilha principal 1", "ilha cone", "ilha lava" };
 
-        [MenuItem("Survival Chaos/Build Eruption Sparks", priority = 58)]
+        [MenuItem("Survival Chaos/Environment/Build Eruption Sparks", priority = 111)]
         public static void Build()
         {
             Material pattern = AssetDatabase.LoadAssetAtPath<Material>(PatternPath);
@@ -173,9 +173,10 @@ namespace SurvivalChaos.EditorTools
         /// makes it for a mesh that does not, and warns that a later Unity
         /// will stop: the first build with these colliders had that warning,
         /// the only one in it. The three meshes are assets of their own, made
-        /// by SplitIslandForLightmapping, so the setting is on the mesh and
-        /// not on a model's import settings; splitting the island again would
-        /// lose it, and re-running this puts it back.
+        /// by a one-off split of the island (the tool that did it,
+        /// SplitIslandForLightmapping, was removed once its work was done and
+        /// is in the history), so the setting is on the mesh and not on a
+        /// model's import settings.
         /// </summary>
         private static void PreBakeCollision(Mesh mesh)
         {

@@ -30,7 +30,7 @@ namespace SurvivalChaos.EditorTools
         /// asset, so it will never appear in the Project window - selecting it
         /// directly is the only way to see it.
         /// </summary>
-        [MenuItem("Survival Chaos/Graphics/Inspect Live Pipeline", priority = 41)]
+        [MenuItem("Survival Chaos/Graphics/Inspect Live Pipeline", priority = 130)]
         public static void InspectLivePipeline()
         {
             RenderPipelineAsset asset = QualitySettings.renderPipeline;
@@ -51,7 +51,7 @@ namespace SurvivalChaos.EditorTools
                             "edits to it are discarded when play mode ends."));
         }
 
-        [MenuItem("Survival Chaos/Graphics/Report Graphics State", priority = 42)]
+        [MenuItem("Survival Chaos/Graphics/Report Graphics State", priority = 131)]
         public static void Report()
         {
             StringBuilder sb = new StringBuilder();

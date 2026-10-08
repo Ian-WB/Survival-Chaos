@@ -37,7 +37,7 @@ namespace SurvivalChaos.EditorTools
             "HealthBar", "XpBar", "timeBar", "bossHpBar", "LevelUpText"
         };
 
-        [MenuItem("Survival Chaos/UI/Rebuild HUD", priority = 20)]
+        [MenuItem("Survival Chaos/UI/Rebuild HUD", priority = 140)]
         public static void RebuildHud()
         {
             Canvas canvas = FindCanvas();
@@ -195,7 +195,7 @@ namespace SurvivalChaos.EditorTools
         /// element and repoints half the scene, which is a lot to take on for
         /// one bar in a scene whose HUD has been adjusted since it was built.
         /// </summary>
-        [MenuItem("Survival Chaos/UI/Add Deflector Bar", priority = 21)]
+        [MenuItem("Survival Chaos/UI/Add Deflector Bar", priority = 141)]
         public static void AddDeflectorBar()
         {
             Canvas canvas = FindCanvas();
@@ -310,7 +310,7 @@ namespace SurvivalChaos.EditorTools
         /// is there, and closes the dash and deflector bars up to make the row
         /// of three. Leaves everything else as it is, as Add Deflector Bar does.
         /// </summary>
-        [MenuItem("Survival Chaos/UI/Add Slow Mo Bar", priority = 22)]
+        [MenuItem("Survival Chaos/UI/Add Slow Mo Bar", priority = 142)]
         public static void AddSlowMoBar()
         {
             Canvas canvas = FindCanvas();

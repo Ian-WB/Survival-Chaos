@@ -27,7 +27,7 @@ namespace SurvivalChaos.EditorTools
         private static readonly Vector2 Centre = new Vector2(0.5f, 0.5f);
         private static readonly Vector2 PanelSize = new Vector2(760f, 250f);
 
-        [MenuItem("Survival Chaos/UI/Build Loading Screen", priority = 23)]
+        [MenuItem("Survival Chaos/UI/Build Loading Screen", priority = 145)]
         public static void Build()
         {
             Material panelMaterial = HoloUiFactory.EnsureBaseMaterial("HoloPanel", "Survival Chaos/Holo Panel");

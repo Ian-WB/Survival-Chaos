@@ -26,8 +26,8 @@ namespace SurvivalChaos.EditorTools
     /// a pastel: the cyan as ice, a red as salmon, a violet as pink. That is
     /// why no hostile round reads as hostile at that brightness, whatever its
     /// colour. Below about 2 the hue survives. So this file sets each round's
-    /// peak as well as its colour, and they sit under the one rung
-    /// EmissiveLadder keeps the pickups on.
+    /// peak as well as its colour, and they sit under the pickups, which are
+    /// at about 3.
     ///
     /// Measured again on a frozen frame, each round against the pixels it
     /// covers, worst of nine places across the arena: an enemy round 56 where
@@ -40,7 +40,7 @@ namespace SurvivalChaos.EditorTools
     /// The pods stay red. That makes the rule the boss is read by: red is what
     /// to shoot, violet is what to dodge. It also undoes half of what 5
     /// September did, when the rounds, the lance and the pods were brought
-    /// into one warm family - see BuildBossRig, which still makes the pods.
+    /// into one warm family.
     ///
     /// Two pickups share the hue, Magnet and Max Health, as Shot Upgrade
     /// shared the orange. They are told apart from a round the way they were
@@ -109,7 +109,7 @@ namespace SurvivalChaos.EditorTools
             new LitRound(VfxFolder + "BossDisc.mat", Bright, 1.35f, true),
         };
 
-        [MenuItem("Survival Chaos/Apply Hostile Fire Colour", priority = 53)]
+        [MenuItem("Survival Chaos/Gameplay/Apply Hostile Fire Colour", priority = 126)]
         public static void ApplyFromMenu()
         {
             Debug.Log(Apply());
@@ -167,9 +167,8 @@ namespace SurvivalChaos.EditorTools
                 return false;
             }
 
-            // The same order EmissiveLadder keeps, for the same reason: while
-            // the intensity mode is on, HDRP rewrites the colour from its own
-            // swatch on every validate.
+            // Off before the colour is written: while the intensity mode is on,
+            // HDRP rewrites the colour from its own swatch on every validate.
             HDMaterial.SetUseEmissiveIntensity(material, false);
             HDMaterial.SetEmissiveColor(material, glowAfter);
 

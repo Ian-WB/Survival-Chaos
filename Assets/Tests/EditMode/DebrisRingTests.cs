@@ -30,7 +30,7 @@ namespace SurvivalChaos.Tests
         private static GameObject Prefab()
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
-            Assert.IsNotNull(prefab, PrefabPath + " is missing: run Survival Chaos > Build Debris Ring");
+            Assert.IsNotNull(prefab, PrefabPath + " is missing: run Survival Chaos > Environment > Build Debris Ring");
             return prefab;
         }
 

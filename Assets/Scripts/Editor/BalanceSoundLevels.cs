@@ -1,37 +1,30 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace SurvivalChaos.EditorTools
 {
     /// <summary>
-    /// Measures how loud every sound actually is and makes them match.
+    /// How a clip is measured and brought to the common level: what the two
+    /// sound builders, BuildMomentSounds and BuildPlayerShotVariants, share.
     ///
-    /// The levels on the SoundDefinitions were chosen when every clip was
-    /// generated and peak-normalised, so they were pure attenuations of a known
-    /// starting point. Clips from a pack share no such starting point: the same
-    /// 0.7 that was a deliberate step down for one is now most of the reason
-    /// another is inaudible. A number tuned against an assumption that has since
-    /// changed is worse than no number.
+    /// This was a tool of its own until 8 October 2026: Balance Sound Levels
+    /// read every clip a SoundDefinition named, wrote a levelled copy to
+    /// Audio/SFX/Balanced, and set every definition's volume from a table.
+    /// The clips and the volumes it made are what the game ships. It went
+    /// because it no longer gave them back: run again on its own output it
+    /// moved 27 of the files, by up to 0.4 dB, and 15 of the volumes, some of
+    /// which have been set by hand since. What is left is the arithmetic.
     ///
-    /// So loudness is measured rather than guessed, and the two halves are
-    /// separated. The files carry the matching - equal gated RMS, peak-limited so
-    /// nothing clips. The volume field carries only intent: how much quieter a
-    /// sound should be *because of how often it fires*, which is a design decision
-    /// and belongs somewhere a person can read it.
-    ///
-    /// Music is handled the other way round. Rewriting a three-minute track as an
-    /// uncompressed copy to correct its level would be tens of megabytes to fix
-    /// one number, so the two tracks are balanced by attenuating the louder one on
-    /// its asset instead.
+    /// The two halves it kept apart still are. A file carries the matching:
+    /// equal gated RMS, peak-limited so nothing clips. A definition's volume
+    /// carries only intent: how much quieter a sound should be because of how
+    /// often it fires, which is a design decision and belongs somewhere a
+    /// person can read it.
     /// </summary>
     public static class BalanceSoundLevels
     {
-        private const string DefinitionFolder = "Assets/Audio/Definitions";
-        private const string BalancedFolder = "Assets/Audio/SFX/Balanced";
-
         /// <summary>
         /// Target loudness for every effect, as RMS below full scale.
         ///
@@ -48,96 +41,15 @@ namespace SurvivalChaos.EditorTools
         private const float GateDb = -60f;
 
         /// <summary>
-        /// How much quieter a sound should be than the rest, in dB, and why.
+        /// How much quieter each of the nine sounds BuildMomentSounds makes
+        /// should be than Player Hit, in dB, and why. Player Hit is the anchor
+        /// at 0 because volume cannot exceed 1 and it is given all of it.
         ///
-        /// This is the only part of levelling that is a judgement rather than a
-        /// measurement, which is exactly why it is a short readable table instead
-        /// of eleven numbers spread across eleven assets.
+        /// Every other sound's level is on its SoundDefinition and nowhere
+        /// else: the rest of this table went with the tool that applied it.
         /// </summary>
-        /// Rewritten on 2026-09-07 against measurement, because the table above it
-        /// does not do what the comment on TargetRmsDb assumes. Gated RMS matches
-        /// clips on their average level over everything above the gate, and that
-        /// is not what a listener hears: measured over the loudest 300 ms - which
-        /// is much closer to perception - two clips both "balanced" to -16 dBFS
-        /// came out 13 dB apart. The dash explosion measured -10.5 and the impact
-        /// the player takes damage to measured -23.4.
-        ///
-        /// So these numbers now carry two things at once: how often a sound fires,
-        /// and a correction for how far its clip's perceived loudness sits from
-        /// its gated RMS. That is not ideal - the honest fix is to match clips on
-        /// a windowed loudness in the first place, which would let this table go
-        /// back to being purely about frequency - but that rewrites every file in
-        /// Balanced, and this does not.
-        ///
-        /// The ladder is anchored on PlayerHit at 0, because its clip is the
-        /// quietest thing here and volume cannot exceed 1. Everything else is
-        /// placed relative to it, in dB: deaths +5 and +6, the charges and the
-        /// boss's fire a little under, and the sounds that repeat furthest down.
-        /// Taking damage now sits above your own gun rather than seven decibels
-        /// below it, which is the single thing that was most backwards.
-        ///
-        /// Measured again on 28 September 2026, the same way, and the -23.4 did
-        /// not come back: the three impact clips measured -15.9 to -18.4, while
-        /// the dash's -10.5 did. So the old hit was never the quietest clip, and
-        /// it sat level with the deaths rather than 5 and 6 under them. What it
-        /// lacked was body - a 20 ms strike that fell 16 dB at once - and that
-        /// is what the layered clips below fix. Nor is it what holds the ladder
-        /// down: Victory, at -1.3, leaves the only room there is to raise it.
         private static readonly Dictionary<string, float> IntentDb = new Dictionary<string, float>
         {
-            // Rare, and the run is over - loud is the point.
-            { "PlayerDeath", -5f },
-            { "BossDeath", -7.4f },
-            { "Victory", -1.3f },
-
-            // The anchor. An impact that has to be felt, so it gets everything
-            // the volume field can give it. Since 28 September 2026 each clip
-            // is a Kenney impactMetal strike over the matching forceField 9 dB
-            // down, mixed by hand: the same strike as before within 0.3 dB,
-            // about 4 dB fuller over its loudest 300 ms, which puts it 4 and
-            // 5 dB over the two deaths. If that is too much, 0.6 on the asset
-            // brings it back level with the old clip.
-            { "PlayerHit", 0f },
-
-            // Once a run, or once per level.
-            { "LevelUp", -2.3f },
-            { "SkillPicked", -4.3f },
-
-            // Warnings. They run for a whole wind-up, so they do not need to be
-            // loud to be noticed - they need to be clear of the fire around them.
-            { "BossChargeLance", -5.9f },
-            { "BossChargeRam", -6f },
-
-            // Constant through the whole fight, and the thing being warned about.
-            { "BossShot", -7.6f },
-
-            { "UiClick", -1.8f },
-
-            // Frequent, and often several at once.
-            { "EnemyDeath", -9.6f },
-
-            // The two that were most wrong. Both are player-caused, both repeated
-            // relentlessly - the dash on a 1.2s cycle then, where it is 10s
-            // since 25 September 2026 - and both were sitting
-            // above the sounds that carry threat. Their clips are also the two
-            // hottest in the set once measured properly, which is why the numbers
-            // are so large.
-            //
-            // Since 28 September 2026 the gun plays eight short cuts of its two
-            // clips (BuildPlayerShotVariants), and cutting the tails brought the
-            // files themselves down about 3 dB over their loudest 300 ms, which
-            // is the quieter gun that was asked for. So this number stayed.
-            { "PlayerShot", -18.3f },
-            { "PlayerDash", -20.9f },
-
-            // Fires on every pointer crossing, and must sit well under the click
-            // it precedes; it was one decibel above it.
-            { "UiHover", -17.8f },
-
-            // The nine added on 30 September 2026 by BuildMomentSounds, placed
-            // by the same rule and not yet heard in the mix. Each is the dial
-            // if it sits wrong.
-            //
             // Rare and big: an act ending, the Leviathan arriving. The horn is
             // long and sustained, which reads louder than its RMS says, so it
             // sits under the deaths; the distant one is quieter again, and
@@ -166,172 +78,6 @@ namespace SurvivalChaos.EditorTools
         internal static float IntentFor(string name)
         {
             return IntentDb.TryGetValue(name, out float db) ? db : 0f;
-        }
-
-        [MenuItem("Survival Chaos/Balance Sound Levels", priority = 45)]
-        public static void Balance()
-        {
-            Directory.CreateDirectory(BalancedFolder);
-            AssetDatabase.Refresh();
-
-            List<string> report = new List<string>();
-            List<string> limited = new List<string>();
-
-            foreach (string guid in AssetDatabase.FindAssets("t:SoundDefinition", new[] { DefinitionFolder }))
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                SoundDefinition definition = AssetDatabase.LoadAssetAtPath<SoundDefinition>(path);
-                if (definition == null || !definition.HasClips)
-                {
-                    continue;
-                }
-
-                string name = Path.GetFileNameWithoutExtension(path);
-
-                if (definition.Channel == AudioChannel.Music)
-                {
-                    // Measured below, together, since they are balanced against
-                    // each other rather than against a fixed target.
-                    continue;
-                }
-
-                List<AudioClip> rebuilt = new List<AudioClip>();
-
-                foreach (AudioClip clip in ClipsOf(definition))
-                {
-                    if (clip == null)
-                    {
-                        continue;
-                    }
-
-                    if (!TryRead(clip, out float[] samples))
-                    {
-                        report.Add($"{name}: could not read {clip.name}, left alone");
-                        rebuilt.Add(clip);
-                        continue;
-                    }
-
-                    float rms = GatedRms(samples);
-                    if (rms <= 0f)
-                    {
-                        report.Add($"{name}: {clip.name} is silent, left alone");
-                        rebuilt.Add(clip);
-                        continue;
-                    }
-
-                    float gain = FromDb(TargetRmsDb) / rms;
-
-                    // Peak limit rather than clip. A sound that cannot reach the
-                    // target without distorting is better left below it.
-                    float peak = Peak(samples);
-                    float ceiling = FromDb(PeakCeilingDb);
-                    if (peak * gain > ceiling)
-                    {
-                        gain = ceiling / peak;
-                        limited.Add($"{clip.name} ({ToDb(GatedRms(samples) * gain):F1} dB RMS)");
-                    }
-
-                    for (int i = 0; i < samples.Length; i++)
-                    {
-                        samples[i] = Mathf.Clamp(samples[i] * gain, -1f, 1f);
-                    }
-
-                    string outPath = $"{BalancedFolder}/{clip.name}.wav";
-                    SfxrSynth.WriteWav(outPath, samples, clip.channels, clip.frequency);
-                    AssetDatabase.ImportAsset(outPath, ImportAssetOptions.ForceUpdate);
-                    ApplyImportSettings(outPath, definition.SpatialBlend > 0f);
-
-                    AudioClip balanced = AssetDatabase.LoadAssetAtPath<AudioClip>(outPath);
-                    rebuilt.Add(balanced != null ? balanced : clip);
-
-                    report.Add($"{name}/{clip.name}: {ToDb(rms):F1} -> {TargetRmsDb:F1} dB RMS ({ToDb(gain):+0.0;-0.0} dB)");
-                }
-
-                SetClips(definition, rebuilt);
-                SetVolume(definition, FromDb(IntentDb.TryGetValue(name, out float db) ? db : 0f));
-            }
-
-            BalanceMusic(report);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            Debug.Log("Sound levels balanced:\n  " + string.Join("\n  ", report));
-
-            if (limited.Count > 0)
-            {
-                Debug.LogWarning(
-                    "These hit the peak ceiling before reaching the target, so they stay below it. " +
-                    "That is correct - they are dynamic rather than quiet - but if one still sounds " +
-                    "weak it wants a different clip, not more gain:\n  " + string.Join("\n  ", limited));
-            }
-        }
-
-        /// <summary>
-        /// Brings the two music tracks level with each other.
-        ///
-        /// Attenuating the louder one is the whole fix: they only have to match,
-        /// not hit an absolute target, and the scene's own AudioSource level
-        /// already sets where music sits against everything else.
-        /// </summary>
-        private static void BalanceMusic(List<string> report)
-        {
-            List<(SoundDefinition definition, string name, float rms)> tracks =
-                new List<(SoundDefinition, string, float)>();
-
-            foreach (string guid in AssetDatabase.FindAssets("t:SoundDefinition", new[] { DefinitionFolder }))
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                SoundDefinition definition = AssetDatabase.LoadAssetAtPath<SoundDefinition>(path);
-
-                if (definition == null || definition.Channel != AudioChannel.Music || !definition.HasClips)
-                {
-                    continue;
-                }
-
-                AudioClip clip = null;
-                foreach (AudioClip c in ClipsOf(definition))
-                {
-                    if (c != null) { clip = c; break; }
-                }
-
-                if (clip == null)
-                {
-                    continue;
-                }
-
-                string name = Path.GetFileNameWithoutExtension(path);
-
-                if (!TryRead(clip, out float[] samples))
-                {
-                    report.Add($"{name}: could not read {clip.name}, music left alone");
-                    continue;
-                }
-
-                float rms = GatedRms(samples);
-                if (rms > 0f)
-                {
-                    tracks.Add((definition, name, rms));
-                }
-            }
-
-            if (tracks.Count < 2)
-            {
-                return;
-            }
-
-            float quietest = float.MaxValue;
-            foreach ((SoundDefinition _, string _, float rms) in tracks)
-            {
-                quietest = Mathf.Min(quietest, rms);
-            }
-
-            foreach ((SoundDefinition definition, string name, float rms) in tracks)
-            {
-                float volume = Mathf.Clamp01(quietest / rms);
-                SetVolume(definition, volume);
-                report.Add($"{name}: {ToDb(rms):F1} dB RMS, volume {volume:F2} ({ToDb(volume):+0.0;-0.0} dB)");
-            }
         }
 
         // ---------- measurement ----------
@@ -430,43 +176,6 @@ namespace SurvivalChaos.EditorTools
         }
 
         // ---------- asset plumbing ----------
-
-        private static IEnumerable<AudioClip> ClipsOf(SoundDefinition definition)
-        {
-            SerializedProperty array = new SerializedObject(definition).FindProperty("clips");
-            if (array == null)
-            {
-                yield break;
-            }
-
-            for (int i = 0; i < array.arraySize; i++)
-            {
-                yield return array.GetArrayElementAtIndex(i).objectReferenceValue as AudioClip;
-            }
-        }
-
-        private static void SetClips(SoundDefinition definition, List<AudioClip> clips)
-        {
-            SerializedObject serialized = new SerializedObject(definition);
-            SerializedProperty array = serialized.FindProperty("clips");
-            array.arraySize = clips.Count;
-
-            for (int i = 0; i < clips.Count; i++)
-            {
-                array.GetArrayElementAtIndex(i).objectReferenceValue = clips[i];
-            }
-
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(definition);
-        }
-
-        private static void SetVolume(SoundDefinition definition, float volume)
-        {
-            SerializedObject serialized = new SerializedObject(definition);
-            serialized.FindProperty("volume").floatValue = Mathf.Clamp01(volume);
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(definition);
-        }
 
         internal static void ApplyImportSettings(string path, bool forceMono)
         {

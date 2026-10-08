@@ -16,7 +16,7 @@ namespace SurvivalChaos.Tests
     public class PictureGradeTests
     {
         private const string ProfilePath = "Assets/Settings/DefaultSettingsVolumeProfile.asset";
-        private const string Rerun = " Run Survival Chaos > Apply Picture Grade.";
+        private const string Rerun = " Run Survival Chaos > Environment > Apply Picture Grade.";
 
         private static T Override<T>() where T : VolumeComponent
         {

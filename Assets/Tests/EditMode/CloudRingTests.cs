@@ -58,7 +58,7 @@ namespace SurvivalChaos.Tests
         /// <summary>The file's own pixels, whatever the import made of them.</summary>
         private static Texture2D Read(string path)
         {
-            Assert.IsTrue(File.Exists(path), path + " is missing: run Survival Chaos > Build Cloud Ring");
+            Assert.IsTrue(File.Exists(path), path + " is missing: run Survival Chaos > Environment > Build Cloud Ring");
             Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
             texture.LoadImage(File.ReadAllBytes(path));
             texture.wrapMode = TextureWrapMode.Clamp;
@@ -352,7 +352,7 @@ namespace SurvivalChaos.Tests
         public void TheTextures_AreImportedAsData(string path)
         {
             TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
-            Assert.IsNotNull(importer, path + " is missing: run Survival Chaos > Build Cloud Ring");
+            Assert.IsNotNull(importer, path + " is missing: run Survival Chaos > Environment > Build Cloud Ring");
 
             Assert.IsFalse(importer.sRGBTexture, "colour-managed");
             Assert.IsFalse(importer.mipmapEnabled, "mipped");
