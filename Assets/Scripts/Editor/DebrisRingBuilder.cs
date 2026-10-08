@@ -291,6 +291,7 @@ namespace SurvivalChaos.EditorTools
                 kept.Clear();
                 kept.vertices = fresh.vertices;
                 kept.normals = fresh.normals;
+                kept.tangents = fresh.tangents;
                 kept.triangles = fresh.triangles;
                 kept.RecalculateBounds();
                 Object.DestroyImmediate(fresh);
@@ -406,6 +407,9 @@ namespace SurvivalChaos.EditorTools
             float scale = 0.5f / widest;
             Vector3[] vertices = new Vector3[faces.Length];
             Vector3[] normals = new Vector3[faces.Length];
+            // A tangent along one edge of each face. The debris ring's material does not read it; the
+            // island's rock shader does, and the hanging rock under the island wears that (item 44).
+            Vector4[] tangents = new Vector4[faces.Length];
             int[] triangles = new int[faces.Length];
 
             for (int f = 0; f < faces.Length; f += 3)
@@ -425,12 +429,14 @@ namespace SurvivalChaos.EditorTools
                 vertices[f + 1] = b;
                 vertices[f + 2] = c;
                 normals[f] = normals[f + 1] = normals[f + 2] = normal;
+                Vector3 edge = (b - a).normalized;
+                tangents[f] = tangents[f + 1] = tangents[f + 2] = new Vector4(edge.x, edge.y, edge.z, 1f);
                 triangles[f] = f;
                 triangles[f + 1] = f + 1;
                 triangles[f + 2] = f + 2;
             }
 
-            Mesh mesh = new Mesh { vertices = vertices, normals = normals, triangles = triangles };
+            Mesh mesh = new Mesh { vertices = vertices, normals = normals, tangents = tangents, triangles = triangles };
             mesh.RecalculateBounds();
             return mesh;
         }

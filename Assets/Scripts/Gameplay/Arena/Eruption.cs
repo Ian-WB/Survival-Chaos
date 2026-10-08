@@ -48,6 +48,12 @@ namespace SurvivalChaos
         [Tooltip("The warm light on the ships from the island's axis. Leave empty to keep the ships out of it.")]
         private Light shipFill;
 
+        [SerializeField]
+        [Tooltip("A live light on the island that is off at rest and comes up as the eruption grows. " +
+                 "Its own brightness in the scene is what it reaches at the height of the eruption. " +
+                 "The lava lights themselves are baked since 8 October and cannot swell.")]
+        private Light surgeLight;
+
         [Header("The clock")]
         [SerializeField]
         [Range(0.5f, 3f)]
@@ -126,6 +132,13 @@ namespace SurvivalChaos
         private static readonly int VeinContrastId = Shader.PropertyToID("_VeinContrast");
         private static readonly int FlowLeadId = Shader.PropertyToID("_FlowLead");
 
+        /// <summary>
+        /// The level, for every shader at once. The island's rock reads it
+        /// (IslandRock.hlsl): the cracks near the lava glow brighter and
+        /// further out as the eruption grows. It is 0 outside a run.
+        /// </summary>
+        private static readonly int IslandEruptionId = Shader.PropertyToID("_IslandEruption");
+
         private readonly List<float> surges = new List<float>();
 
         private WaveDirector director;
@@ -147,6 +160,7 @@ namespace SurvivalChaos
         private float flowLead;
 
         private float authoredCrater;
+        private float authoredSurge;
         private float authoredShipFill;
         private Vector3 authoredSmokeSize;
         private float authoredSmokeFloor;
@@ -198,6 +212,11 @@ namespace SurvivalChaos
                 authoredShipFill = shipFill.intensity;
             }
 
+            if (surgeLight != null)
+            {
+                authoredSurge = surgeLight.intensity;
+            }
+
             if (smoke != null)
             {
                 authoredSmokeSize = smoke.parameters.size;
@@ -217,6 +236,9 @@ namespace SurvivalChaos
 
         private void OnDestroy()
         {
+            // A global outlives the scene, and in the editor it outlives play.
+            Shader.SetGlobalFloat(IslandEruptionId, 0f);
+
             if (lavaMaterial != null)
             {
                 Destroy(lavaMaterial);
@@ -277,6 +299,8 @@ namespace SurvivalChaos
 
         private void Apply(float deltaTime)
         {
+            Shader.SetGlobalFloat(IslandEruptionId, Level);
+
             if (lavaMaterial != null)
             {
                 flowLead += (At(flow) - 1f) * deltaTime;
@@ -293,6 +317,14 @@ namespace SurvivalChaos
             if (shipFill != null)
             {
                 shipFill.intensity = authoredShipFill * At(shipFillBrightness);
+            }
+
+            if (surgeLight != null)
+            {
+                // By the square: next to nothing through the quiet start of a run, all of it at the height.
+                float bright = authoredSurge * Level * Level;
+                surgeLight.intensity = bright;
+                surgeLight.enabled = bright > authoredSurge * 0.02f;
             }
 
             if (smoke != null)
