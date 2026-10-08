@@ -131,5 +131,30 @@ namespace SurvivalChaos.Tests
             StringAssert.Contains("opengameart.org/content/chase-2", text);
             StringAssert.Contains("opengameart.org/content/neon-hyperdrive", text);
         }
+
+        /// <summary>
+        /// The storm sky's moon is painted from NASA's map of the Moon.
+        /// Public domain, so nothing requires it, but NASA asks for credit
+        /// where it can be given: in this file, in the credits the menu is
+        /// built from, and on the credits screen as it is saved.
+        /// </summary>
+        [Test]
+        public void TheMoonMapIsCredited_WhileTheSkyIsPaintedFromIt()
+        {
+            if (!File.Exists("Assets/Art/Skybox/MoonMap.tif"))
+            {
+                Assert.Pass("The sky is not painted from NASA's map.");
+            }
+
+            StringAssert.Contains("NASA's Scientific Visualization Studio", Notices());
+            StringAssert.Contains("svs.gsfc.nasa.gov/4720", Notices());
+            StringAssert.Contains("NASA's Scientific Visualization Studio",
+                File.ReadAllText("Assets/Scripts/UI/Editor/HoloMainMenuBuilder.cs"),
+                "the credits the menu is built from do not name NASA");
+            // Unity wraps a long line of text when it saves a scene, so the breaks are taken out first.
+            string menu = System.Text.RegularExpressions.Regex.Replace(File.ReadAllText("Assets/Scenes/Menu.unity"), @"\s+", " ");
+            StringAssert.Contains("NASA's Scientific Visualization Studio", menu,
+                "the saved credits screen does not name NASA: the text is in HoloMainMenuBuilder.CreditsText");
+        }
     }
 }

@@ -246,6 +246,26 @@ namespace SurvivalChaos.EditorTools
         private const float DetailDrift = 0.25f;
 
         /// <summary>
+        /// How fast the cloud's shapes climb through the wall, in km/h: 25
+        /// metres a second, a sixth of what they go round at. The map and
+        /// the lookup stay where they are, so a head comes up out of the
+        /// bank, stands, and thins away at the top while the next one comes
+        /// up under it. Ian's word on the storm that only turned was that it
+        /// did not deform or reshape like cloud; with the camera turned
+        /// along with it, ten seconds apart, its shapes were the same
+        /// shapes. At 0 that is what it is again.
+        ///
+        /// Thin cloud over the wall, to cross the moon, was tried with it on
+        /// 8 October: a band at the layer's top over the tallest stretches
+        /// of wall. It came out as small dark puffs loose in the sky, and
+        /// was left out. The wall's own heads cross the moon's lower third.
+        /// </summary>
+        private const float ShapeRise = 90f;
+
+        /// <summary>The fine detail's climb, in km/h. Faster than the shapes', so the fraying crawls up them.</summary>
+        private const float DetailRise = 150f;
+
+        /// <summary>
         /// The clouds start this close to the camera and are whole this much
         /// further out. The old layer needed a bubble kept clear; here the
         /// map keeps the eye clear and nothing is near enough to fade.
@@ -435,6 +455,8 @@ namespace SurvivalChaos.EditorTools
             clouds.cloudMapSpeedMultiplier.Override(0f);
             clouds.shapeSpeedMultiplier.Override(ShapeDrift);
             clouds.erosionSpeedMultiplier.Override(DetailDrift);
+            clouds.verticalShapeWindSpeed.Override(ShapeRise);
+            clouds.verticalErosionWindSpeed.Override(DetailRise);
             clouds.shapeScale.Override(ShapeScale);
             clouds.erosionScale.Override(ErosionScale);
             clouds.globalWindSpeed.Override(new WindParameter.WindParamaterValue

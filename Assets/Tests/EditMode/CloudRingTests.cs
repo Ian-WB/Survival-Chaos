@@ -113,6 +113,26 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
+        /// A storm that only turns keeps every shape it has: Ian's word on
+        /// it was that it did not deform or reshape like cloud. So the
+        /// shapes climb through the wall and the fine detail climbs faster,
+        /// while the map and the lookup stay put and cut new heads out of
+        /// them. Well under the speed they go round at, or the wall would
+        /// read as cloud pouring upward.
+        /// </summary>
+        [Test]
+        public void TheCloudsShapes_ClimbThroughTheWall_SlowerThanTheyGoRound()
+        {
+            VolumetricClouds clouds = Clouds();
+
+            Assert.IsTrue(clouds.verticalShapeWindSpeed.overrideState && clouds.verticalErosionWindSpeed.overrideState,
+                "left alone, HDRP's clouds do not climb at all");
+            Assert.That(clouds.verticalShapeWindSpeed.value, Is.GreaterThanOrEqualTo(40f), "km/h; slower than this a head keeps its shape right across the frame");
+            Assert.That(clouds.verticalErosionWindSpeed.value, Is.GreaterThan(clouds.verticalShapeWindSpeed.value));
+            Assert.That(clouds.verticalShapeWindSpeed.value, Is.LessThan(clouds.globalWindSpeed.value.customValue / 3f));
+        }
+
+        /// <summary>
         /// The eye is kept clear by the map, so nothing may fade the clouds
         /// in by distance: Automatic would start them a fifth of the layer
         /// out, which is the floor under the island gone.

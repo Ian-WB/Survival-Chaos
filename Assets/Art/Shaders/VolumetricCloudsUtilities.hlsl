@@ -309,9 +309,14 @@ float4 _StormFlashLight;
 
 // Survival Chaos: how much of the lightning's light reaches a point: all of it at the
 // lightning, a quarter one reach away, a twenty-fifth at two.
+//
+// The lightning's place comes in as a point in the world, and ConvertToPS takes a point
+// measured from the camera, as HDRP draws everything. So it is made one first. Until
+// 8 October it was not, and every flash stood as far from its place as the camera was
+// from the world's origin: about thirty metres, where a glow reaches two hundred.
 float StormFlashReach(float3 positionPS)
 {
-    float3 away = (positionPS - ConvertToPS(_StormFlash.xyz)) / max(_StormFlash.w, 1.0);
+    float3 away = (positionPS - ConvertToPS(GetCameraRelativePositionWS(_StormFlash.xyz))) / max(_StormFlash.w, 1.0);
     float far = 1.0 + dot(away, away);
     return 1.0 / (far * far);
 }

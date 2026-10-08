@@ -28,10 +28,12 @@ namespace SurvivalChaos
     /// sound to choose and a place in the mix, and was left for Ian to ask
     /// for.
     ///
-    /// **It strikes where the camera is looking,** within
+    /// **It strikes towards where the camera is looking,** within
     /// <see cref="spread"/> degrees either side. The frame shows a little
     /// over a quarter of the wall, and a flash behind the camera lights
-    /// nothing the player can see.
+    /// nothing the player can see. It is a lean and not a promise: the
+    /// frame is 49 degrees either side, so some flashes land off its edge,
+    /// and nothing checks that cloud stands where one lands.
     ///
     /// **A flash can be sharp, and is kept from being too sharp.** HDRP
     /// blends each frame of cloud with the frames before it, which by its
@@ -43,11 +45,15 @@ namespace SurvivalChaos
     /// whole in one frame shows that for the next three: dark squares where
     /// cloud stands in front of the light. So a stroke takes
     /// <see cref="strokeRise"/> to arrive, which is still a flash to the
-    /// eye and gives the tracer its three frames.
+    /// eye and gives the tracer its three frames at 60 frames a second. It
+    /// is a time and not a count of frames: at 30 it is a frame and a half,
+    /// and the squares were only looked for at 60.
     ///
     /// **No more than three strokes to a flash,** and flashes seconds
-    /// apart, so the screen never flashes more than three times in a second,
-    /// which is the usual limit for flashing light.
+    /// apart, so this component, left to its own clock, never flashes the
+    /// clouds more than three times in a second, which is the usual limit
+    /// for flashing light. <see cref="Strike"/> called from outside is not
+    /// counted, and neither is a second component.
     ///
     /// With no clouds drawn, on the two lowest quality tiers, nothing shows.
     /// </summary>

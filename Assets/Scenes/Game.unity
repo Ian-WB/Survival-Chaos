@@ -1775,7 +1775,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 1e-45, y: 3.1167994e-13, z: 7.83e-43, w: 1.3e-44}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 2
   m_ShadowAngle: 0
@@ -8756,7 +8756,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 1.02e-43, y: 2.2716338e+34, z: 7.83e-43, w: 1.3e-44}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 2
   m_ShadowAngle: 0
@@ -29262,8 +29262,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 0.7, g: 1, b: 0.95, a: 1}
+  m_Intensity: 1.072
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -47241,7 +47241,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 8.030002e-39, y: 1.5441969e+25, z: 4.7275348e+27, w: 6.141389e+28}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 2
   m_ShadowAngle: 0
@@ -51526,7 +51526,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
+  m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
   m_ShapeRadius: 2
   m_ShadowAngle: 0

@@ -209,6 +209,29 @@ namespace SurvivalChaos.Tests
                 "Something bright stands just outside where the moon should end." + where);
         }
 
+        /// <summary>
+        /// The moonlight is pulled towards blue-green since 8 October, after
+        /// the night skies Ian showed from the Witcher. It is the light's
+        /// filter colour over its temperature, and the haze and the clouds
+        /// take it from the light. Light, medium and strong were shown to
+        /// him as 0.85, 0.70 and 0.55 of red; this holds any of the three.
+        /// </summary>
+        [Test]
+        public void TheMoonlight_IsBlueGreen_AndStillMostlyWhite()
+        {
+            SavedScene scene = SavedScene.Load(ScenePath);
+            string light = scene.Component(scene.GameObjectNamed(MoonName), "Light");
+            Color filter = scene.Colour(light, "m_Color");
+
+            Assert.That(filter.g, Is.GreaterThanOrEqualTo(filter.b), "the moonlight leans blue, not blue-green");
+            Assert.That(filter.b, Is.GreaterThan(filter.r), "the moonlight is not cold");
+            Assert.That(filter.r, Is.InRange(0.5f, 0.9f), "under 0.5 the island's red rock goes dark; over 0.9 the tint does not show");
+
+            // The filter takes light away, and the light's strength gives it back: the same amount of light, another colour.
+            float kept = 0.2126f * filter.r + 0.7152f * filter.g + 0.0722f * filter.b;
+            Assert.AreEqual(1f, kept * scene.Float(light, "m_Intensity"), 0.02f, "the moonlight's amount changed with its colour");
+        }
+
         [Test]
         public void ThePlanet_IsInsideTheFrame()
         {

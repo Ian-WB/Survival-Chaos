@@ -104,6 +104,18 @@ Neon Hyperdrive (the Leviathan)
   https://opengameart.org/content/neon-hyperdrive
 
 ------------------------------------------------------------------------
+The Moon
+------------------------------------------------------------------------
+
+The moon in the sky is painted from a map of the real one: the colour map
+in the CGI Moon Kit of NASA's Scientific Visualization Studio, made from
+Lunar Reconnaissance Orbiter Camera data. It is in the public domain.
+NASA asks to be credited where it can be, so here it is. NASA does not
+endorse this game.
+
+  https://svs.gsfc.nasa.gov/4720
+
+------------------------------------------------------------------------
 Fonts: Chakra Petch and Liberation Sans
 ------------------------------------------------------------------------
 

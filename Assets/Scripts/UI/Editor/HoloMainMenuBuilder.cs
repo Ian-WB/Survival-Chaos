@@ -162,7 +162,9 @@ namespace SurvivalChaos.EditorTools
         /// wants a line here as well as there.
         ///
         /// The NVIDIA line is the attribution its DLSS licence asks a game's
-        /// credits to carry. Plain ASCII apart from the two names: the font
+        /// credits to carry. The NASA line is for the map the storm sky's moon
+        /// is painted from (StormSkyBuilder): public domain, and NASA asks
+        /// for credit where it can be given. Plain ASCII apart from the two names: the font
         /// atlas is Extended ASCII, and a glyph outside it draws as a box.
         /// </summary>
         public const string CreditsText =
@@ -182,6 +184,9 @@ namespace SurvivalChaos.EditorTools
             "VISUAL EFFECTS\n\n" +
             "Big Rook Games | effects pack\n" +
             "Unity Technologies | Particle Pack\n\n\n" +
+            "SKY\n\n" +
+            "The Moon's surface | NASA's Scientific Visualization Studio,\n" +
+            "CGI Moon Kit, from Lunar Reconnaissance Orbiter data\n\n\n" +
             "FONTS\n\n" +
             "Chakra Petch | The Chakra Petch Project Authors\n" +
             "Liberation Sans | Google and Red Hat\n" +

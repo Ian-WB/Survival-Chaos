@@ -106,10 +106,13 @@ namespace SurvivalChaos.Tests
         /// The usual limit for flashing light is three flashes in a second.
         /// A flash has at most <see cref="StormLightning.MostStrokes"/>
         /// strokes; the gap to the next flash has to be longer than that
-        /// second, and the strokes far enough apart to be strokes.
+        /// second, and the strokes far enough apart to be strokes. This
+        /// holds the saved numbers of the one component in the scene. It
+        /// does not watch the screen, and Strike() called from outside goes
+        /// round it.
         /// </summary>
         [Test]
-        public void TheScreen_NeverFlashesMoreThanThreeTimesInASecond()
+        public void TheSavedTiming_AllowsNoMoreThanThreeStrokesInASecond()
         {
             SavedScene scene = SavedScene.Load(ScenePath);
             string lightning = Lightning(scene);
@@ -124,10 +127,13 @@ namespace SurvivalChaos.Tests
         /// <summary>
         /// A flash under the horizon would be behind the ships and their
         /// fire, and one too far round is outside the frame, where it lights
-        /// nothing the player sees.
+        /// nothing the player sees. This holds the saved numbers flashes are
+        /// placed by: over the horizon, out in the wall, and leaning towards
+        /// the camera. It does not show that a flash is in the frame, or
+        /// that cloud stands where it lands.
         /// </summary>
         [Test]
-        public void EveryFlash_IsOverTheHorizon_AndNearWhereTheCameraLooks()
+        public void FlashesArePlaced_OverTheHorizon_AndTowardsTheCamera()
         {
             SavedScene scene = SavedScene.Load(ScenePath);
             string lightning = Lightning(scene);
@@ -151,6 +157,8 @@ namespace SurvivalChaos.Tests
             StringAssert.Contains("float4 _StormFlash;", text);
             StringAssert.Contains("float4 _StormFlashLight;", text);
             StringAssert.Contains("volumetricRay.flash      += StormFlashReach(currentPositionPS)", text, "the glow is not gathered along the ray");
+            StringAssert.Contains("ConvertToPS(GetCameraRelativePositionWS(_StormFlash.xyz))", text,
+                "the flash's place is a point in the world, and has to be measured from the camera before ConvertToPS; without it every flash is off by the camera's own position");
             StringAssert.Contains("volumetricRay.scattering += _StormFlashLight.rgb * volumetricRay.flash;", text, "the glow is gathered and never added to the cloud's light");
             StringAssert.Contains("volumetricRay.flash = 0.0;", text, "the glow starts from whatever was in memory");
         }
