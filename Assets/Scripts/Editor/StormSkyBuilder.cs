@@ -17,8 +17,17 @@ namespace SurvivalChaos.EditorTools
     /// stars. It has the colour and the billow of the clouds drawn in front
     /// of it, so cloud and space ran together, and its pink is the colour of
     /// lava-lit smoke. This one is the opposite on each count: near-black,
-    /// with a dense field of hard stars, one cool band of gas, and a planet
-    /// showing a lit crescent where the moonlight comes from.
+    /// with a dense field of hard stars, one cool band of gas, and a moon
+    /// where the moonlight comes from.
+    ///
+    /// **The moon is bright and nearly full since 7 October.** It was a
+    /// planet showing a thin crescent, its dark face towards the island,
+    /// which cannot be what lights the scene. Ian asked for the moon to be
+    /// the light's source and showed the Witcher's: a pale, nearly full disc
+    /// with seas and craters and a glow round it. The surface is NASA's map
+    /// of the Moon (<see cref="MoonMapPath"/>), tinted cold, turned so it is
+    /// not quite the face over Earth, and lit from a little to one side so
+    /// it is a ball and not a plate. The code still calls it the planet.
     ///
     /// **The planet stands where the scene's moon is.** The builder reads the
     /// Game scene's Directional Light when it runs and paints the planet on
@@ -103,25 +112,50 @@ namespace SurvivalChaos.EditorTools
         private static readonly Vector3 Teal = new Vector3(0.10f, 0.62f, 0.66f);
         private static readonly Vector3 Indigo = new Vector3(0.22f, 0.20f, 0.85f);
 
-        // The planet.
+        // The moon. The code calls it the planet, which it was until 7 October.
 
-        /// <summary>Half of how wide the planet stands in the sky, in degrees. The frame is 65 tall.</summary>
+        /// <summary>Half of how wide the moon stands in the sky, in degrees. The frame is 65 tall.</summary>
         public const float PlanetRadius = 12f;
 
         /// <summary>
-        /// How far round behind the planet its sun is, in degrees: 0 would
-        /// be dead behind and leave no crescent, 90 a half disc.
+        /// NASA's map of the Moon, from the CGI Moon Kit of its Scientific
+        /// Visualization Studio (lroc_color_poles_2k.tif): public domain.
+        /// It is laid out by longitude and latitude with the middle of the
+        /// near side in the middle. Only this builder reads it, so it is not
+        /// built into the game.
         /// </summary>
-        private const float SunBehind = 60f;
+        public const string MoonMapPath = "Assets/Art/Skybox/MoonMap.tif";
 
-        /// <summary>Which side the crescent is on, in degrees round from straight down towards the right.</summary>
-        private const float CrescentTurn = -70f;
+        /// <summary>
+        /// How far the moon's sun stands off the line from straight behind
+        /// the camera, in degrees: 0 is a full moon, flat as a plate, and 90
+        /// a half moon.
+        /// </summary>
+        private const float SunAside = 30f;
 
-        private const float PlanetPeak = 1.1f;
+        /// <summary>
+        /// Which side that sun is on, in degrees round from straight down
+        /// towards the right. The shaded edge is opposite, at the upper left,
+        /// where the storm's wall does not hide it.
+        /// </summary>
+        private const float SunTurn = 55f;
+
+        /// <summary>How far the face is turned round the line of sight, in degrees.</summary>
+        private const float MoonRoll = -25f;
+
+        /// <summary>How bright the moon's highlands are painted. The sheet tops out at 1.</summary>
+        private const float PlanetPeak = 0.55f;
         private static readonly Vector3 PlanetPale = new Vector3(0.80f, 0.93f, 1.00f);
-        private static readonly Vector3 PlanetDeep = new Vector3(0.42f, 0.70f, 0.86f);
         private static readonly Vector3 NightSide = new Vector3(0.010f, 0.013f, 0.020f);
         private static readonly Vector3 Air = new Vector3(0.30f, 0.75f, 0.90f);
+
+        // The glow round the moon: a tight one at its edge and a wide faint
+        // one, in degrees, both gone by HaloReach out from the edge.
+        private const float HaloNear = 0.07f;
+        private const float HaloNearWidth = 2.5f;
+        private const float HaloFar = 0.018f;
+        private const float HaloFarWidth = 9f;
+        private const float HaloReach = 30f;
 
         // The six faces, by where each sits in the cross: column, then row
         // counted from the top. Seen from inside, the way the importer reads it:
@@ -275,16 +309,18 @@ namespace SurvivalChaos.EditorTools
             Vector3 bandAxis = BandAxis(toPlanet);
             List<Star> stars = Scatter(bandAxis);
 
-            // The planet's own frame: which way is down and right across its
-            // disc, where its sun is, and the pole its bands run round.
+            // The moon's own frame: which way is down and right across its
+            // disc, where its sun is, and how its face is turned.
             Vector3 right = Vector3.Cross(Vector3.up, toPlanet).normalized;
             Vector3 down = -Vector3.Cross(toPlanet, right).normalized;
-            float turn = CrescentTurn * Mathf.Deg2Rad;
+            float turn = SunTurn * Mathf.Deg2Rad;
             Vector3 side = Mathf.Cos(turn) * down + Mathf.Sin(turn) * right;
-            float behind = SunBehind * Mathf.Deg2Rad;
-            Vector3 toSun = (Mathf.Cos(behind) * toPlanet + Mathf.Sin(behind) * side).normalized;
-            // Along the crescent's own lean, so the bands follow the lit edge round and do not cut across it.
-            Vector3 pole = (Quaternion.AngleAxis(15f, toPlanet) * side).normalized;
+            float aside = SunAside * Mathf.Deg2Rad;
+            Vector3 toSun = (-Mathf.Cos(aside) * toPlanet + Mathf.Sin(aside) * side).normalized;
+            Quaternion roll = Quaternion.AngleAxis(MoonRoll, toPlanet);
+            Vector3 east = roll * right;
+            Vector3 north = roll * -down;
+            MoonMap map = MoonMap.Read(MoonMapPath);
 
             int width = size * 4;
             int height = size * 3;
@@ -323,7 +359,7 @@ namespace SurvivalChaos.EditorTools
                         Vector3 direction = Direction(current, (x + 0.5f) / size * 2f - 1f, up);
                         int at = (y * size + x) * 3;
                         Vector3 behindIt = new Vector3(light[at], light[at + 1], light[at + 2]);
-                        Vector3 colour = Planet(direction, toPlanet, toSun, pole, behindIt);
+                        Vector3 colour = Planet(direction, toPlanet, toSun, east, north, map, behindIt);
                         light[at] = colour.x;
                         light[at + 1] = colour.y;
                         light[at + 2] = colour.z;
@@ -409,28 +445,28 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// The planet over whatever is behind it along a direction: a ball
-        /// lit from behind and to one side, its night side nearly as dark as
-        /// space, with a thin shell of air that catches the light at the edge.
+        /// The moon over whatever is behind it along a direction: a ball
+        /// wearing NASA's map, lit from behind the camera and a little to
+        /// one side, with a glow round it that fades to nothing.
         /// </summary>
-        private static Vector3 Planet(Vector3 direction, Vector3 toPlanet, Vector3 toSun, Vector3 pole, Vector3 behindIt)
+        private static Vector3 Planet(Vector3 direction, Vector3 toPlanet, Vector3 toSun, Vector3 east, Vector3 north,
+            MoonMap map, Vector3 behindIt)
         {
             float radius = PlanetRadius * Mathf.Deg2Rad;
             float towards = Vector3.Dot(direction, toPlanet);
             float angle = Mathf.Acos(Mathf.Clamp(towards, -1f, 1f));
-            if (angle > radius * 1.6f)
+            float beyond = (angle - radius) * Mathf.Rad2Deg;
+            if (beyond > HaloReach)
             {
                 return behindIt;
             }
 
-            // Which way out from the middle of the disc this direction is.
-            Vector3 outward = direction - toPlanet * towards;
-            outward = outward.sqrMagnitude > 1e-12f ? outward.normalized : Vector3.zero;
-            float sunSide = Mathf.Clamp01(Vector3.Dot(outward, toSun) * 1.6f + 0.25f);
-
-            // The air outside the edge, on the lit side only.
-            float over = Mathf.Max(0f, angle - radius) / (radius * 0.045f);
-            Vector3 result = behindIt + Air * (0.35f * sunSide * Mathf.Exp(-over));
+            // The glow outside the edge. It ends at exactly nothing, so the
+            // space past it stays one colour.
+            float over = Mathf.Max(0f, beyond);
+            float glow = (HaloNear * Mathf.Exp(-over / HaloNearWidth) + HaloFar * Mathf.Exp(-over / HaloFarWidth))
+                * (1f - Ramp(HaloReach * 0.6f, HaloReach, over));
+            Vector3 result = behindIt + Air * glow;
 
             // The ball, with its edge softened over about a texel.
             float soft = 0.03f * Mathf.Deg2Rad;
@@ -446,16 +482,102 @@ namespace SurvivalChaos.EditorTools
             float reach = inside - Mathf.Sqrt(Mathf.Max(0f, inside * inside - (1f - sine * sine)));
             Vector3 normal = (direction * reach - toPlanet).normalized;
 
-            // Raised a little, so the crescent fades in from the dark side and does not stop at a line.
-            float lit = Mathf.Pow(Mathf.Clamp01(Vector3.Dot(normal, toSun) + 0.02f), 1.4f);
-            float latitude = Vector3.Dot(normal, pole);
-            float swirl = Fbm(normal * 2.6f + new Vector3(3.3f, 8.8f, 1.1f), 4);
-            float stripes = 0.5f + 0.5f * Mathf.Sin(latitude * 17f + swirl * 3.5f);
-            Vector3 surface = Vector3.Lerp(PlanetDeep, PlanetPale, stripes) * (0.78f + 0.22f * Fbm(normal * 7f, 3));
+            // The real Moon is flat across its lit face and falls away only
+            // near the shadow, so the light comes up fast from the dark edge;
+            // the rim is taken down a little so it still reads as a ball.
+            float lit = Ramp(-0.02f, 0.3f, Vector3.Dot(normal, toSun));
+            float facing = Mathf.Clamp01(-Vector3.Dot(normal, direction));
+            float rim = 0.75f + 0.25f * Mathf.Sqrt(facing);
 
-            float edge = Mathf.Pow(1f - Mathf.Clamp01(-Vector3.Dot(normal, direction)), 3f);
-            Vector3 ball = NightSide + surface * (lit * PlanetPeak) + Air * (0.5f * edge * sunSide);
+            float longitude = Mathf.Atan2(Vector3.Dot(normal, east), -Vector3.Dot(normal, toPlanet));
+            float latitude = Mathf.Asin(Mathf.Clamp(Vector3.Dot(normal, north), -1f, 1f));
+            Vector3 ball = NightSide + PlanetPale * (map.Sample(longitude, latitude) * lit * rim * PlanetPeak);
             return Vector3.Lerp(result, ball, cover);
+        }
+
+        /// <summary>
+        /// The moon's map as plain brightness, read once before the painting
+        /// starts, because the painting runs on many threads and a texture
+        /// can only be read on one. 1 is the highlands; the seas come out
+        /// near 0.45 and the brightest craters a little over 1.
+        /// </summary>
+        private sealed class MoonMap
+        {
+            private float[] light;
+            private int width;
+            private int height;
+
+            public static MoonMap Read(string path)
+            {
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (importer == null)
+                {
+                    throw new FileNotFoundException("Storm sky: the moon's map is missing.", path);
+                }
+
+                // Readable and as it is on disk. Nothing in the game uses the texture itself.
+                if (!importer.isReadable || importer.mipmapEnabled || importer.maxTextureSize < 2048
+                    || importer.textureCompression != TextureImporterCompression.Uncompressed
+                    || importer.npotScale != TextureImporterNPOTScale.None)
+                {
+                    importer.isReadable = true;
+                    importer.mipmapEnabled = false;
+                    importer.maxTextureSize = 2048;
+                    importer.textureCompression = TextureImporterCompression.Uncompressed;
+                    importer.npotScale = TextureImporterNPOTScale.None;
+                    importer.sRGBTexture = true;
+                    importer.SaveAndReimport();
+                }
+
+                Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                Color32[] texels = texture.GetPixels32();
+                MoonMap map = new MoonMap { width = texture.width, height = texture.height, light = new float[texels.Length] };
+
+                int[] counts = new int[1024];
+                for (int i = 0; i < texels.Length; i++)
+                {
+                    float value = 0.2126f * Mathf.GammaToLinearSpace(texels[i].r / 255f)
+                        + 0.7152f * Mathf.GammaToLinearSpace(texels[i].g / 255f)
+                        + 0.0722f * Mathf.GammaToLinearSpace(texels[i].b / 255f);
+                    map.light[i] = value;
+                    counts[Mathf.Min(1023, (int)(value * 1024f))]++;
+                }
+
+                // The level 95 texels in 100 are under is the highlands.
+                int under = 0;
+                int level = 0;
+                while (level < 1023 && under + counts[level] < texels.Length * 0.95f)
+                {
+                    under += counts[level];
+                    level++;
+                }
+
+                float highlands = Mathf.Max(1e-4f, (level + 0.5f) / 1024f);
+                for (int i = 0; i < map.light.Length; i++)
+                {
+                    // Raised a little, or the seas are holes.
+                    map.light[i] = Mathf.Pow(Mathf.Min(map.light[i] / highlands, 1.4f), 0.75f);
+                }
+
+                return map;
+            }
+
+            /// <summary>The brightness at a longitude and latitude on the moon, in radians, east and north positive.</summary>
+            public float Sample(float longitude, float latitude)
+            {
+                float x = (0.5f + longitude / (Mathf.PI * 2f)) * width - 0.5f;
+                float y = Mathf.Clamp((0.5f + latitude / Mathf.PI) * height - 0.5f, 0f, height - 1f);
+                int x0 = Mathf.FloorToInt(x);
+                int y0 = Mathf.Min(Mathf.FloorToInt(y), height - 2);
+                float fx = x - x0;
+                float fy = y - y0;
+                int left = ((x0 % width) + width) % width;
+                int rightOf = (left + 1) % width;
+
+                float low = Mathf.Lerp(light[y0 * width + left], light[y0 * width + rightOf], fx);
+                float high = Mathf.Lerp(light[(y0 + 1) * width + left], light[(y0 + 1) * width + rightOf], fx);
+                return Mathf.Lerp(low, high, fy);
+            }
         }
 
         /// <summary>The stars: an even field, and more along the band. Most are faint; a few are bright enough to spread.</summary>

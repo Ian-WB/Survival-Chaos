@@ -39,6 +39,14 @@ namespace SurvivalChaos.EditorTools
     /// always there. Tried in play, brief dark spells come back with the moon
     /// at about 25 and there are more of them at 32.
     ///
+    /// **The deck is out since 7 October.** Ian found the clouds hid too
+    /// much of the sky, and the deck was most of what hid it. Over two
+    /// minutes with the moon at 15, the island's moonlit side ran 43 to 53
+    /// under the deck and runs 60 to 63 without it, so the deck was still
+    /// taking about a fifth of the moon's light there, steadily, with small
+    /// dips; the side away from the moon went from 79 to 80. Everything that
+    /// draws the deck is still here: <see cref="Deck"/> at 1 puts it back.
+    ///
     /// **The storm turns, which HDRP's wind cannot do.** Its wind pushes the
     /// clouds in a straight line. The project carries copies of HDRP's two
     /// cloud tracers and the include they share, where every point is
@@ -156,9 +164,11 @@ namespace SurvivalChaos.EditorTools
 
         /// <summary>
         /// How much of the shape noise the deck keeps. At 0.6 on a thinner
-        /// band the rock never fell below 33; this is what takes it to 13.
+        /// band the rock never fell below 33; 1 is what took it to 13, with
+        /// the moon 40 degrees up. It is 0, which is no deck, since
+        /// 7 October: the class's summary says why.
         /// </summary>
-        private const float Deck = 1f;
+        private const float Deck = 0f;
 
         // The map.
 

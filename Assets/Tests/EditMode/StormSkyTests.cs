@@ -191,18 +191,22 @@ namespace SurvivalChaos.Tests
                            " degrees up towards " + toMoon.ToString("0.00") +
                            ". If the light has been turned, run Survival Chaos > Build Storm Sky with the Game scene open.";
 
-            // Just inside the planet's edge a good part of the way round is
-            // lit: the crescent and the air over it.
+            // Half way out from its middle the moon is lit all the way round:
+            // it is nearly full. (Until 7 October it was a planet showing a
+            // crescent, and this test held its middle dark.)
+            Assert.Greater(ShareOfRingBrighterThan(toMoon, PlanetRadius * 0.5f, 60), 0.9f,
+                "The moon is not lit all the way round half way out from its middle." + where);
+            Assert.Greater(Brightest(Towards(toMoon)), 50, "The middle of the moon is dark." + where);
+
+            // Just inside its edge the side towards its sun is lit and the
+            // side away is not, which is what makes it a ball.
             float edge = ShareOfRingBrighterThan(toMoon, PlanetRadius - 0.2f, 90);
-            Assert.Greater(edge, 0.2f, "There is no lit crescent round the moon's line." + where);
-            Assert.Less(edge, 0.7f, "The planet is lit nearly all the way round, which is a disc, not a crescent.");
+            Assert.Greater(edge, 0.3f, "The moon's edge is hardly lit." + where);
+            Assert.Less(edge, 0.7f, "The moon's edge is lit all the way round, which is a plate, not a ball.");
 
-            // A little way outside it there is only space and the odd star.
+            // A little way outside it there is only its glow, space and the odd star.
             Assert.Less(ShareOfRingBrighterThan(toMoon, PlanetRadius * 1.3f, 90), 0.03f,
-                "Something bright stands just outside where the planet should end." + where);
-
-            // And its middle is the night side: dark, but not as dark as space.
-            Assert.Less(Brightest(Towards(toMoon)), 70, "The middle of the planet is lit." + where);
+                "Something bright stands just outside where the moon should end." + where);
         }
 
         [Test]

@@ -18,9 +18,9 @@ namespace SurvivalChaos.Tests
     /// are stretched over, so the tests go from metres to texels the way
     /// HDRP does.
     ///
-    /// The second is the deck of broken cloud over the eye. It is what
-    /// crosses the moon and makes the scene go dark and light again, and the
-    /// first build of the ring shipped without it.
+    /// The second is the sky over the eye, which is open. A deck of broken
+    /// cloud rode there until 7 October to cross the moon and darken the
+    /// scene; it hid too much of the sky and was taken out.
     /// </summary>
     public class CloudRingTests
     {
@@ -262,27 +262,29 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// With the moon 40 degrees up, the cloud that shades the island is
-        /// 450 over it and some 550 out. The deck has to be there on every
-        /// bearing, because where the moon is is the lighting's business, and
-        /// heavy, or its shadow is a tint. (Since 6 October the moon is 15
-        /// degrees up and the wall shades the island instead; the deck is
-        /// what puts the dark spells back if the moon is raised again.)
+        /// Until 7 October a deck of heavy cloud rode over the eye, 240 over
+        /// the island and up, to cross the moon and darken the scene. Ian
+        /// found the clouds hid too much of the sky, so it is out, and the
+        /// sky over the eye is open from the island to the layer's top. If
+        /// the moon is raised again and the dark spells are wanted back, the
+        /// builder's Deck puts it back and this test goes the other way.
         /// </summary>
         [Test]
-        public void ADeckOfHeavyCloud_RidesOverTheEye()
+        public void TheSkyOverTheEye_IsOpen()
         {
             Texture2D map = Read(MapPath);
             Texture2D lookup = Read(LookupPath);
 
-            Assert.That(CloudAt(map, lookup, 0f, 0f, 450f), Is.GreaterThan(0.5f), "no deck over the island");
-            for (int bearing = 0; bearing < 360; bearing += 15)
+            foreach (float over in new[] { 250f, 450f, 700f })
             {
-                float x = 550f * Mathf.Cos(bearing * Mathf.Deg2Rad);
-                float z = 550f * Mathf.Sin(bearing * Mathf.Deg2Rad);
+                Assert.AreEqual(0f, CloudAt(map, lookup, 0f, 0f, over), 1e-3f, "cloud " + over + " over the island");
+                for (int bearing = 0; bearing < 360; bearing += 15)
+                {
+                    float x = 550f * Mathf.Cos(bearing * Mathf.Deg2Rad);
+                    float z = 550f * Mathf.Sin(bearing * Mathf.Deg2Rad);
 
-                Assert.That(CloudAt(map, lookup, x, z, 450f), Is.GreaterThan(0.5f), "no deck 550 out at " + bearing);
-                Assert.That(MapOver(map, x, z).g, Is.GreaterThan(0.9f), "the cloud 550 out at " + bearing + " is too thin to shade anything");
+                    Assert.AreEqual(0f, CloudAt(map, lookup, x, z, over), 1e-3f, "cloud " + over + " over the eye, 550 out at " + bearing);
+                }
             }
 
             Object.DestroyImmediate(map);
