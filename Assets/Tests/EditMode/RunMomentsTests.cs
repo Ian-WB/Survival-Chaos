@@ -21,6 +21,11 @@ namespace SurvivalChaos.Tests
         public void SetUp()
         {
             RunOutcome.Clear();
+
+            // A hold outlives a new run on purpose, and with no domain reload
+            // it outlives play mode too: stopping play while one is on would
+            // fail whichever test here ran first.
+            RunTime.SetHold(false);
             RunTime.ResetForNewRun();
             RunStats.Clear();
             root = new GameObject("Run moments test");

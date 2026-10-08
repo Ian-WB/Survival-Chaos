@@ -7,7 +7,7 @@ Unity 6.6 with HDRP. Windows only. Version 0.9.0, in polish.
 
 ## What you need
 
-- **Unity 6000.6.4f1**, the version in `ProjectSettings/ProjectVersion.txt`.
+- **Unity 6000.6.5f1**, the version in `ProjectSettings/ProjectVersion.txt`.
   HDRP 17.6 comes built into it, so there is nothing else to install.
 - **Git LFS.** Textures, models, audio, fonts and the other binary assets are
   stored in LFS. Cloning without it gives you pointer files in their place.
@@ -16,7 +16,7 @@ Unity 6.6 with HDRP. Windows only. Version 0.9.0, in polish.
 
 1. Run `git lfs install`, then clone.
 2. In Unity Hub, add this folder (the one with `Assets/` in it) and open it
-   with 6000.6.4f1.
+   with 6000.6.5f1.
 3. Bake the lighting before you judge how the game looks. Baked lighting is
    not in the repository: one bake of the Game scene is about 55 MB, and it
    changes often enough to use up the LFS quota. Everything that produces it
