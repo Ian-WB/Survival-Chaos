@@ -43,8 +43,13 @@ namespace SurvivalChaos.EditorTools
     /// at 0.2 a corner is about a seventh darker while the middle third of
     /// the frame does not change.
     ///
-    /// Dithering is the fourth part and is not set here: it is a tick on each
-    /// scene's camera, and PictureGradeTests holds both.
+    /// Dithering was the fourth part, a tick on each scene's camera, and was
+    /// taken out the same day. Ian played the graded build and said the
+    /// clouds were full of noise. Measured on runs of consecutive frames,
+    /// the clouds themselves hardly change from one frame to the next with
+    /// the camera still (0.1 of a level in 255, at every cloud setting),
+    /// and the dither's grain was 0.45 on top of that: on a dark, smooth
+    /// cloud it was most of what moved. PictureGradeTests holds it off.
     ///
     /// All of it is in the default profile, so the menu is graded as the game
     /// is. The HUD is drawn over the finished picture and is not touched.
@@ -147,7 +152,7 @@ namespace SurvivalChaos.EditorTools
             }
 
             Debug.Log("Picture grade applied: the custom tone curve, split toning and a vignette of " +
-                      $"{VignetteIntensity:0.##}. Dithering is a tick on each scene's camera.");
+                      $"{VignetteIntensity:0.##}.");
         }
     }
 }

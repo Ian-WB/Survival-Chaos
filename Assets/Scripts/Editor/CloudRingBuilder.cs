@@ -129,6 +129,7 @@ namespace SurvivalChaos.EditorTools
         public const string ProfilePath = "Assets/Scenes/Game/Scene Volume Profile.asset";
         public const string TracerPath = "Assets/Art/Shaders/VolumetricCloudsTrace.compute";
         public const string ShadowTracerPath = "Assets/Art/Shaders/VolumetricCloudsTraceShadows.compute";
+        public const string HistoryPath = "Assets/Art/Shaders/VolumetricClouds.compute";
 
         /// <summary>HDRP keeps its cloud shaders in a settings class it does not show, so they are reached by name.</summary>
         private const string ResourcesType =
@@ -487,8 +488,13 @@ namespace SurvivalChaos.EditorTools
         {
             ComputeShader tracer = AssetDatabase.LoadAssetAtPath<ComputeShader>(TracerPath);
             ComputeShader shadowTracer = AssetDatabase.LoadAssetAtPath<ComputeShader>(ShadowTracerPath);
+
+            // The pass that blends each frame of cloud with the ones before. Its copy knows the
+            // storm turns; HDRP's own reads the history from where the cloud is now, and a
+            // turning storm then shows as grain (8 October 2026).
+            ComputeShader history = AssetDatabase.LoadAssetAtPath<ComputeShader>(HistoryPath);
             System.Type resources = System.Type.GetType(ResourcesType);
-            if (tracer == null || shadowTracer == null || resources == null)
+            if (tracer == null || shadowTracer == null || history == null || resources == null)
             {
                 Debug.LogError("Cloud ring: the project's cloud tracers are missing, or HDRP no longer keeps its own in " +
                                "VolumetricCloudsRuntimeResources. The clouds will drift in a line instead of turning.");
@@ -502,6 +508,7 @@ namespace SurvivalChaos.EditorTools
 
             resources.GetProperty("volumetricCloudsTraceCS").SetValue(settings, tracer);
             resources.GetProperty("volumetricCloudsTraceShadowsCS").SetValue(settings, shadowTracer);
+            resources.GetProperty("volumetricCloudsCS").SetValue(settings, history);
 
             // The settings class lives inside the pipeline's global settings asset.
             Object owner = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>();

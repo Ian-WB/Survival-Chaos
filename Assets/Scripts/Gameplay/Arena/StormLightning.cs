@@ -53,7 +53,9 @@ namespace SurvivalChaos
     /// apart, so this component, left to its own clock, never flashes the
     /// clouds more than three times in a second, which is the usual limit
     /// for flashing light. <see cref="Strike"/> called from outside is not
-    /// counted, and neither is a second component.
+    /// counted. The volcano's own lightning (<see cref="AshLightning"/>,
+    /// 8 October) is a second source of flashes, so the two take turns:
+    /// neither starts while the other is lit or within a second of it.
     ///
     /// With no clouds drawn, on the two lowest quality tiers, nothing shows.
     /// </summary>
@@ -65,6 +67,10 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("The project's copy of HDRP's cloud tracer, which draws the glow: Art/Shaders/VolumetricCloudsTrace.")]
         private ComputeShader tracer;
+
+        [SerializeField]
+        [Tooltip("The lightning in the volcano's ash, so that the two take turns. Leave empty and this keeps its own time.")]
+        private AshLightning ash;
 
         [Header("When")]
         [SerializeField]
@@ -132,6 +138,9 @@ namespace SurvivalChaos
         /// <summary>True from a flash's first stroke until its last has died away.</summary>
         public bool Striking { get; private set; }
 
+        /// <summary>When the last flash ended, in game time; far in the past until one has.</summary>
+        public float EndedAt { get; private set; } = float.NegativeInfinity;
+
         /// <summary>
         /// How bright a flash is, 0 to 1, a time after it began: each stroke
         /// arrives over <paramref name="rise"/> and then dies away, and the
@@ -195,7 +204,7 @@ namespace SurvivalChaos
             float now = Time.time;
             if (!Striking)
             {
-                if (now < nextAt)
+                if (now < nextAt || (ash != null && (ash.Striking || now - ash.EndedAt < AshLightning.Turn)))
                 {
                     return;
                 }
@@ -207,6 +216,7 @@ namespace SurvivalChaos
             if (since >= Length(strokeAt, strokes, strokeRise, strokeFade))
             {
                 Striking = false;
+                EndedAt = now;
                 nextAt = now + Random.Range(gap.x, gap.y);
                 Light(0f);
                 return;

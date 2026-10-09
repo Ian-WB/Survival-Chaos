@@ -42,6 +42,7 @@ namespace SurvivalChaos.Tests
 
         [TestCase("volumetricCloudsTraceCS", "VolumetricCloudsTrace.compute", "RenderClouds")]
         [TestCase("volumetricCloudsTraceShadowsCS", "VolumetricCloudsTraceShadows.compute", "TraceVolumetricCloudsShadows")]
+        [TestCase("volumetricCloudsCS", "VolumetricClouds.compute", "ReprojectClouds")]
         public void TheClouds_AreTracedByTheProjectsCopy(string property, string file, string kernel)
         {
             Type resources = Type.GetType(ResourcesType);
@@ -63,6 +64,45 @@ namespace SurvivalChaos.Tests
                 "The clouds are traced by " + (inUse != null ? AssetDatabase.GetAssetPath(inUse) : "nothing") +
                 ", so the storm no longer turns. Run Survival Chaos > Environment > Build Cloud Ring.");
             Assert.IsTrue(ours.HasKernel(kernel), Folder + file + " has no " + kernel + " kernel: it did not compile.");
+        }
+
+        /// <summary>
+        /// HDRP blends each frame of cloud with the frames before, and looks
+        /// for last frame's cloud where the cloud is now. This storm turns
+        /// and rises, so the project's copy of that pass looks where the
+        /// cloud was. The three numbers it does that by are the scene's wind
+        /// and rise and the tracer's radius, written out again in the
+        /// shader; if one of them moves and the other does not, the history
+        /// is read from the wrong place again and the clouds go grainy, as
+        /// Ian saw on 8 October 2026.
+        /// </summary>
+        [Test]
+        public void TheCloudsHistory_FollowsTheStorm_ByTheScenesOwnNumbers()
+        {
+            string history = File.ReadAllText(Folder + "VolumetricClouds.compute");
+            StringAssert.Contains("#include \"" + Folder + "VolumetricCloudsDenoising.hlsl\"", history,
+                "the history pass reads HDRP's own include, which leaves the cloud standing still");
+
+            string include = File.ReadAllText(Folder + "VolumetricCloudsDenoising.hlsl");
+            StringAssert.Contains("prevPos.xyz += thenPS - nowPS;", include, "the place a frame ago is worked out and never used");
+
+            float Number(string text, string name)
+            {
+                Match match = Regex.Match(text, @"#define\s+" + name + @"\s+([0-9.]+)");
+                Assert.IsTrue(match.Success, "no " + name);
+                return float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
+            Assert.IsNotNull(profile, ProfilePath);
+            Assert.IsTrue(profile.TryGet(out UnityEngine.Rendering.HighDefinition.VolumetricClouds clouds), "the scene has no clouds");
+
+            Assert.AreEqual(clouds.globalWindSpeed.value.customValue, Number(include, "STORM_WIND_KMH"), 0.01f,
+                "the scene's Global Wind Speed and the history's copy of it have parted");
+            Assert.AreEqual(clouds.verticalShapeWindSpeed.value, Number(include, "STORM_RISE_KMH"), 0.01f,
+                "the scene's Vertical Shape Wind Speed and the history's copy of it have parted");
+            Assert.AreEqual(Number(File.ReadAllText(Folder + Include), "STORM_TURN_RADIUS"), Number(include, "STORM_TURN_RADIUS"), 0.01f,
+                "the tracer and the history turn the storm at different radii");
         }
 
         [TestCase("VolumetricCloudsTrace.compute")]
@@ -125,6 +165,8 @@ namespace SurvivalChaos.Tests
         [TestCase("VolumetricCloudsTrace.compute", "385b4f4f1ffef03814ebfd6eb4093a9b2aa72601a8dfbb087fc14af260a402a9")]
         [TestCase("VolumetricCloudsTraceShadows.compute", "50fe985c30e62cd6b9b8d36ec838c1cdac1e7afd467bc22ed4031c1158268a1d")]
         [TestCase(Include, "3d50db296eb4092e6003c6ee5f8f44af038f10a019fa43d45c8b498c4d17b38c")]
+        [TestCase("VolumetricClouds.compute", "facbfb2daadd52ce8285bc9a61dda2f622ae1a07292bd6b73a1f0afe1b34af0e")]
+        [TestCase("VolumetricCloudsDenoising.hlsl", "06dbdc95d23f4b6b42617ed03ffb4d1b51b3945f49f3f3597ed6fcb1f412f7c9")]
         public void ThePackagesFile_IsTheOneThatWasCopied(string file, string sha256)
         {
             var package = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(Package + file);

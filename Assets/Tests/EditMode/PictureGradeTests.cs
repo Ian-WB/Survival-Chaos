@@ -151,17 +151,22 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// The picture is mostly dark gradients, of fog and of sky, and eight
-        /// bits show those as bands unless the camera dithers. The tick is on
-        /// the camera, so each scene has its own to lose.
+        /// The grade went in with dithering on both cameras, against bands
+        /// in the dark gradients of fog and sky, and it came out the same
+        /// day: its grain, a level up or down on every pixel and new every
+        /// frame, was most of what moved on the dark clouds, and was the
+        /// noise Ian reported from the first graded build. Nobody had
+        /// reported bands before it. If bands are ever seen, weigh them
+        /// against that before ticking this again.
         /// </summary>
         [TestCase("Assets/Scenes/Game.unity")]
         [TestCase("Assets/Scenes/Menu.unity")]
-        public void EveryCamera_Dithers(string scenePath)
+        public void NoCamera_Dithers(string scenePath)
         {
             string text = File.ReadAllText(scenePath);
-            Assert.That(Regex.Matches(text, @"\n  dithering: 1\r?\n").Count, Is.GreaterThanOrEqualTo(1), scenePath + " has no camera that dithers");
-            Assert.AreEqual(0, Regex.Matches(text, @"\n  dithering: 0\r?\n").Count, "a camera in " + scenePath + " does not dither");
+            Assert.That(Regex.Matches(text, @"\n  dithering: 0\r?\n").Count, Is.GreaterThanOrEqualTo(1), scenePath + " has no camera to read");
+            Assert.AreEqual(0, Regex.Matches(text, @"\n  dithering: 1\r?\n").Count,
+                "a camera in " + scenePath + " dithers, which puts a grain over the dark clouds");
         }
     }
 }
