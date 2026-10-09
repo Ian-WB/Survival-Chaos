@@ -23,7 +23,23 @@ namespace SurvivalChaos.Tests
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
             Assert.IsNotNull(profile, ProfilePath);
             Assert.IsTrue(profile.TryGet(out T component), ProfilePath + " has no " + typeof(T).Name + ".");
+
+            // The tick beside the override's name. HDRP passes over one that
+            // is off, and every number under it could still read right.
+            Assert.IsTrue(component.active, typeof(T).Name + " is switched off in " + ProfilePath + "." + Rerun);
             return component;
+        }
+
+        /// <summary>
+        /// A value counts only with its own tick on: without it the picture
+        /// takes HDRP's default for that setting, whatever is stored here.
+        /// </summary>
+        private static void AssertSet(string what, params VolumeParameter[] parameters)
+        {
+            foreach (VolumeParameter parameter in parameters)
+            {
+                Assert.IsTrue(parameter.overrideState, what + " has a value that is stored but not in use." + Rerun);
+            }
         }
 
         /// <summary>
@@ -43,6 +59,11 @@ namespace SurvivalChaos.Tests
 
         private static HableCurve Curve(Tonemapping tonemapping)
         {
+            // The curve is rebuilt here from the six stored numbers, so it is
+            // the picture's curve only if all six are in use.
+            AssertSet("The tone curve", tonemapping.toeStrength, tonemapping.toeLength, tonemapping.shoulderStrength,
+                tonemapping.shoulderLength, tonemapping.shoulderAngle, tonemapping.gamma);
+
             HableCurve curve = new HableCurve();
             curve.Init(tonemapping.toeStrength.value, tonemapping.toeLength.value, tonemapping.shoulderStrength.value,
                 tonemapping.shoulderLength.value, tonemapping.shoulderAngle.value, tonemapping.gamma.value);
@@ -103,7 +124,7 @@ namespace SurvivalChaos.Tests
             Color shadows = toning.shadows.value;
             Color highlights = toning.highlights.value;
 
-            Assert.IsTrue(toning.shadows.overrideState && toning.highlights.overrideState, "split toning is not set." + Rerun);
+            AssertSet("Split toning", toning.shadows, toning.highlights, toning.balance);
             Assert.That(shadows.b - shadows.r, Is.InRange(0.08f, 0.3f), "the shadows are not cool, or are too blue");
             Assert.That(highlights.r - highlights.b, Is.InRange(0.06f, 0.3f), "the highlights are not warm, or are too orange");
 
@@ -123,7 +144,7 @@ namespace SurvivalChaos.Tests
         public void TheVignette_IsThere_AndLight()
         {
             Vignette vignette = Override<Vignette>();
-            Assert.IsTrue(vignette.intensity.overrideState, "the vignette is not set." + Rerun);
+            AssertSet("The vignette", vignette.mode, vignette.intensity, vignette.smoothness);
             Assert.AreEqual(VignetteMode.Procedural, vignette.mode.value);
             Assert.That(vignette.intensity.value, Is.InRange(0.1f, 0.25f));
             Assert.That(vignette.smoothness.value, Is.InRange(0.2f, 0.6f));

@@ -108,6 +108,13 @@ namespace SurvivalChaos.EditorTools
                 return;
             }
 
+            // The tick beside each override's name. With it off HDRP skips the
+            // override whatever its numbers say, and this is the tool a failing
+            // test sends the reader to.
+            tonemapping.active = true;
+            splitToning.active = true;
+            vignette.active = true;
+
             tonemapping.mode.Override(TonemappingMode.Custom);
             tonemapping.toeStrength.Override(ToeStrength);
             tonemapping.toeLength.Override(ToeLength);

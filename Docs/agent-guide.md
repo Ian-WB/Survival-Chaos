@@ -197,8 +197,13 @@ picked it up. A build made against unrefreshed code warns "you have uncompiled
 code changes" and quietly ships the old behaviour.
 
 ```bash
-unity command eval --code 'System.Type t=null; foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies()) { foreach (var x in a.GetTypes()) if (x.Name=="BuildBossRig") { t=x; break; } if (t!=null) break; } var f = t.GetField("PodHealth", System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static); return "PodHealth=" + f.GetRawConstantValue();'
+unity command eval --code 'System.Type t=null; foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies()) { foreach (var x in a.GetTypes()) if (x.Name=="CameraFraming") { t=x; break; } if (t!=null) break; } if (t==null) return "CameraFraming is not loaded"; var f = t.GetField("BandMargin", System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static); return f==null ? "CameraFraming has no BandMargin" : "BandMargin=" + f.GetRawConstantValue();'
 ```
+
+Put your own type and member in place of `CameraFraming` and `BandMargin`. A
+type or a member that is not found is an answer too (the old assembly is still
+loaded, or the name is wrong), which is why the example reports it instead of
+throwing.
 
 ---
 
@@ -319,7 +324,7 @@ Getting these wrong produces confident, wrong answers. They are not guessable.
 | `Assets/Scripts/Gameplay/Boss/` | the boss: emitter, attacks, weak points, lance beam |
 | `Assets/Scripts/Gameplay/Arena/` | ring geometry, bullet light pools, clouds |
 | `Assets/Scripts/Gameplay/Enemies/` | ordinary enemies, health |
-| `Assets/Scripts/Editor/BuildBossRig.cs` | authors the boss rig. **The design reasoning for the whole fight lives in its comments** — read it before changing any boss number |
+| `Assets/Prefabs/Boss/Boss.prefab` | the boss as it stands. Nothing rebuilds it: the tool that authored it was removed on 8 October 2026, when a rebuild no longer gave back the prefab (see section 10 for where its design notes are) |
 | `Assets/Data/Enemies/*.asset` | enemy stats (the boss's `maxHealth` is authoritative here) |
 | `Assets/Prefabs/Boss/`, `Assets/Prefabs/Player/` | prefabs |
 | `Assets/Scenes/Game.unity` | the one gameplay scene |
@@ -363,11 +368,23 @@ fetch them; read the local snapshots instead. For reference, they are:
 - Leviathan Dossier — `https://claude.ai/code/artifact/ccfd2f08-33d2-42f8-a405-c97dd32d1ea7`
 - Open List — `https://claude.ai/code/artifact/b3696389-86a6-4b65-9926-6288839449c9`
 
-One more source worth more than its size suggests:
-`Assets/Scripts/Editor/BuildBossRig.cs` is the boss's authoring tool, and its
-comments carry the design argument for every number in the fight — what was
-tried, what it felt like, and why it moved. Read it before touching any boss
-value.
+One more source worth more than its size suggests, and it is history now:
+`BuildBossRig.cs` was the boss's authoring tool until 8 October 2026. Its
+comments carry the design argument for the numbers in the fight — what was
+tried, what it felt like, and why it moved. The file is gone from the tree, so
+read its last version from history before touching a boss value:
+
+```bash
+git show cee11df:Assets/Scripts/Editor/BuildBossRig.cs
+```
+
+Read it for the reasoning and not for the numbers. The prefab had moved on from
+it, which is why it was removed: the boss's values today are the ones on
+`Assets/Prefabs/Boss/Boss.prefab`, its round prefabs and
+`Assets/Data/Enemies/`, and the Leviathan Dossier describes the fight as it
+plays. Do not bring the tool back. The rule in this project is that a builder
+which would not give back exactly what is in the project is deleted, not
+repaired.
 
 ---
 

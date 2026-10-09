@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 389 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 407 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>389</b><span>commits</span></div>
-      <div class="stat"><b>704</b><span>tests</span></div>
-      <div class="stat"><b>152</b><span>runtime scripts</span></div>
+      <div class="stat"><b>407</b><span>commits</span></div>
+      <div class="stat"><b>797</b><span>tests</span></div>
+      <div class="stat"><b>157</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
@@ -673,7 +673,7 @@
       256 a face now. The debug menu gained two sliders, for the camera&rsquo;s distance and its lens.</li>
       <li><strong>An outside look at the environment</strong> &mdash; on 5 October, a review of the arena as a stranger
       would see it, written up as a third roadmap of sixteen items, 33 to 48. The first four were answered the same
-      day and the rest wait.</li>
+      day and the rest that evening. All but 34, 39 and 47 are built, and the lines below say what went in.</li>
       <li><strong>Lights that fall on ships only</strong> &mdash; nothing lit the lane, so every enemy drew as a black
       shape whatever its paint. A key and a rim ride on the camera and a warm fill stands on the island&rsquo;s axis,
       reaching ships alone through a rendering layer, so the island, its bake and the fog are untouched. The
@@ -687,6 +687,33 @@
       <li><strong>A camera 9 out at 65&deg;, and a band cut to fit it</strong> &mdash; asked for as those two numbers.
       The band came in from 10.5 to 9.23, which is as short as the Leviathan allows, and the room kept under the HUD
       went from 0.65 to 0.2.</li>
+      <li><strong>A volcano that keeps the run&rsquo;s time</strong> &mdash; since 5 October one level from 0 to 1 drives
+      the lava&rsquo;s glow, the crater&rsquo;s light, the plume and the fill on the ships. It climbs to three quarters by
+      the 400th second, swells as each new group of enemies arrives, and goes to full when the Leviathan does. Embers
+      and lava bombs are thrown on each swell.</li>
+      <li><strong>The eye of a storm</strong> &mdash; between 5 and 8 October the cloud round the island became a
+      storm&rsquo;s wall with open sky over the eye. HDRP&rsquo;s cloud tracers are project copies now, so the storm
+      turns round the island at three speeds, its shapes climb through the wall, and lightning flashes inside it. Behind
+      it is a painted sky with a bright moon on the light&rsquo;s own line, and the moonlight is tinted blue-green.</li>
+      <li><strong>A ring of drifting rock</strong> &mdash; 150 rocks in three bands, 60 to 150 units out, each band
+      turning at its own pace, set high enough to stand clear of the fog.</li>
+      <li><strong>An island with a rock face and an underside</strong> &mdash; on 8 October the island&rsquo;s four rock
+      materials went onto a shader of their own, which glows in the heart of its widest cracks as the eruption builds;
+      36 rocks were hung beneath the island with a glow under the lava; and all six lava lights became Baked, with
+      live copies that light only the haze. Nothing is Mixed and no shadowmask is baked.</li>
+      <li><strong>A grade</strong> &mdash; a custom tone curve fitted to where ACES put grey, so the picture is as dark
+      as it was and a bright pickup keeps its colour; cool shadows and warm highlights, lightly; a light vignette; and
+      dithering on both cameras.</li>
+      <li><strong>Unity 6000.6.5f1</strong> &mdash; a patch release, taken on 8 October. The editor&rsquo;s built-in
+      packages were compared first and HDRP had not changed, so only the version line moved.</li>
+      <li><strong>A tools menu cut to what still works</strong> &mdash; on 8 October every editor tool that writes to
+      the project was run, and what it changed was compared with what was there. Twelve were removed: seven one-offs
+      whose work was done, and five builders that no longer gave back the project, the boss&rsquo;s among them.
+      Twenty-five entries are left, in submenus.</li>
+      <li><strong>A sixth outside scan, answered</strong> &mdash; on 8 October, four findings, all real. The one that
+      mattered: the volcano read the run&rsquo;s clock before the run had set it, so a run begun with 400 seconds
+      already on the game&rsquo;s clock, any second run included, opened on the Leviathan&rsquo;s eruption and had no
+      surges after it. The clock reads nothing until the run starts now.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -852,7 +879,7 @@ transform.LookAt(pos);</code></pre>
     <p>Until 24 September the camera sat 5 outside the lane at a vertical field of view of 75&deg;, level with the ship. At the ship&rsquo;s distance that frames <strong>7.7 units</strong> of a band 8.9 tall, so the band never fitted the screen at once, and the camera climbed with the ship &mdash; at the ceiling, everything below about 9.5 was off screen. And that lens is wide enough to matter: something ten units round the ring is half as far again from the camera as the ship, so it is drawn two thirds its size, and its height above or below the ship reads two thirds of what it is. Nearly every boss attack is dodged by reading heights.</p>
     <p>Whether to pull back and tighten is a feel question, so it is settled by playing. F8 then 9 cycles <code>CameraFraming.Presets</code>: the classic lens, the same 7.7 framed from 9 and from 14 out &mdash; so comparing those three compares the lens and nothing else &mdash; and four that frame the whole band plus a margin, 10.2 units, from 7, 10, 14 and 20 out at 72&deg;, 54&deg;, 40&deg; and 29&deg;. The whole-band ones hold the band&rsquo;s middle rather than climbing with the ship: a fixed screen the ship moves around, as a side-scrolling shooter has. From 14 out the thing ten units round the ring is a fifth further than the ship.</p>
     <p><strong>Playing settled it on 24 September, on the whole band from 10 out.</strong> At 54&deg; it frames the band and its margin, 10.2 units, and holds the band&rsquo;s middle at 7.17 however the ship climbs; something ten units round the ring is about a quarter further from the camera than the ship, where from 5 out it was half as far again. The choice is <code>CameraFraming.DefaultIndex</code>, pinned by a test so that reordering the list cannot move it to a neighbour, and the Game scene&rsquo;s camera is authored at the same 10 out and 54&deg;, so the editor frames the arena the way the game does.</p>
-    <p><strong>Since 25 September the lens follows the band.</strong> The whole-band presets fit their field of view to the band&rsquo;s live height each frame, from the same distance, so resizing <code>PlayerBounds</code> resizes the view rather than cropping it; the three lens presets keep theirs. And they leave the HUD its share. A ship on the ceiling had been drawn about 6% down the screen, under the countdown and the boss&rsquo;s bar, which sit across the top in the ship&rsquo;s own column &mdash; the ship is always drawn at the screen&rsquo;s centre left to right. The frame keeps the top 8% clear with the 0.65 margin beneath it, and the same at the bottom, so the band sits in the middle of the screen with equal room above and below. The default reads 62.5&deg; on an 8.9 band and about 70&deg; on today&rsquo;s 10.5. The scene&rsquo;s camera stayed authored at 54&deg; until 5 October, which only the editor&rsquo;s view before play showed.</p>
+    <p><strong>Since 25 September the lens follows the band.</strong> The whole-band presets fit their field of view to the band&rsquo;s live height each frame, from the same distance, so resizing <code>PlayerBounds</code> resizes the view rather than cropping it; the three lens presets keep theirs. And they leave the HUD its share. A ship on the ceiling had been drawn about 6% down the screen, under the countdown and the boss&rsquo;s bar, which sit across the top in the ship&rsquo;s own column &mdash; the ship is always drawn at the screen&rsquo;s centre left to right. The frame keeps the top 8% clear with a margin beneath it, 0.65 then and 0.2 since 5 October, and the same at the bottom, so the band sits in the middle of the screen with equal room above and below. The default read 62.5&deg; on an 8.9 band and about 70&deg; on the 10.5 band of late September; the next paragraph has today&rsquo;s numbers. The scene&rsquo;s camera stayed authored at 54&deg; until 5 October, which only the editor&rsquo;s view before play showed.</p>
     <p><strong>On 5 October the default moved to 9 out at 65&deg;</strong>, asked for as those two numbers. The lens still follows the band, so the band and the margin were sized to land on it. From 9 out at 65&deg; the screen shows 11.47 at the ship, and with 8% kept clear top and bottom 9.63 of that is left. The 0.65 margin would have made the band 8.33, and the Leviathan&rsquo;s keel and crown weak points are 9.16 apart, so the margin gave way instead: <code>CameraFraming.BandMargin</code> is 0.2, the ship being 0.33 tall, and the band is 9.23. Everything is drawn about a fifth larger than from 10 out at 70&deg;, and about a fifth less of the ring shows either side. A ship on the ceiling is drawn 9.7% down the screen, just under the Leviathan&rsquo;s bar, which ends at 8.1%. The whole-band distances are 7, 9, 14 and 20 now, and the scene&rsquo;s camera is authored at 9 out, 65&deg; and the band&rsquo;s middle. <code>CameraFramingTests</code> pins the default at both numbers on the scene&rsquo;s own band, so a box resized without meaning to move the lens fails a test.</p>
     <p>One consequence is worth knowing before resizing anything: a whole-band preset draws the ship at its size against the band, whatever the distance. So a taller band draws every ship smaller, and the four whole-band distances differ in perspective, not in how big the ship looks.</p>
     <p><code>CameraPresetSwitcher</code> sits on that camera and puts the default on in <code>Start</code>, once <code>SnapToOrbit</code> has placed the camera from its own offset; the debug menu cycles the other six, and adds the component to a camera that lacks it. It moves the camera out through its own <code>SnapToOrbit</code>, which gained <code>SetRadiusOffset</code> and refuses it on the lane&rsquo;s definer; sets the field of view; and puts the height back in <code>LateUpdate</code>, after <code>PlayerMovement</code> and <code>ApplyBounds</code> have moved it. Round the ring it keeps station as it always has, because the orbit speed converts through the lane&rsquo;s radius rather than the camera&rsquo;s. Nothing picked from the menu is saved, so every run starts on the default. The audio listener moved to the ship with it: four sounds are partly positional, and a listener on the camera heard them quieter from 10 out than from 5. On the ship, where the camera sits changes nothing that is heard.</p>
@@ -894,7 +921,7 @@ transform.LookAt(pos);</code></pre>
       <p>The ready light came out as a hard white ball floating over the hull &mdash; a star, or a pickup, rather than a lamp. Its mesh held V at the middle of the ribbon, which put every pixel on the shader&rsquo;s core colour, and at that brightness it blew out to white in the tonemapper. <strong>That is the boss pods&rsquo; problem exactly</strong>, diagnosed at length elsewhere in this project and walked into anyway. V runs outward now, so the light has a hot centre falling to the player&rsquo;s green at its rim.</p>
       <p>And a dash along the ring fired the retros as well as the engine, which put a green spike out of the nose that read as a weapon rather than as thrust. The dash&rsquo;s floor fades out as the burst turns against a nozzle now, so a ring dash burns one end of the ship and a vertical one burns both.</p>
     </div>
-    <p>The flares are rigid meshes rather than particles, on a copy of the round&rsquo;s streak shader, for the reason set out under <a href="#render">Rendering</a>: under FSR anything that does not write its own motion vectors gets dragged across the screen by whatever is behind it. They are also built at runtime from offsets on the component rather than parented in the prefab, because <code>Player</code> instantiates the ship model at Start &mdash; there is no edit-time hierarchy to place them against, and nothing to look at if there were. <code>ShipThrusterBuilder</code> measures those offsets off the model itself: the back face of the rocket, the front faces of the two blocks under the nose, and clear of the top of the whole model.</p>
+    <p>The flares are rigid meshes rather than particles, on a copy of the round&rsquo;s streak shader, for the reason set out under <a href="#render">Rendering</a>: under FSR anything that does not write its own motion vectors gets dragged across the screen by whatever is behind it. They are also built at runtime from offsets on the component rather than parented in the prefab, because <code>Player</code> instantiates the ship model at Start &mdash; there is no edit-time hierarchy to place them against, and nothing to look at if there were. An editor tool, <code>ShipThrusterBuilder</code>, measured those offsets off the model itself: the back face of the rocket, the front faces of the two blocks under the nose, and clear of the top of the whole model. The tool was removed on 8 October, when a run of it no longer gave back the ship&rsquo;s prefab exactly; the offsets saved on the prefab are the source now.</p>
     <p>Easing uses an exponential form that settles the same amount per unit of <em>time</em>, not per frame:</p>
 <pre><code>Mathf.Lerp(current, target, 1f - Mathf.Exp(-response * deltaTime))</code></pre>
     <p>The common shortcut — <code>Lerp(current, target, response * deltaTime)</code> — feels different at 30fps and 144fps. <code>ShipMotion</code> is separated out precisely so this can be tested.</p>
@@ -1041,7 +1068,7 @@ transform.LookAt(pos);</code></pre>
       <p>Worse, the field existed in code before it existed on disk. Unity only serialises a newly added field when the prefab is next re-saved, so <code>Enemy 2</code> and <code>Enemy 3</code> had no <code>enemyHit</code> entry at all — which is why an early test of the health change appeared to do nothing.</p>
     </div>
     <p>Both scripts now follow one rule: <strong>a spark for a hit, an explosion for a kill</strong>. <code>Enemy_1</code> used to play the spark on every hit including the fatal one, so a kill fired both and the two outcomes read as the same event — exactly the distinction multi-hit enemies need legible. Effects spawn at the <em>bullet's</em> position rather than the enemy's centre; on a ship several units wide those are visibly different places.</p>
-    <p>The effects themselves come from a bought pack, which ships the way packs do: one container prefab with every effect parented under a single root, laid out side by side so they can all be seen at once. Convenient to browse, useless to spawn — <code>ObjectPool.Spawn</code> takes a prefab, and a child of a prefab is not one. <code>EffectPrefabExtractor</code> splits the container and fixes three things on the way out that are each easy to miss by hand across a pack:</p>
+    <p>The effects themselves come from a bought pack, which ships the way packs do: one container prefab with every effect parented under a single root, laid out side by side so they can all be seen at once. Convenient to browse, useless to spawn — <code>ObjectPool.Spawn</code> takes a prefab, and a child of a prefab is not one. <code>EffectPrefabExtractor</code> split the container and fixed three things on the way out that are each easy to miss by hand across a pack (the tool was removed on 8 October, its work done; the prefabs it wrote are the assets now):</p>
     <ul>
       <li><strong>Local transforms are zeroed.</strong> In the container every effect sits at its own offset so they do not overlap on screen. <code>Spawn</code> positions the root, so an inherited offset would put every explosion a fixed distance from whatever it was meant to be on — consistently wrong, and it would look like a bug in the spawn code.</li>
       <li><strong>Looping is turned off</strong>, with prewarm alongside it. Packs loop their showcase prefab so effects play continuously while you scroll past them; spawned from the pool that restarts forever, and the only thing ending it is the retire timer cutting it off mid-cycle.</li>
@@ -1226,7 +1253,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">Undone on 21 September, and put back the same afternoon</div>
       <p>The day&rsquo;s commits set <code>laneResponse</code> to 0 on both disc prefabs and on the four bullet prefabs the boss fires. Nothing in the code writes 0 &mdash; <code>BuildBossRig</code> writes 5 &mdash; so it was an Inspector change, and for one build, <code>26_0921-1625_camera</code>, it was the fight. On the 18.72 lane the muzzles span 17.92 to 19.54, and a disc, 0.1 thick, has to be born within 0.17 of the lane to touch the player: <strong>no keel muzzle is</strong>, so no disc in the curtain could hit, and most of the Scuttle&rsquo;s bullets missed the same way. The torpedoes were untouched &mdash; they close on the lane themselves.</p>
       <p>It is 5 again on all six, in commit <code>a6520d3</code>; bullets 1 and 2 stay at 0 because nothing fires them. The throw sets only a disc&rsquo;s height and the easing only its distance from the axis, so the two cannot fight, and the discs keep their paths. What let it through is the part worth keeping: <strong>no test read the value off the prefabs</strong>, and a curtain that cannot hit still looks like a curtain. It was caught by working out a disc&rsquo;s reach for this page, not by playing.</p>
-      <p><code>BossRoundLaneTests</code> reads it now. It collects every round the boss prefab&rsquo;s attacks fire and fails naming any that is not at 5, and a second test fails if it finds fewer than the six the rig tunes, so the first cannot pass on an empty list. Set one disc back to 0 and it fails on that disc. The rounds come from the boss rather than from a list in the test, so a round the boss starts firing later is checked without anyone remembering to add it. The expected 5 repeats <code>BuildBossRig.RoundLaneResponse</code>, which the tests cannot reference, so the two move together.</p>
+      <p><code>BossRoundLaneTests</code> reads it now. It collects every round the boss prefab&rsquo;s attacks fire and fails naming any that is not at 5, and a second test fails if it finds fewer than the six the rig tunes, so the first cannot pass on an empty list. Set one disc back to 0 and it fails on that disc. The rounds come from the boss rather than from a list in the test, so a round the boss starts firing later is checked without anyone remembering to add it. The expected 5 used to repeat <code>BuildBossRig.RoundLaneResponse</code>. That tool was removed on 8 October, when a rebuild no longer gave back the boss&rsquo;s prefab, so the number lives on the six round prefabs and in this test, and the boss is its prefab.</p>
     </div>
 
     <div class="warn">
@@ -1570,9 +1597,13 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     </div>
 
     <h3>Cloud that drifts through the arena</h3>
+    <p><strong>This section is history.</strong> <code>ArenaCloudBank</code> was retired when the arena was lifted into HDRP&rsquo;s
+    cloud layer in September, and it and its mask were deleted on 28 September. The cloud round the island today is described under
+    <a href="#storm">The storm round the island</a>, next. What follows is kept for what it found out about a fog volume with a
+    density mask.</p>
     <p>HDRP's volumetric clouds cannot do this one. They refuse to render within roughly twenty units of the camera, their altitude range has a hard
     100&nbsp;m floor, and their noise runs at kilometre scale &mdash; measured across a 37-unit island the field is uniform, so the sky turns overcast
-    as a whole and no cloud ever drifts <em>past</em> anything. <code>ArenaCloudBank</code> drives a Local Volumetric Fog volume instead, which is the
+    as a whole and no cloud ever drifts <em>past</em> anything. <code>ArenaCloudBank</code> drove a Local Volumetric Fog volume instead, which is the
     local-scale equivalent and takes a Texture3D density mask.</p>
     <p><strong>The mask scrolls; the volume does not move.</strong> HDRP samples the mask in the volume's own space, so scrolling a tiling texture
     gives endless cloud while the box stays put &mdash; move the box instead and its edges sweep through frame once a lap. The noise has to tile for
@@ -1597,7 +1628,7 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
         <thead><tr><th>Sparsity</th><th class="num">Volume holding cloud</th><th class="num">Sky open floor to ceiling</th></tr></thead>
         <tbody>
           <tr><td>0 &mdash; the packed field</td><td class="num">22.4%</td><td class="num">11.1%</td></tr>
-          <tr><td><strong>0.35 &mdash; what ships</strong></td><td class="num">9.9%</td><td class="num">49.5%</td></tr>
+          <tr><td><strong>0.35 &mdash; what shipped</strong></td><td class="num">9.9%</td><td class="num">49.5%</td></tr>
           <tr><td>0.5</td><td class="num">6.0%</td><td class="num">65.9%</td></tr>
           <tr><td>0.65</td><td class="num">4.0%</td><td class="num">76.5%</td></tr>
         </tbody>
@@ -1610,6 +1641,22 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <p>In arena terms: the volume is 200 units across at a tiling of 2, so one mask tile is <strong>100 world units</strong> and the largest cloud
     features are a quarter of that &mdash; 25 units, against a 37-unit island. At <code>driftSpeed</code> 2.5 a whole tile passes in forty seconds.
     Backing the change out is one bake, because the seed is fixed and sparsity 0 reproduces the packed mask exactly.</p>
+
+    <h3 id="storm">The storm round the island</h3>
+    <p>Since 5 October the cloud is HDRP&rsquo;s volumetric clouds after all, with the island in the eye of a storm: a painted cloud map
+    puts one bank of cloud in a wall round the arena and leaves the sky open over it. <code>CloudRingBuilder</code> paints the map and
+    sets the cloud layer, and <code>CloudRingTests</code> holds what it set.</p>
+    <p>HDRP has no way to turn a cloud map, so its two cloud tracers and the include they share are project copies, beside the combine
+    pass that was copied earlier to cap the clouds&rsquo; fog: <code>VolumetricCloudsTrace.compute</code>,
+    <code>VolumetricCloudsTraceShadows.compute</code>, <code>VolumetricCloudsUtilities.hlsl</code> and
+    <code>VolumetricCloudsCombine.shader</code>, under <code>Assets/Art/Shaders</code>. The copies add two things. The map turns about
+    the island&rsquo;s axis at three speeds, so the wall shears as it goes round, and its shapes climb through it, so a cloud changes
+    as it is watched. And a glow is added inside the wall where <code>StormLightning</code> says a flash is. <code>CloudStormShaderTests</code>
+    compares HDRP&rsquo;s own files with the ones the copies were made from, so an HDRP update that changes them fails a test until the
+    copies are made again.</p>
+    <p>Behind the storm is a painted sky, a cubemap from <code>StormSkyBuilder</code>, with a bright moon on the line the moonlight comes
+    from; the moon&rsquo;s face is NASA&rsquo;s map, credited in the notices. The environment roadmap page has each of these as built, with
+    its numbers and what was measured.</p>
 
     <h3>The lava shader</h3>
     <p><code>LavaFlow</code> samples a seamless noise texture with <strong>triplanar projection</strong> — three world-space planar projections blended by the surface normal. That ignores the mesh's UVs entirely, which matters because the island's UVs are badly stretched and because a single projection collapses into stripes on flat surfaces.</p>
@@ -1626,16 +1673,16 @@ emission  = hot * glow * veins;</code></pre>
       <p>HDRP works in real units. Emission is in <strong>nits</strong>, exposure in <strong>EV100</strong>. At EV 10 mid-grey sits near 128 nits, so lava glowing at <code>1.5</code> is invisible while <code>1000</code> is correct — real lava is roughly 1500–3000 cd/m². Values that look absurd next to URP's unitless multipliers are often simply right.</p>
     </div>
     <p>Emissive surfaces <em>cannot cast shadows</em> — shadows are rendered from a light's point of view, and an emissive material isn't a light. The lava's glow on surrounding rock comes from real area lights placed on the emitting surface.</p>
-    <p>Those lights cast <strong>no shadows</strong> from 10 September to 2 October. Seven of them throwing hard shadows through a lava pool were paying for shadow maps the emissive surface underneath was already accounting for, and five of the six still cast nothing. <code>Lava Light 2</code> is the exception &mdash; it casts again, and it is the light the Shadows row reaches alongside the sun. Since 2 October the other five cast as well, cached and at a fixed 256 a face, because unshadowed they lit the far slope and the fog through the rock. Two of them fell back to baked-only at the next rebake, since six shadowed Mixed lights do not fit four shadowmask channels, and that was accepted. <code>maxShadowDistance</code> is still the range the directional light's four cascades are spread across rather than merely a fade-out distance.</p>
+    <p>Those lights cast <strong>no shadows</strong> from 10 September to 2 October. Seven of them throwing hard shadows through a lava pool were paying for shadow maps the emissive surface underneath was already accounting for, and five of the six went on casting nothing. <code>Lava Light 2</code> was the exception &mdash; it cast again, and it was the light the Shadows row reached alongside the sun. Since 2 October the other five cast as well, cached and at a fixed 256 a face, because unshadowed they lit the far slope and the fog through the rock. Two of them fell back to baked-only at the next rebake, since six shadowed Mixed lights do not fit four shadowmask channels, and that was accepted. <strong>Since 8 October none of the six is live.</strong> All are Baked and no shadowmask is baked; what lights the haze now is three Realtime copies under <code>Lava Glow</code>, for the crater, the cone and the river, on a light layer nothing else is on, with a fourth, the surge light, that the eruption drives, and a glow under the island. <code>maxShadowDistance</code> is still the range the directional light's four cascades are spread across rather than merely a fade-out distance.</p>
     <div class="warn">
       <div class="label">Those lights are at eight per cent of the brightness they were asked for</div>
       <p>Every Lava Light in the scene carries <strong>238.732</strong> lumens, which is 3000 &divide; 4&pi; to three decimals. <code>LavaLightPlacer</code> set them through <code>HDAdditionalLightData.SetIntensity</code>, deprecated since 2023.3, which converts out of whatever unit the light is <em>currently</em> in &mdash; and a <code>Light</code> component added four lines earlier has not run its own initialisation, so it is still in a point light's default candela and the call quietly divides by 4&pi;. Asking for 9000 stores 716.2.</p>
       <p>So the field said 3000 and the lights got eight per cent of it, and the arena's lighting was then tuned by eye around the wrong number. The tooltip asserted the opposite &mdash; that writing <code>Light.intensity</code> directly came out &ldquo;roughly a hundred times too bright&rdquo; &mdash; which was true of an older HDRP and is now backwards: <code>Light.lightUnit</code> and <code>Light.intensity</code> store exactly what they are given. The placer set those from then on, and its default became 238.7 so that re-running it would reproduce the arena rather than one ten times brighter. <code>BuildBossRig</code> had already found this and written a comment around it; the placer was still walking into it.</p>
-      <p>The placer is deleted now. The scene moved on from it &mdash; six lights, five at a range of 15 and one at 20 that casts, all baked as Mixed &mdash; while it still made fourteen at a range of 10, and it began by deleting whatever lights were there. Running it would have replaced the tuned lighting, so the scene is the only source of it.</p>
+      <p>The placer is deleted now. The scene moved on from it &mdash; six lights, five at a range of 15 and one at 20 that cast, all Mixed then and all Baked since 8 October &mdash; while it still made fourteen at a range of 10, and it began by deleting whatever lights were there. Running it would have replaced the tuned lighting, so the scene is the only source of it.</p>
     </div>
 
     <h3>Shadows are a row, and the clouds only get half of it</h3>
-    <p>One setting, Off to High, over what the scene authors rather than anything in the pipeline asset: the sun, <code>Lava Light 2</code> and the volumetric clouds. The two lights carry a marker component rather than being found by a search, because the one set the row must not reach is the bullet lights &mdash; those have the one-per-volley budget measured below, and a row raising every point light's resolution would spend six faces a light on shots the pool had deliberately kept cheap.</p>
+    <p>One setting, Off to High, over what the scene authors rather than anything in the pipeline asset: the sun, the lava&rsquo;s live lights and the volumetric clouds. Until 8 October the lava&rsquo;s share was <code>Lava Light 2</code> alone; with all six lava lights Baked it is the three glow lights, the surge light and the glow under the island. Each carries a marker component, <code>ShadowQualityLight</code>, rather than being found by a search, because the one set the row must not reach is the bullet lights &mdash; those have the one-per-volley budget measured below, and a row raising every point light's resolution would spend six faces a light on shots the pool had deliberately kept cheap.</p>
     <p>Each rung picks one of the tier's own shadow resolution levels, so the tier still decides what Low is worth: 512, 1024 and 2048 on Ultra. The tier's top level is never asked for, because a point light draws six faces and six at 4096 outgrow an 8192 atlas. Off stops a light casting and remembers whether it cast hard or soft, so coming back up restores what the scene authored rather than a guess.</p>
     <div class="warn">
       <div class="label">Off is the loud rung, and the cloud ladder measured as nothing</div>
@@ -1789,7 +1836,7 @@ emission  = hot * glow * veins;</code></pre>
     <p>The numbers are colour differences in Lab, where about 10 is a clear difference, each round against the pixels it covers. Under protanopia and deuteranopia the violet&rsquo;s worst is 41. Red at the same brightness reads as the most hostile of all and measured the worst, 6 to 29 for those two, because it is the lava&rsquo;s own red. The weak points stay red, so red is what to shoot and violet is what to dodge. <code>HostileFireColourTests</code> fails if a hostile surface comes within 90&deg; of the lava&rsquo;s hue or a round&rsquo;s glow goes above 2.</p>
 
     <h3>Exposure, and one lever for fog</h3>
-    <p>Exposure is fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
+    <p>Exposure was first fixed at −0.1 rather than automatic. Automatic hunts: the lava fills a large part of the frame and its share of it changes as the camera orbits, so the whole image breathes in response to set dressing. Fixing it also makes the auto-exposure limits inert, which retires a pair of numbers that only mattered while something was reading them.</p>
     <p>It did not stay fixed. On 5 October the scene&rsquo;s profile was found on automatic again, between &minus;1 and 14. Measured on eight sides of the ring it sat on its floor of &minus;1&nbsp;EV on five and rose to &minus;0.77 where the lava flow faces the camera, a quarter of a stop. It is fixed at &minus;1 now, and <code>ShipLightsTests</code> holds the mode, so the next change is a decision.</p>
     <p>The fog had five overrides disagreeing about the same effect — colour mode, colour, maximum distance, base height and maximum height all pinned at once. They went back to their defaults, leaving <code>meanFreePath</code> as the single control over how thick the air is, and four have been set again since, the two heights among them. <code>meanFreePath</code> is <strong>30</strong> today &mdash; 20 until the arena rose into the clouds on 24 September, then 50 &mdash; with the froxel depth and the maximum fog distance both at 64; the island's far edge is about 45 units out. The base and maximum heights of 1000 and 1050 are not ten-times leftovers: they are altitudes above HDRP&rsquo;s planet, which that move put 1000 below the arena, so the fog still spans world heights 0 to 50 as it did before. Across the flight band that gives a density falling from 0.54 of maximum to 0.16, so a low pass over the lava is markedly thicker than a high one.</p>
     <p>On the top tier — the one called Ultra since the split — probe volumes moved from L1 to L2 spherical harmonics, the cookie atlas to 4096, the area shadow atlas from 4096 to 8192, and area shadow filtering up a step. The lighter High inserted beneath it kept Medium's probe volumes and took 2048 instead. Sky reflection was left at 2048 on both. One light stops culling shadow casters against the view frustum, so geometry outside the frame keeps throwing shadows into it &mdash; and the scene file shows that flag off on two, which is a trap rather than a second decision. HDRP writes <code>useViewFrustumForShadowCasterCull</code> itself, clearing it when a light enters the cached shadow atlas and setting it when the light is evicted. So on a cached light such as <code>Lava Light 2</code> the serialized value is the renderer's bookkeeping and moves on its own &mdash; the Shadows row's Off rung evicts it every time. On the directional light, which updates every frame and never enters that atlas, nothing overwrites it and it is authored. Same field, two meanings, and only <code>shadowUpdateMode</code> tells them apart.</p>
@@ -1904,7 +1951,7 @@ float  edge  = HoloBand(d, _Border);</code></pre>
     <p>The two button styles react in their own language. Title entries slide, because they have no frame; framed buttons lift their edge glow, extend their corner brackets and run a light up the panel. Unity's colour tint is not used for either — it fades the whole image at once, including the fill, which flattens a frame instead of sharpening it, and it cannot reach a shader property at all.</p>
 
     <h3>Generated, not placed</h3>
-    <p>Four editor tools build the HUD, the in-game menus, the title screen and the video output, over a shared factory. The interface is defined by numbers, and numbers belong in a file that can be re-run — nudging thirty rect transforms by hand and hoping they still line up at another aspect ratio is how the original ended up as it did.</p>
+    <p>Editor tools build the HUD, the in-game menus, the title screen and the loading screen, over a shared factory. (One more set up the menu&rsquo;s video output, once; it was removed on 8 October.) The interface is defined by numbers, and numbers belong in a file that can be re-run — nudging thirty rect transforms by hand and hoping they still line up at another aspect ratio is how the original ended up as it did.</p>
     <p>The tools are additive and fully undoable, and they solve the same problem three times: several gameplay scripts lived <em>on</em> the objects being replaced. <code>HealthBar</code> sat on the object called "HealthBar", <code>ExpBar</code> on "XpBar", <code>MainMenu</code> on "MenuPrincipal". Each tool recreates the component on the new element and repoints everything holding a reference to it <em>before</em> destroying the original.</p>
     <div class="note">
       <div class="label">Identify by reference, not by name</div>
@@ -1966,12 +2013,12 @@ if (clickRect != null &amp;&amp; clickRect.rect.size[(int)axis] &gt; 0) { /* onl
     </div>
 
     <h3>Filling the clips</h3>
-    <p>Two editor tools, because a correctly wired silent call site and a broken one look identical. <strong>Generate Placeholder SFX</strong> implements DrPetter's sfxr as synthesis — the classic generators, deterministic from a seed, writing mono 16-bit WAVs and assigning them. That proved every call site fired before a single audio file had been sourced. <strong>Report Silent Sounds</strong> lists anything still without a clip, because a <code>SoundDefinition</code> with an empty clip list is dropped silently, which is correct behaviour and completely invisible.</p>
-    <p>The placeholders were later replaced with Kenney and Sonniss material. Both tools remain: one is the fallback, the other is the check.</p>
+    <p>Two editor tools did this at first, because a correctly wired silent call site and a broken one look identical. <strong>Generate Placeholder SFX</strong> implemented DrPetter's sfxr as synthesis — the classic generators, deterministic from a seed, writing mono 16-bit WAVs and assigning them. That proved every call site fired before a single audio file had been sourced. <strong>Report Silent Sounds</strong> listed anything still without a clip, because a <code>SoundDefinition</code> with an empty clip list is dropped silently, which is correct behaviour and completely invisible.</p>
+    <p>The placeholders were later replaced with Kenney and Sonniss material. Both tools were removed on 8 October: the generator would have replaced every sound in the game, and the report shared a file with a tool that no longer gave back the volumes in the project.</p>
     <div class="note">
       <div class="label">Measuring loudness rather than guessing it</div>
       <p>The per-sound levels were chosen while every clip was generated and peak-normalised, so they were pure attenuations of a known starting point. Clips from a pack share no such starting point — the same <code>0.7</code> that was a deliberate step down for one became most of the reason another was inaudible. <strong>A number tuned against an assumption that has since changed is worse than no number.</strong></p>
-      <p><strong>Balance Sound Levels</strong> now measures gated RMS on every clip and writes level-corrected copies at a common target, peak-limited so nothing clips. Gated, because a plain average makes anything with a long tail read as quiet — which is most explosions, the exact sounds that were reported as too soft. The files carry the matching; the volume field carries only intent, which is now a short table of how much quieter a sound should be <em>because of how often it fires</em>.</p>
+      <p><strong>Balance Sound Levels</strong> measured gated RMS on every clip and wrote level-corrected copies at a common target, peak-limited so nothing clips. Gated, because a plain average makes anything with a long tail read as quiet — which is most explosions, the exact sounds that were reported as too soft. The files carry the matching; the volume field carries only intent, which is now a short table of how much quieter a sound should be <em>because of how often it fires</em>. The tool has had no menu entry since 8 October: run again on its own output it moved 27 clips, by up to 0.4&nbsp;dB. Its measuring is kept as a helper for the two builders that make the gun&rsquo;s variants and the moment sounds, and each older sound&rsquo;s level is the one on its definition.</p>
       <p>One trap on the way: <code>GetData</code> returns silence rather than failing for a clip that is still compressed, so the tool forces <code>DecompressOnLoad</code> around each read. Measuring zeros and calling it quiet would have been the worst possible outcome.</p>
     </div>
 
@@ -2337,7 +2384,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>The display controls apply through per-camera fields on <code>HDAdditionalCameraData</code> — <code>allowDynamicResolution</code>, the two <code>allow…</code> upscaler flags, the <code>…UseCustomQualitySettings</code> and <code>…Quality</code> pairs, and <code>antialiasing</code>. The effect rows apply through the Volume. The same settings exist on the pipeline asset and would have been the shorter route for both.</p>
     <p>They are not used because <strong>asset changes made in play mode are not rolled back when play mode ends</strong>. Unity reverts scene changes; ScriptableObject edits persist and get written on the next save. A settings menu that wrote there would let one slider drag in the editor permanently rewrite the project's shipped defaults — and it would only misbehave on the developer's machine, since a built player never serialises the asset back. Correct in the build, quietly corrupting in the editor, is the worst shape a bug can have.</p>
     <p>That rule used to have one exception: the rows needing pipeline fields wrote to a runtime clone. Removing the generated presets removed the exception with it, so the heading is now literal rather than nearly true — no code path in the project writes a <code>RenderPipelineSettings</code> field at all.</p>
-    <p>Availability comes from <code>HDDynamicResolutionPlatformCapabilities.DLSSDetected</code> and <code>.FSR2Detected</code> <em>intersected with</em> the asset's own upscaler list, so an upscaler the machine cannot run — or that the tier does not permit — is left out of the cycle rather than offered and refused.</p>
+    <p>Availability for DLSS comes from <code>HDDynamicResolutionPlatformCapabilities.DLSSDetected</code> <em>intersected with</em> the asset's own upscaler list, so an upscaler the machine cannot run — or that the tier does not permit — is left out of the cycle rather than offered and refused. FSR 3 is not one of the pipeline&rsquo;s upscalers, so it is asked of the project&rsquo;s own plugin instead, through <code>FfxNative.Available</code>; until 29 September FSR 2 was read from <code>.FSR2Detected</code> beside DLSS.</p>
 
     <h4>Sharpness is the one slider</h4>
     <p>Every other graphics row is a cycler. Sharpness is not, and the reason the rule exists is the reason it does not apply here: cyclers step because settings have <strong>performance cliffs</strong> — render scale moves in tens because 73% is not a choice anybody means to make. Sharpening costs the same at every value, so every position is a real choice and a slider is the honest control.</p>
@@ -2433,16 +2480,16 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <div class="warn">
       <div class="label">A script that opens a prefab stage can take the GPU down</div>
       <p><code>PrefabUtility.LoadPrefabContents</code> called from a script stalled the editor for 41 seconds and ended in a D3D12 device reset that closed it. Simple prefab edits go through a <code>SerializedObject</code> on the asset itself and are saved there, and adding or removing a component on an asset's root works the same way &mdash; which is how <code>PlayerRoundBuilder</code> is written.</p>
-      <p>What that path cannot do is add a <em>child</em>: Unity refuses to reparent a transform into a prefab asset outright. So <code>ShipThrusterBuilder</code> writes offsets onto a component and has it build its own children at runtime, which costs nothing here because the ship model only exists at runtime anyway. Reaching for the prefab stage is the answer that looks obvious and is the one that took the GPU down.</p>
+      <p>What that path cannot do is add a <em>child</em>: Unity refuses to reparent a transform into a prefab asset outright. So <code>ShipThrusterBuilder</code>, which was removed on 8 October with its offsets left on the prefab, wrote offsets onto a component and had it build its own children at runtime, which costs nothing here because the ship model only exists at runtime anyway. Reaching for the prefab stage is the answer that looks obvious and is the one that took the GPU down.</p>
     </div>
     <div class="warn">
       <div class="label">A package that edits your player settings</div>
       <p><code>BasePipelineServer.Start()</code> sets <code>Application.runInBackground = true</code> every time it starts — every editor launch, every domain reload — so the editor keeps pumping its update loop while unfocused and can go on answering commands. In the editor that assignment writes through to PlayerSettings, so setting it back by hand lasts exactly until the next launch.</p>
-      <p>Nothing in a build asks for it: the runtime half of the pipeline is opt-in through a config asset this project does not have, and should not gain. But PlayerSettings is baked into builds, and this game has no pause — left on, alt-tabbing does not stop the run, and the player returns to a death they were not present for. <code>RunInBackgroundOff</code> is an <code>IPreprocessBuildWithReport</code> that clears the flag as a build starts, which is the only place it can be won.</p>
+      <p>Nothing in a build asks for it: the runtime half of the pipeline is opt-in through a config asset this project does not have, and should not gain. But PlayerSettings is baked into builds. When this was written the game had no pause, so with the flag left on, alt-tabbing did not stop the run and the player returned to a death they were not present for. Since 30 September the run pauses itself when the window loses focus; the flag is still cleared, so that a build does not go on running behind another window. <code>RunInBackgroundOff</code> is an <code>IPreprocessBuildWithReport</code> that clears the flag as a build starts, which is the only place it can be won.</p>
     </div>
 
     <h3>The engine version, and what 6.6 moved</h3>
-    <p>The project runs on <strong>Unity 6.6 (6000.6.4f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.5f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
     <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
     <div class="note">
       <div class="label">The 6.6.1 patch moved nothing this project can see</div>
@@ -2454,6 +2501,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>6000.6.4f1 followed on 1 October, and only the version file changed. All 661 tests passed on it, the
       lighting was rebaked in 148&nbsp;s and a clean build took 78&nbsp;s with no warnings; the probe-volume
       references survived both.</p>
+    <p>6000.6.5f1 followed on 8 October the same way. The two editors&rsquo; built-in packages were compared before the project was opened, and HDRP, the core pipeline package and Shader Graph were identical, so the project&rsquo;s copies of HDRP&rsquo;s cloud shaders did not need making again. Only the version file changed, and every test passed once the README named the new version, which a test checks.</p>
     </div>
     <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
 
@@ -2473,7 +2521,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>704 tests across 69 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>797 tests across 78 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2531,7 +2579,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         </tbody>
       </table>
     </div>
-    <p>The table lists the suites as they stood on 26 September. Nineteen have been added since, for FSR 3, the polish passes, the outside scans, <code>EnemySpacingTests</code>, whose six tests hold the arithmetic that parts two overlapping enemies, and <code>ShippingPolishTests</code>, whose twelve hold the last six polish items, and on 5 October <code>ShipLightsTests</code> and <code>HostileFireColourTests</code>, which read the scene, the prefabs and the materials as saved; they are not listed here yet.</p>
+    <p>The table lists the suites as they stood on 26 September. Twenty-eight have been added since, for FSR 3, the polish passes, the outside scans, <code>EnemySpacingTests</code>, which holds the arithmetic that parts two overlapping enemies, and <code>ShippingPolishTests</code>, which holds the last six polish items, and on 5 October <code>ShipLightsTests</code> and <code>HostileFireColourTests</code>, which read the scene, the prefabs and the materials as saved, and between 5 and 8 October nine more for the environment: the eruption and its sparks, the storm&rsquo;s cloud, its shaders, its lightning and its sky, the debris ring, the island&rsquo;s rock and lights, and the grade. None of them is listed here yet, and some counts above have grown since.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -2562,7 +2610,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 704 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 797 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2631,17 +2679,18 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Decisions, not bugs</h4>
     <ul>
-      <li>The 2023 jam branches are settled: on 28 September each of the seventeen became an <code>archive/</code> tag and the branches were deleted, so the history and its authors stay. The second roadmap&rsquo;s items 27 to 32 were answered yes on 2 October and built. The environment roadmap&rsquo;s items 37 to 48, from 5 October, are waiting on answers.</li>
+      <li>The 2023 jam branches are settled: on 28 September each of the seventeen became an <code>archive/</code> tag and the branches were deleted, so the history and its authors stay. The second roadmap&rsquo;s items 27 to 32 were answered yes on 2 October and built. The environment roadmap&rsquo;s items 37 to 48, from 5 October, were answered the same day: 37, 38, 40 to 46 and 48 are built, and 39 and 47 are left for later.</li>
     </ul>
 
     <h4>Open on the current front</h4>
     <ul>
-      <li><strong>The 5 October look has not been judged.</strong> The closer camera, the 9.23 band with the
-      Leviathan&rsquo;s outer weak points on its floor and ceiling, the violet fire and the ship lights are in
-      <code>26_1005-1428_camera9</code>, with the debug menu, checked by the bot and not yet played by a person. If the
-      weak points on the edges feel wrong, the fix that keeps the camera is a Leviathan about a tenth smaller; the
-      fire&rsquo;s colour is three numbers in <code>HostileFireColour</code>; the lights&rsquo; strengths are on the
-      four lights themselves.</li>
+      <li><strong>The 5 October look was judged that day.</strong> 9 out at 65&deg; is the view that was wanted, the
+      Leviathan&rsquo;s weak points on the floor and the ceiling are not awkward, and the violet fire reads as an
+      enemy&rsquo;s. The ship still looked a little lit from inside, which was called no big deal.</li>
+      <li><strong>The storm, the island and the grade wait for a look.</strong> The environment roadmap&rsquo;s items
+      were built between 5 and 8 October, each checked with the bot flying. The sky, the storm&rsquo;s wall and the
+      grade are on the open list as looks still to be given. The newest build, <code>26_1008-2253_scanFixes</code>, has all
+      of it, with the debug menu.</li>
       <li><strong>The Leviathan&rsquo;s first frames do not stutter.</strong> Since 2 October a build keeps
       <code>hitches.log</code> beside its settings, every frame over 50&nbsp;ms with what the game had just done. A run
       in <code>26_1002-1057_scanFixes</code> that killed the boss left no slow frame anywhere in the fight, so the draw
@@ -2821,7 +2870,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <ul>
       <li><code>Prefabs/VFX/Explosion.prefab</code> and <code>PlayerHit.prefab</code> are orphaned outright now that <code>_Archive~</code> has gone with it the last reference to either. <code>PlayerHit</code> is the one that was wearing <code>TESTE cenario_2.mat</code>, a scenery test material, which is worth knowing before anything reuses it.</li>
       <li>The old HUD art in <code>Art/Textures</code> is no longer <em>drawn</em> — the shaders replaced all of it — but saying it is referenced by nothing was wrong, and worth correcting because it is the kind of claim that gets a live asset deleted. Unity's dependency graph puts <code>hpBar.png</code> and <code>TESTE 1 hud 4copy.png</code> on <code>Image</code> components that are active and enabled, on two root objects both named <code>Border</code>. They render nothing only because neither has a <code>Canvas</code> anywhere above it, which is a condition of the scene rather than of the files: reparent either one and the old art is back on screen. <strong>Delete the objects before the textures</strong>, or the references dangle. <code>skillSlot</code>, the four button sprites, the menu background and the PUC logo are genuinely at zero. <code>timeBar</code> has been deleted; the rest are still there.</li>
-      <li><code>StarfieldCubemapBaker</code> can no longer run: its six source textures were deleted once the cross was baked. That is fine unless the sky ever needs re-baking, in which case they have to come back first.</li>
+      <li><code>StarfieldCubemapBaker</code> is gone: its six source textures were deleted once the cross was baked, and the tool itself on 8 October. The scene&rsquo;s sky has been painted by <code>StormSkyBuilder</code> since 6 October. <code>StarfieldSky.png</code> stays in the project as the last copy of the old sky, with nothing pointing at it.</li>
       <li>Git history still carries the 302 MB of deleted sky textures; only a history rewrite removes them.</li>
     </ul>
     <p>Four of these have since been cleared, each confirmed dead rather than assumed:
@@ -2850,11 +2899,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <div class="label">Why the editor never noticed</div>
       <p>The obvious sequence — check out <code>main</code>, then merge — would have rewound the working tree 49 commits and replayed it, with Unity watching hundreds of assets vanish and return. Moving the ref instead (<code>git branch -f main hdrp-experiment</code>) leaves both names on the same commit, so the checkout that follows changes <strong>zero files</strong>. The project stayed open throughout.</p>
     </div>
-    <p>The branch-locked caveat is now moot: <code>HdrpVfxMaterialFixup</code>, <code>LavaLightPlacer</code> (since deleted) and the render-pipeline references in <code>SurvivalChaos.Editor.asmdef</code> have nowhere else they need to go. That asmdef now names three: <code>HighDefinition.Runtime</code>, <code>Core.Runtime</code> for the dynamic-resolution and probe-volume enums, and <code>GPUDriven.Runtime</code> for <code>GPUResidentDrawerMode</code>. Each was added only when a preset field genuinely needed the type — the first attempt to reach one of them failed to compile, which is a cheaper way to find out than shipping.</p>
+    <p>The branch-locked caveat is now moot: <code>HdrpVfxMaterialFixup</code> and <code>LavaLightPlacer</code> (both deleted since) and the render-pipeline references in <code>SurvivalChaos.Editor.asmdef</code> have nowhere else they need to go. That asmdef now names three: <code>HighDefinition.Runtime</code>, <code>Core.Runtime</code> for the dynamic-resolution and probe-volume enums, and <code>GPUDriven.Runtime</code> for <code>GPUResidentDrawerMode</code>. Each was added only when a preset field genuinely needed the type — the first attempt to reach one of them failed to compile, which is a cheaper way to find out than shipping.</p>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.4f1) · HDRP 17.6 · branch <code>main</code> · 389 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.5f1) · HDRP 17.6 · branch <code>main</code> · 407 commits
   </footer>
 
 </div>

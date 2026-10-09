@@ -16,6 +16,34 @@ namespace SurvivalChaos.Tests
         private const float BossAt = 400f;
         private const float Peak = 0.75f;
 
+        /// <summary>
+        /// The volcano asks the run's clock at its own Start, which in the Game
+        /// scene comes before the director's. Until 8 October 2026 the answer
+        /// then was the whole of the game's clock, and a second run began with
+        /// the Leviathan's eruption.
+        /// </summary>
+        [Test]
+        public void TheRunsClock_ReadsNothing_UntilTheDirectorHasStarted()
+        {
+            Assert.AreEqual(0f, WaveDirector.ElapsedAt(633f, 0f, false),
+                "a director that has not started took the game's clock for the run's, and the volcano saw the boss's time gone");
+            Assert.AreEqual(0f, WaveDirector.ElapsedAt(633f, 633f, true), 1e-4f);
+            Assert.AreEqual(12f, WaveDirector.ElapsedAt(645f, 633f, true), 1e-4f);
+
+            // The same question of the component, which nothing has started
+            // here: the Test Runner does not run Start.
+            GameObject holder = new GameObject("Director under test");
+
+            try
+            {
+                Assert.AreEqual(0f, holder.AddComponent<WaveDirector>().Elapsed, "the director's own clock does not wait for its Start");
+            }
+            finally
+            {
+                Object.DestroyImmediate(holder);
+            }
+        }
+
         [Test]
         public void TheRestingLevel_StartsAtNothing_AndStopsAtItsPeak()
         {

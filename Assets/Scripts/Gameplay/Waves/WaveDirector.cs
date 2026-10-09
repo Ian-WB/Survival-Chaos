@@ -48,6 +48,9 @@ namespace SurvivalChaos
 
         private float startTime;
 
+        /// <summary>Whether Start has set the clock's zero. See <see cref="Elapsed"/>.</summary>
+        private bool started;
+
         /// <summary>
         /// The player's band, which every spawn height is carried into. Found on
         /// the player at Start, the way the boss and the pickups find it, and
@@ -56,8 +59,27 @@ namespace SurvivalChaos
         /// </summary>
         private ApplyBounds band;
 
-        /// <summary>Seconds since spawning began.</summary>
-        public float Elapsed => Time.time - startTime;
+        /// <summary>
+        /// Seconds since spawning began, and none until it has.
+        ///
+        /// The clock's zero is set at Start, and Unity does not say whose Start
+        /// comes first. The volcano's did, and before this one it read the whole
+        /// of the game's clock as the length of the run. On a run begun with
+        /// more than 400 seconds on that clock, which is any second run and any
+        /// long wait at the title, it took the Leviathan to have arrived: a
+        /// full eruption from the first second, and no surges after it (scan
+        /// of 8 October 2026).
+        /// </summary>
+        public float Elapsed => ElapsedAt(Time.time, startTime, started);
+
+        /// <summary>
+        /// What the run's clock reads, as arithmetic a test can ask without a
+        /// scene: nothing before the start, then the time since it.
+        /// </summary>
+        public static float ElapsedAt(float now, float startTime, bool started)
+        {
+            return started ? now - startTime : 0f;
+        }
 
         /// <summary>
         /// The wave being run, so the rest of the scene can ask about the shape
@@ -145,6 +167,7 @@ namespace SurvivalChaos
         private void Start()
         {
             startTime = Time.time;
+            started = true;
 
             if (arenaCenter == null)
             {
