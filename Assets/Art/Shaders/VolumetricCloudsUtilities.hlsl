@@ -1,6 +1,6 @@
 // HDRP's VolumetricCloudsUtilities.hlsl (com.unity.render-pipelines.high-definition 17,
-// Unity 6000.6.4f1), copied with two changes: the clouds turn about the island, and
-// lightning lights them from inside.
+// Unity 6000.6.4f1), copied with three changes: the clouds turn about the island,
+// lightning lights them from inside, and a ray's step grows with the distance along it.
 //
 // HDRP's wind carries the clouds in a straight line. The Game scene's clouds are an eye
 // of the storm (environment roadmap, item 40; see CloudRingBuilder), and a storm seen
@@ -32,10 +32,22 @@
 // everything else. StormLightning, in the Game scene, sets _StormFlash and
 // _StormFlashLight on the tracer; left unset they are zero and the clouds are as before.
 //
+// Since 12 October there is a third: the ray's step grows with the distance along it.
+// HDRP gives a ray one step for its whole length: its path through the cloud layer over
+// the number of steps, and never more than an eighth of the layer's height. That suits a
+// camera under the clouds, looking up through them. Ours flies inside the layer, so a ray
+// that looks along it has tens of kilometres of path and took that longest step, 187 m in
+// the Game scene, from the camera outward. The storm's wall, 1500 m off, got one or two
+// samples a frame, and the rest was left to the clouds' history. That was the grain that
+// boiled in the clouds, there since the arena was first raised into them. StormStep makes
+// the step a share of the distance, between a shortest step and HDRP's own, so the same
+// number of samples falls thick on the wall and thin on the far cloud.
+//
 // Used by the project's copies of VolumetricCloudsTrace.compute and
 // VolumetricCloudsTraceShadows.compute, so the clouds and the shadow they throw turn
-// together. After an HDRP upgrade CloudStormShaderTests fails if the package's files
-// changed: re-copy all three and reapply both changes.
+// together. The shadow's own short march keeps HDRP's step. After an HDRP upgrade
+// CloudStormShaderTests fails if the package's files changed: re-copy all three and
+// reapply the three changes.
 
 #ifndef VOLUMETRIC_CLOUD_UTILITIES_H
 #define VOLUMETRIC_CLOUD_UTILITIES_H
@@ -560,6 +572,22 @@ float ErosionMipOffset(float distanceToCamera)
     return lerp(0.0, 4.0, saturate((distanceToCamera - MIN_EROSION_DISTANCE) / (MAX_EROSION_DISTANCE - MIN_EROSION_DISTANCE)));
 }
 
+// Survival Chaos: how a ray's step grows, both against the number of steps the ray has, so it
+// reaches about as far as HDRP's at every Clouds quality. The shortest step is HDRP's step
+// times the first over that number, and the step is the distance along the ray times the
+// second over it. At 128 steps that is an eighth of HDRP's step and a 64th of the distance:
+// 23 m at the storm's wall, where HDRP's was 187 m. A 128th of the distance lost the far
+// cloud; a quarter and a 32nd left about twice the grain.
+#define STORM_SHORTEST_STEP 16.0
+#define STORM_STEP_GROWTH 2.0
+
+// Survival Chaos: the length of a ray's step at a distance along it, never longer than HDRP's.
+float StormStep(float longest, float distanceAlongRay)
+{
+    float perStep = 1.0 / (float)_NumPrimarySteps;
+    return clamp(distanceAlongRay * STORM_STEP_GROWTH * perStep, longest * min(STORM_SHORTEST_STEP * perStep, 1.0), longest);
+}
+
 VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 {
     // Initiliaze the volumetric ray
@@ -603,7 +631,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             float meanDistanceDivider = 0.0f;
 
             // Current position for the evaluation, apply blue noise to start position
-            float currentDistance = cloudRay.integrationNoise * stepS;
+            float currentDistance = cloudRay.integrationNoise * StormStep(stepS, rayMarchRange.start);
             float3 currentPositionWS = cloudRay.originWS + (rayMarchRange.start + currentDistance) * cloudRay.direction;
 
             // Initialize the values for the optimized ray marching
@@ -620,6 +648,9 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 
                 // Accumulate in WS and convert at each iteration to avoid precision issues
                 float3 currentPositionPS = ConvertToPS(currentPositionWS);
+
+                // Survival Chaos: the step from here on
+                float stepHere = StormStep(stepS, rayMarchRange.start + currentDistance);
 
                 // Should we be evaluating the clouds or just doing the large ray marching
                 if (activeSampling)
@@ -639,7 +670,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         meanDistanceDivider += volumetricRay.transmittance;
 
                         // Evaluate the cloud at the position
-                        EvaluateCloud(cloudProperties, cloudRay.envLighting, currentPositionPS, stepS, currentDistance / totalDistance, volumetricRay);
+                        EvaluateCloud(cloudProperties, cloudRay.envLighting, currentPositionPS, stepHere, currentDistance / totalDistance, volumetricRay);
 
                         // if most of the energy is absorbed, just leave.
                         if (volumetricRay.transmittance < 0.003)
@@ -659,8 +690,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         activeSampling = false;
 
                     // Do the next step
-                    currentPositionWS += cloudRay.direction * stepS;
-                    currentDistance += stepS;
+                    currentPositionWS += cloudRay.direction * stepHere;
+                    currentDistance += stepHere;
                 }
                 else
                 {
@@ -674,15 +705,15 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                     // If the density is lower than our tolerance,
                     if (cloudProperties.density < CLOUD_DENSITY_TRESHOLD)
                     {
-                        currentPositionWS += cloudRay.direction * stepS * 2.0f;
-                        currentDistance += stepS * 2.0f;
+                        currentPositionWS += cloudRay.direction * stepHere * 2.0f;
+                        currentDistance += stepHere * 2.0f;
                     }
                     else
                     {
                         // Somewhere between this step and the previous clouds started
                         // We reset all the counters and enable active sampling
-                        currentPositionWS -= cloudRay.direction * stepS;
-                        currentDistance -= stepS;
+                        currentPositionWS -= cloudRay.direction * stepHere;
+                        currentDistance -= stepHere;
                         currentIndex -= 1;
                         activeSampling = true;
                         sequentialEmptySamples = 0;

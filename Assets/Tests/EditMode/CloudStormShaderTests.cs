@@ -28,6 +28,10 @@ namespace SurvivalChaos.Tests
     /// Since 7 October the storm turns at three rates: the cloud's shapes
     /// at the wind's, the eye's outline at a sixth of that, the fine detail
     /// a sixth faster. Each is rigid, so nothing winds up.
+    ///
+    /// Since 12 October a ray's step grows with the distance along it,
+    /// because the camera flies inside the cloud layer and HDRP's one long
+    /// step left the storm's wall a sample or two a frame.
     /// </summary>
     public class CloudStormShaderTests
     {
@@ -154,6 +158,85 @@ namespace SurvivalChaos.Tests
             Match define = Regex.Match(text, @"#define " + name + @" ([0-9.]+)");
             Assert.IsTrue(define.Success, "the project's include no longer defines " + name);
             return float.Parse(define.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// The camera flies inside the cloud layer, so a ray that looks along
+        /// it would take HDRP's longest step, an eighth of the layer's
+        /// height, all the way out: 187 metres through a wall 1500 metres
+        /// off. That was the grain Ian saw boil in the clouds until
+        /// 12 October 2026. The tracer's step now grows with distance, and
+        /// two things can go wrong with the two numbers it grows by. Too
+        /// long at the wall and the grain is back. Too short for too far and
+        /// the ray's steps run out early: with half this growth a ray had
+        /// 2 km of cloud left in it past the wall, and the far cloud was
+        /// seen cut off; with this growth it has over 4, and was not.
+        /// Checked at both step counts the Clouds row uses.
+        /// </summary>
+        [TestCase(64)]
+        [TestCase(128)]
+        public void ARaysStep_IsShortAtTheWall_AndStillReachesTheFarCloud(int steps)
+        {
+            string text = File.ReadAllText(Folder + Include);
+            float shortest = Share(text, "STORM_SHORTEST_STEP");
+            float growth = Share(text, "STORM_STEP_GROWTH");
+            float wall = Share(text, "STORM_TURN_RADIUS");
+
+            Match march = Regex.Match(text, @"VolumetricRayResult TraceVolumetricRay\(CloudRay cloudRay\)(.*?)// Normalized the depth we computed", RegexOptions.Singleline);
+            Assert.IsTrue(march.Success, "the tracer's march is gone from the project's include");
+            StringAssert.Contains("float stepHere = StormStep(stepS, rayMarchRange.start + currentDistance);", march.Value,
+                "the march no longer asks for its step at each distance");
+            Assert.IsFalse(Regex.IsMatch(march.Value, @"cloudRay\.direction \* stepS"),
+                "part of the march still moves by HDRP's one step");
+
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
+            Assert.IsTrue(profile.TryGet(out VolumetricClouds clouds), "the scene has no clouds override");
+            float longest = clouds.altitudeRange.value / 8f;
+
+            Assert.That(Step(wall, steps, longest, shortest, growth), Is.LessThanOrEqualTo(longest / 4f),
+                "the step at the storm's wall is long enough to grain again");
+            Assert.That(Reach(steps, longest, shortest, growth, float.PositiveInfinity), Is.GreaterThanOrEqualTo(0.75f * steps * longest),
+                "a ray through clear air stops well short of where HDRP's did");
+            Assert.That(Reach(steps, longest, shortest, growth, wall) - wall, Is.GreaterThanOrEqualTo(4000f),
+                "a ray that meets cloud at the wall runs out of steps too soon after it");
+        }
+
+        // StormStep, as the include has it.
+        private static float Step(float distance, int steps, float longest, float shortest, float growth) =>
+            Mathf.Clamp(distance * growth / steps, longest * Mathf.Min(shortest / steps, 1f), longest);
+
+        // The tracer's march along a ray that starts inside the layer, with the jitter at its lowest:
+        // clear air out to cloudFrom, unbroken cloud after it. How far out the last sample is.
+        private static float Reach(int steps, float longest, float shortest, float growth, float cloudFrom)
+        {
+            float distance = 0f;
+            float limit = steps * longest;
+            bool active = true;
+            int empty = 0;
+            for (int index = 0; index < steps && distance < limit; index++)
+            {
+                float step = Step(distance, steps, longest, shortest, growth);
+                bool cloud = distance >= cloudFrom;
+                if (active)
+                {
+                    if (cloud) empty = 0;
+                    else if (++empty == 8) active = false;
+                    distance += step;
+                }
+                else if (!cloud)
+                {
+                    distance += 2f * step;
+                }
+                else
+                {
+                    distance -= step;
+                    index--;
+                    active = true;
+                    empty = 0;
+                }
+            }
+
+            return distance;
         }
 
         /// <summary>
