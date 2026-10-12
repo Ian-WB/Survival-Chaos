@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 409 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 412 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>409</b><span>commits</span></div>
-      <div class="stat"><b>808</b><span>tests</span></div>
+      <div class="stat"><b>412</b><span>commits</span></div>
+      <div class="stat"><b>810</b><span>tests</span></div>
       <div class="stat"><b>158</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -722,8 +722,12 @@
       said the far-tree flicker was back, and it was removed whole the same day.</li>
       <li><strong>The clouds&rsquo; history follows the storm</strong> &mdash; HDRP looks for last frame&rsquo;s cloud where the
       cloud is now, and the project&rsquo;s copy of that pass looks where the cloud was. It was built as the answer to noise
-      Ian saw in the clouds, after a first answer, the dithering, that was wrong. He saw no change from this one either, and
-      the noise is still open.</li>
+      Ian saw in the clouds, after a first answer, the dithering, that was wrong. He saw no change from this one either.</li>
+      <li><strong>The clouds&rsquo; grain was a 187&nbsp;m step</strong> &mdash; the camera flies inside the cloud layer, and
+      HDRP marched every ray that looks along the layer in steps of 187&nbsp;m, so the storm&rsquo;s wall, 1500&nbsp;m off, got a
+      sample or two a frame. Since 12 October the step grows with the distance along the ray, 23&nbsp;m at the wall. Ian played
+      the old against the new and said the new looks much better. It was the fourth answer; the three before it measured well
+      and changed nothing he saw.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -1659,9 +1663,10 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <p>HDRP has no way to turn a cloud map, so its two cloud tracers and the include they share are project copies, beside the combine
     pass that was copied earlier to cap the clouds&rsquo; fog: <code>VolumetricCloudsTrace.compute</code>,
     <code>VolumetricCloudsTraceShadows.compute</code>, <code>VolumetricCloudsUtilities.hlsl</code> and
-    <code>VolumetricCloudsCombine.shader</code>, under <code>Assets/Art/Shaders</code>. The copies add two things. The map turns about
+    <code>VolumetricCloudsCombine.shader</code>, under <code>Assets/Art/Shaders</code>. The copies add three things. The map turns about
     the island&rsquo;s axis at three speeds, so the wall shears as it goes round, and its shapes climb through it, so a cloud changes
-    as it is watched. And a glow is added inside the wall where <code>StormLightning</code> says a flash is. <code>CloudStormShaderTests</code>
+    as it is watched. A glow is added inside the wall where <code>StormLightning</code> says a flash is. And a ray&rsquo;s step grows
+    with the distance along it, which has its own paragraphs below. <code>CloudStormShaderTests</code>
     compares HDRP&rsquo;s own files with the ones the copies were made from, so an HDRP update that changes them fails a test until the
     copies are made again.</p>
     <p><strong>The smoothing has to know the storm turns.</strong> HDRP draws a quarter of the clouds&rsquo; pixels each frame and blends
@@ -1676,8 +1681,32 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     cloud&rsquo;s shapes; the fine detail moves a little faster and is not followed.</p>
     <p>What it bought is small. With the camera still it takes a faint blocky shimmer off the lit wall, 0.6 of a brightness
     level a frame down to 0.2. Ian, on the first build with it, saw no change in the noise he had reported, and said on 9 October
-    that the noise is older than the storm: it was there when these were HDRP&rsquo;s own clouds. Its cause was not known when
-    this was written.</p>
+    that the noise is older than the storm: it was there when these were HDRP&rsquo;s own clouds. The cause was elsewhere,
+    and is the next paragraph.</p>
+    <p><strong>A ray&rsquo;s step grows with distance.</strong> This is what the noise was. HDRP gives each ray one step for its
+    whole path: the path through the cloud layer over the number of steps, and never more than an eighth of the layer&rsquo;s
+    height. That suits a camera under the clouds, looking up through them. Here the layer runs from 250&nbsp;m to 1750&nbsp;m and
+    the ship flies at about 1000&nbsp;m, inside it, so a ray that looks along the layer has tens of kilometres of path and took the
+    longest step, 187&nbsp;m, from the camera outward. The storm&rsquo;s wall is 1500&nbsp;m away. Its face got one or two samples
+    a frame, jittered, and the rest was left to the history: a grain that boiled where the history was short and trails where it
+    was long, which is the trade every attempt on the history ran into. <code>StormStep</code>, in the project&rsquo;s copy of
+    <code>VolumetricCloudsUtilities.hlsl</code>, makes the step a share of the distance along the ray, between a shortest step and
+    HDRP&rsquo;s own. Both are set against the number of steps, so the same samples fall thick on the wall and thin on the far
+    cloud at every Clouds quality: at 128 steps an eighth of HDRP&rsquo;s step and a 64th of the distance, 23&nbsp;m at the wall;
+    at 64 a quarter and a 32nd. Half that growth ran out of steps past the wall and lost the far cloud; a shortest step twice as
+    long left about twice the grain.</p>
+    <p>Ian played the old step against the new on 12 October, on a key in the editor, and said the new looks much better, with
+    the history left as it was. Measured in one session, counting the pixels of a patch of the lit wall that change from one
+    frame to the next: 17% with HDRP&rsquo;s step and 0.6% with this at 128 steps, 20% and 2% at 64. With the history cut to a
+    single sample the old step changed 28% and the new one 0.6%, so the noise is gone at its source and not smoothed over. The
+    sky&rsquo;s brightness from four sides of the island is the same to a fifth of a level at 128 steps and never darker at 64,
+    so no far cloud is lost. It costs about 0.4&nbsp;ms a frame at Ultra in the editor. Storm flashes read about half as bright,
+    because the cloud in front of a flash is counted now; their brightness was left alone. <code>CloudStormShaderTests</code>
+    holds the two numbers: short at the wall, and enough steps left after it.</p>
+    <p>It was the fourth answer. The dithering, the history above and a longer history with a wider clamp each measured well and
+    changed nothing he saw. A second agent then worked through it with him: a long history is clean standing still and trails in
+    flight, four times the steps is an improvement, and the speckle is there with HDRP&rsquo;s own shaders in an empty scene. The
+    step was found from that. Under FSR it has not been looked at.</p>
     <p>Behind the storm is a painted sky, a cubemap from <code>StormSkyBuilder</code>, with a bright moon on the line the moonlight comes
     from; the moon&rsquo;s face is NASA&rsquo;s map, credited in the notices. The environment roadmap page has each of these as built, with
     its numbers and what was measured.</p>
@@ -2583,7 +2612,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>808 tests across 79 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>810 tests across 79 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2641,7 +2670,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>Fsr3Tests</code></td><td class="num">21</td><td>that stored upscaler numbers never move, a stored FSR 2 reads as FSR 3, Unity&rsquo;s AMD module stays out, and the jitter phases match AMD&rsquo;s table</td></tr>
           <tr><td><code>RunMomentsTests</code></td><td class="num">21</td><td>the held moments: that a hit stop all but stops the game and gives it back, leaves sounds at their speed, and does not happen once the run is decided or under the pause menu</td></tr>
           <tr><td><code>SecondPolishTests</code></td><td class="num">18</td><td>the second roadmap&rsquo;s first items: arrivals keep clear of the ship and still reach every other bearing, and every hostile round has a name</td></tr>
-          <tr><td><code>CloudStormShaderTests</code></td><td class="num">17</td><td>that the clouds are traced and smoothed by the project&rsquo;s copies of HDRP&rsquo;s shaders, that every read is turned first, that the history follows the storm by the scene&rsquo;s own numbers, and that HDRP&rsquo;s files are still the ones the copies were made from</td></tr>
+          <tr><td><code>CloudStormShaderTests</code></td><td class="num">19</td><td>that the clouds are traced and smoothed by the project&rsquo;s copies of HDRP&rsquo;s shaders, that every read is turned first, that the history follows the storm by the scene&rsquo;s own numbers, that a ray&rsquo;s step is short at the storm&rsquo;s wall and still reaches the far cloud, and that HDRP&rsquo;s files are still the ones the copies were made from</td></tr>
           <tr><td><code>CloudRingTests</code></td><td class="num">15</td><td>that the scene uses the painted ring, the map holds still while the shapes climb through the wall, and the arena is inside the cloud layer</td></tr>
           <tr><td><code>ShippingPolishTests</code></td><td class="num">15</td><td>the last six polish items: tips that never repeat, a volume preview that waits out its gap, and the rest</td></tr>
           <tr><td><code>EruptionSparksTests</code></td><td class="num">14</td><td>where a lava bomb lands for how it is thrown, and that the furthest lands well short of the lane</td></tr>
@@ -2670,7 +2699,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         </tbody>
       </table>
     </div>
-    <p>The table was brought up to date on 9 October 2026: every suite is in it, with its count from that day&rsquo;s run. The twenty-nine at the foot are the ones added since 26 September, largest first; the far trees&rsquo; suite went out with them on 9 October.</p>
+    <p>The table was brought up to date on 9 October 2026: every suite is in it, with its count from that day&rsquo;s run. The twenty-nine at the foot are the ones added since 26 September, largest first; the far trees&rsquo; suite went out with them on 9 October. The clouds&rsquo; suite gained two on 12 October.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -2771,6 +2800,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     morning was asking him. Where is the flicker, what does the noise look like, when does it show: three questions he answered in
     seconds, and one of them named a different thing from the one being chased. Ask first, and get a frame from the machine and
     the settings he really runs.</p>
+    <p>A third answer went the same way, and the fourth did not. Three took the noise as given and worked on what smooths it. The
+    fourth read the tracer for what this scene does that HDRP does not expect, a camera inside the cloud layer, and then measured
+    with the smoothing cut to nothing, so that a longer history could not flatter the number. It was looked at before it was
+    shown: one held frame, enlarged, beside the original. And he judged it in play, the old against the new on a key, not from a
+    description.</p>
 
     <h3>Preserve behaviour, flag the judgement</h3>
     <p>The boss's 2 EXP, the laser's fire rate, the 301-second cutoff, the <code>"SexTUPLO Shot!"</code> banner — all preserved exactly, all surfaced as things to decide. Three of those four have since been decided, which is the point: they were reachable as one field each when the moment came. Migration and rebalancing are different jobs, and mixing them makes both harder to review.</p>
@@ -2791,10 +2825,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       enemy&rsquo;s. The ship still looked a little lit from inside, which was called no big deal.</li>
       <li><strong>The look of 8 October was played and liked.</strong> The grade, the island, the sky and the storm&rsquo;s wall, in
       <code>26_1008-1251_grade</code>. The one complaint was noise in the clouds.</li>
-      <li><strong>The noise in the clouds is not found.</strong> Two answers were built, the dithering and the history that follows
-      the storm, and he saw no change from either. He describes it as a fine grain that boils and as almost like ghosting, there
-      with the ship standing still, weaker when looking toward the moon, and older than the storm. Frames the game saves of itself
-      look smooth where he sees it. On 9 October it was handed to a second agent to diagnose.</li>
+      <li><strong>The noise in the clouds was a 187&nbsp;m step, and is answered.</strong> He judged it in the editor on
+      12 October, the old step against the new on a key. <code>26_1012-2002_cloudSteps</code> has it. Not looked at under FSR
+      yet, which his builds use, and storm flashes read about half as bright as they did.</li>
+      <li><strong>Ghosting in the reflections on the island is open.</strong> He named it after playing the new clouds, and it is
+      there with the old ones too. The reflections are HDRP&rsquo;s screen-space ones on High, in the mode that reads last
+      frame&rsquo;s picture. Which surface he means is not known yet.</li>
       <li><strong>Two things from the night of 8 October still wait for a look:</strong> whether the ash lightning ever pulls the
       eye off the rounds, and that a second run starts quiet.</li>
       <li><strong>The Leviathan&rsquo;s first frames do not stutter.</strong> Since 2 October a build keeps
@@ -3009,7 +3045,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.5f1) · HDRP 17.6 · branch <code>main</code> · 409 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.5f1) · HDRP 17.6 · branch <code>main</code> · 412 commits
   </footer>
 
 </div>
