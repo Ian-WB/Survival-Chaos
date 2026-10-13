@@ -32,6 +32,11 @@ namespace SurvivalChaos.Tests
     /// Since 12 October a ray's step grows with the distance along it,
     /// because the camera flies inside the cloud layer and HDRP's one long
     /// step left the storm's wall a sample or two a frame.
+    ///
+    /// And since the same day the ground takes no history from the sky.
+    /// A history that follows the storm is read from somewhere else on
+    /// every frame, and at the island's edge it carried the sky's cloud
+    /// over the rock.
     /// </summary>
     public class CloudStormShaderTests
     {
@@ -107,6 +112,34 @@ namespace SurvivalChaos.Tests
                 "the scene's Vertical Shape Wind Speed and the history's copy of it have parted");
             Assert.AreEqual(Number(File.ReadAllText(Folder + Include), "STORM_TURN_RADIUS"), Number(include, "STORM_TURN_RADIUS"), 0.01f,
                 "the tracer and the history turn the storm at different radii");
+        }
+
+        /// <summary>
+        /// HDRP reads the history between four texels and tests the blend's
+        /// depth, which lets a pixel of ground take up to a sixth of its
+        /// history from the sky beside it. With HDRP's own clouds that only
+        /// happens while the camera turns. Here the history follows the
+        /// storm, so it happened on every frame, and the turn carried the
+        /// cloud on across the island as a pale trail.
+        /// </summary>
+        [Test]
+        public void TheGround_TakesNoHistory_FromTheSky()
+        {
+            string history = File.ReadAllText(Folder + "VolumetricClouds.compute");
+
+            StringAssert.Contains("GATHER_GREEN_TEXTURE2D_X(_HistoryVolumetricClouds1Texture", history,
+                "the four texels the history is read between are no longer looked at one by one");
+            StringAssert.Contains("currentSceneDepth != UNITY_RAW_FAR_CLIP_VALUE && any(historyDepths == UNITY_RAW_FAR_CLIP_VALUE)", history,
+                "the test for ground reading the sky's history has changed");
+
+            Match accepted = Regex.Match(history, @"if \(all\(0\.0 <= float4\(historyUV[^\n]*");
+            Assert.IsTrue(accepted.Success, "the line that accepts the history was not found");
+            StringAssert.Contains("!groundTakesSky", accepted.Value,
+                "the history is accepted without asking whether ground is reading the sky");
+
+            // Green is where the pass keeps the scene's depth. Move it and the test above reads something else.
+            StringAssert.Contains("float4(finalSampleCount, currentSceneDepth, finalCloudDepth, finalColor.a)", history,
+                "the history no longer keeps the scene's depth in its second channel");
         }
 
         [TestCase("VolumetricCloudsTrace.compute")]

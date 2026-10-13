@@ -1,8 +1,10 @@
 // HDRP's VolumetricClouds.compute (com.unity.render-pipelines.high-definition 17, Unity 6000.6.5f1),
-// copied with one change: it includes the project's VolumetricCloudsDenoising.hlsl, where the
-// clouds' history follows the turning storm. See that file. Swapped in through the pipeline's
-// global settings (VolumetricCloudsRuntimeResources.volumetricCloudsCS); CloudStormShaderTests
-// checks the swap and that the package's own file is still the one this was copied from.
+// copied with two changes. It includes the project's VolumetricCloudsDenoising.hlsl, where the
+// clouds' history follows the turning storm: see that file. And in the history pass below, a pixel
+// of solid ground takes no history that touches the sky: see the note there. Swapped in through
+// the pipeline's global settings (VolumetricCloudsRuntimeResources.volumetricCloudsCS);
+// CloudStormShaderTests checks the swap, the second change, and that the package's own file is
+// still the one this was copied from.
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
@@ -89,7 +91,17 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // History is invalid if sample is out of screen or scene depth was too different
     float2 historyUVMax = 1.0 - 0.5 * _IntermediateScreenSize.zw - 0.000001; // To avoid lerp with garbage pixels
-    if (all(0.0 <= float4(historyUV, historyUVMax - historyUV)) && previousSampleCount >= 0.5f && EvaluateDepthDifference(history.y, currentSceneDepth))
+
+    // Survival Chaos: the history is read between four texels, and because it follows the storm it
+    // is read from somewhere else on every frame, with the camera standing still. Where ground
+    // stands against the sky, the blend of the four let up to a sixth of the sky's cloud past the
+    // depth test below, and the turn then carried it on across the ground: a pale trail of cloud
+    // over the island's edge, which cleared when the clock stopped. A pixel of ground takes no
+    // history that touches the sky. The sky already took none that touches the ground.
+    float4 historyDepths = GATHER_GREEN_TEXTURE2D_X(_HistoryVolumetricClouds1Texture, s_linear_clamp_sampler, historyUV * _HistoryViewportScale);
+    bool groundTakesSky = currentSceneDepth != UNITY_RAW_FAR_CLIP_VALUE && any(historyDepths == UNITY_RAW_FAR_CLIP_VALUE);
+
+    if (all(0.0 <= float4(historyUV, historyUVMax - historyUV)) && previousSampleCount >= 0.5f && !groundTakesSky && EvaluateDepthDifference(history.y, currentSceneDepth))
     {
         float4 previousColor = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds0Texture, s_linear_clamp_sampler, historyUV * _HistoryViewportScale, 0);
         previousColor.xyz *= GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
