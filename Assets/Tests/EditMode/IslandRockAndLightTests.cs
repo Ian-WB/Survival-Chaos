@@ -147,14 +147,19 @@ namespace SurvivalChaos.Tests
 
         // Item 44: the underside.
 
+        /// <summary>
+        /// Item 44 also hung 36 pointed rocks under the island. Ian saw them
+        /// in a build on 12 October, did not like them, and had them taken
+        /// out. The glow under the lava's fall stays.
+        /// </summary>
         [Test]
-        public void TheUnderside_HasHangingRock_AndAGlowUnderTheLavasFall()
+        public void TheUnderside_HasAGlowUnderTheLavasFall_AndNoHangingRock()
         {
             string text = File.ReadAllText(ScenePath);
             SavedScene scene = SavedScene.Load(ScenePath);
 
             Assert.IsNotNull(scene.GameObjectNamed("Island Underside"), "run Survival Chaos > Environment > Build Island Underside, and save the scene");
-            Assert.That(Regex.Matches(text, @"m_Name: Hanging Rock \d+").Count, Is.GreaterThanOrEqualTo(20), "hardly any rock hangs under the island");
+            Assert.AreEqual(0, Regex.Matches(text, @"m_Name: Hanging Rock \d+").Count, "rock hangs under the island again, which Ian had taken out");
 
             string glow = scene.GameObjectNamed("Underglow");
             Assert.IsNotNull(glow, "no Underglow");

@@ -408,7 +408,8 @@ namespace SurvivalChaos.EditorTools
             Vector3[] vertices = new Vector3[faces.Length];
             Vector3[] normals = new Vector3[faces.Length];
             // A tangent along one edge of each face. The debris ring's material does not read it; the
-            // island's rock shader does, and the hanging rock under the island wears that (item 44).
+            // island's rock shader does, and a shard that wore it without one drew normals that are not
+            // numbers. Nothing wears it now: the rock that hung under the island (item 44) is gone.
             Vector4[] tangents = new Vector4[faces.Length];
             int[] triangles = new int[faces.Length];
 

@@ -287,9 +287,9 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 413 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 414 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>413</b><span>commits</span></div>
+      <div class="stat"><b>414</b><span>commits</span></div>
       <div class="stat"><b>811</b><span>tests</span></div>
       <div class="stat"><b>158</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
@@ -699,8 +699,9 @@
       turning at its own pace, set high enough to stand clear of the fog.</li>
       <li><strong>An island with a rock face and an underside</strong> &mdash; on 8 October the island&rsquo;s four rock
       materials went onto a shader of their own, which glows in the heart of its widest cracks as the eruption builds;
-      36 rocks were hung beneath the island with a glow under the lava; and all six lava lights became Baked, with
-      live copies that light only the haze. Nothing is Mixed and no shadowmask is baked.</li>
+      a glow went under the lava&rsquo;s fall; and all six lava lights became Baked, with live copies that light only the
+      haze. Nothing is Mixed and no shadowmask is baked. Thirty-six rocks were hung beneath the island that day too. Ian
+      saw them in a build on 12 October, did not like them, and they came out.</li>
       <li><strong>A grade</strong> &mdash; a custom tone curve fitted to where ACES put grey, so the picture is as dark
       as it was and a bright pickup keeps its colour; cool shadows and warm highlights, lightly; and a light vignette. It went in with dithering on both cameras, which came out the same night:
       it laid a grain of its own over the whole picture.</li>
@@ -732,7 +733,8 @@
       a ghost on the island, like the clouds reflecting, with a trail. A history that follows the storm is read from somewhere
       else on every frame, and at the island&rsquo;s edge a pixel of rock took a little of its history from the sky beside
       it, which the storm&rsquo;s turn then carried across the rock. Since 12 October the ground takes no history that
-      touches the sky. He played the old against the new and said the new looks better.</li>
+      touches the sky. He played the old against the new and said the new looks better, and after a build under FSR that the
+      ghost was gone.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -1752,7 +1754,11 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <p><code>DebrisRingBuilder</code> makes 150 pieces of rock in three bands, 60 to 150 units from the axis, each band turning at its own
     pace; they stand high because the fog hides anything low at that distance. The island&rsquo;s four rock materials are on a shader of
     their own, <code>IslandRock</code>, which adds relief and ash and lights the heart of the widest cracks near the lava as the eruption
-    builds. Under the island, <code>IslandUndersideBuilder</code> hangs 36 rocks and puts a glow below the lava&rsquo;s lowest point.</p>
+    builds. Under the island, <code>IslandUndersideBuilder</code> puts a glow below the lava&rsquo;s lowest point. Until
+    12 October it also hung 36 rocks there, the debris ring&rsquo;s shards stretched and pointed down. Ian looked at them in a
+    build and did not like them, so they are out of the scene, the builder no longer makes them, and
+    <code>IslandRockAndLightTests</code> fails if they come back. The bake of 8 October still has them in it; nothing shows
+    where they hung.</p>
     <p>All six lava lights are Baked since 8 October, and nothing is Mixed, so no shadowmask is baked. What still moves is under
     <code>Lava Glow</code>: three Realtime copies on a light layer nothing else is on, so they light only the haze, and a surge light the
     eruption drives. What was given up is the live glint the Mixed lights put on the cone.</p>
@@ -2700,7 +2706,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>ShippingPolishTests</code></td><td class="num">15</td><td>the last six polish items: tips that never repeat, a volume preview that waits out its gap, and the rest</td></tr>
           <tr><td><code>EruptionSparksTests</code></td><td class="num">14</td><td>where a lava bomb lands for how it is thrown, and that the furthest lands well short of the lane</td></tr>
           <tr><td><code>EruptionTests</code></td><td class="num">13</td><td>the eruption&rsquo;s curve at rest, in a surge and at the boss, that the run&rsquo;s clock reads nothing until the director has started, and that the Game scene has it wired</td></tr>
-          <tr><td><code>IslandRockAndLightTests</code></td><td class="num">9</td><td>that the four rock materials wear the rock shader in their own colours, the heat map is hot along the lava, the underside has its rock and its glow, and all six lava lights are Baked</td></tr>
+          <tr><td><code>IslandRockAndLightTests</code></td><td class="num">9</td><td>that the four rock materials wear the rock shader in their own colours, the heat map is hot along the lava, the underside has its glow and no hanging rock, and all six lava lights are Baked</td></tr>
           <tr><td><code>CloudLadderTests</code></td><td class="num">8</td><td>the cloud row&rsquo;s three rungs of step counts, that Low is what the scene was tuned with, and that a stored value outside the ladder is brought into it</td></tr>
           <tr><td><code>EnemySpacingTests</code></td><td class="num">8</td><td>the arithmetic that parts two overlapping enemies: clear ones are left alone, flat ships part in height, and each moves half</td></tr>
           <tr><td><code>StormLightningTests</code></td><td class="num">8</td><td>a stroke&rsquo;s rise and fall, where flashes are placed, no more than three strokes in a second, and that the tracer draws the glow</td></tr>
@@ -2856,11 +2862,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <li><strong>The look of 8 October was played and liked.</strong> The grade, the island, the sky and the storm&rsquo;s wall, in
       <code>26_1008-1251_grade</code>. The one complaint was noise in the clouds.</li>
       <li><strong>The noise in the clouds was a 187&nbsp;m step, and is answered.</strong> He judged it in the editor on
-      12 October, the old step against the new on a key. <code>26_1012-2002_cloudSteps</code> has it. Not looked at under FSR
-      yet, which his builds use, and storm flashes read about half as bright as they did.</li>
+      12 October, the old step against the new on a key, and played it under FSR that night in
+      <code>26_1012-2152_cloudEdge</code>: it looks good. Storm flashes read about half as bright as they did, and the step
+      was never timed in a build.</li>
       <li><strong>The ghost on the island was the clouds&rsquo; history, and is answered.</strong> He judged it in the editor
-      on 12 October and said the new looks better, not that it is gone. <code>26_1012-2152_cloudEdge</code> has it and the
-      shorter step. Not looked at under FSR, and a lag of about 1.5 levels is left along the top rims of the clouds.</li>
+      on 12 October, then played <code>26_1012-2152_cloudEdge</code> under FSR and said it was gone. A lag of about 1.5
+      levels is left along the top rims of the clouds, which he has not remarked on.</li>
+      <li><strong>The island&rsquo;s underside is plain rock again.</strong> The hanging rocks came out on 12 October at his
+      word; the glow under the lava&rsquo;s fall stays. <code>26_1012-2208_noHangingRock</code> has it, not yet looked at.</li>
       <li><strong>Two things from the night of 8 October still wait for a look:</strong> whether the ash lightning ever pulls the
       eye off the rounds, and that a second run starts quiet.</li>
       <li><strong>The Leviathan&rsquo;s first frames do not stutter.</strong> Since 2 October a build keeps
@@ -3075,7 +3084,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.5f1) · HDRP 17.6 · branch <code>main</code> · 413 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.5f1) · HDRP 17.6 · branch <code>main</code> · 414 commits
   </footer>
 
 </div>

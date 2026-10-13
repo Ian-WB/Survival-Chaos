@@ -327,19 +327,14 @@
   // The single thing to do next. Deliberately one, not a shortlist: picking is
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
-    id: "play-cloud-edge",
-    title: "Play the build with both cloud fixes",
-    effort: "one run",
-    lede: "<strong>The ghost on the island was the clouds’ own history, and it is fixed.</strong> The clouds keep a history of earlier frames, and since 9 October that history follows the turning storm, so it is read from two or three pixels away on every frame, ship parked or not. At the island’s edge a pixel of rock could take up to a sixth of its history from the sky beside it, and the turn carried that cloud on across the rock. A pixel of ground now takes no history that touches the sky.</p><p>You played the old against the new on a key in the editor on 12 October and said the fix looks better. <code>Builds/26_1012-2152_cloudEdge</code> has it, and the shorter cloud step from earlier that day, with the debug menu.</p><p><strong>You said better, not gone.</strong> One thing I measured and left alone: the top rims of the clouds lag the storm a little, about 1.5 levels of 255. If you still see a trail, tell me whether it is on the rock or in the cloud.",
+    id: "play-no-hanging-rock",
+    title: "Look at the island without the pointed rocks",
+    effort: "a look",
+    lede: "<strong>The pointed rocks under the island are gone.</strong> You played <code>Builds/26_1012-2152_cloudEdge</code> on 12 October and said the ghost on the island was gone and the build looks good, with one thing you did not like: the rocks hanging under the island. They were item 44 of the environment roadmap, 36 stretched shards. All 36 are out of the scene, the tool no longer makes them, and a test fails if they come back.</p><p><code>Builds/26_1012-2208_noHangingRock</code> has it, with the debug menu.",
     watch: [
-      "The island’s edges against the clouds, parked and flying: no pale veil of cloud on the rock. You judged this in the editor, under TAA; your builds run FSR, and I have not seen it under FSR.",
-      "The clouds themselves, standing still and flying, for the same reason: the shorter step has only been judged under TAA.",
-      "A storm flash. They read about half as bright as before, because the cloud in front of a flash is now counted properly. You played with them like that and did not remark on it. It is one number if you want them back up.",
-      "The far cloud on the horizon, from every side of the island: it should be as it was. I measured it from four sides and it was.",
-      "The frame rate. In the editor the shorter step costs about 0.4 ms a frame at Ultra.",
-      "The far side of the island at High or Ultra, while turning: the trees and ruins should flicker no more than they did in the build you liked.",
-      "The ash lightning, from the second half of a run on: whether it reads as lightning, and whether it ever pulls your eye off the rounds.",
-      "A second run without leaving the game: the volcano should start quiet."
+      "The underside from every side: plain rock again, as it was before 8 October.",
+      "The warm glow where the lava falls off the rim. It was the other half of item 44 and I kept it, because you only named the rocks. It is one light to take out if you want it gone too.",
+      "The bake still has the rocks in it. I saw no dark marks where they hung, and your next bake drops them."
     ]
   };
 
@@ -1902,14 +1897,15 @@
         },
         {
           id: "island-underside",
-          title: "Hang rock under the island and light the lava’s fall (roadmap 44)",
+          title: "Light the lava’s fall under the island; the hanging rock came out (roadmap 44)",
           effort: "1 h",
           why: [
             "Built on 8 October with 43, 45 and 46.",
             "<strong>Hanging rock.</strong> 36 shards hang from the underside, point down, between 5 and 17.5 units from the axis. Each is placed by looking up at the island’s own collider, so it starts in the rock. They are the debris ring’s shard meshes, stretched, in the island’s dark rock.",
             "<strong>The underglow.</strong> One live light 2.5 units under the lowest point of the lava, where it falls off the rim. It lights the rock it passes and the haze under it.",
             "<strong>What it did not do.</strong> The underside as a whole is as dark as it was: it measures 18.9 before and after from the start view. The rock shows as shapes against the haze, and the glow is on the one side where the lava falls. I roughed the rock from what was there, as the roadmap said; modelled rock would look better.",
-            "<code>Survival Chaos &gt; Environment &gt; Build Island Underside</code> makes it again. In <code>Builds/26_1008-1142_islandRock</code>."
+            "<strong>The hanging rock came out on 12 October, at your word.</strong> You saw it in a build and did not like it: pointed rocks. All 36 are gone from the scene, the tool makes only the glow now, and a test fails if rock hangs there again. The bake still has them in it; I saw no marks where they hung.",
+            "<code>Survival Chaos &gt; Environment &gt; Build Island Underside</code> makes the glow again. The rocks were in every build from <code>26_1008-1142_islandRock</code> to <code>26_1012-2152_cloudEdge</code>."
           ]
         },
         {
@@ -2040,7 +2036,7 @@
             "<strong>Measured:</strong> in the patch that boiled, 17% of pixels changed every frame with the old step and 0.6% with the new one, in the same session. At Medium, 20% against 2%. No far cloud is lost from any side of the island. About 0.4 ms a frame more in the editor at Ultra. 810 tests pass, two of them new.",
             "<strong>It took four tries.</strong> Mine were the camera’s dithering, the history following the storm, and a longer history with a wider clamp; each measured well and changed nothing you saw. ChatGPT then got the verdicts from you that mapped the trade (long history is clean standing still and trails flying; 512 steps is an improvement), showed the speckle with HDRP’s own shaders in an empty scene, and left the tree clean. The step was found from there.",
             "<strong>Left as they are:</strong> storm flashes read about half as bright now, and dithering stays off.",
-            "<strong>Not checked:</strong> FSR, and a timing in a build. The ghost you named after it was the clouds’ history too, and is the next item."
+            "<strong>Played under FSR</strong> in <code>Builds/26_1012-2152_cloudEdge</code> that night: you said it looks good. It was not timed in a build. Your overlay showed 54 frames a second, but with ray-traced global illumination on High, which says nothing about the step. The ghost you named after it was the clouds’ history too, and is the next item."
           ]
         },
         {
@@ -2056,7 +2052,7 @@
             "<strong>You judged it:</strong> the old against the new on a key in the editor on 12 October, and you said the fix looks better.",
             "<strong>Measured</strong> on the island’s left edge, the running frame against the settled one, in levels of 255: 1.13 and 0.63 before in two runs, 0.31 to 0.38 after, where two settled frames differ by about 0.2. 811 tests pass, one of them new.",
             "<strong>Left alone:</strong> the top rims of the clouds lag the storm a little, about 1.5 levels. The likely cause, which I did not check, is that the storm moves at three speeds and the history can follow only one.",
-            "<strong>Not checked:</strong> FSR. <code>Builds/26_1012-2152_cloudEdge</code> has the fix for that."
+            "<strong>Played in a build:</strong> you ran <code>Builds/26_1012-2152_cloudEdge</code> under FSR that night and said the ghost was already gone and it looks good."
           ]
         },
         {
