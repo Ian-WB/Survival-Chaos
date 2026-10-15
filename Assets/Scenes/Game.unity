@@ -24923,6 +24923,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 843130761}
   m_CullTransparentMesh: 1
+--- !u!1 &852258034
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 852258036}
+  - component: {fileID: 852258035}
+  m_Layer: 0
+  m_Name: Storm Rise
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &852258035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 852258034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2331ac41c04a8c24db29befb8a152cf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.StormRise
+  sceneVolume: {fileID: 1931793262}
+  tallest: 2
+  lateness: 1.5
+  fastestOpening: 0.08
+  holdAt: -1
+--- !u!4 &852258036
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 852258034}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &860444617
 GameObject:
   m_ObjectHideFlags: 0
@@ -45862,6 +45911,7 @@ MonoBehaviour:
   boltGlow: {r: 16, g: 20, b: 27, a: 1}
   boltReach: 60
   boltLight: 2.5
+  boltShowsFrom: 0.2
 --- !u!4 &1765446979
 Transform:
   m_ObjectHideFlags: 0
@@ -54249,6 +54299,7 @@ SceneRoots:
   - {fileID: 430549688}
   - {fileID: 1164817745}
   - {fileID: 1765446979}
+  - {fileID: 852258036}
   - {fileID: 1707858278}
   - {fileID: 1385082109}
   - {fileID: 1738797022}

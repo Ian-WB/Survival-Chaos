@@ -65,28 +65,53 @@ namespace SurvivalChaos.Tests
             return texture;
         }
 
-        /// <summary>The map's texel over a point, in metres from the island, placed as HDRP places it.</summary>
-        private static Color MapOver(Texture2D map, float x, float z)
+        /// <summary>
+        /// The map's texel over a point, in metres from the island, placed as
+        /// HDRP places it, with the wall standing <paramref name="rise"/> times
+        /// its lowest: StormRise then deepens the layer and sets the tiling.
+        /// </summary>
+        private static Color MapOver(Texture2D map, float x, float z, float rise = 1f)
         {
             VolumetricClouds clouds = Clouds();
-            float middle = clouds.bottomAltitude.value + clouds.altitudeRange.value * 0.5f;
+            float depth = StormRiseCurve.Depth(clouds.altitudeRange.value, rise);
+            float middle = clouds.bottomAltitude.value + depth * 0.5f;
             float stretched = Mathf.Sqrt((PlanetRadius + middle) * (PlanetRadius + middle) - PlanetRadius * PlanetRadius);
-            Vector2 tiling = clouds.cloudTiling.value;
+            Vector2 tiling = clouds.cloudTiling.value *
+                             StormRiseCurve.Tiling(1f, clouds.bottomAltitude.value, clouds.altitudeRange.value, depth);
             Vector2 offset = clouds.cloudOffset.value;
             return map.GetPixelBilinear(x / stretched * tiling.x + offset.x + 0.5f, z / stretched * tiling.y + offset.y + 0.5f);
         }
 
-        /// <summary>How much of the noise is cloud, for what the map says over a point, at a height over the arena's floor.</summary>
-        private static float CloudAt(Texture2D map, Texture2D lookup, float x, float z, float overTheArena)
+        /// <summary>A number the project's cloud shader defines.</summary>
+        private static float ShaderDefine(string name)
+        {
+            string text = File.ReadAllText("Assets/Art/Shaders/VolumetricCloudsUtilities.hlsl");
+            System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(text, @"#define " + name + @" ([0-9.]+)");
+            Assert.IsTrue(match.Success, name + " is not defined in the cloud shader");
+            return float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
+        /// How much of the noise is cloud, for what the map says over a point,
+        /// at a height over the arena's floor, with the wall standing
+        /// <paramref name="rise"/> times its lowest. The lookup is read as the
+        /// shader reads it (StormWallHeight): up the low wall's layer, stretched
+        /// by the rise as much as the kind of cloud takes it.
+        /// </summary>
+        private static float CloudAt(Texture2D map, Texture2D lookup, float x, float z, float overTheArena, float rise = 1f)
         {
             VolumetricClouds clouds = Clouds();
-            Color over = MapOver(map, x, z);
-            float height = (ArenaAltitude() + overTheArena - clouds.bottomAltitude.value) / clouds.altitudeRange.value;
-            if (height < 0f || height > 1f || height > over.a)
+            Color over = MapOver(map, x, z, rise);
+            float lowDepth = clouds.altitudeRange.value;
+            float above = ArenaAltitude() + overTheArena - clouds.bottomAltitude.value;
+            float inLayer = above / StormRiseCurve.Depth(lowDepth, rise);
+            if (inLayer < 0f || inLayer > 1f || inLayer > over.a)
             {
                 return 0f;
             }
 
+            float takes = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(ShaderDefine("STORM_RISE_FROM_KIND"), ShaderDefine("STORM_RISE_FULL_KIND"), over.b));
+            float height = above / (lowDepth * Mathf.Lerp(1f, rise, takes));
             return over.r * lookup.GetPixelBilinear(over.b, height).r;
         }
 
@@ -260,6 +285,99 @@ namespace SurvivalChaos.Tests
 
             Object.DestroyImmediate(map);
             Object.DestroyImmediate(lookup);
+        }
+
+        /// <summary>How many times its lowest the wall stands as a run starts: the Game scene's StormRise.</summary>
+        private static float Tallest()
+        {
+            SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
+            string rise = scene.ScriptWith(scene.GameObjectNamed("Storm Rise"), "tallest");
+            Assert.That(rise, Is.Not.Null, "there is no StormRise in the Game scene");
+            return scene.Float(rise, "tallest");
+        }
+
+        /// <summary>
+        /// The storm starts a run standing over the moon (StormRise). From the
+        /// camera the moon reaches 27 degrees up, which 2,100 out is about
+        /// 1,070 over the arena: solid wall there on every bearing.
+        /// </summary>
+        [Test]
+        public void TheWall_StandsOverTheMoon_AsARunStarts()
+        {
+            Texture2D map = Read(MapPath);
+            Texture2D lookup = Read(LookupPath);
+            float tallest = Tallest();
+
+            for (int bearing = 0; bearing < 360; bearing += 5)
+            {
+                float x = 2100f * Mathf.Cos(bearing * Mathf.Deg2Rad);
+                float z = 2100f * Mathf.Sin(bearing * Mathf.Deg2Rad);
+
+                Assert.That(CloudAt(map, lookup, x, z, 1100f, tallest), Is.GreaterThan(0.5f), "the moon's top shows over the wall at " + bearing);
+            }
+
+            Object.DestroyImmediate(map);
+            Object.DestroyImmediate(lookup);
+        }
+
+        /// <summary>
+        /// Only the wall rises: the eye where the ships fly stays clear, and
+        /// the floor under the island keeps its height, however tall the
+        /// wall stands.
+        /// </summary>
+        [Test]
+        public void TheEyeAndTheFloor_StayPut_WithTheWallAtItsTallest()
+        {
+            Texture2D map = Read(MapPath);
+            Texture2D lookup = Read(LookupPath);
+            float tallest = Tallest();
+
+            for (float reach = 0f; reach <= FurthestCamera * 4f; reach += Lane * 0.5f)
+            {
+                for (int bearing = 0; bearing < 360; bearing += 15)
+                {
+                    float x = reach * Mathf.Cos(bearing * Mathf.Deg2Rad);
+                    float z = reach * Mathf.Sin(bearing * Mathf.Deg2Rad);
+                    for (float over = -100f; over <= 200f; over += 25f)
+                    {
+                        Assert.AreEqual(0f, CloudAt(map, lookup, x, z, over, tallest), 1e-3f,
+                            "cloud " + reach + " out at " + bearing + " degrees, " + over + " over the arena");
+                    }
+                }
+            }
+
+            foreach (float over in new[] { -500f, -300f, -200f })
+            {
+                Assert.AreEqual(CloudAt(map, lookup, 0f, 0f, over), CloudAt(map, lookup, 0f, 0f, over, tallest), 1e-4f,
+                    "the floor " + over + " under the island moves with the wall");
+            }
+
+            Object.DestroyImmediate(map);
+            Object.DestroyImmediate(lookup);
+        }
+
+        /// <summary>
+        /// HDRP stretches the map by the layer's middle, so a deeper layer
+        /// would widen the eye unless the tiling moves with it.
+        /// </summary>
+        [Test]
+        public void TheMap_CoversTheSameGround_HoweverTallTheWall()
+        {
+            Texture2D map = Read(MapPath);
+
+            foreach (float reach in new[] { 500f, 1200f, 1800f, 4000f })
+            {
+                for (int bearing = 0; bearing < 360; bearing += 30)
+                {
+                    float x = reach * Mathf.Cos(bearing * Mathf.Deg2Rad);
+                    float z = reach * Mathf.Sin(bearing * Mathf.Deg2Rad);
+                    Color low = MapOver(map, x, z);
+                    Color tall = MapOver(map, x, z, 3f);
+                    Assert.AreEqual(low.b, tall.b, 1e-3f, "the map moved under the wall " + reach + " out at " + bearing);
+                }
+            }
+
+            Object.DestroyImmediate(map);
         }
 
         /// <summary>

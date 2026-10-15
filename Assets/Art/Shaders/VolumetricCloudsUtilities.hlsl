@@ -1,6 +1,7 @@
 // HDRP's VolumetricCloudsUtilities.hlsl (com.unity.render-pipelines.high-definition 17,
-// Unity 6000.6.4f1), copied with three changes: the clouds turn about the island,
-// lightning lights them from inside, and a ray's step grows with the distance along it.
+// Unity 6000.6.4f1), copied with four changes: the clouds turn about the island,
+// lightning lights them from inside, a ray's step grows with the distance along it, and
+// the storm's wall stands as tall as the layer is deep.
 //
 // HDRP's wind carries the clouds in a straight line. The Game scene's clouds are an eye
 // of the storm (environment roadmap, item 40; see CloudRingBuilder), and a storm seen
@@ -44,6 +45,14 @@
 // boiled in the clouds, there since the arena was first raised into them. StormStep makes
 // the step a share of the distance, between a shortest step and HDRP's own, so the same
 // number of samples falls thick on the wall and thin on the far cloud.
+//
+// Since 15 October there is a fourth: the wall starts a run standing over the moon and
+// sinks to its own height by the time the Leviathan comes. StormRise, in the Game scene,
+// deepens the layer at the start of a run; the lookup is still read in shares of the low
+// wall's layer (StormWallHeight), so the eye's floor stays where it is and only the wall's
+// columns stretch upward. A ray's longest step is held at the low wall's (StormLongestStep),
+// or the deeper layer would spread its samples thinner on the wall. With the layer at its
+// lowest, all of it is HDRP's arithmetic again.
 //
 // Used by the project's copies of VolumetricCloudsTrace.compute and
 // VolumetricCloudsTraceShadows.compute, so the clouds and the shadow they throw turn
@@ -377,6 +386,40 @@ float StormBoltReach(float3 positionPS)
     return _StormBolt.z / (far * far);
 }
 
+// Survival Chaos: how deep the layer is when the wall stands at its lowest, which is the
+// depth the lookup was painted for (CloudRingBuilder.Range). StormRise deepens the layer
+// at the start of a run, and the wall stands taller by as much.
+#define STORM_LOW_WALL_DEPTH 1500.0
+
+// Survival Chaos: the kinds of cloud over which the wall goes from keeping its height to
+// taking all of the rise. Kind 0 is the eye's floor, under the island, and never moves;
+// by the end of the face's first rise the column takes the whole of it.
+#define STORM_RISE_FROM_KIND 0.0
+#define STORM_RISE_FULL_KIND 0.42
+
+// Survival Chaos: how many times its lowest the wall stands, from how deep the layer is.
+float StormRise()
+{
+    return max((_HighestCloudAltitude - _LowestCloudAltitude) / STORM_LOW_WALL_DEPTH, 1.0);
+}
+
+// Survival Chaos: where in the lookup a point is read, up the column of its kind. The
+// lookup's heights are shares of the low wall's layer; a column that takes the rise is
+// read as if that layer were taller by it, so its foot stays and its top climbs. With the
+// layer at its lowest depth this is HDRP's own normalised height.
+float StormWallHeight(float3 positionPS, float kind)
+{
+    float stretch = lerp(1.0, StormRise(), smoothstep(STORM_RISE_FROM_KIND, STORM_RISE_FULL_KIND, kind));
+    return (length(positionPS) - _LowestCloudAltitude) / (STORM_LOW_WALL_DEPTH * stretch);
+}
+
+// Survival Chaos: HDRP's longest step is an eighth of the layer's depth. Held at the low
+// wall's, so a deeper layer does not spread a ray's samples thinner on the wall.
+float StormLongestStep()
+{
+    return min(_MaxStepSize, STORM_LOW_WALL_DEPTH / 8.0);
+}
+
 struct CloudProperties
 {
     // Normalized float that tells the "amount" of clouds that is at a given location
@@ -448,7 +491,8 @@ void EvaluateCloudProperties(float3 positionPS, float noiseMipOffset, float eros
     #if defined(CLOUDS_SIMPLE_PRESET)
     float3 densityErosionAO = SampleCloudSliceLDS(properties.height);
     #else
-    float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
+    // Survival Chaos: read up the wall as tall as the layer is deep
+    float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, StormWallHeight(positionPS, cloudCoverageData.cloudType)), CLOUD_LUT_MIP_OFFSET);
     #endif
 
     // Adjust the shape and erosion factor based on the LUT and the coverage
@@ -660,7 +704,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             float totalDistance = min(rayMarchRange.end, cloudRay.maxRayLength) - rayMarchRange.start;
 
             // Evaluate our integration step
-            float stepS = min(totalDistance / (float)_NumPrimarySteps, _MaxStepSize);
+            // Survival Chaos: the low wall's longest step however deep the layer is
+            float stepS = min(totalDistance / (float)_NumPrimarySteps, StormLongestStep());
             totalDistance = stepS * _NumPrimarySteps;
 
             // Compute the environment lighting that is going to be used for the cloud evaluation
