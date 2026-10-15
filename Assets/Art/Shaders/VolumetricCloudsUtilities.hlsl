@@ -31,6 +31,8 @@
 // to the cloud's light at the end. The cloud in front of the point hides it as it hides
 // everything else. StormLightning, in the Game scene, sets _StormFlash and
 // _StormFlashLight on the tracer; left unset they are zero and the clouds are as before.
+// Since 15 October a bolt lights the cloud along its whole length the same way
+// (StormBoltReach, _StormBoltCorners); with no bolt it costs one comparison a step.
 //
 // Since 12 October there is a third: the ray's step grows with the distance along it.
 // HDRP gives a ray one step for its whole length: its path through the cloud layer over
@@ -333,6 +335,48 @@ float StormFlashReach(float3 positionPS)
     return 1.0 / (far * far);
 }
 
+// Survival Chaos, 15 October: a bolt in the cloud lights the cloud all along it, not
+// round one point. Its corners, in the world, joined in order; up to STORM_BOLT_CORNERS.
+#define STORM_BOLT_CORNERS 12
+float4 _StormBoltCorners[STORM_BOLT_CORNERS];
+
+// Survival Chaos: x is how many corners are in use (under two is no bolt), y how far the
+// bolt's light reaches in metres, z how bright it is against the flash's light.
+float4 _StormBolt;
+
+// Survival Chaos: a sphere round the whole bolt and its reach, world xyz and radius.
+// Outside it the bolt's light is too little to count, and the corners are not looked at.
+float4 _StormBoltBounds;
+
+// Survival Chaos: how much of the bolt's light reaches a point, measured from the nearest
+// place on the bolt, as the flash's is from its point.
+float StormBoltReach(float3 positionPS)
+{
+    if (_StormBolt.x < 2.0)
+        return 0.0;
+
+    float3 fromCentre = positionPS - ConvertToPS(GetCameraRelativePositionWS(_StormBoltBounds.xyz));
+    if (dot(fromCentre, fromCentre) > _StormBoltBounds.w * _StormBoltBounds.w)
+        return 0.0;
+
+    int corners = min((int)_StormBolt.x, STORM_BOLT_CORNERS);
+    float nearest = 1e12;
+    float3 a = ConvertToPS(GetCameraRelativePositionWS(_StormBoltCorners[0].xyz));
+    [loop]
+    for (int i = 1; i < corners; i++)
+    {
+        float3 b = ConvertToPS(GetCameraRelativePositionWS(_StormBoltCorners[i].xyz));
+        float3 along = b - a;
+        float3 fromA = positionPS - a;
+        float3 aside = fromA - along * saturate(dot(fromA, along) / max(dot(along, along), 1e-4));
+        nearest = min(nearest, dot(aside, aside));
+        a = b;
+    }
+
+    float far = 1.0 + nearest / max(_StormBolt.y * _StormBolt.y, 1.0);
+    return _StormBolt.z / (far * far);
+}
+
 struct CloudProperties
 {
     // Normalized float that tells the "amount" of clouds that is at a given location
@@ -556,7 +600,7 @@ void EvaluateCloud(CloudProperties cloudProperties, EnvironmentLighting envLight
     volumetricRay.scattering += sunLuminance     * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
     volumetricRay.ambient    += ambientLuminance * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
     // Survival Chaos: the cloud scatters the lightning as it does the sky, so cloud in front of it hides it
-    volumetricRay.flash      += StormFlashReach(currentPositionPS) * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
+    volumetricRay.flash      += (StormFlashReach(currentPositionPS) + StormBoltReach(currentPositionPS)) * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
     volumetricRay.transmittance *= transmittance;
 }
 

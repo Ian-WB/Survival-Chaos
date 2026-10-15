@@ -148,6 +148,119 @@ namespace SurvivalChaos.Tests
             Assert.That(scene.Float(lightning, "spread"), Is.InRange(30f, 90f));
         }
 
+        [Test]
+        public void AFork_LeavesTheBoltBetweenItsEnds_AndHangsDown()
+        {
+            Vector3[] path = new Vector3[StormLightning.MostCorners];
+            AshLightning.Bend(new Vector3(-300f, 300f, 1700f), new Vector3(300f, 280f, 1700f), 0.09f, 11, path, 14);
+
+            StormLightning.Fork(path, 14, 0.4f, 80f, 1f, out Vector3 start, out Vector3 end);
+            Assert.AreEqual(path[5], start);
+            Assert.That(end.y, Is.LessThan(start.y - 40f), "a fork that does not hang down is a second bolt");
+            Assert.That(Vector3.Distance(start, end), Is.EqualTo(80f).Within(0.01f));
+
+            StormLightning.Fork(path, 14, 0.4f, 80f, -1f, out _, out Vector3 other);
+            Assert.That(Mathf.Sign(end.x - start.x), Is.Not.EqualTo(Mathf.Sign(other.x - start.x)), "the side does not choose the way along the bolt");
+
+            // Asked for the very start or end, it still leaves from a corner between them.
+            StormLightning.Fork(path, 14, 0f, 80f, 1f, out Vector3 first, out _);
+            StormLightning.Fork(path, 14, 1f, 80f, 1f, out Vector3 last, out _);
+            Assert.AreEqual(path[1], first);
+            Assert.AreEqual(path[12], last);
+        }
+
+        [Test]
+        public void ABolt_StandsWhereItIsSent_ItsFootLeaningAsAsked()
+        {
+            StormLightning.Ends(Vector3.forward, 1700f, 250f, -100f, new Vector2(60f, -40f), out Vector3 from, out Vector3 to);
+
+            Assert.AreEqual(new Vector3(0f, 250f, 1700f), from);
+            Assert.AreEqual(-100f, to.y, 1e-3f);
+            Assert.AreEqual(1760f, to.z, 1e-3f, "the foot does not lean out along where it strikes");
+            Assert.AreEqual(40f, Mathf.Abs(to.x), 1e-3f, "the foot does not lean across");
+
+            StormLightning.Ends(Vector3.right, 1700f, 250f, -100f, Vector2.zero, out from, out to);
+            Assert.AreEqual(new Vector3(1700f, 250f, 0f), from);
+            Assert.AreEqual(new Vector3(1700f, -100f, 0f), to, "with no lean the foot is not under the top");
+        }
+
+        [Test]
+        public void TheBolt_IsWired_AndHiddenBetweenFlashes()
+        {
+            SavedScene scene = SavedScene.Load(ScenePath);
+            string lightning = Lightning(scene);
+
+            foreach (string name in new[] { "Storm Bolt", "Storm Fork" })
+            {
+                string line = scene.Component(scene.GameObjectNamed(name), "LineRenderer");
+                Assert.That(line, Is.Not.Null, "there is no " + name + " line");
+                Assert.AreEqual(0f, scene.Float(line, "m_Enabled"), "saved switched on, " + name + " hangs in the wall for good");
+                Assert.AreEqual(1f, scene.Float(line, "m_UseWorldSpace"), "a bolt's corners are places in the world");
+                Assert.AreEqual(0f, scene.Float(line, "m_CastShadows"));
+            }
+
+            foreach (string field in new[] { "bolt", "fork" })
+            {
+                Assert.That(scene.Reference(lightning, field), Is.Not.EqualTo("0"), "Storm Lightning's " + field + " is not assigned");
+            }
+        }
+
+        [Test]
+        public void TheCloudIsLitAlong_EvenlySpacedCorners_WithBothEnds()
+        {
+            Vector3[] path = new Vector3[StormLightning.MostCorners];
+            for (int i = 0; i < 18; i++)
+            {
+                path[i] = new Vector3(i, 100f - i, 0f);
+            }
+
+            Vector4[] into = new Vector4[StormLightning.CloudCorners];
+            Assert.AreEqual(12, StormLightning.Thin(path, 18, into));
+            Assert.AreEqual((Vector4)path[0], into[0]);
+            Assert.AreEqual((Vector4)path[17], into[11], "the bolt's low end is not lit");
+            for (int i = 1; i < 12; i++)
+            {
+                Assert.That(into[i].x, Is.GreaterThan(into[i - 1].x), "the corners are out of order");
+            }
+
+            // Fewer corners than the tracer takes are all kept.
+            Assert.AreEqual(5, StormLightning.Thin(path, 5, into));
+            Assert.AreEqual((Vector4)path[4], into[4]);
+        }
+
+        /// <summary>
+        /// Ian asked for the bolts to look inside the clouds, and each try
+        /// placed against the wall's face sat at the cloud's edge. So a bolt
+        /// stands well behind where the wall starts (about 1,050 out, solid
+        /// by about 1,800), under the wall's tops, its foot in the cloud the
+        /// island floats over. The camera has to draw that far: until
+        /// 15 October its far plane was 1,000 metres, so a bolt there would
+        /// not have been drawn at all.
+        /// </summary>
+        [Test]
+        public void BoltsStandInsideTheWall_WhereTheCameraDraws()
+        {
+            SavedScene scene = SavedScene.Load(ScenePath);
+            string lightning = Lightning(scene);
+
+            Vector2 away = scene.Vector(lightning, "boltOut");
+            Vector2 boltTop = scene.Vector(lightning, "boltTop");
+            Vector2 foot = scene.Vector(lightning, "boltFoot");
+            float lean = scene.Float(lightning, "boltLean");
+
+            Assert.That(away.x - lean, Is.GreaterThan(1300f), "a bolt stands at the wall's inner edge, where the cloud is thin, or in the eye");
+            Assert.That(boltTop.y, Is.LessThanOrEqualTo(400f), "a bolt's top is over the wall, in the open sky");
+            Assert.That(boltTop.x, Is.GreaterThan(foot.y), "a bolt's top is under its foot");
+            Assert.That(foot.x, Is.GreaterThanOrEqualTo(-400f), "a bolt's foot is so far under the horizon it is behind the island");
+            Assert.That(scene.Float(lightning, "boltWander"), Is.LessThanOrEqualTo(0.12f), "with this much wander a bolt is a saw");
+            Assert.That(scene.Float(lightning, "boltShare"), Is.InRange(0f, 1f));
+            Assert.That(scene.Float(lightning, "boltCorners"), Is.InRange(2f, StormLightning.MostCorners));
+
+            string camera = scene.Component(scene.GameObjectNamed("Main Camera"), "Camera");
+            Assert.That(scene.Float(camera, "far clip plane"), Is.GreaterThan(away.y + lean + 300f),
+                "the camera stops drawing before the furthest bolt");
+        }
+
         /// <summary>The three places the glow lives in the include; a re-copy from the package loses all three.</summary>
         [Test]
         public void TheTracer_DrawsTheGlow()
@@ -156,7 +269,9 @@ namespace SurvivalChaos.Tests
 
             StringAssert.Contains("float4 _StormFlash;", text);
             StringAssert.Contains("float4 _StormFlashLight;", text);
-            StringAssert.Contains("volumetricRay.flash      += StormFlashReach(currentPositionPS)", text, "the glow is not gathered along the ray");
+            StringAssert.Contains("volumetricRay.flash      += (StormFlashReach(currentPositionPS) + StormBoltReach(currentPositionPS))", text, "the glow is not gathered along the ray");
+            StringAssert.Contains("#define STORM_BOLT_CORNERS " + StormLightning.CloudCorners, text, "the tracer takes another number of bolt corners than StormLightning hands it");
+            StringAssert.Contains("float4 _StormBoltCorners[STORM_BOLT_CORNERS];", text);
             StringAssert.Contains("ConvertToPS(GetCameraRelativePositionWS(_StormFlash.xyz))", text,
                 "the flash's place is a point in the world, and has to be measured from the camera before ConvertToPS; without it every flash is off by the camera's own position");
             StringAssert.Contains("volumetricRay.scattering += _StormFlashLight.rgb * volumetricRay.flash;", text, "the glow is gathered and never added to the cloud's light");

@@ -23,10 +23,33 @@ namespace SurvivalChaos
     /// source to see.
     ///
     /// **It lights the clouds only.** Nothing on the island or in the lane
-    /// gets brighter, no rule of the fight changes, and there is no bolt, so
-    /// it cannot be read as something to dodge. It is silent: thunder is a
-    /// sound to choose and a place in the mix, and was left for Ian to ask
-    /// for.
+    /// gets brighter and no rule of the fight changes. It is silent: thunder
+    /// is a sound to choose and a place in the mix, and was left for Ian to
+    /// ask for.
+    ///
+    /// **Some flashes have a bolt** (15 October 2026, at Ian's ask): an
+    /// upright line with one fork, deep inside the wall, with the flash on
+    /// it. He found the first bolts small and coming from nothing, and asked
+    /// for them to look inside the clouds: softened and partly hidden by the
+    /// cloud in front, the cloud glowing all along them, and none of the
+    /// bolt out in the open. So a bolt stands well behind the wall's inner
+    /// edge, where the wall is solid from below the island's cloud floor to
+    /// a few hundred metres over the arena, and the tracer lights the cloud
+    /// along it as it lights it round the flash (StormBoltReach in the
+    /// include). The lines are opaque, so the cloud in front covers them,
+    /// and the light along them is what shows through. They are a
+    /// kilometre and a half and more away, where nothing flies, so a bolt
+    /// cannot be read as something to dodge.
+    ///
+    /// Tried and taken out the same day, each placed against the wall's
+    /// face (<see cref="faceFoot"/> to <see cref="faceTop"/>), which is only
+    /// where the cloud starts, so every one sat at the cloud's edge: bolts
+    /// that dropped out of the wall to the horizon, which showed as a dark
+    /// line in the cloud low down because nothing lit the cloud in front of
+    /// them; a see-through lower part to fix that, which no cloud could
+    /// hide; and bolts running sideways along the face, which Ian found
+    /// worse. The camera has to draw that far: its far plane was 1,000
+    /// metres and the wall starts at 1,550.
     ///
     /// **It strikes towards where the camera is looking,** within
     /// <see cref="spread"/> degrees either side. The frame shows a little
@@ -63,6 +86,12 @@ namespace SurvivalChaos
     {
         /// <summary>The most strokes in one flash. See the note on flashing light above before raising it.</summary>
         public const int MostStrokes = 3;
+
+        /// <summary>The most corners a bolt or its fork has, ends included.</summary>
+        public const int MostCorners = 32;
+
+        /// <summary>The most corners of a bolt the tracer lights the cloud along; STORM_BOLT_CORNERS in the include.</summary>
+        public const int CloudCorners = 12;
 
         [SerializeField]
         [Tooltip("The project's copy of HDRP's cloud tracer, which draws the glow: Art/Shaders/VolumetricCloudsTrace.")]
@@ -123,17 +152,90 @@ namespace SurvivalChaos
         [Tooltip("Seconds between one stroke and the next, least (X) and most (Y).")]
         private Vector2 strokeGap = new Vector2(0.12f, 0.22f);
 
+        [Header("Bolt")]
+        [SerializeField]
+        [Tooltip("The line that draws a bolt. It is hidden between flashes. Leave empty for flashes with no bolt.")]
+        private LineRenderer bolt;
+
+        [SerializeField]
+        [Tooltip("The line that draws the bolt's fork, hidden with the bolt.")]
+        private LineRenderer fork;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("The share of flashes that have a bolt.")]
+        private float boltShare = 0.5f;
+
+        [SerializeField]
+        [Tooltip("How far from the island's axis a bolt stands, least (X) and most (Y). The wall starts about 1,050 out and is solid by about 1,800; the deeper, the more cloud in front.")]
+        private Vector2 boltOut = new Vector2(1500f, 1900f);
+
+        [SerializeField]
+        [Tooltip("How high over the arena's floor a bolt's top is, least (X) and most (Y). The wall's tops are 250 to 600 over it.")]
+        private Vector2 boltTop = new Vector2(120f, 240f);
+
+        [SerializeField]
+        [Tooltip("How high over the arena's floor a bolt's lower end is, least (X) and most (Y). Under 0 is under the horizon, in the cloud the island floats over.")]
+        private Vector2 boltFoot = new Vector2(-200f, 0f);
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How far, level, a bolt's lower end can be from under its top, any way.")]
+        private float boltLean = 150f;
+
+        [SerializeField]
+        [Range(2, MostCorners)]
+        [Tooltip("How many corners a bolt has, its two ends included.")]
+        private int boltCorners = 18;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How far a corner can stand off the straight line between a bolt's ends, as a share of its length. Much over 0.1 and it is a saw, not a bolt.")]
+        private float boltWander = 0.09f;
+
+        [SerializeField]
+        [Tooltip("Where down the bolt the fork leaves it, least (X) and most (Y), 0 at the top and 1 at the end.")]
+        private Vector2 forkFrom = new Vector2(0.25f, 0.55f);
+
+        [SerializeField]
+        [Tooltip("How long the fork is, as a share of the bolt's length, least (X) and most (Y).")]
+        private Vector2 forkLength = new Vector2(0.25f, 0.45f);
+
+        [SerializeField]
+        [ColorUsage(false, true)]
+        [Tooltip("The lines' own glow at a flash's brightest.")]
+        private Color boltGlow = new Color(16f, 20f, 27f);
+
+        [SerializeField]
+        [Min(1f)]
+        [Tooltip("How far the bolt's light reaches through the cloud round it: a quarter of it is left this far from the line.")]
+        private float boltReach = 60f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How bright the cloud is at the bolt, against the cloud at the flash's heart.")]
+        private float boltLight = 2.5f;
+
         private static readonly int FlashId = Shader.PropertyToID("_StormFlash");
         private static readonly int FlashLightId = Shader.PropertyToID("_StormFlashLight");
+        private static readonly int BoltCornersId = Shader.PropertyToID("_StormBoltCorners");
+        private static readonly int BoltId = Shader.PropertyToID("_StormBolt");
+        private static readonly int BoltBoundsId = Shader.PropertyToID("_StormBoltBounds");
+        private static readonly int EmissiveColorId = Shader.PropertyToID("_EmissiveColor");
 
         private readonly float[] strokeAt = new float[MostStrokes];
         private readonly float[] strokeHeight = new float[MostStrokes];
+        private readonly Vector3[] path = new Vector3[MostCorners];
+        private readonly Vector4[] cloudCorners = new Vector4[CloudCorners];
         private int strokes;
 
         private Camera view;
+        private Material boltMaterial;
         private float startedAt;
         private float nextAt;
         private float peak;
+        private bool bolting;
+        private int struck;
 
         /// <summary>True from a flash's first stroke until its last has died away.</summary>
         public bool Striking { get; private set; }
@@ -181,6 +283,69 @@ namespace SurvivalChaos
             return at[count - 1] + rise + fade * 4.6f;
         }
 
+        /// <summary>
+        /// A bolt's two ends: its top <paramref name="away"/> metres out
+        /// along <paramref name="towards"/> and <paramref name="top"/> high,
+        /// and its lower end <paramref name="foot"/> high, moved level from
+        /// under the top by <paramref name="lean"/> (x along
+        /// <paramref name="towards"/>, y across it).
+        /// </summary>
+        public static void Ends(Vector3 towards, float away, float top, float foot, Vector2 lean, out Vector3 from, out Vector3 to)
+        {
+            Vector3 across = Vector3.Cross(Vector3.up, towards);
+            from = towards * away + Vector3.up * top;
+            to = towards * (away + lean.x) + across * lean.y + Vector3.up * foot;
+        }
+
+        /// <summary>
+        /// Where a fork leaves a bolt and where it ends. It leaves at the
+        /// corner <paramref name="from"/> of the way along, and runs
+        /// <paramref name="length"/> mostly down and partly along the bolt,
+        /// forwards or back as <paramref name="side"/> says. The ends of the
+        /// bolt are never where a fork leaves.
+        /// </summary>
+        public static void Fork(Vector3[] boltPath, int count, float from, float length, float side, out Vector3 start, out Vector3 end)
+        {
+            int corner = Mathf.Clamp(Mathf.RoundToInt(from * (count - 1)), 1, Mathf.Max(1, count - 2));
+            start = boltPath[corner];
+
+            Vector3 along = boltPath[count - 1] - boltPath[0];
+            along = along.sqrMagnitude > 1e-6f ? along.normalized : Vector3.right;
+            end = start + (along * (side < 0f ? -0.5f : 0.5f) + Vector3.down * 0.85f).normalized * length;
+        }
+
+        /// <summary>
+        /// Up to <c>into.Length</c> of a path's corners, evenly spaced along
+        /// it, both ends kept, as the tracer takes them. It counts the
+        /// corners written.
+        /// </summary>
+        public static int Thin(Vector3[] path, int count, Vector4[] into)
+        {
+            int kept = Mathf.Min(count, into.Length);
+            for (int i = 0; i < kept; i++)
+            {
+                int corner = kept > 1 ? Mathf.RoundToInt(i * (count - 1) / (float)(kept - 1)) : 0;
+                into[i] = path[corner];
+            }
+
+            return kept;
+        }
+
+        private void Start()
+        {
+            if (bolt != null)
+            {
+                // An instance, so that play never writes to the material asset; the fork shares it.
+                boltMaterial = bolt.material;
+                if (fork != null)
+                {
+                    fork.sharedMaterial = boltMaterial;
+                }
+            }
+
+            ShowBolt(false);
+        }
+
         private void OnEnable()
         {
             view = Camera.main;
@@ -192,6 +357,15 @@ namespace SurvivalChaos
             // The tracer is an asset: what is set on it outlives play in the editor.
             Striking = false;
             Light(0f);
+            ShowBolt(false);
+        }
+
+        private void OnDestroy()
+        {
+            if (boltMaterial != null)
+            {
+                Destroy(boltMaterial);
+            }
         }
 
         private void Update()
@@ -219,10 +393,17 @@ namespace SurvivalChaos
                 EndedAt = now;
                 nextAt = now + Random.Range(gap.x, gap.y);
                 Light(0f);
+                ShowBolt(false);
                 return;
             }
 
-            Light(peak * Glow(since, strokeAt, strokeHeight, strokes, strokeRise, strokeFade));
+            float glow = Glow(since, strokeAt, strokeHeight, strokes, strokeRise, strokeFade);
+            Light(peak * glow);
+
+            if (bolting)
+            {
+                BoltGlow(boltGlow * (glow * peak / Mathf.Max(brightness.y, 1e-3f)));
+            }
         }
 
         /// <summary>Starts a flash now, somewhere in the wall the camera can see.</summary>
@@ -244,9 +425,46 @@ namespace SurvivalChaos
             ahead = ahead.sqrMagnitude > 1e-6f ? ahead.normalized : Vector3.forward;
 
             Vector3 towards = Quaternion.AngleAxis(Random.Range(-spread, spread), Vector3.up) * ahead;
-            Vector2 place = Place(faceFoot, faceTop, Random.value, Random.Range(depth.x, depth.y));
-            Vector3 at = towards * place.x + Vector3.up * place.y;
+            bolting = bolt != null && Random.value < boltShare;
+            Vector3 from = Vector3.zero;
+            Vector3 to = Vector3.zero;
+            Vector3 at;
+            if (bolting)
+            {
+                // Upright, deep in the wall, with the flash a third of the way down it.
+                Ends(towards, Random.Range(boltOut.x, boltOut.y), Random.Range(boltTop.x, boltTop.y), Random.Range(boltFoot.x, boltFoot.y),
+                    Random.insideUnitCircle * boltLean, out from, out to);
+                at = Vector3.Lerp(from, to, 0.35f);
+            }
+            else
+            {
+                Vector2 place = Place(faceFoot, faceTop, Random.value, Random.Range(depth.x, depth.y));
+                at = towards * place.x + Vector3.up * place.y;
+            }
+
             tracer.SetVector(FlashId, new Vector4(at.x, at.y, at.z, reach));
+
+            if (bolting)
+            {
+                int count = Mathf.Clamp(boltCorners, 2, MostCorners);
+                int seed = ++struck * 7919 + Time.frameCount;
+                AshLightning.Bend(from, to, boltWander, seed, path, count);
+                bolt.positionCount = count;
+                bolt.SetPositions(path);
+                LightTheCloudAlong(count);
+
+                if (fork != null)
+                {
+                    float length = Vector3.Distance(from, to) * Random.Range(forkLength.x, forkLength.y);
+                    Fork(path, count, Random.Range(forkFrom.x, forkFrom.y), length, Random.value - 0.5f, out Vector3 forkStart, out Vector3 forkEnd);
+                    int forkCount = Mathf.Max(2, count / 2);
+                    AshLightning.Bend(forkStart, forkEnd, boltWander * 1.5f, seed + 1, path, forkCount);
+                    fork.positionCount = forkCount;
+                    fork.SetPositions(path);
+                }
+            }
+
+            ShowBolt(bolting);
 
             strokes = Random.Range(2, MostStrokes + 1);
             int strongest = Random.Range(0, strokes);
@@ -261,6 +479,61 @@ namespace SurvivalChaos
             peak = Random.Range(brightness.x, brightness.y);
             startedAt = Time.time;
             Striking = true;
+        }
+
+        private void ShowBolt(bool show)
+        {
+            if (!show)
+            {
+                BoltGlow(Color.black);
+                if (tracer != null)
+                {
+                    tracer.SetVector(BoltId, Vector4.zero);
+                }
+            }
+
+            if (bolt != null)
+            {
+                bolt.enabled = show;
+            }
+
+            if (fork != null)
+            {
+                fork.enabled = show;
+            }
+        }
+
+        private void BoltGlow(Color glow)
+        {
+            if (boltMaterial != null)
+            {
+                boltMaterial.SetColor(EmissiveColorId, glow);
+            }
+
+        }
+
+        /// <summary>Hands the tracer the bolt's corners, so the cloud round the whole bolt lights with the flash.</summary>
+        private void LightTheCloudAlong(int count)
+        {
+            int kept = Thin(path, count, cloudCorners);
+            Vector3 centre = Vector3.zero;
+            for (int i = 0; i < kept; i++)
+            {
+                centre += (Vector3)cloudCorners[i];
+            }
+
+            centre /= kept;
+            float radius = 0f;
+            for (int i = 0; i < kept; i++)
+            {
+                radius = Mathf.Max(radius, Vector3.Distance(centre, cloudCorners[i]));
+            }
+
+            // At three reaches the light is a hundredth of what it is at the line.
+            radius += boltReach * 3f;
+            tracer.SetVectorArray(BoltCornersId, cloudCorners);
+            tracer.SetVector(BoltId, new Vector4(kept, boltReach, boltLight, 0f));
+            tracer.SetVector(BoltBoundsId, new Vector4(centre.x, centre.y, centre.z, radius));
         }
 
         private void Light(float bright)
