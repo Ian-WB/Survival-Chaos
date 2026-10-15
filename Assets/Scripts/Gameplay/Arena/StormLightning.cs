@@ -216,6 +216,11 @@ namespace SurvivalChaos
         [Tooltip("How bright the cloud is at the bolt, against the cloud at the flash's heart.")]
         private float boltLight = 2.5f;
 
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("How bright the flash has to be, against its strongest stroke, for the bolt's lines to show. They are opaque, so under it they would draw darker than the cloud behind them.")]
+        private float boltShowsFrom = 0.2f;
+
         private static readonly int FlashId = Shader.PropertyToID("_StormFlash");
         private static readonly int FlashLightId = Shader.PropertyToID("_StormFlashLight");
         private static readonly int BoltCornersId = Shader.PropertyToID("_StormBoltCorners");
@@ -315,6 +320,19 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Whether a bolt's lines show at <paramref name="glow"/>, the
+        /// flash's brightness against its strongest stroke. The lines are
+        /// opaque and black under their own glow, so a dim line draws darker
+        /// than the moonlit cloud behind it: they show only while a stroke is
+        /// bright, and blink on with each stroke as a real bolt does. The
+        /// cloud along the bolt keeps fading with the flash.
+        /// </summary>
+        public static bool LineShows(float glow, float from)
+        {
+            return glow > 0f && glow >= from;
+        }
+
+        /// <summary>
         /// Up to <c>into.Length</c> of a path's corners, evenly spaced along
         /// it, both ends kept, as the tracer takes them. It counts the
         /// corners written.
@@ -343,7 +361,7 @@ namespace SurvivalChaos
                 }
             }
 
-            ShowBolt(false);
+            HideBolt();
         }
 
         private void OnEnable()
@@ -357,7 +375,7 @@ namespace SurvivalChaos
             // The tracer is an asset: what is set on it outlives play in the editor.
             Striking = false;
             Light(0f);
-            ShowBolt(false);
+            HideBolt();
         }
 
         private void OnDestroy()
@@ -393,7 +411,7 @@ namespace SurvivalChaos
                 EndedAt = now;
                 nextAt = now + Random.Range(gap.x, gap.y);
                 Light(0f);
-                ShowBolt(false);
+                HideBolt();
                 return;
             }
 
@@ -402,7 +420,12 @@ namespace SurvivalChaos
 
             if (bolting)
             {
-                BoltGlow(boltGlow * (glow * peak / Mathf.Max(brightness.y, 1e-3f)));
+                bool shows = LineShows(glow, boltShowsFrom);
+                ShowLines(shows);
+                if (shows)
+                {
+                    BoltGlow(boltGlow * (glow * peak / Mathf.Max(brightness.y, 1e-3f)));
+                }
             }
         }
 
@@ -464,9 +487,17 @@ namespace SurvivalChaos
                 }
             }
 
-            ShowBolt(bolting);
+            // A bolt's lines wait for its first stroke to be bright (LineShows).
+            if (bolting)
+            {
+                ShowLines(false);
+            }
+            else
+            {
+                HideBolt();
+            }
 
-            strokes = Random.Range(2, MostStrokes + 1);
+            strokes =Random.Range(2, MostStrokes + 1);
             int strongest = Random.Range(0, strokes);
             float when = 0f;
             for (int i = 0; i < strokes; i++)
@@ -481,23 +512,25 @@ namespace SurvivalChaos
             Striking = true;
         }
 
-        private void ShowBolt(bool show)
+        private void HideBolt()
         {
-            if (!show)
+            BoltGlow(Color.black);
+            if (tracer != null)
             {
-                BoltGlow(Color.black);
-                if (tracer != null)
-                {
-                    tracer.SetVector(BoltId, Vector4.zero);
-                }
+                tracer.SetVector(BoltId, Vector4.zero);
             }
 
-            if (bolt != null)
+            ShowLines(false);
+        }
+
+        private void ShowLines(bool show)
+        {
+            if (bolt != null && bolt.enabled != show)
             {
                 bolt.enabled = show;
             }
 
-            if (fork != null)
+            if (fork != null && fork.enabled != show)
             {
                 fork.enabled = show;
             }

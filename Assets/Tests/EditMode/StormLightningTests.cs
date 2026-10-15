@@ -205,6 +205,27 @@ namespace SurvivalChaos.Tests
             }
         }
 
+        /// <summary>
+        /// The bolt's lines are opaque and black under their glow, so they
+        /// show only while a stroke is bright: dim, they drew darker than the
+        /// cloud behind them.
+        /// </summary>
+        [Test]
+        public void TheBoltsLines_ShowOnlyWhileAStrokeIsBright()
+        {
+            Assert.IsFalse(StormLightning.LineShows(0f, 0f), "a flash that has not lit yet shows its lines");
+            Assert.IsFalse(StormLightning.LineShows(0.1f, 0.2f));
+            Assert.IsTrue(StormLightning.LineShows(0.2f, 0.2f));
+            Assert.IsTrue(StormLightning.LineShows(1f, 0.2f));
+
+            float[] at = { 0f, 0.15f };
+            float[] heights = { 1f, 0.6f };
+            Assert.IsFalse(StormLightning.LineShows(StormLightning.Glow(0f, at, heights, 2, 0.05f, 0.07f), 0.2f), "the lines show before the first stroke has risen");
+            Assert.IsTrue(StormLightning.LineShows(StormLightning.Glow(0.06f, at, heights, 2, 0.05f, 0.07f), 0.2f), "the lines miss the first stroke");
+            float end = StormLightning.Length(at, 2, 0.05f, 0.07f);
+            Assert.IsFalse(StormLightning.LineShows(StormLightning.Glow(end - 0.01f, at, heights, 2, 0.05f, 0.07f), 0.2f), "the lines hang on, dark, while the last stroke dies away");
+        }
+
         [Test]
         public void TheCloudIsLitAlong_EvenlySpacedCorners_WithBothEnds()
         {
