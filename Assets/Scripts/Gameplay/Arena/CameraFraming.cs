@@ -175,17 +175,17 @@ namespace SurvivalChaos
         };
 
         /// <summary>
-        /// The preset every run starts on: the whole band from 9 out, which is
-        /// 65 degrees on the 9.23 band. Asked for as those two numbers on 5
-        /// October 2026; the band and <see cref="BandMargin"/> were sized so
-        /// that the lens that fits the band is that lens. It draws everything
-        /// about a fifth larger than the camera it replaced, the whole band
-        /// from 10 out, which was 70 degrees on the 10.5 band and had been
-        /// picked by playing on 24 September. CameraPresetSwitcher applies it
-        /// as a run starts; the Game scene's camera is authored at the same
-        /// distance and lens, which only the editor's view before play shows.
+        /// The preset every run starts on: the whole band from 7 out, which is
+        /// 78.6 degrees on the 9.23 band. Ian picked it on 15 October 2026
+        /// from stills of all seven presets. Before it the default was the
+        /// whole band from 9 out, 65 degrees, asked for as those two numbers
+        /// on 5 October; the band and <see cref="BandMargin"/> were sized so
+        /// that the lens that fits the band from 9 out is 65 degrees, and that
+        /// still holds. CameraPresetSwitcher applies the default as a run
+        /// starts. The Game scene's camera is still authored at 9 out and 65
+        /// degrees, which only the editor's view before play shows.
         /// </summary>
-        public const int DefaultIndex = 4;
+        public const int DefaultIndex = 3;
 
         /// <summary>
         /// What the debug menu's two camera sliders run between. Distance

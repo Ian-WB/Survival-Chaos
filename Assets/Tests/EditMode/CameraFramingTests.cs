@@ -85,34 +85,39 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// The camera a run starts on: 9 out at 65 degrees, asked for as those
-        /// two numbers on 5 October 2026. Pinned so that reordering the list
-        /// cannot quietly move the default to a neighbour, and so that the
-        /// margin or the table's band cannot move the lens off what was asked.
+        /// The camera a run starts on: the whole band from 7 out, 78.6
+        /// degrees, Ian's pick on 15 October 2026 from stills of all seven.
+        /// Pinned so that reordering the list cannot quietly move the default
+        /// to a neighbour.
         /// </summary>
         [Test]
-        public void TheDefault_IsTheWholeBandFromNineOut_At65Degrees()
+        public void TheDefault_IsTheWholeBandFromSevenOut()
         {
             CameraPreset preset = CameraFraming.Default;
 
-            Assert.AreEqual(9f, preset.Distance);
+            Assert.AreEqual(7f, preset.Distance);
             Assert.IsTrue(preset.HoldsBandMiddle);
-            Assert.AreEqual(65f, preset.FieldOfView, 0.05f);
-            Assert.AreEqual("Whole band, 9 out", preset.Name);
+            Assert.AreEqual(78.6f, preset.FieldOfView, 0.05f);
+            Assert.AreEqual("Whole band, 7 out", preset.Name);
         }
 
         /// <summary>
-        /// The lens follows the band's live height, so the 65 degrees is only
-        /// true while PlayerBounds in the Game scene is the band the table is
-        /// written for. Resizing the box moves the lens, and this says so.
+        /// The band was sized on 5 October so that the whole band from 9 out
+        /// is 65 degrees, the default asked for then. It no longer starts the
+        /// run, but the band, the boss's pods and the HUD's clearance were all
+        /// measured against it, so it stays pinned. The lens follows the
+        /// band's live height: resizing PlayerBounds moves it, and this says so.
         /// </summary>
         [Test]
-        public void OnTheGameScenesBand_TheDefaultIs65Degrees()
+        public void OnTheGameScenesBand_TheWholeBandFromNineOutIs65Degrees()
         {
             SavedScene.Load("Assets/Scenes/Game.unity").Band("Player", out float floor, out float ceiling);
 
             Assert.AreEqual(CameraFraming.BandHeight, ceiling - floor, 0.01f);
-            Assert.AreEqual(65f, CameraFraming.Default.FieldOfViewOn(ceiling - floor), 0.05f);
+            CameraPreset nineOut = CameraFraming.Presets[4];
+            Assert.AreEqual("Whole band, 9 out", nineOut.Name);
+            Assert.AreEqual(65f, nineOut.FieldOfViewOn(ceiling - floor), 0.05f);
+            Assert.AreEqual(78.6f, CameraFraming.Default.FieldOfViewOn(ceiling - floor), 0.05f);
         }
 
         /// <summary>PlayerBounds when the default was picked, 3.4225 to 12.6525.</summary>
