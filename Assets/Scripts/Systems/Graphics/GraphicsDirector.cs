@@ -754,6 +754,27 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// A fog rung drawn without being saved, or null to draw the saved one.
+        ///
+        /// For the debug menu's look test, which flips between the saved fog and
+        /// a cheaper one in flight so the two can be judged in motion. Writing the
+        /// row instead would change the player's setting under them, and leave it
+        /// changed if the game were quit mid-test. Nothing in a Release build sets
+        /// it.
+        /// </summary>
+        public EffectQuality? FogPreview
+        {
+            get => fogPreview;
+            set
+            {
+                fogPreview = value;
+                ApplyOverrides();
+            }
+        }
+
+        private EffectQuality? fogPreview;
+
+        /// <summary>
         /// How many steps the volumetric clouds take, Low to High. Clamped into
         /// that range, since the row has no Off and no ray-traced form.
         /// </summary>
@@ -1471,7 +1492,7 @@ namespace SurvivalChaos
 
         private void ApplyFog()
         {
-            EffectQuality quality = VolumetricFog;
+            EffectQuality quality = fogPreview ?? VolumetricFog;
 
             // Only the volumetric half. Fog itself stays as the scene authored it,
             // because turning the row off should thin the scene out rather than

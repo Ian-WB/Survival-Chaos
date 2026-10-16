@@ -60,8 +60,8 @@ namespace SurvivalChaos
         bool ScreenshotPressed { get; }
 
         /// <summary>
-        /// The number key pressed this frame, 1 to 8, or 0 for none. Drives the
-        /// debug menu's shortcuts.
+        /// The number key pressed this frame, 1 to 9, 10 for the 0 key after
+        /// them, or 0 for none. Drives the debug menu's shortcuts.
         ///
         /// One member rather than eight booleans because the caller wants to
         /// switch on which key it was, and eight properties would be eight more

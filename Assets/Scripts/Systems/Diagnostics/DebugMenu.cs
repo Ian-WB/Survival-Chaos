@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.SceneManagement;
 
 namespace SurvivalChaos
 {
@@ -64,6 +67,25 @@ namespace SurvivalChaos
         private WaveDirector director;
         private SkillSelect skills;
 
+        /// <summary>
+        /// The live lava lights that light the haze and cast into it. The look
+        /// test takes their volumetric shadows away; they still light the fog.
+        /// </summary>
+        private static readonly string[] GlowNames = { "Crater Glow", "Cone Glow", "River Glow", "Underglow" };
+
+        private static readonly string[] LookTestNames = { "as built", "fog Medium", "glows unshadowed", "both" };
+
+        /// <summary>
+        /// Two savings the 16 October 2026 performance scan left for a look in
+        /// motion: fog on Medium, 1.5 to 1.8 ms under High in the editor, and the
+        /// four lava glows lighting the fog without volumetric shadows, 0.7 ms.
+        /// Key 0 steps through them. Nothing is saved: the fog is a preview on the
+        /// graphics director, and the glows get their authored value back.
+        /// </summary>
+        private int lookTest;
+
+        private readonly Dictionary<HDAdditionalLightData, float> glowShadows = new Dictionary<HDAdditionalLightData, float>();
+
         private readonly StringBuilder status = new StringBuilder(256);
         private readonly GUIContent statusContent = new GUIContent();
 
@@ -87,6 +109,26 @@ namespace SurvivalChaos
             // session. Everything below is drawn into explicit Rects, so there is
             // no GUILayout call to give up.
             useGUILayout = false;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        /// <summary>
+        /// A new scene brings its own lights at their authored values, so the
+        /// look test starts over rather than claiming a state it no longer has.
+        /// </summary>
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            lookTest = 0;
+            glowShadows.Clear();
+            if (GraphicsDirector.Instance != null)
+            {
+                GraphicsDirector.Instance.FogPreview = null;
+            }
         }
 
         private void Update()
@@ -152,6 +194,44 @@ namespace SurvivalChaos
                 case 7: ClearArena(); break;
                 case 8: StepTimeScale(); break;
                 case 9: CameraPresetSwitcher.Cycle(); break;
+                case 10: StepLookTest(); break;
+            }
+        }
+
+        private void StepLookTest()
+        {
+            lookTest = (lookTest + 1) % LookTestNames.Length;
+
+            bool fogMedium = lookTest == 1 || lookTest == 3;
+            bool glowsBare = lookTest >= 2;
+
+            if (GraphicsDirector.Instance != null)
+            {
+                GraphicsDirector.Instance.FogPreview = fogMedium ? EffectQuality.Medium : (EffectQuality?)null;
+            }
+
+            if (glowsBare && glowShadows.Count == 0)
+            {
+                foreach (HDAdditionalLightData light in FindObjectsByType<HDAdditionalLightData>(FindObjectsInactive.Include))
+                {
+                    if (System.Array.IndexOf(GlowNames, light.name) >= 0)
+                    {
+                        glowShadows[light] = light.volumetricShadowDimmer;
+                        light.volumetricShadowDimmer = 0f;
+                    }
+                }
+            }
+            else if (!glowsBare)
+            {
+                foreach (KeyValuePair<HDAdditionalLightData, float> glow in glowShadows)
+                {
+                    if (glow.Key != null)
+                    {
+                        glow.Key.volumetricShadowDimmer = glow.Value;
+                    }
+                }
+
+                glowShadows.Clear();
             }
         }
 
@@ -291,11 +371,11 @@ namespace SurvivalChaos
             statusContent.text = status.ToString();
             float statusHeight = labelStyle.CalcHeight(statusContent, width);
 
-            // Fourteen buttons, two sliders, separators, title and status block.
+            // Fifteen buttons, two sliders, separators, title and status block.
             float height = pad * 2f
                            + row + gap
                            + statusHeight + gap
-                           + row * 16f + gap * 15f
+                           + row * 17f + gap * 16f
                            + gap * 3f;
 
             Rect panel = new Rect(Screen.width - width - pad * 2f - pad, pad, width + pad * 2f, height);
@@ -367,6 +447,8 @@ namespace SurvivalChaos
             {
                 y += (row + gap) * 2f;
             }
+
+            if (Draw(x, ref y, width, row, gap, "0  Look test: " + LookTestNames[lookTest], running)) { StepLookTest(); }
 
             if (Draw(x, ref y, width, row, gap, "Generate offer (no level)", skills != null && running)) { RunRecords.MarkAssisted(); skills.PickSkill(); }
             if (Draw(x, ref y, width, row, gap, "Kill enemies + reward XP", running)) { ClearArena(reward: true); }

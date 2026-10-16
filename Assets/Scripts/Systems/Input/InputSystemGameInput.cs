@@ -244,7 +244,9 @@ namespace SurvivalChaos
                     }
                 }
 
-                return 0;
+                // The 0 key comes after 9 on the keyboard and in the Key enum, so
+                // it is the tenth shortcut rather than "none".
+                return keyboard.digit0Key.wasPressedThisFrame ? 10 : 0;
             }
         }
 
