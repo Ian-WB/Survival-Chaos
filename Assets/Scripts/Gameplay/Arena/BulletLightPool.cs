@@ -160,10 +160,18 @@ namespace SurvivalChaos
             pools.Remove(this);
         }
 
+        /// <summary>
+        /// False while the Shadows row is Off. Set by the director whenever it
+        /// applies the settings, rather than asked of it every frame, because
+        /// asking reads PlayerPrefs through a built key.
+        /// </summary>
+        public static bool RowCasts { get; set; } = true;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetPools()
         {
             pools.Clear();
+            RowCasts = true;
         }
 
         private void Awake()
@@ -235,10 +243,21 @@ namespace SurvivalChaos
         /// old RefreshShadows did. There is nothing left to watch: the casting
         /// set turns over as volleys are fired and expire, so it is rebuilt each
         /// frame anyway and the quality veto rides along in the same pass.
+        ///
+        /// The Shadows row's Off is the player's veto, and it holds on every
+        /// tier. Until 16 October 2026 only the tier was asked, so Shadows Off
+        /// took the sun's and the lava's shadows away and left the rounds'.
+        /// Only Off is read: the row's other rungs pick resolution levels for
+        /// the scene's lights, and these keep the template's.
         /// </summary>
         private int ShadowBudget()
         {
             if (QualitySettings.shadows == ShadowQuality.Disable)
+            {
+                return 0;
+            }
+
+            if (!RowCasts)
             {
                 return 0;
             }

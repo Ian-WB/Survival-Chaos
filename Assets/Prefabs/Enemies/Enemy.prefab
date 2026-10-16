@@ -227,6 +227,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7501815100254853976, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
+      propertyPath: m_RayTracingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7501815100254853976, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
       propertyPath: m_RenderingLayerMask
       value: 3
       objectReference: {fileID: 0}
@@ -243,12 +247,20 @@ PrefabInstance:
       value: 0.12285
       objectReference: {fileID: 0}
     - target: {fileID: -1004385857308063228, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
+      propertyPath: m_RayTracingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1004385857308063228, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
       propertyPath: m_RenderingLayerMask
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
       propertyPath: m_Name
       value: Nave_inimiga_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 2256807704046115934, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
+      propertyPath: m_RayTracingMode
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2256807704046115934, guid: bf3e6c3f461c27343a6ed224d70850c5, type: 3}
       propertyPath: m_RenderingLayerMask

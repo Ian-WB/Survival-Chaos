@@ -608,7 +608,7 @@ namespace SurvivalChaos
                 // Off is the one rung that changes what the island looks like
                 // rather than how sharp it is, so it says what went.
                 case GraphicsOptionKind.Shadows when director.Shadows == EffectQuality.Off:
-                    return "The sun, the lava and the clouds cast no shadows";
+                    return "The sun, the lava, the clouds and the rounds cast no shadows";
 
                 // A whole fraction of the refresh rate goes to VSync rather than
                 // the frame limiter (DisplayOptions.SyncInterval), which is worth

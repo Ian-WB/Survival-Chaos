@@ -766,7 +766,7 @@ namespace SurvivalChaos
         /// <summary>
         /// The scene's authored shadow casters: the sun, the lava light that
         /// casts, and the volumetric clouds. Bullet lights are not among them -
-        /// BulletLightPool budgets those itself.
+        /// BulletLightPool budgets those itself, and reads only Off from here.
         ///
         /// Keyed ShadowQuality rather than Shadows, which is the retired six-rung
         /// row's key: a value that row saved means something else entirely.
@@ -1402,6 +1402,7 @@ namespace SurvivalChaos
             clouds.shadowDistance.value = ShadowLadder.CloudShadowDistance;
 
             ShadowQualityLight.ApplyAll(quality);
+            BulletLightPool.RowCasts = QualityLadder.IsOn(quality);
         }
 
         private void ApplyReflections()
@@ -1411,6 +1412,13 @@ namespace SurvivalChaos
             reflections.enabled.overrideState = true;
             reflections.enabled.value = QualityLadder.IsOn(quality);
 
+            // Transparent reflections have their own switch, which the default
+            // profile leaves on. Until 16 October 2026 only the opaque one was
+            // written here, so Off still ran screen-space reflections on
+            // transparents. The on-rungs keep it on, as the profile authored.
+            reflections.enabledTransparent.overrideState = true;
+            reflections.enabledTransparent.value = QualityLadder.IsOn(quality);
+
             reflections.quality.overrideState = true;
             reflections.quality.value = QualityLadder.ScalableLevel(quality);
 
@@ -1418,6 +1426,9 @@ namespace SurvivalChaos
             reflections.tracing.value = QualityLadder.IsRayTraced(quality)
                 ? RayCastingMode.RayTracing
                 : RayCastingMode.RayMarching;
+
+            reflections.mode.overrideState = true;
+            reflections.mode.value = RayTracingMode.Performance;
         }
 
         private void ApplyGlobalIllumination()
@@ -1434,7 +1445,29 @@ namespace SurvivalChaos
             globalIllumination.tracing.value = QualityLadder.IsRayTraced(quality)
                 ? RayCastingMode.RayTracing
                 : RayCastingMode.RayMarching;
+
+            globalIllumination.mode.overrideState = true;
+            globalIllumination.mode.value = RayTracingMode.Performance;
         }
+
+        // Why both rows write Performance mode, which changes nothing about how
+        // they render. Every tier that compiles ray tracing compiles Performance
+        // only (supportedRayTracingMode 1), so HDRP renders that branch whatever
+        // the volume says. But GlobalIllumination and ScreenSpaceReflection
+        // decide where their settings come from by asking the volume, and the
+        // default profile says Quality. Until 16 October 2026 that meant every
+        // ray-traced setting except full resolution came from the profile, not
+        // from the rung's table in the tier asset, so RT Low and RT Medium were
+        // the same configuration and timed the same (17.60 against 17.57 ms).
+        //
+        // With the mode written, the tables decide, and they are authored in the
+        // tier assets to what the profile used to impose, so RT Medium and RT
+        // High render as they did. RT Low is the one that changed: it denoises
+        // at half resolution and skips the second denoise pass. Reflections keep
+        // the profile's 0.9 minimum smoothness on every rung, where HDRP's
+        // template tables go down to 0.6, 0.4 and 0 and would trace rough rock.
+        // Nothing is read from these tables while a row is screen space, since
+        // the getters only look at them when tracing is RayTracing.
 
         private void ApplyFog()
         {

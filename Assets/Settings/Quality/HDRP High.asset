@@ -488,18 +488,18 @@ MonoBehaviour:
       RTGIDenoise: 010101y
       RTGIHalfResDenoise: 010000y
       RTGIDenoiserRadius:
-      - 0.66
-      - 0.66
-      - 1
-      RTGISecondDenoise: 010101y
-      RTRMinSmoothness:
       - 0.6
-      - 0.4
-      - 0
+      - 0.6
+      - 0.6
+      RTGISecondDenoise: 000101y
+      RTRMinSmoothness:
+      - 0.9
+      - 0.9
+      - 0.9
       RTRSmoothnessFadeStart:
-      - 0.7
-      - 0.5
-      - 0
+      - 0.9
+      - 0.9
+      - 0.9
       RTRRayLength:
       - 50
       - 50
@@ -510,7 +510,7 @@ MonoBehaviour:
       RTRDenoiserRadiusDimmer:
       - 0.75
       - 0.75
-      - 1
+      - 0.75
       RTRDenoiserAntiFlicker:
       - 1
       - 1
