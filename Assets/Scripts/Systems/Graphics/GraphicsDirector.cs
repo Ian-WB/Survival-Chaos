@@ -737,8 +737,8 @@ namespace SurvivalChaos
 
         public EffectQuality Reflections
         {
-            get => Effect("SSR", CurrentPreset.Reflections);
-            set => SetRow("SSR", (int)value);
+            get => QualityLadder.ReflectionRung(Effect("SSR", CurrentPreset.Reflections));
+            set => SetRow("SSR", (int)QualityLadder.ReflectionRung(value));
         }
 
         public EffectQuality GlobalIlluminationQuality

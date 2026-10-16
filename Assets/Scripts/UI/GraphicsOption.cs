@@ -419,7 +419,12 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Quality:
                     return Mathf.Max(1, director.QualityNames.Length);
 
+                // No RT Medium: see QualityLadder.ReflectionRungs.
                 case GraphicsOptionKind.Reflections:
+                    return director.RayTracingAvailable
+                        ? QualityLadder.ReflectionRungs.Length
+                        : QualityLadder.ScreenSpaceCount;
+
                 case GraphicsOptionKind.GlobalIllumination:
                     return EffectRungs(director);
 
@@ -466,7 +471,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
-                case GraphicsOptionKind.Reflections: return (int)director.Reflections;
+                case GraphicsOptionKind.Reflections: return Mathf.Max(0, System.Array.IndexOf(QualityLadder.ReflectionRungs, director.Reflections));
                 case GraphicsOptionKind.GlobalIllumination: return (int)director.GlobalIlluminationQuality;
                 case GraphicsOptionKind.VolumetricFog: return (int)director.VolumetricFog;
                 case GraphicsOptionKind.MotionBlur: return (int)director.MotionBlurQuality;
@@ -490,7 +495,7 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
-                case GraphicsOptionKind.Reflections: director.Reflections = (EffectQuality)index; break;
+                case GraphicsOptionKind.Reflections: director.Reflections = QualityLadder.ReflectionRungs[index]; break;
                 case GraphicsOptionKind.GlobalIllumination: director.GlobalIlluminationQuality = (EffectQuality)index; break;
                 case GraphicsOptionKind.VolumetricFog: director.VolumetricFog = (EffectQuality)index; break;
                 case GraphicsOptionKind.MotionBlur: director.MotionBlurQuality = (EffectQuality)index; break;

@@ -213,6 +213,34 @@ namespace SurvivalChaos
         /// <summary>How many rungs a row offers when ray tracing is unavailable.</summary>
         public const int ScreenSpaceCount = 4;
 
+        /// <summary>
+        /// The Reflections row's rungs, which skip RT Medium.
+        ///
+        /// Both reflection rows draw only on surfaces smoother than 0.9, and on
+        /// this island that is the player's glass dome and little else (16
+        /// October 2026: rock 0.12 to 0.3, ruins 0.5 to 0.6, nothing in the
+        /// scenery past 0.69). RT Low and RT Medium are both half resolution with
+        /// the same gate, so they were the same configuration, and lowering the
+        /// Medium gate to 0.8 or 0.7 changed neither the cost nor a pixel. RT
+        /// High stays as the full-resolution rung. GI keeps all three, since its
+        /// Low now really is cheaper.
+        /// </summary>
+        public static readonly EffectQuality[] ReflectionRungs =
+        {
+            EffectQuality.Off, EffectQuality.Low, EffectQuality.Medium, EffectQuality.High,
+            EffectQuality.RayTracedLow, EffectQuality.RayTracedHigh
+        };
+
+        /// <summary>
+        /// A Reflections rung as the row now offers it. RT Medium, which older
+        /// settings may hold, reads as RT Low: the same configuration under the
+        /// name of the rung that is left.
+        /// </summary>
+        public static EffectQuality ReflectionRung(EffectQuality quality)
+        {
+            return quality == EffectQuality.RayTracedMedium ? EffectQuality.RayTracedLow : quality;
+        }
+
         public static bool IsRayTraced(EffectQuality quality)
         {
             return quality >= FirstRayTraced;

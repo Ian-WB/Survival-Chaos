@@ -89,6 +89,31 @@ namespace SurvivalChaos.Tests
             });
         }
 
+        [Test]
+        public void ReflectionsRow_SkipsRtMedium_AndKeepsTheScreenSpaceRungsFirst()
+        {
+            // RT Medium was RT Low under another name, and a lower smoothness
+            // gate to tell them apart changed nothing on this island. The menu
+            // indexes the first four as the screen-space row when ray tracing is
+            // unavailable, so they must stay first and in order.
+            Assert.AreEqual(new[]
+            {
+                EffectQuality.Off, EffectQuality.Low, EffectQuality.Medium, EffectQuality.High,
+                EffectQuality.RayTracedLow, EffectQuality.RayTracedHigh
+            }, QualityLadder.ReflectionRungs);
+        }
+
+        [Test]
+        public void SavedRtMediumReflections_ReadAsRtLow()
+        {
+            Assert.AreEqual(EffectQuality.RayTracedLow, QualityLadder.ReflectionRung(EffectQuality.RayTracedMedium));
+
+            foreach (EffectQuality rung in QualityLadder.ReflectionRungs)
+            {
+                Assert.AreEqual(rung, QualityLadder.ReflectionRung(rung), rung.ToString());
+            }
+        }
+
         [TestCase("Assets/Prefabs/Enemies/Enemy.prefab")]
         [TestCase("Assets/Prefabs/Enemies/Enemy 1.prefab")]
         [TestCase("Assets/Prefabs/Enemies/Enemy 2.prefab")]
