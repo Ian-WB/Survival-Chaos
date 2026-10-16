@@ -1,6 +1,6 @@
 # Docs
 
-Three long-form documents about this project, kept here as HTML because HTML is
+The long-form documents about this project, kept here as HTML because HTML is
 the only one of the obvious formats that **diffs**. A PDF or a .docx would be a
 binary blob rewritten whole on every update, so a commit could tell you the file
 changed but never what changed — and this repo has already paid once for
