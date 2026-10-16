@@ -287,13 +287,43 @@ namespace SurvivalChaos.Tests
             Object.DestroyImmediate(lookup);
         }
 
-        /// <summary>How many times its lowest the wall stands as a run starts: the Game scene's StormRise.</summary>
-        private static float Tallest()
+        /// <summary>How many times its painted height the wall stands as a run starts (tallest) or ends (lowest): the Game scene's StormRise.</summary>
+        private static float StormRiseField(string field)
         {
             SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
             string rise = scene.ScriptWith(scene.GameObjectNamed("Storm Rise"), "tallest");
             Assert.That(rise, Is.Not.Null, "there is no StormRise in the Game scene");
-            return scene.Float(rise, "tallest");
+            return scene.Float(rise, field);
+        }
+
+        private static float Tallest() => StormRiseField("tallest");
+
+        private static float Lowest() => StormRiseField("lowest");
+
+        /// <summary>
+        /// Ian asked for the storm to end with almost all of the wall gone,
+        /// then lower still (16 October): its tops sink under the horizon on
+        /// every bearing, and what is left out there is cloud under it, a
+        /// floor reaching to the horizon and not a hole into the dark.
+        /// </summary>
+        [Test]
+        public void TheWall_SinksUnderTheHorizon_WhenTheStormIsOpen()
+        {
+            Texture2D map = Read(MapPath);
+            Texture2D lookup = Read(LookupPath);
+            float lowest = Lowest();
+
+            for (int bearing = 0; bearing < 360; bearing += 5)
+            {
+                float x = 2100f * Mathf.Cos(bearing * Mathf.Deg2Rad);
+                float z = 2100f * Mathf.Sin(bearing * Mathf.Deg2Rad);
+
+                Assert.That(CloudAt(map, lookup, x, z, 0f, lowest), Is.LessThan(0.35f), "the wall still stands over the horizon at " + bearing);
+                Assert.That(CloudAt(map, lookup, x, z, -400f, lowest), Is.GreaterThan(0.5f), "no cloud under the horizon at " + bearing);
+            }
+
+            Object.DestroyImmediate(map);
+            Object.DestroyImmediate(lookup);
         }
 
         /// <summary>
@@ -321,16 +351,17 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// Only the wall rises: the eye where the ships fly stays clear, and
-        /// the floor under the island keeps its height, however tall the
-        /// wall stands.
+        /// Only the wall moves: the eye where the ships fly stays clear, and
+        /// the floor under the island keeps its height, however tall or short
+        /// the wall stands.
         /// </summary>
-        [Test]
-        public void TheEyeAndTheFloor_StayPut_WithTheWallAtItsTallest()
+        [TestCase("tallest")]
+        [TestCase("lowest")]
+        public void TheEyeAndTheFloor_StayPut_WhateverTheWallsHeight(string end)
         {
             Texture2D map = Read(MapPath);
             Texture2D lookup = Read(LookupPath);
-            float tallest = Tallest();
+            float tallest = StormRiseField(end);
 
             for (float reach = 0f; reach <= FurthestCamera * 4f; reach += Lane * 0.5f)
             {

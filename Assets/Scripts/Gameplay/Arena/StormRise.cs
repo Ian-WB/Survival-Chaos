@@ -6,31 +6,40 @@ namespace SurvivalChaos
 {
     /// <summary>
     /// The storm opens over the run: its wall starts a run standing over the
-    /// moon and sinks until, as the Leviathan comes, it is back at the scene's
-    /// own height with the moon clear above it.
+    /// moon and sinks until, as the Leviathan comes, little of it is left
+    /// and the moon and the stars are clear over the cloud floor.
     ///
     /// Ian's idea, 15 October 2026, built on three picks he said yes to: the
     /// wall goes down on the run's clock, the one the eruption keeps, and is
     /// down when the boss is due; the moonlight follows it, the island darker
     /// at the start and brightening as the moon shows; and it ends at the
-    /// wall the scene already has, no lower, because more open sky behind the
-    /// lane puts dark ships on dark stars.
+    /// wall the scene already has. He played that and asked for the start a
+    /// bit higher and the end way lower, almost all of it gone (16 October),
+    /// so the end is no longer the scene's wall. More open sky behind the
+    /// lane puts dark ships against dark stars; that was the reason for the
+    /// third pick, and it is his call.
     ///
-    /// **How the wall stands taller.** The scene's layer of cloud tops out
-    /// 750 over the arena, which no wall a kilometre and more away can raise
-    /// over the moon. So this deepens the layer, through a volume of its own
-    /// over the scene's, and the project's cloud shader reads the wall's
-    /// height off the layer's depth (StormWallHeight in
-    /// VolumetricCloudsUtilities.hlsl). The eye's floor keeps its height;
-    /// only the wall stretches. The map's tiling moves with the depth, since
-    /// HDRP stretches the map by the layer's middle, so the eye keeps its
-    /// size. With the storm open both numbers are the scene's own, and the
-    /// clouds are what they were before this existed.
+    /// **How the wall stands taller or shorter.** The scene's layer of cloud
+    /// tops out 750 over the arena, which no wall a kilometre and more away
+    /// can raise over the moon. So the project's cloud shader is told how
+    /// many times its painted height the wall stands (_StormWallRise, set on
+    /// both cloud tracers) and reads each column of wall stretched or squeezed
+    /// by it (StormWallHeight in VolumetricCloudsUtilities.hlsl); while the
+    /// wall stands over its painted height, this also deepens the layer,
+    /// through a volume of its own over the scene's. The eye's floor keeps its
+    /// height either way, so the layer is never made shallower than the
+    /// scene's: only the wall moves. The map's tiling moves with the depth,
+    /// since HDRP stretches the map by the layer's middle, so the eye keeps
+    /// its size.
     ///
-    /// **Twice its height** hides the whole moon from the starting camera at
-    /// every moment of the storm's turn, with the wall's lit crown still at
-    /// the top of the frame. At 1.9 the moon showed through gaps; at 2.2 the
-    /// crown was out of the frame and the sky one dark murk.
+    /// **Its height, start to end.** Twice the painted height hides the whole
+    /// moon from the starting camera at every moment of the storm's turn,
+    /// with the wall's lit crown at the top of the frame; at 1.9 the moon
+    /// showed through gaps. Ian asked for a bit higher, and 2.2 still shows
+    /// the crown's edge from time to time. It ends at 0.4, Ian's number
+    /// (16 October), which sinks the wall's tops under the horizon: nothing
+    /// is left but the flat cloud floor, as at 0.5 and 0.6. At 0.7 a low band
+    /// stood just over the horizon, and 0.8 is a thin bank.
     ///
     /// **The moonlight follows on its own.** The taller wall's shadow takes
     /// the island's moonlit rock from about 32 to about 20 (of 255), from
@@ -38,11 +47,11 @@ namespace SurvivalChaos
     /// clouds' shadow: with the Shadows setting at Off the island is as
     /// bright shut as open, and nothing here makes up for it.
     ///
-    /// **It sinks late.** Evenly, the moon's top would show a tenth of the
-    /// way into the run and half of it half way. At
-    /// <see cref="lateness"/> 1.5 its top shows about a fifth of the way in,
-    /// half of it about two thirds of the way, and the last of the fall comes
-    /// as the volcano climbs to the boss.
+    /// **It sinks late.** At <see cref="lateness"/> 1.5 the moon's top shows
+    /// about a quarter of the way into the run and half of it about half
+    /// way. The rest of the fall, the wall going down past its painted
+    /// height and under the horizon, comes as the volcano climbs to the boss;
+    /// the last of the wall goes about nine tenths of the way in.
     ///
     /// The clock is the WaveDirector's, so the debug menu's Advance and Skip
     /// to boss move the storm with everything else; it sinks at no more than
@@ -60,8 +69,21 @@ namespace SurvivalChaos
         [Header("The storm")]
         [SerializeField]
         [Range(1f, 4f)]
-        [Tooltip("How many times its own height the wall stands as a run starts. 1 is the scene's wall.")]
-        private float tallest = 2f;
+        [Tooltip("How many times its painted height the wall stands as a run starts. 1 is the scene's wall.")]
+        private float tallest = 2.2f;
+
+        [SerializeField]
+        [Range(0.3f, 1f)]
+        [Tooltip("How many times its painted height the wall stands once the storm is open. 1 is the scene's wall; at 0.6 and under only the flat cloud floor is left.")]
+        private float lowest = 0.4f;
+
+        [SerializeField]
+        [Tooltip("The project's copy of HDRP's cloud tracer: Art/Shaders/VolumetricCloudsTrace. The wall's height is set on it.")]
+        private ComputeShader tracer;
+
+        [SerializeField]
+        [Tooltip("The project's copy of HDRP's cloud shadow tracer: Art/Shaders/VolumetricCloudsTraceShadows. The wall's shadow stands as tall as the wall.")]
+        private ComputeShader shadowTracer;
 
         [SerializeField]
         [Range(0.3f, 3f)]
@@ -95,8 +117,10 @@ namespace SurvivalChaos
         /// <summary>How far the storm has opened, 0 shut to 1 open.</summary>
         public float Open { get; private set; }
 
-        /// <summary>How many times its lowest the wall stands now.</summary>
-        public float Rise => StormRiseCurve.Rise(Open, tallest);
+        private static readonly int WallRiseId = Shader.PropertyToID("_StormWallRise");
+
+        /// <summary>How many times its painted height the wall stands now.</summary>
+        public float Rise => StormRiseCurve.Rise(Open, tallest, lowest);
 
         private void Start()
         {
@@ -138,6 +162,9 @@ namespace SurvivalChaos
 
         private void OnDestroy()
         {
+            // The tracers are assets: what is set on them outlives play in the editor. 0 is the painted wall.
+            SetWallRise(0f);
+
             if (profile != null)
             {
                 Destroy(profile);
@@ -165,6 +192,20 @@ namespace SurvivalChaos
             float depth = StormRiseCurve.Depth(lowDepth, Rise);
             clouds.altitudeRange.value = depth;
             clouds.cloudTiling.value = lowTiling * StormRiseCurve.Tiling(1f, bottom, lowDepth, depth);
+            SetWallRise(Rise);
+        }
+
+        private void SetWallRise(float rise)
+        {
+            if (tracer != null)
+            {
+                tracer.SetFloat(WallRiseId, rise);
+            }
+
+            if (shadowTracer != null)
+            {
+                shadowTracer.SetFloat(WallRiseId, rise);
+            }
         }
     }
 }

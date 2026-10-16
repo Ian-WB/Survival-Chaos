@@ -47,12 +47,13 @@
 // number of samples falls thick on the wall and thin on the far cloud.
 //
 // Since 15 October there is a fourth: the wall starts a run standing over the moon and
-// sinks to its own height by the time the Leviathan comes. StormRise, in the Game scene,
-// deepens the layer at the start of a run; the lookup is still read in shares of the low
-// wall's layer (StormWallHeight), so the eye's floor stays where it is and only the wall's
-// columns stretch upward. A ray's longest step is held at the low wall's (StormLongestStep),
-// or the deeper layer would spread its samples thinner on the wall. With the layer at its
-// lowest, all of it is HDRP's arithmetic again.
+// sinks, by the time the Leviathan comes, to a stub of itself. StormRise, in the Game scene,
+// sets how many times its painted height the wall stands (_StormWallRise) and deepens the
+// layer while that is over 1; the lookup is still read in shares of the painted layer
+// (StormWallHeight), so the eye's floor stays where it is and only the wall's columns
+// stretch up or squeeze down. A ray's longest step is held at the painted layer's
+// (StormLongestStep), or the deeper layer would spread its samples thinner on the wall.
+// Left unset, the wall stands at its painted height and all of it is HDRP's arithmetic.
 //
 // Used by the project's copies of VolumetricCloudsTrace.compute and
 // VolumetricCloudsTraceShadows.compute, so the clouds and the shadow they throw turn
@@ -386,10 +387,13 @@ float StormBoltReach(float3 positionPS)
     return _StormBolt.z / (far * far);
 }
 
-// Survival Chaos: how deep the layer is when the wall stands at its lowest, which is the
-// depth the lookup was painted for (CloudRingBuilder.Range). StormRise deepens the layer
-// at the start of a run, and the wall stands taller by as much.
+// Survival Chaos: the depth the lookup was painted for (CloudRingBuilder.Range), which is
+// the scene's own layer. StormRise deepens the layer while the wall stands over it.
 #define STORM_LOW_WALL_DEPTH 1500.0
+
+// Survival Chaos: how many times its painted height the wall stands, set on both tracers by
+// StormRise. 0, which is what it is when nothing sets it, means the painted height.
+float _StormWallRise;
 
 // Survival Chaos: the kinds of cloud over which the wall goes from keeping its height to
 // taking all of the rise. Kind 0 is the eye's floor, under the island, and never moves;
@@ -397,24 +401,24 @@ float StormBoltReach(float3 positionPS)
 #define STORM_RISE_FROM_KIND 0.0
 #define STORM_RISE_FULL_KIND 0.42
 
-// Survival Chaos: how many times its lowest the wall stands, from how deep the layer is.
+// Survival Chaos: how many times its painted height the wall stands.
 float StormRise()
 {
-    return max((_HighestCloudAltitude - _LowestCloudAltitude) / STORM_LOW_WALL_DEPTH, 1.0);
+    return _StormWallRise > 0.0 ? _StormWallRise : 1.0;
 }
 
 // Survival Chaos: where in the lookup a point is read, up the column of its kind. The
-// lookup's heights are shares of the low wall's layer; a column that takes the rise is
-// read as if that layer were taller by it, so its foot stays and its top climbs. With the
-// layer at its lowest depth this is HDRP's own normalised height.
+// lookup's heights are shares of the painted layer; a column that takes the rise is read
+// as if that layer were taller or shorter by it, so its foot stays and its top climbs or
+// sinks. At the painted height in the painted layer this is HDRP's own normalised height.
 float StormWallHeight(float3 positionPS, float kind)
 {
     float stretch = lerp(1.0, StormRise(), smoothstep(STORM_RISE_FROM_KIND, STORM_RISE_FULL_KIND, kind));
     return (length(positionPS) - _LowestCloudAltitude) / (STORM_LOW_WALL_DEPTH * stretch);
 }
 
-// Survival Chaos: HDRP's longest step is an eighth of the layer's depth. Held at the low
-// wall's, so a deeper layer does not spread a ray's samples thinner on the wall.
+// Survival Chaos: HDRP's longest step is an eighth of the layer's depth. Held at the painted
+// layer's, so a deeper layer does not spread a ray's samples thinner on the wall.
 float StormLongestStep()
 {
     return min(_MaxStepSize, STORM_LOW_WALL_DEPTH / 8.0);

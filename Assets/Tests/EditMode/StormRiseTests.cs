@@ -10,8 +10,8 @@ namespace SurvivalChaos.Tests
 {
     /// <summary>
     /// The storm opens over the run (StormRise, 15 October 2026): the wall
-    /// starts a run over the moon and sinks to the scene's own wall by the
-    /// time the boss is due. The arithmetic, the scene's wiring, and the
+    /// starts a run over the moon and sinks to a stub of itself by the time
+    /// the boss is due. The arithmetic, the scene's wiring, and the
     /// shader that reads the wall's height off the layer's depth. What the
     /// cloud then looks like, shut and open, is in CloudRingTests.
     /// </summary>
@@ -52,27 +52,28 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void TheWall_GoesFromItsTallest_ToTheScenesOwn()
+        public void TheWall_GoesFromItsTallest_ToItsLowest()
         {
-            Assert.AreEqual(2f, StormRiseCurve.Rise(0f, 2f), 1e-6f);
-            Assert.AreEqual(1f, StormRiseCurve.Rise(1f, 2f), 1e-6f);
-            Assert.AreEqual(1f, StormRiseCurve.Rise(0f, 0.5f), 1e-6f, "the wall never goes under the scene's own");
+            Assert.AreEqual(2.2f, StormRiseCurve.Rise(0f, 2.2f, 0.6f), 1e-6f);
+            Assert.AreEqual(0.6f, StormRiseCurve.Rise(1f, 2.2f, 0.6f), 1e-6f);
+            Assert.AreEqual(1.4f, StormRiseCurve.Rise(0.5f, 2.2f, 0.6f), 1e-6f);
         }
 
         /// <summary>
-        /// The third pick: the run ends on the clouds the scene already has.
-        /// Open, the layer and the tiling StormRise sets are the scene's own
-        /// numbers, to the last digit.
+        /// The floor under the island is in the same layer as the wall, so
+        /// the layer never gets shallower than the scene's, however low the
+        /// wall sinks: open, the layer and the tiling StormRise sets are the
+        /// scene's own numbers, to the last digit.
         /// </summary>
         [Test]
-        public void OpenStorm_IsTheScenesOwnClouds()
+        public void OpenStorm_KeepsTheScenesLayer()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
             Assert.IsNotNull(profile, ProfilePath);
             Assert.IsTrue(profile.TryGet(out VolumetricClouds clouds), "the scene has no clouds");
 
             float lowDepth = clouds.altitudeRange.value;
-            float depth = StormRiseCurve.Depth(lowDepth, StormRiseCurve.Rise(1f, 2f));
+            float depth = StormRiseCurve.Depth(lowDepth, StormRiseCurve.Rise(1f, 2.2f, 0.6f));
             Assert.AreEqual(lowDepth, depth);
             Assert.AreEqual(1f, StormRiseCurve.Tiling(1f, clouds.bottomAltitude.value, lowDepth, depth));
         }
@@ -101,6 +102,8 @@ namespace SurvivalChaos.Tests
             StringAssert.Contains("min(totalDistance / (float)_NumPrimarySteps, StormLongestStep())", text,
                 "a deeper layer lengthens HDRP's step and thins the samples on the wall");
             Assert.AreEqual(0f, Define("STORM_RISE_FROM_KIND"), "the floor under the island must not rise with the wall");
+            StringAssert.Contains("return _StormWallRise > 0.0 ? _StormWallRise : 1.0;", text,
+                "unset, the wall must stand at its painted height, or the editor's scene view loses it");
         }
 
         [Test]
@@ -113,8 +116,13 @@ namespace SurvivalChaos.Tests
 
             string rise = scene.ScriptWith(gameObject, "tallest");
             Assert.That(rise, Is.Not.Null, "the Storm Rise object has no StormRise on it");
-            Assert.That(scene.Reference(rise, "sceneVolume"), Is.Not.Null.And.Not.EqualTo("0"), "StormRise's scene volume is not assigned");
-            Assert.That(scene.Float(rise, "tallest"), Is.InRange(1.5f, 3f), "the wall has to start over the moon and in the frame");
+            foreach (string field in new[] { "sceneVolume", "tracer", "shadowTracer" })
+            {
+                Assert.That(scene.Reference(rise, field), Is.Not.Null.And.Not.EqualTo("0"), "StormRise's " + field + " is not assigned");
+            }
+
+            Assert.That(scene.Float(rise, "tallest"), Is.InRange(1.5f, 3f), "the wall has to start over the moon");
+            Assert.That(scene.Float(rise, "lowest"), Is.InRange(0.3f, 1f), "the wall ends lower than it starts, and not under the floor");
 
             // Left at or above zero by a tuning session, the storm would hold one height for the whole run.
             Assert.That(scene.Float(rise, "holdAt"), Is.LessThan(0f),

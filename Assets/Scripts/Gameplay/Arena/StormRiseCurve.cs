@@ -9,7 +9,7 @@ namespace SurvivalChaos
     /// so.
     ///
     /// Kept apart from the component so that "the moon is clear when the
-    /// boss is due" and "at the end the clouds are exactly the scene's" can be
+    /// boss is due" and "the floor under the island never moves" can be
     /// tested without a scene, the way <see cref="EruptionCurve"/> is.
     /// </summary>
     public static class StormRiseCurve
@@ -37,16 +37,20 @@ namespace SurvivalChaos
             return Mathf.Pow(share, Mathf.Max(lateness, 0.01f));
         }
 
-        /// <summary>How many times its lowest the wall stands: <paramref name="tallest"/> shut, 1 open.</summary>
-        public static float Rise(float open, float tallest)
+        /// <summary>
+        /// How many times its painted height the wall stands:
+        /// <paramref name="tallest"/> shut, <paramref name="lowest"/> open.
+        /// </summary>
+        public static float Rise(float open, float tallest, float lowest)
         {
-            return Mathf.Lerp(Mathf.Max(tallest, 1f), 1f, Mathf.Clamp01(open));
+            return Mathf.Lerp(Mathf.Max(tallest, 0f), Mathf.Max(lowest, 0f), Mathf.Clamp01(open));
         }
 
         /// <summary>
         /// How deep the cloud layer has to be for the wall to stand
-        /// <paramref name="rise"/> times its lowest. The shader reads the rise
-        /// back off the depth (StormRise in VolumetricCloudsUtilities.hlsl).
+        /// <paramref name="rise"/> times its painted height: deeper over it,
+        /// and never shallower than the painted layer, whose floor lies under
+        /// the island however low the wall sinks.
         /// </summary>
         public static float Depth(float lowDepth, float rise)
         {
