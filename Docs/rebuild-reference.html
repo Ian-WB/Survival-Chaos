@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 421 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 426 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>421</b><span>commits</span></div>
-      <div class="stat"><b>833</b><span>tests</span></div>
-      <div class="stat"><b>160</b><span>runtime scripts</span></div>
+      <div class="stat"><b>426</b><span>commits</span></div>
+      <div class="stat"><b>870</b><span>tests</span></div>
+      <div class="stat"><b>161</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
@@ -747,6 +747,25 @@
       storm&rsquo;s wall standing 2.2 times its painted height, over the whole moon, and the wall sinks on the run&rsquo;s
       clock until, as the Leviathan arrives, its tops are under the horizon and the moon and the stars are clear. He played
       the first version, which ended on the old wall, and asked for it to start higher and end much lower.</li>
+      <li><strong>Two performance scans, rasterised and ray traced</strong> &mdash; on 16 October, one read from the source by
+      ChatGPT and one measured in the editor at 2560&times;1440. The frame is four effects: ray-traced GI where it is on, the
+      fog, the clouds and FSR; everything drawn comes to under a millisecond. What came of them is the next three lines and
+      <a href="#frame16">Measured again, and in a build</a>.</li>
+      <li><strong>The storm on the default tier, and Ultra&rsquo;s shadows a rung down</strong> &mdash; a fresh install starts
+      on Medium, and Medium compiled no volumetric clouds, so a first run had no storm, no moon coming out of it and no
+      lightning in the cloud. It compiles them since 16 October, on the Low steps, for 1.2&nbsp;ms. The same day Ultra&rsquo;s
+      Shadows started on Medium, as High&rsquo;s do: the High rung cost 0.65 to 0.9&nbsp;ms of soft-shadow filtering for a
+      picture within the noise of two captures of the same frame.</li>
+      <li><strong>Ray-traced rungs that are what they say</strong> &mdash; the default profile asked for HDRP&rsquo;s Quality
+      ray-tracing mode, the tiers compile only Performance, and HDRP decides where a ray-traced setting comes from by asking
+      the profile, so every rung read the profile&rsquo;s values and RT Low was RT Medium. The director writes Performance now
+      and the tiers&rsquo; tables are the rungs: RT Low GI is cheaper than RT Medium, Medium and High look as they did, and the
+      Reflections row lost an RT Medium that could not differ from RT Low. Reflections Off turns off the reflections on
+      transparent surfaces as well, Shadows Off reaches the bullet lights&rsquo; shadows, and every enemy, every round and the
+      pickups are out of ray tracing; the Leviathan, its discs and wreckage, the ship and the rock ring stay in.</li>
+      <li><strong>Async compute off on the game camera</strong> &mdash; timed in Checked builds by a bench that plays a run by
+      itself and writes what it measured to the log: 0.4 to 0.9&nbsp;ms less with ray-traced GI on and 0.1 to 0.7 without,
+      and never slower.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -1860,7 +1879,10 @@ emission  = hot * glow * veins;</code></pre>
     </div>
 
     <h3>Shadows are a row, and the clouds only get half of it</h3>
-    <p>One setting, Off to High, over what the scene authors rather than anything in the pipeline asset: the sun, the lava&rsquo;s live lights and the volumetric clouds. Until 8 October the lava&rsquo;s share was <code>Lava Light 2</code> alone; with all six lava lights Baked it is the three glow lights, the surge light and the glow under the island. Each carries a marker component, <code>ShadowQualityLight</code>, rather than being found by a search, because the one set the row must not reach is the bullet lights &mdash; those have the one-per-volley budget measured below, and a row raising every point light's resolution would spend six faces a light on shots the pool had deliberately kept cheap.</p>
+    <p>One setting, Off to High, over what the scene authors rather than anything in the pipeline asset: the sun, the lava&rsquo;s live lights and the volumetric clouds. Until 8 October the lava&rsquo;s share was <code>Lava Light 2</code> alone; with all six lava lights Baked it is the three glow lights, the surge light and the glow under the island. Each carries a marker component, <code>ShadowQualityLight</code>, rather than being found by a search, because the one set the row must not reach is the bullet lights &mdash; those have the one-per-volley budget measured below, and a row raising every point light's resolution would spend six faces a light on shots the pool had deliberately kept cheap. Off is the one rung that reaches them,
+    since 16 October: it switches the bullet pools&rsquo; shadows off with everything else, through
+    <code>BulletLightPool.RowCasts</code>, where until then only the tier&rsquo;s <code>QualitySettings.shadows</code>
+    could.</p>
     <p>Each rung picks one of the tier's own shadow resolution levels, so the tier still decides what Low is worth: 512, 1024 and 2048 on Ultra. The tier's top level is never asked for, because a point light draws six faces and six at 4096 outgrow an 8192 atlas. Off stops a light casting and remembers whether it cast hard or soft, so coming back up restores what the scene authored rather than a guess.</p>
     <div class="warn">
       <div class="label">Off is the loud rung, and the cloud ladder measured as nothing</div>
@@ -2391,6 +2413,69 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>Holding the light steps and cutting the primary ones barely moves the picture; holding the primary and cutting the light ones moves a quarter of it. HDRP caps a primary step at an eighth of the layer&rsquo;s altitude range, and the game camera looks almost level through the layer, so more primary steps only march further out. The ladder of 28 September had doubled both together, which is why its High looked like its Medium for 2.2&nbsp;ms more. <code>CloudLadder</code> is 64 and 6, 64 and 16, 128 and 32 since 1 October. One frame from one camera was compared; the boss&rsquo;s arrival and the other six cameras were not. It was then played in a build and not flagged, so on 2 October the ladder stays.</p>
     </div>
     <p>Instancing, LODs, occlusion culling, the Resident Drawer and mipmap streaming were each checked against this and left off. The arena is 90 static renderers, 88,000 triangles and 7 materials, an enemy 240 to 1,300 triangles and the boss 9,900, and every texture in the project comes to 728&nbsp;MB on a 12&nbsp;GB card. The 0.3&nbsp;ms of geometry and shadows is the whole ceiling for LODs; the 2.8&nbsp;ms of draw submission, with 4.6 of slack behind it, is the ceiling for the rest.</p>
+
+    <h3 id="frame16">Measured again, and in a build</h3>
+    <p>On 16 October, in the editor at 2560&times;1440 on Ultra with FSR 3 at native and the owner&rsquo;s saved rows
+    &mdash; fog, shadows, clouds and reflections all High &mdash; a frame was held twice: early in a run, with the
+    storm&rsquo;s wall at its tallest and 7 enemies, and at the boss with 81. The whole camera took 14.8 and 14.5&nbsp;ms
+    with GI off, and 20.0 and 23.3 with ray-traced GI on High.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Where it goes, GI on High</th><th class="num">Early</th><th class="num">Boss</th></tr></thead>
+        <tbody>
+          <tr><td>Ray-traced GI</td><td class="num">5.2</td><td class="num">8.8</td></tr>
+          <tr><td>Volumetric fog</td><td class="num">4.0</td><td class="num">4.4</td></tr>
+          <tr><td>Volumetric clouds</td><td class="num">3.5&ndash;3.8</td><td class="num">1.7&ndash;1.9</td></tr>
+          <tr><td>Post, FSR 3&rsquo;s 1.6 included</td><td class="num">2.3</td><td class="num">2.4</td></tr>
+          <tr><td>Deferred lighting, the sun&rsquo;s soft shadows in it</td><td class="num">1.6</td><td class="num">2.4</td></tr>
+          <tr><td>Shadow maps</td><td class="num">0.3</td><td class="num">0.2</td></tr>
+          <tr><td>Everything drawn</td><td class="num">about 0.6</td><td class="num">about 0.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Then one change at a time, the whole camera&rsquo;s time against the same frame, with captures compared against two of
+    the unchanged frame, which differ by 0.064 of a level on average:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>One change</th><th class="num">Early</th><th class="num">Boss</th><th>On screen</th></tr></thead>
+        <tbody>
+          <tr><td>Ray-traced GI High to Medium</td><td class="num">&minus;2.4</td><td class="num">&minus;4.4</td><td>the lava&rsquo;s bounce on the ruins a little softer</td></tr>
+          <tr><td>Clouds High to Medium</td><td class="num">&minus;2.1</td><td class="num">&minus;0.8</td><td>the cloud tops&rsquo; lighting, plainly</td></tr>
+          <tr><td>Fog High to Medium</td><td class="num">&minus;1.5</td><td class="num">&minus;1.8</td><td>the haze a little thinner everywhere</td></tr>
+          <tr><td>FSR 3 at native to TAA at native</td><td class="num">&minus;1.2</td><td class="num">&minus;1.3</td><td>a different anti-aliasing</td></tr>
+          <tr><td>Async compute off</td><td class="num">&minus;1.0</td><td class="num">&mdash;</td><td>nothing</td></tr>
+          <tr><td>The four lava glows&rsquo; volumetric shadows off</td><td class="num">&minus;0.7</td><td class="num">&mdash;</td><td>not looked at</td></tr>
+          <tr><td>Shadows High to Medium</td><td class="num">&minus;0.65</td><td class="num">&minus;0.9</td><td>within the noise</td></tr>
+          <tr><td>Enemies, rounds and pickups out of ray tracing</td><td class="num">&mdash;</td><td class="num">&minus;0.36</td><td>not looked at</td></tr>
+          <tr><td>Far plane 1,000 instead of 2,500</td><td class="num">0</td><td class="num">&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The clouds stay on High, since that is the change that shows, and FSR against TAA is taste. Medium took the clouds and
+    Ultra&rsquo;s Shadows went to Medium the same day; the fog and the glows&rsquo; shadows wait for a look in motion.
+    Ray-traced reflections were timed the same way: 2.5&nbsp;ms on RT Low and 3.8 on RT High over screen-space High, early, and
+    the only reflection in the frame that changed was the ship&rsquo;s glass dome.</p>
+    <p><strong>A build runs at about half the editor&rsquo;s milliseconds.</strong> Async compute was timed in Checked builds by
+    <code>AsyncComputeBench</code>, which exists only where the debug menu does. Started with <code>-asyncBench</code> it switches
+    async compute on and off, and with <code>-benchFixed</code> it holds one setting; either way the game starts a run by
+    itself, holds a frame 41&nbsp;s in and again after the debug menu&rsquo;s Skip to boss, times the GPU through
+    <code>FrameTimingManager</code>, writes <code>[AsyncBench]</code> lines to <code>Player.log</code> and quits. Each run below
+    held one setting from the start, the median of twelve phases of 120 frames:</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Checked build, GPU frame</th><th class="num">Async on</th><th class="num">Async off</th></tr></thead>
+        <tbody>
+          <tr><td>Ray-traced GI High, early</td><td class="num">10.61</td><td class="num">10.20</td></tr>
+          <tr><td>Ray-traced GI High, boss</td><td class="num">13.85</td><td class="num">12.99</td></tr>
+          <tr><td>GI off, early</td><td class="num">7.99</td><td class="num">7.26</td></tr>
+          <tr><td>GI off, boss</td><td class="num">8.22</td><td class="num">8.09</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>So the game camera overrides one frame setting, Asynchronous Execution, to off, and
+    <code>GameCameraAsyncComputeTests</code> holds that it overrides nothing else. Switching a frame setting partway through a
+    run, with FSR 3 or ray-traced GI on, could drop the card into a slow state for whole phases, 10 to 30&nbsp;ms of real
+    frames; runs that held one setting never showed it, so a frame setting is judged one setting per run.</p>
   </section>
 
   <section id="settings">
@@ -2406,7 +2491,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>The settings screen had said Medium was the default since the tiers were rebuilt. Nothing read it. <code>GraphicsPresets.DefaultIndex&nbsp;=&nbsp;1</code>, the constant whose summary names Medium, was referenced <em>nowhere in the project</em>; the tier actually came from ProjectSettings, which still held <code>Standalone:&nbsp;6</code> — an index minted when there were eight generated levels, against a list that has four.</p>
       <p>An index past the end of that list resolves to the last entry rather than failing, so 6 quietly meant "the most expensive tier there is" and a fresh install booted on Ultra. Nothing reported it, because 6 is not an error — it is an index that used to mean something else. A constant nothing reads records an intention; it does not enforce one. The fallback now comes from the constant, and the eighteen platform entries are corrected to agree.</p>
     </div>
-    <p>One thing the compile gates decide on their own: <strong>volumetric clouds first appear at High.</strong> Medium's asset ships <code>supportVolumetricClouds: false</code>, the same kind of hard gate as <code>supportSSR</code> on Low, so clouds simply arrive with the tier. Since 26 September their step counts are a row of their own, Volumetric Clouds, greyed out below High: 64 primary and 6 light steps on Low, 64 and 16 on Medium, 128 and 32 on High &mdash; see <a href="#perf">Where the frame goes</a>. Every tier starts on Low.</p>
+    <p>One thing the compile gates decide on their own: <strong>volumetric clouds first appear at Medium</strong>, since
+    16 October. Low's asset ships <code>supportVolumetricClouds: false</code>, the same kind of hard gate as
+    <code>supportSSR</code> there. Medium shipped it false as well until a performance scan noticed that Medium is the tier a
+    fresh install starts on, so a first run had no storm, no moon coming out of it and no lightning in the cloud; on the Low
+    steps the clouds cost Medium 1.2&nbsp;ms, 7.4 against 6.2 in the editor. Since 26 September their step counts are a row of
+    their own, Volumetric Clouds, greyed out on Low: 64 primary and 6 light steps on Low, 64 and 16 on Medium, 128 and 32 on
+    High &mdash; see <a href="#perf">Where the frame goes</a>. Every tier starts on Low, and <code>CloudLadderTests</code>
+    fails if a tier from the default up stops compiling them.</p>
     </div>
 
     <p>The copies sit at the top of <code>Settings/Quality/</code> rather than being referenced where they were found, because a folder named <code>Editor</code> is excluded from player builds — a quality level pointing at an asset that never reaches the build has no render pipeline at runtime.</p>
@@ -2426,7 +2518,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td>SSR on transparents</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
           <tr><td>Screen-space global illumination</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
           <tr><td>Volumetric fog</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
-          <tr><td><strong>Volumetric clouds</strong></td><td>—</td><td>—</td><td><strong>yes</strong></td><td><strong>yes</strong></td></tr>
+          <tr><td><strong>Volumetric clouds</strong></td><td>—</td><td><strong>yes</strong></td><td><strong>yes</strong></td><td><strong>yes</strong></td></tr>
           <tr><td>Ray tracing</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
           <tr><td>Shadowmask</td><td>—</td><td>yes</td><td>yes</td><td>yes</td></tr>
           <tr><td>Ambient occlusion</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
@@ -2446,7 +2538,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       </table>
     </div>
     <p>This table had three columns for four tiers for a while after the top one was split, which is the failure mode of a table that agrees with the prose beside it on the day it is written: the paragraphs were updated and the grid was not.</p>
-    <p><strong>Medium and High differ by exactly one compile flag</strong> — volumetric clouds. Everything else between them is budget rather than capability: sky reflection and cookie atlas at 512 against 2048. The sharper boundary is lower down and is not a compile flag at all — Low and Medium switch dynamic shadows off outright, which is the next block.</p>
+    <p><strong>Medium and High compile the same features</strong> since Medium took the clouds on 16 October; until then
+    the clouds were the one flag between them. What separates them is budget rather than capability: sky reflection and cookie atlas at 512 against 2048. The sharper boundary is lower down and is not a compile flag at all — Low and Medium switch dynamic shadows off outright, which is the next block.</p>
 
     <div class="note">
       <div class="label">Three settings that were doing nothing until they were found</div>
@@ -2498,12 +2591,13 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h4>Every effect is a ladder, not a switch</h4>
-    <p>Each row runs <strong>Off · Low · Medium · High</strong>, and the effects with a ray-traced form continue <strong>RT Low · RT Medium · RT High</strong> on the same ladder rather than in a second row. It is one continuous cost curve and ray tracing is simply the expensive end — which also removes the state where a player holds both a screen-space and a ray-traced setting and has to work out which one the renderer used. The ray-traced half disappears entirely on hardware or a tier that cannot run it.</p>
+    <p>Each row runs <strong>Off · Low · Medium · High</strong>, and the effects with a ray-traced form continue <strong>RT Low · RT Medium · RT High</strong> on the same ladder rather than in a second row &mdash;
+    Reflections, since 16 October, with RT Low and RT High only. It is one continuous cost curve and ray tracing is simply the expensive end — which also removes the state where a player holds both a screen-space and a ray-traced setting and has to work out which one the renderer used. The ray-traced half disappears entirely on hardware or a tier that cannot run it.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Row</th><th>Rungs</th><th>Low</th><th>Medium</th><th>High</th></tr></thead>
         <tbody>
-          <tr><td>Reflections</td><td>Off · Low · Medium · High · RT ×3</td><td>gated off</td><td>Medium</td><td>High</td></tr>
+          <tr><td>Reflections</td><td>Off · Low · Medium · High · RT Low · RT High</td><td>gated off</td><td>Medium</td><td>High</td></tr>
           <tr><td>Global Illumination</td><td>Off · Low · Medium · High · RT ×3</td><td>gated off</td><td><strong>Off</strong></td><td><strong>Off</strong></td></tr>
           <tr><td>Volumetric Fog</td><td>Off · Low · Medium · High</td><td>gated off</td><td>Low</td><td>Medium</td></tr>
           <tr><td>Shadows</td><td>Off · Low · Medium · High</td><td>Low</td><td>Low</td><td>Medium</td></tr>
@@ -2511,7 +2605,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
         </tbody>
       </table>
     </div>
-    <p>Shadows is the one row on that table with no <em>gated off</em> in it: every tier can cast, and Ultra defaults a rung higher again, to High. It is also the only row that stops at its ends instead of wrapping, for the reason under <a href="#render">Rendering</a> &mdash; Off is the loudest thing the Graphics screen can do, and wrapping put it one press from where every tier starts.</p>
+    <p>Shadows is the one row on that table with no <em>gated off</em> in it: every tier can cast, and Ultra starts on Medium as High does. It started a rung higher, on High, until 16 October, when
+    that rung was timed at 0.65 to 0.9&nbsp;ms more than Medium in the editor, nearly all of it the sun&rsquo;s soft-shadow
+    filtering reading the bigger map, for a picture within the noise of two captures of the same frame. It is also the only row that stops at its ends instead of wrapping, for the reason under <a href="#render">Rendering</a> &mdash; Off is the loudest thing the Graphics screen can do, and wrapping put it one press from where every tier starts.</p>
     <p>The fog row's Low, Medium and High are the same three budgets on every tier that has fog &mdash; 0.166, 0.25 and 0.333 &mdash; for the reasons under <a href="#render">Rendering</a>.</p>
 
     <div class="warn">
@@ -2525,6 +2621,25 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <div class="label">Why no tier turns global illumination on</div>
       <p>GI is not an addition here, it is a replacement. This scene's indirect light is baked into lightmaps and probe volumes, carefully enough that a single bake costs tens of megabytes of LFS quota. Switching GI on hands that job to a solver that has never seen the bake, and <strong>dynamic objects lose their indirect light entirely</strong> — the ships render as black silhouettes against terrain that kept its lightmap.</p>
       <p>That shipped in a build. It read as the shadow rows being broken, because the change that exposed it was a shadow setting; the actual cause was ray-traced GI arriving on by default at the top two presets. The row is still there and still reachable — deliberately, because absent is not the same as declined — and no tier selects it.</p>
+    </div>
+
+    <div class="warn">
+      <div class="label">The ray-traced rungs read the profile, not the tier</div>
+      <p>RT Low and RT Medium cost the same, 17.60 against 17.57&nbsp;ms, and drew the same, because they were the same. HDRP
+      keeps a table per tier for each ray-traced effect and reads it only in the effect&rsquo;s Performance mode. The tiers
+      compile Performance and nothing else, so that is the branch that rendered; but whether a setting comes from the table is
+      decided by asking the volume, and the default profile said Quality. So every ray-traced setting except full resolution
+      came from the profile, the same on every rung. ChatGPT found it by reading HDRP&rsquo;s getters on 16 October, and
+      timing the two rungs side by side showed it the same day.</p>
+      <p>The director writes Performance on both rows now, and the tables are the rungs. Medium and High were authored to what
+      the profile had imposed &mdash; GI denoised at a radius of 0.6, reflections gated at a smoothness of 0.9 &mdash; so they
+      render as they did. RT Low GI drops the second denoise pass and denoises at half resolution, 18.7 against 19.25&nbsp;ms
+      for Medium. Switching the mode alone would have handed the reflections HDRP&rsquo;s own gates of 0.6, 0.4 and 0,
+      reaching rough surfaces and costing far more. Lowering the reflections&rsquo; gate to 0.8 or 0.7 changed neither the
+      cost nor the picture, because nothing in the scenery is smoother than 0.69, so their RT Medium could not differ from RT
+      Low and the row skips it; a saved RT Medium loads as RT Low. Reflections Off now turns off HDRP&rsquo;s reflections on
+      transparent surfaces too, which had stayed on under it. <code>RayTracingLadderTests</code> holds the tables, the row
+      and what goes into the acceleration structure.</p>
     </div>
 
     <p><strong>Motion blur sits outside all of this.</strong> It is taste rather than fidelity: players turn it off on hardware that could run it at maximum, and a tier stamping over that every time quality changes would be the settings screen arguing with them. Picking a tier clears every other row so they fall back to it; motion blur's key is the one deliberately left out of that list.</p>
@@ -2702,7 +2817,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>833 tests across 80 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>870 tests across 83 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2748,7 +2863,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
           <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
           <tr><td><code>RoundLandingTests</code></td><td class="num">3</td><td>that a round counts its hit once, even when a second enemy reports it after the first has spent it</td></tr>
-          <tr><td><code>ShadowLadderTests</code></td><td class="num">5</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, and that no tier defaults to Off</td></tr>
+          <tr><td><code>ShadowLadderTests</code></td><td class="num">6</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, that no tier defaults to Off, and that Ultra starts on Medium</td></tr>
           <tr><td><code>MenuFocusTests</code></td><td class="num">11</td><td>where keyboard and pad focus lands when a screen opens &mdash; its first live control, or one authored and still live &mdash; and that a screen&rsquo;s horizontal sliders take left and right</td></tr>
           <tr><td><code>RunEndingTests</code></td><td class="num">4</td><td>that the first ending stands: once the run is over no hit reaches the player, and no round reaches the hull or an emplacement</td></tr>
           <tr><td><code>BossRoundLaneTests</code></td><td class="num">2</td><td>that every round the boss fires eases onto the player&rsquo;s lane, read off the prefabs the boss&rsquo;s attacks point at &mdash; the one suite that checks an asset rather than a rule, because the value that went to 0 lives in one</td></tr>
@@ -2767,7 +2882,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>EruptionSparksTests</code></td><td class="num">14</td><td>where a lava bomb lands for how it is thrown, and that the furthest lands well short of the lane</td></tr>
           <tr><td><code>EruptionTests</code></td><td class="num">13</td><td>the eruption&rsquo;s curve at rest, in a surge and at the boss, that the run&rsquo;s clock reads nothing until the director has started, and that the Game scene has it wired</td></tr>
           <tr><td><code>IslandRockAndLightTests</code></td><td class="num">9</td><td>that the four rock materials wear the rock shader in their own colours, the heat map is hot along the lava, the underside has its glow and no hanging rock, and all six lava lights are Baked</td></tr>
-          <tr><td><code>CloudLadderTests</code></td><td class="num">8</td><td>the cloud row&rsquo;s three rungs of step counts, that Low is what the scene was tuned with, and that a stored value outside the ladder is brought into it</td></tr>
+          <tr><td><code>CloudLadderTests</code></td><td class="num">9</td><td>the cloud row&rsquo;s three rungs of step counts, that Low is what the scene was tuned with, that a stored value outside the ladder is brought into it, and that every tier from the default up compiles the clouds</td></tr>
           <tr><td><code>EnemySpacingTests</code></td><td class="num">8</td><td>the arithmetic that parts two overlapping enemies: clear ones are left alone, flat ships part in height, and each moves half</td></tr>
           <tr><td><code>StormLightningTests</code></td><td class="num">14</td><td>a stroke&rsquo;s rise and fall, where flashes are placed, no more than three strokes in a second, that the tracer draws the glow, and the bolts: standing where they are sent and inside the wall where the camera draws, forks between their ends, the cloud lit along evenly spaced corners, and the lines shown only while a stroke is bright</td></tr>
           <tr><td><code>ThirdPartyNoticesTests</code></td><td class="num">8</td><td>that the notices for AMD&rsquo;s FSR, the fonts, Json.NET and DirectStorage are there while those ship</td></tr>
@@ -2787,10 +2902,15 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>SoundDefinitionTests</code></td><td class="num">2</td><td>that the first play can be any clip, and later plays never repeat the last one</td></tr>
           <tr><td><code>BossPodLaneTests</code></td><td class="num">1</td><td>that a pod on a settled boss sits on the lane, in both headings</td></tr>
           <tr><td><code>ShaderPragmaTests</code></td><td class="num">1</td><td>that no shader asks for D3D11 debug symbols</td></tr>
+          <tr><td><code>RayTracingLadderTests</code></td><td class="num">23</td><td>that every ray-traced tier compiles Performance alone, that RT Low GI skips the second denoise and denoises at half resolution while Medium and High denoise as the profile did, that ray-traced reflections keep the profile&rsquo;s smoothness gate, that the Reflections row skips RT Medium and reads a saved one as RT Low, that every enemy, round and the pickup stay out of the acceleration structure while the boss stays in, and that Shadows Off reaches the bullet lights</td></tr>
+          <tr><td><code>AsyncComputeBenchTests</code></td><td class="num">10</td><td>the build&rsquo;s async compute bench: what it reads off the command line, a GI rung off the row ignored, and a verdict that needs a win past the noise and lets one jump spoil only its own pairs</td></tr>
+          <tr><td><code>GameCameraAsyncComputeTests</code></td><td class="num">2</td><td>that the game camera runs with async compute off, through that one frame setting and nothing else, read off the Game scene as saved</td></tr>
         </tbody>
       </table>
     </div>
-    <p>The table was brought up to date on 9 October 2026: every suite is in it, with its count from that day&rsquo;s run. The twenty-nine at the foot are the ones added since 26 September, largest first; the far trees&rsquo; suite went out with them on 9 October. The clouds&rsquo; suite gained three on 12 October. On 15 and 16 October the storm&rsquo;s lightning gained six, the cloud ring five, and the rising wall&rsquo;s suite is new.</p>
+    <p>The table was brought up to date on 9 October 2026: every suite is in it, with its count from that day&rsquo;s run. The twenty-nine at the foot are the ones added since 26 September, largest first; the far trees&rsquo; suite went out with them on 9 October. The clouds&rsquo; suite gained three on 12 October. On 15 and 16 October the storm&rsquo;s lightning gained six, the cloud ring five, and the rising wall&rsquo;s suite is new.
+    Later on 16 October the cloud and shadow ladders gained one each, and the three at the very foot are new: the ray-traced
+    ladder and the async compute A/B.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -2821,7 +2941,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 833 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 870 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -2835,6 +2955,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <h3>A setting that does nothing looks exactly like one that works</h3>
     <p>Three separate controls in this project were enabled, wired, and inert. Dynamic resolution ran its machinery every frame against a scaler that returned a constant. The upscaling row offered FSR after it had been taken out of the pipeline asset, because availability was checked against the <em>hardware</em> rather than against what the asset actually lists. A sharpness control moved one of the two passes TAA runs, leaving the image visibly unchanged.</p>
     <p>None of them threw, logged, or looked wrong in code review. What catches this class of fault is asking, for every setting, <strong>what would be different on screen if this were doing nothing at all</strong> — and if the answer is "nothing", finding out why before shipping it. The note line under each row exists for the cases where the honest answer is that it genuinely does nothing right now.</p>
+    <p>It turned up again on 16 October, at the expensive end of the ladder. RT Low and RT Medium cost 17.60 and 17.57&nbsp;ms
+    because they were one configuration: the rungs&rsquo; tables existed, compiled and were never read, since HDRP asked the
+    profile which mode it was in and the profile named a mode the tiers do not render. Reading HDRP&rsquo;s getters found why;
+    timing two rungs side by side was what showed it. Neither rung alone could have.</p>
 
     <h3>An index is not an identity</h3>
     <p>The menu builder set each row's setting with <code>SerializedProperty.enumValueIndex</code>, which is the value's <em>position in the enum declaration</em> rather than the value itself. That worked for as long as the enum ran 0 to 11 with no gaps. Removing the old combined upscaling row left a hole at 11, and every row after it silently drove the wrong setting — the row labelled Anti-Aliasing was writing the quality preset — while the last one threw.</p>
@@ -2911,6 +3035,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     and the place the cloud begins, so &ldquo;in the wall&rdquo; kept coming out as &ldquo;on its edge&rdquo; until Ian said so.
     Inside is where the cloud is thick, and that had to be read off the cloud, not off the face.</p>
 
+    <h3>The editor&rsquo;s milliseconds are not the game&rsquo;s</h3>
+    <p>The scan of 16 October timed a held frame in the editor at 14.8&nbsp;ms. A Checked build, timing much the same settings by
+    itself on the same card, read 8.0. They were different frames, 162 seconds into a run against 41, but not different enough
+    to explain a factor of nearly two. An editor reading is good for one thing: two settings compared in one session, minutes
+    apart. A frame rate, or a budget, comes from a build. And in a build the setting is held from the start: switched partway
+    through a run with FSR or ray-traced GI on, the card dropped into slow states for whole phases, which a run that never
+    switched did not show.</p>
+
     <h3>Preserve behaviour, flag the judgement</h3>
     <p>The boss's 2 EXP, the laser's fire rate, the 301-second cutoff, the <code>"SexTUPLO Shot!"</code> banner — all preserved exactly, all surfaced as things to decide. Three of those four have since been decided, which is the point: they were reachable as one field each when the moment came. Migration and rebalancing are different jobs, and mixing them makes both harder to review.</p>
   </section>
@@ -2944,7 +3076,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       starts the wall at 2.2 and ends it at 0.4. Worth watching: whether the moon arrives at a good moment, and the end of the
       run, where with the wall gone the sky behind the top of the lane is darker than the old wall was (about 43 of 255 against
       57), which is the backdrop the dark Drones were once lost against. The bolts and the 7-out camera are in it too; the
-      bolts were judged in the editor, never in a build.</li>
+      bolts were judged in the editor, never in a build. Every build since carries it; the latest,
+      <code>26_1016-1528_asyncOff</code>, also has the storm on Medium, the ray-traced ladder and async compute off.</li>
+      <li><strong>Two savings from the 16 October scan wait for a look in motion.</strong> Fog High to Medium on Ultra,
+      1.5 to 1.8&nbsp;ms in the editor, thins the haze a little everywhere; and the four lava glows lighting the fog without
+      volumetric shadows, 0.7&nbsp;ms, would lose any shafts their casters cut. Neither changes until Ian has seen it in a
+      build.</li>
       <li><strong>Two things from the night of 8 October still wait for a look:</strong> whether the ash lightning ever pulls the
       eye off the rounds, and that a second run starts quiet.</li>
       <li><strong>The Leviathan&rsquo;s first frames do not stutter.</strong> Since 2 October a build keeps
@@ -2987,10 +3124,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       run has to show is whether far clouds end early during the boss&rsquo;s arrival or from the other cameras. The
       dial is the two tables in <code>CloudLadder</code>.</li>
       <li><strong>The shadow work is cut; the millisecond is still unattributed.</strong> Bullet-light shadows went from five casters to one per volley, measured at sixty per cent less shadow geometry and half the draw calls. What remains is the confirmation: that measurement is submitted work from a paused editor frame with GPU timing unavailable, so it proves the mechanism was large without proving it was the 8.4&nbsp;ms spike. A capture from a real run closes it.</li>
-      <li><strong>What the Shadows row costs is unmeasured.</strong> Its rungs were stepped in a frame
-      frozen at <code>timeScale</code> 0, which is what made the captures comparable and also means the sun
-      and the lava light at 2048 have never been timed in a run. If High costs frames on the tier a player is
-      actually on, the tier defaults are the dial &mdash; they sit at Low, Low, Medium and High.</li>
+      <li><strong>What the Shadows row costs is measured, in the editor.</strong> On 16 October High cost 0.65 to
+      0.9&nbsp;ms over Medium at 2560&times;1440, nearly all of it in deferred lighting, where the sun&rsquo;s soft-shadow
+      filtering runs, for no difference two captures could show, so Ultra starts on Medium now. The tier defaults are Low, Low,
+      Medium and Medium. It has not been timed in a build.</li>
       <li><strong>The fireflies are built and archived, pending a decision.</strong> One particle
       system placing every birth by hand across the seventy-three <code>arvore</code> meshes on the island,
       so the swarm sits in the canopies rather than over the lava. Two measurements came out of it and both
@@ -3099,7 +3236,16 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       for a week; in the 11 September playtest they were always found, so they stay as they are.</li>
       <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>
       <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s, and then eight. A player who takes them all ends higher than the old pick left them, but one or two end a run lower than it did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
-      <li><strong>Ray-traced reflections are validated; the rest of the rungs are not.</strong> RT Reflections was selected in a build on DXR hardware and visibly changed the image — which is precisely the bar ray-traced <em>shadows</em> failed. That row shipped allocating a screen-space buffer no light wrote to, invisible in the editor and haze in a build, and was removed outright. RT global illumination is reachable and deliberately unused for the reasons above; no tier selects a ray-traced rung by default, and compiling ray tracing into three of the four tiers makes every build larger.</li>
+      <li><strong>Whether ray-traced reflections earn their cost.</strong> They work: selected in a build on DXR hardware
+      they visibly changed the image. On 16 October, in the editor on a held frame early in a run, they cost 2.5&nbsp;ms on RT
+      Low and 3.8 on RT High over screen-space High, and the only reflection that changed was the ship&rsquo;s glass dome,
+      where the ray-traced highlight is smaller and dimmer. Nothing in the scenery is smoother than 0.69, under the 0.9 gate
+      and under the 0.8 and 0.7 that were tried; the Drone&rsquo;s hull, at 0.87, and the Leviathan&rsquo;s discs, at 0.75,
+      would pass a lower gate, and neither a boss frame nor a Drone close-up was checked.
+      Ray-traced GI was timed the same day: High costs 2.4 to 4.4&nbsp;ms more than Medium for a slightly softer lava bounce on
+      the ruins. Ray-traced <em>shadows</em> failed that bar long ago: the row shipped allocating a screen-space buffer no light
+      wrote to, invisible in the editor and haze in a build, and was removed outright. No tier selects a ray-traced rung by
+      default, and compiling ray tracing into three of the four tiers makes every build larger.</li>
       <li><strong>Enemy reuse has only been lightly exercised.</strong> Pooling defects cannot appear until the warmup is exhausted and instances start recycling, which takes a few minutes of play. The three failure modes to watch for are enemies dying to one bullet regardless of type, an enemy setting off the wrong way round the ring, and <code>Enemy_1</code> firing faster as a run goes on.</li>
       <li><strong>LFS is no longer the constraint on lighting.</strong> It was: a bake went through
       LFS against a 1 GB free quota at roughly 40&nbsp;MB a time, which is a couple of dozen commits before
@@ -3159,7 +3305,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.6f1) · HDRP 17.6 · branch <code>main</code> · 421 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.6f1) · HDRP 17.6 · branch <code>main</code> · 426 commits
   </footer>
 
 </div>
