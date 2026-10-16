@@ -114,6 +114,22 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
+        public void EveryTierFromTheDefaultUp_CompilesTheClouds()
+        {
+            // A fresh install starts on DefaultIndex, and the storm wall over the
+            // moon is the run's clock. A tier that compiles no clouds drops it
+            // without a word, since the scene's override is still there to read.
+            for (int i = GraphicsPresets.DefaultIndex; i < QualitySettings.names.Length; i++)
+            {
+                var asset = QualitySettings.GetRenderPipelineAssetAt(i) as HDRenderPipelineAsset;
+
+                Assert.IsNotNull(asset, QualitySettings.names[i]);
+                Assert.IsTrue(asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds,
+                    QualitySettings.names[i]);
+            }
+        }
+
+        [Test]
         public void PickingATier_ResetsTheRow()
         {
             // SetQuality clears exactly the keys in RowKeys. A row missing from

@@ -56,8 +56,8 @@ namespace SurvivalChaos
     /// The clock is the WaveDirector's, so the debug menu's Advance and Skip
     /// to boss move the storm with everything else; it sinks at no more than
     /// <see cref="fastestOpening"/> a second, so a skip is a slow fall and not
-    /// a cut. A new run starts it shut again. On the Medium and Low tiers
-    /// there are no clouds, and it changes nothing. It changes no rule of the
+    /// a cut. A new run starts it shut again. On the Low tier there are no
+    /// clouds, and it changes nothing. It changes no rule of the
     /// fight.
     /// </summary>
     public sealed class StormRise : MonoBehaviour

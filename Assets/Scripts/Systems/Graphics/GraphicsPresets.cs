@@ -83,8 +83,8 @@ namespace SurvivalChaos
     /// identical - the tier does the work, not the table.
     ///
     /// **Downward, High is nearer Medium than that list suggests.** The step up
-    /// from Medium buys volumetric clouds, cookie atlas and sky reflection at
-    /// 2048 against 512, and both punctual atlases doubling to 8192. But the
+    /// from Medium buys cookie atlas and sky reflection at 2048 against 512,
+    /// and both punctual atlases doubling to 8192. But the
     /// probe volumes are Medium's exactly - 1024 at L1 - so that one measurement
     /// separates High from Ultra while not separating High from Medium at all,
     /// and the ladder is not four even rungs of the same numbers. Raising it is
@@ -100,12 +100,19 @@ namespace SurvivalChaos
     /// on both of the upper tiers because that is the last rung before the
     /// ray-traced ones, which no tier selects by default.
     ///
-    /// **Volumetric clouds arrive at High.** Medium's asset ships
-    /// `supportVolumetricClouds: false`, the same kind of hard gate as SSR on
-    /// Low, so the Volumetric Clouds row greys itself out below High. The row
-    /// sets only how many steps the clouds take (see CloudLadder), and every
-    /// tier starts it on Low, the steps the scene was tuned with, so no tier
-    /// looks or costs any different for the row existing.
+    /// **Volumetric clouds arrive at Medium.** Low's asset ships
+    /// `supportVolumetricClouds: false`, the same kind of hard gate as SSR
+    /// there, so the Volumetric Clouds row greys itself out on Low. Medium
+    /// compiled none either until 16 October 2026. It is the tier a fresh
+    /// install starts on (see DefaultIndex), and once the storm wall became the
+    /// run's clock - it stands over the moon at the start and sinks to show it
+    /// by the boss - a first run on Medium had no storm, no moon reveal and no
+    /// lightning in the cloud. On Low's steps they cost Medium 1.2 ms, 7.4
+    /// against 6.2, at 2560x1440 with FSR at native on an RX 6700 XT, on a held
+    /// frame early in the run with the wall at its tallest. The row sets only
+    /// how many steps the clouds take (see CloudLadder), and every tier starts
+    /// it on Low, the steps the scene was tuned with, so no tier looks or costs
+    /// any different for the row existing.
     ///
     /// **GI is off at every tier**, for the reason it has always been off: this
     /// scene's indirect light is baked, into lightmaps and Adaptive Probe
@@ -121,14 +128,21 @@ namespace SurvivalChaos
     /// particular is the exact setting that produced the silhouettes described
     /// above.
     ///
-    /// **Shadows step Low, Low, Medium, High.** The row reaches the sun, the one
+    /// **Shadows step Low, Low, Medium, Medium.** The row reaches the sun, the one
     /// lava light that casts and the clouds, picking the tier's own resolution
     /// levels for the lights, so Low on Low is still coarser than Low on High.
     /// Medium and Low share a rung because the step that matters on Medium is the
     /// one QualitySettings already takes - bullet-light shadows are off there -
     /// and no tier defaults to Off, which would take the sun's shadow from a
-    /// fresh install. High reproduces what the scene was lit with before the row
-    /// existed, except that the sun moves up from level 0 to level 1.
+    /// fresh install. High and Ultra share one too. The High rung reproduces
+    /// what the scene was lit with before the row existed, except that the sun
+    /// moves up from level 0 to level 1, and Ultra started on it until
+    /// 16 October 2026. A performance scan that day found the step from Medium
+    /// costs 0.65 ms early in a run and 0.9 at the boss, at 2560x1440 with FSR
+    /// at native on an RX 6700 XT. Nearly all of it is in deferred lighting,
+    /// where the sun's soft-shadow filtering (PCSS) reads the bigger map, not
+    /// in rendering the map, and it buys a mean picture difference of 0.09 in
+    /// 255 where two captures of the same frame differ by 0.064.
     ///
     /// **Motion blur is deliberately absent**, as it has been since it left the
     /// preset system. It is taste rather than fidelity, and a tier stamping over
@@ -166,9 +180,9 @@ namespace SurvivalChaos
                 shadows: EffectQuality.Low,
                 clouds: EffectQuality.Low),
 
-            // A copy of High Fidelity with its budgets stepped down. First tier
-            // to compile volumetric clouds, which is the visible difference from
-            // Medium; the rest of the gap is resolution rather than features.
+            // A copy of High Fidelity with its budgets stepped down. The gap
+            // from Medium is resolution rather than features, since Medium
+            // compiles the clouds too.
             new GraphicsPreset(
                 name: "High",
                 reflections: EffectQuality.High,
@@ -177,16 +191,17 @@ namespace SurvivalChaos
                 shadows: EffectQuality.Medium,
                 clouds: EffectQuality.Low),
 
-            // Unity's HDRP High Fidelity, retuned. The fog and shadow rungs
-            // separate this row from High's - reflections are already on their
-            // last non-ray-traced step, and GI is off everywhere for the reason
-            // above. The tier earns its name in the asset, not here.
+            // Unity's HDRP High Fidelity, retuned. The fog rung separates this
+            // row from High's - reflections are already on their last
+            // non-ray-traced step, shadows stop at Medium (see above) and GI is
+            // off everywhere for the reason above. The tier earns its name in
+            // the asset, not here.
             new GraphicsPreset(
                 name: "Ultra",
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
                 volumetricFog: EffectQuality.High,
-                shadows: EffectQuality.High,
+                shadows: EffectQuality.Medium,
                 clouds: EffectQuality.Low)
         };
 

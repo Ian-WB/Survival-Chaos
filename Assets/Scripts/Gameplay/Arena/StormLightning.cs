@@ -80,7 +80,7 @@ namespace SurvivalChaos
     /// 8 October) is a second source of flashes, so the two take turns:
     /// neither starts while the other is lit or within a second of it.
     ///
-    /// With no clouds drawn, on the two lowest quality tiers, nothing shows.
+    /// With no clouds drawn, on the Low quality tier, nothing shows.
     /// </summary>
     public sealed class StormLightning : MonoBehaviour
     {

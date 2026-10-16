@@ -858,7 +858,7 @@ namespace SurvivalChaos
         public bool VolumetricFogSupported =>
             TryPipelineSettings(out RenderPipelineSettings s) && s.supportVolumetrics;
 
-        /// <summary>True on High and Ultra, the tiers that compile clouds.</summary>
+        /// <summary>True on Medium, High and Ultra, the tiers that compile clouds.</summary>
         public bool VolumetricCloudsSupported =>
             TryPipelineSettings(out RenderPipelineSettings s) && s.supportVolumetricClouds;
 

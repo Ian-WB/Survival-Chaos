@@ -63,5 +63,17 @@ namespace SurvivalChaos.Tests
                 }
             }
         }
+
+        [Test]
+        public void Presets_UltraStopsAtMedium()
+        {
+            // High's step cost 0.65 to 0.9 ms of soft-shadow filtering at 1440p
+            // for a picture inside the capture noise (16 October 2026). It stays
+            // on the row for anyone who wants it, but no tier starts there.
+            GraphicsPreset ultra = GraphicsPresets.At(GraphicsPresets.Count - 1);
+
+            Assert.AreEqual("Ultra", ultra.Name);
+            Assert.AreEqual(EffectQuality.Medium, ultra.Shadows);
+        }
     }
 }
