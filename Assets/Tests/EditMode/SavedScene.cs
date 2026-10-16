@@ -116,6 +116,20 @@ namespace SurvivalChaos.Tests
             return Parse(match.Groups[1].Value);
         }
 
+        /// <summary>
+        /// A whole number two levels down, such as data1 under mask under a
+        /// camera's frame settings override mask. Read as a ulong, since those
+        /// hold 64 flags and a float would round them away.
+        /// </summary>
+        public ulong Bits(string id, string parent, string child, string field)
+        {
+            Match match = Regex.Match(objects[id].Body,
+                @"\n  " + Regex.Escape(parent) + @":\r?\n(?:    .*\r?\n)*?    " + Regex.Escape(child) +
+                @":\r?\n(?:      .*\r?\n)*?      " + Regex.Escape(field) + @": (\d+)");
+            Assert(match.Success, id + " has no " + parent + "." + child + "." + field);
+            return ulong.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+        }
+
         /// <summary>A colour field. Alpha is not read.</summary>
         public Color Colour(string id, string field)
         {

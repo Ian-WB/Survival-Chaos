@@ -105,6 +105,9 @@ namespace SurvivalChaos
         [SerializeField]
         private GraphicsOptionKind kind = GraphicsOptionKind.Quality;
 
+        /// <summary>Which setting this row steps. Read by the Checked build's bench.</summary>
+        public GraphicsOptionKind Kind => kind;
+
         [SerializeField]
         [Tooltip("Shows the current value.")]
         private TMP_Text value;

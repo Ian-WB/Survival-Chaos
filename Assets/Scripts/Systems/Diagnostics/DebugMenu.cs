@@ -215,6 +215,17 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// The Skip to boss button, pressed from code: the AsyncComputeBench
+        /// takes the same path a tester's click does. Refreshes first, since
+        /// the references are only filled while the menu is open.
+        /// </summary>
+        public void SkipToBossNow()
+        {
+            Refresh();
+            SkipToBoss();
+        }
+
         private void FullHeal()
         {
             if (player != null && !RunOutcome.RunEnded)
