@@ -75,5 +75,16 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual("Ultra", ultra.Name);
             Assert.AreEqual(EffectQuality.Medium, ultra.Shadows);
         }
+
+        [Test]
+        public void Presets_UltraFogStopsAtMedium()
+        {
+            // High's step cost 1.5 to 1.8 ms at 1440p, and the look test in a
+            // build could not tell it from Medium in a run (16 October 2026).
+            GraphicsPreset ultra = GraphicsPresets.At(GraphicsPresets.Count - 1);
+
+            Assert.AreEqual("Ultra", ultra.Name);
+            Assert.AreEqual(EffectQuality.Medium, ultra.VolumetricFog);
+        }
     }
 }

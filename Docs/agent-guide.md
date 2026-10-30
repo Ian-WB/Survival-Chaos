@@ -88,47 +88,47 @@ unity command --query material             # search by substring
 unity command --query set_serialized_field --detail full   # show its parameters
 ```
 
-**Prefer a typed command over `eval`.** They validate their inputs, return
+**Prefer a typed command over `script eval`.** They validate their inputs, return
 structured results, and cannot half-apply a change the way a script that throws
-partway through can. Reach for `eval` only when nothing fits.
+partway through can. Reach for `script eval` only when nothing fits.
 
 ### Looking, without changing anything
 
 | Command | Use |
 | --- | --- |
-| `editor_status` | `compiling`, `playMode`, `domainReloadInProgress`, Unity version. Check this **first**, every time |
+| `editor status` | `compiling`, `playMode`, `domainReloadInProgress`, Unity version. Check this **first**, every time |
 | `console --tail 50 --level error` | the Unity console, including stack traces |
-| `get_scene_hierarchy`, `find_gameobjects`, `find_assets`, `search` | locate things |
+| `scene get_hierarchy`, `gameobject find`, `asset find`, `editor search` | locate things |
 | `get_component_properties --target <h> --type <T>` | a component's serialized properties as JSON |
-| `get_serialized_fields` | what a component actually exposes |
-| `get_player_settings`, `get_quality_settings`, `get_graphics_settings`, `get_lighting_settings`, `get_build_settings` | project configuration, read correctly rather than parsed out of YAML |
-| `get_performance_stats` | frame timings |
-| `capture_game_view`, `capture_scene_view` | a PNG of what is on screen — the fastest way to check a visual change |
+| `component get_fields` | what a component actually exposes |
+| `settings.player get`, `settings.quality get`, `settings.graphics get`, `lighting get_settings`, `build get_settings` | project configuration, read correctly rather than parsed out of YAML |
+| `diagnostics get_performance` | frame timings |
+| `capture game_view`, `capture scene_view` | a PNG of what is on screen — the fastest way to check a visual change |
 
 ### Changing things
 
 | Command | Use |
 | --- | --- |
 | `set_serialized_field --target <h> --component <T> --field <name> --value <v>` | the workhorse. Handles primitives, enums, Vector/Color/Rect/Bounds, object references, and array elements via `name.Array.data[i]` |
-| `set_component_properties`, `set_transform`, `set_parent`, `set_layer`, `set_tag` | scene edits |
-| `add_component`, `remove_component`, `instantiate_prefab` | composition |
-| `set_material_properties`, `set_import_settings` | assets |
-| `save_scene`, `save_all`, `save_prefab_contents` | persist. Nothing is on disk until you do |
-| `import_asset`, `reload_file` | make the editor re-read a file you changed underneath it |
+| `component set_properties`, `gameobject set_transform`, `gameobject set_parent`, `gameobject set_layer`, `gameobject set_tag` | scene edits |
+| `component add`, `component remove`, `prefab instantiate` | composition |
+| `material set_properties`, `asset set_import_settings` | assets |
+| `scene save`, `editor save_all`, `prefab save_contents` | persist. Nothing is on disk until you do |
+| `asset import`, `script.methodreload reload` | make the editor re-read a file you changed underneath it |
 
 ### Scripts
 
-`read_text_file` and `write_text_file` work inside the authoring root (see
-`get_authoring_root`) — outside it, use ordinary shell file access. Then
-`recompile`, and poll `recompile_status`. `create_script` and `attach_script`
+`asset read_text` and `asset write_text` work inside the authoring root (see
+`authoring get_root`) — outside it, use ordinary shell file access. Then
+`script recompile`, and poll `script recompile_status`. `script create` and `script attach`
 exist, but note a freshly created type does not exist until a recompile
 finishes, so attaching it before that fails with a recoverable error.
 
 ### Play mode, tests, baking
 
-`editor_play`, `editor_pause`, `editor_stop`, `run_tests`, `list_tests`,
-`test_status`, `bake_lighting` + `lighting_bake_status`, `bake_occlusion_culling`,
-`bake_navmesh`.
+`editor.playmode start`, `editor.playmode pause`, `editor.playmode stop`, `test run`, `test list`,
+`test status`, `lighting bake` + `lighting bake_status`, `occlusion bake`,
+`navmesh bake`.
 
 **Do not start play mode without asking.** Ian is often mid-session, and an
 unattended player dies within about a minute anyway — the death screen then sets
@@ -137,14 +137,14 @@ afterwards a lie.
 
 ### Destructive — needs `confirm=true` and Ian's explicit say-so
 
-`delete_asset`, `delete_gameobject`, `clear_baked_lighting`, `clear_navmesh`,
-`clear_occlusion_culling`, `unpack_prefab`, `revert_prefab_overrides`,
-`package_remove`. A cleared bake costs hours to regenerate.
+`asset delete`, `gameobject delete`, `lighting clear_bake`, `navmesh clear_bake`,
+`occlusion clear_bake`, `prefab unpack`, `prefab revert_overrides`,
+`package remove`. A cleared bake costs hours to regenerate.
 
-### `eval`, the escape hatch
+### `script eval`, the escape hatch
 
 ```bash
-unity command eval --code 'return "hello";'
+unity command script eval --code 'return "hello";'
 ```
 
 Runs C# in the editor's own AppDomain with `UnityEngine`, `UnityEditor` and the
@@ -154,7 +154,7 @@ project's assemblies loaded. Rules learned the hard way:
   reports `"result":null`, which looks exactly like a failure.
 - Pull the answer out with `... 2>&1 | grep -o '"result":"[^"]*"'`.
 - **Keep each call short.** Long scripts fail with a bogus "unreachable code"
-  error. Split the work up. (`eval_file` exists and has the same limit.)
+  error. Split the work up. (`script eval_file` exists and has the same limit.)
 - **No output at all usually means an exception**, not an empty answer.
   Simplify until it speaks.
 - Project types are in namespace `SurvivalChaos` (assembly `SurvivalChaos`) and
@@ -174,20 +174,20 @@ project's assemblies loaded. Rules learned the hard way:
 
 ## 5. Changing a script, and proving it took
 
-Check `editor_status` first — a recompile during play mode throws away Ian's
+Check `editor status` first — a recompile during play mode throws away Ian's
 session.
 
 Edit the `.cs` on disk, then:
 
 ```bash
-unity command recompile
-unity command recompile_status      # poll until it settles
+unity command script recompile
+unity command script recompile_status      # poll until it settles
 ```
 
-`recompile` answers `up_to_date` with "No scripts needed recompilation" when
+`script recompile` answers `up_to_date` with "No scripts needed recompilation" when
 there is nothing to do — which is also what you get if you edited a file the
 editor cannot see, so treat it as a signal rather than a success.
-`recompile_status` carries `failed` and an `errors` array; read them, because a
+`script recompile_status` carries `failed` and an `errors` array; read them, because a
 compile failure leaves the previous assembly loaded and everything downstream
 keeps working against stale code.
 
@@ -197,7 +197,7 @@ picked it up. A build made against unrefreshed code warns "you have uncompiled
 code changes" and quietly ships the old behaviour.
 
 ```bash
-unity command eval --code 'System.Type t=null; foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies()) { foreach (var x in a.GetTypes()) if (x.Name=="CameraFraming") { t=x; break; } if (t!=null) break; } if (t==null) return "CameraFraming is not loaded"; var f = t.GetField("BandMargin", System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static); return f==null ? "CameraFraming has no BandMargin" : "BandMargin=" + f.GetRawConstantValue();'
+unity command script eval --code 'System.Type t=null; foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies()) { foreach (var x in a.GetTypes()) if (x.Name=="CameraFraming") { t=x; break; } if (t!=null) break; } if (t==null) return "CameraFraming is not loaded"; var f = t.GetField("BandMargin", System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static); return f==null ? "CameraFraming has no BandMargin" : "BandMargin=" + f.GetRawConstantValue();'
 ```
 
 Put your own type and member in place of `CameraFraming` and `BandMargin`. A
@@ -209,8 +209,8 @@ throwing.
 
 ## 6. Changing assets and prefabs (only through the editor)
 
-Reach for `set_serialized_field` first. Where it cannot express the change — a
-walk over a prefab's whole contents, say — use `eval`:
+Reach for `component set_field` first. Where it cannot express the change — a
+walk over a prefab's whole contents, say — use `script eval`:
 
 ```csharp
 var path = "Assets/Prefabs/Boss/Boss.prefab";
@@ -249,13 +249,13 @@ It spawns a second editor and dies with "another Unity instance is running with
 this project open". Use the relay build:
 
 ```bash
-unity command build --target StandaloneWindows64 \
+unity command build run --target StandaloneWindows64 \
   --outputPath "C:/Work/UnityProjects/Survival-Chaos-Project/Builds/26_0908-1416_lancebeam/Survival-Chaos-main.exe" \
   --options '["CleanBuildCache"]' --confirm true
 ```
 
 Naming is `YY_MMDD-HHMM_shortLabel`. It returns `{"status":"queued"}`
-immediately; poll `unity command build_status` until `completed`. A healthy
+immediately; poll `unity command build status` until `completed`. A healthy
 build is about 940 MB on disk and, with `CleanBuildCache`, takes about 90
 seconds once the shader cache is warm. The first build after an editor update
 recompiles every shader: 22 minutes after the move to 6.6.3.

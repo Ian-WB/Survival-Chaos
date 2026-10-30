@@ -79,7 +79,7 @@ namespace SurvivalChaos
     /// cookie atlas 2048 against 4096, and area shadow filtering up a step. The
     /// punctual shadow atlas is *not* one of them - both sit at 8192, cached and
     /// uncached - and neither is sky reflection, which is 2048 on both. None of
-    /// that is a volume override, which is why the two rows below are nearly
+    /// that is a volume override, which is why the two rows below are
     /// identical - the tier does the work, not the table.
     ///
     /// **Downward, High is nearer Medium than that list suggests.** The step up
@@ -144,6 +144,12 @@ namespace SurvivalChaos
     /// in rendering the map, and it buys a mean picture difference of 0.09 in
     /// 255 where two captures of the same frame differ by 0.064.
     ///
+    /// **Fog steps Off, Low, Medium, Medium.** Ultra started on High until
+    /// 16 October 2026, when the same scan measured the step from Medium at
+    /// 1.5 ms early in a run and 1.8 at the boss. A look test in a build, the
+    /// two rungs swapped on the same frame, found a run could not tell them
+    /// apart. High stays on the row for anyone who wants it.
+    ///
     /// **Motion blur is deliberately absent**, as it has been since it left the
     /// preset system. It is taste rather than fidelity, and a tier stamping over
     /// that choice every time quality changes would be the settings screen
@@ -191,16 +197,16 @@ namespace SurvivalChaos
                 shadows: EffectQuality.Medium,
                 clouds: EffectQuality.Low),
 
-            // Unity's HDRP High Fidelity, retuned. The fog rung separates this
-            // row from High's - reflections are already on their last
-            // non-ray-traced step, shadows stop at Medium (see above) and GI is
-            // off everywhere for the reason above. The tier earns its name in
-            // the asset, not here.
+            // Unity's HDRP High Fidelity, retuned. This row is High's exactly -
+            // reflections are already on their last non-ray-traced step, fog
+            // and shadows stop at Medium (see above) and GI is off everywhere
+            // for the reason above. The tier earns its name in the asset, not
+            // here.
             new GraphicsPreset(
                 name: "Ultra",
                 reflections: EffectQuality.High,
                 globalIllumination: EffectQuality.Off,
-                volumetricFog: EffectQuality.High,
+                volumetricFog: EffectQuality.Medium,
                 shadows: EffectQuality.Medium,
                 clouds: EffectQuality.Low)
         };
