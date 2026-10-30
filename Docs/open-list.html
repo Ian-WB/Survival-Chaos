@@ -328,18 +328,19 @@
   // the expensive part, so the page does it rather than handing over a menu.
   var NEXT = {
     id: "play-asyncoff",
-    title: "Play the sinking storm, on today’s performance build",
+    title: "Play the sinking storm, on the 30 October build",
     effort: "one run to the Leviathan, about 8 minutes",
-    lede: "<strong>Everything from today is in one build.</strong> The storm’s wall starts over the whole moon at 2.2 times its painted height and sinks to 0.4, so the Leviathan is fought under the open moon and the stars. Since then: Medium draws the storm, Ultra’s Shadows start on Medium, the ray-traced rungs read their own settings, and async compute is off on the game camera, timed in the build itself.</p><p><code>Builds/26_1016-1528_asyncOff</code> has all of it, with the debug menu, along with the storm’s bolts and the run starting 7 out. The stormWallGone build was never played, so its watch points are here.</p><p><strong>Not in that build:</strong> Ultra’s fog on Medium and the move to Unity 6000.6.7f1, both from 30 October (<code>823c054</code>). A new build carries everything; say when you want one.",
+    lede: "<strong>Everything is in one build.</strong> The storm’s wall starts over the whole moon at 2.2 times its painted height and sinks to 0.4, so the Leviathan is fought under the open moon and the stars. Since then: Medium draws the storm, Ultra’s Shadows and Fog start on Medium, the ray-traced rungs read their own settings, and async compute is off on the game camera, timed in the build itself.</p><p><code>Builds/26_1030-1644_fogMedium667</code> has all of it, with the debug menu, along with the storm’s bolts and the run starting 7 out. It is the first build on Unity 6000.6.7f1. The stormWallGone build was never played, so its watch points are here.",
     watch: [
       "The moon: its top shows about a quarter of the way into the run, half of it about half way, and the wall is under the horizon about nine tenths of the way in. If it comes too early or too late, the dial is one number, how late the storm opens.",
       "The end of the run: only the cloud floor is left. The sky behind the top of the lane is darker there than it was behind the old wall, about 43 of 255 against 57. Watch the dark ships against it, the Drones most.",
       "The island is darker at the start, while the wall shades the moon, and back to its usual light by the end. Nothing is dimmed by hand; it is the wall’s shadow.",
       "The bolts, in a run: about half the storm’s flashes, standing inside the wall. You called them way better in the editor; say if a run changes that.",
       "Restart after the boss: the wall should stand tall again from the first second.",
-      "Shadows: your saved setting is High, so pick Medium, or pick Ultra again, to get the new default. It should look the same. From the next build the same goes for Fog: Ultra starts it on Medium, and a saved High stays High until you change it.",
-      "F3’s GPU line: the build timed itself at about 7 to 8 ms with GI off and 10 to 13 with ray-traced GI on High. If you turn ray-traced GI on, RT Medium is the rung to try first.",
-      "Medium, once, if you like: the storm should be there now."
+      "Shadows and Fog: a saved High stays High, so pick Medium, or pick Ultra again, to get the new defaults. They should look the same.",
+      "F3’s GPU line: the 16 October build timed itself at about 7 to 8 ms with GI off and 10 to 13 with ray-traced GI on High. If you turn ray-traced GI on, RT Medium is the rung to try first.",
+      "Medium, once, if you like: the storm should be there now.",
+      "Anything odd at all: it is the first run on Unity 6000.6.7f1."
     ]
   };
 
