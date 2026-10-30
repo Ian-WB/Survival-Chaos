@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 426 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 429 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>426</b><span>commits</span></div>
-      <div class="stat"><b>870</b><span>tests</span></div>
+      <div class="stat"><b>429</b><span>commits</span></div>
+      <div class="stat"><b>871</b><span>tests</span></div>
       <div class="stat"><b>161</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -766,6 +766,13 @@
       <li><strong>Async compute off on the game camera</strong> &mdash; timed in Checked builds by a bench that plays a run by
       itself and writes what it measured to the log: 0.4 to 0.9&nbsp;ms less with ray-traced GI on and 0.1 to 0.7 without,
       and never slower.</li>
+      <li><strong>Ultra&rsquo;s fog a rung down, after a look test</strong> &mdash; the two savings the scan left for a look in
+      motion went into the debug menu as one switch, key 0, on 16 October. On 30 October Ian took the fog: Ultra starts it on
+      Medium, as High does, so the two tiers&rsquo; rows are now the same. The lava glows kept their fog shadows.</li>
+      <li><strong>Unity 6000.6.7f1, and a CLI that renamed its commands</strong> &mdash; Ian moved the editor on 24 October and
+      updated the Rider, Visual Studio and pipeline packages. The pipeline&rsquo;s 0.9 grouped its commands under nouns, so
+      <code>eval</code> is <code>script eval</code> and <code>run_tests</code> is <code>test run</code>, and the README, the agent
+      guide and the helper scripts moved with it. HDRP&rsquo;s cloud shaders had not changed.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -2452,7 +2459,9 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       </table>
     </div>
     <p>The clouds stay on High, since that is the change that shows, and FSR against TAA is taste. Medium took the clouds and
-    Ultra&rsquo;s Shadows went to Medium the same day; the fog and the glows&rsquo; shadows wait for a look in motion.
+    Ultra&rsquo;s Shadows went to Medium the same day. The fog and the glows&rsquo; shadows were looked at in motion, on a
+    debug-menu key: on 30 October Ultra&rsquo;s fog went to Medium and the glows kept their shadows, since without them red
+    haze spread over the ruins and the shaded slopes.
     Ray-traced reflections were timed the same way: 2.5&nbsp;ms on RT Low and 3.8 on RT High over screen-space High, early, and
     the only reflection in the frame that changed was the ship&rsquo;s glass dome.</p>
     <p><strong>A build runs at about half the editor&rsquo;s milliseconds.</strong> Async compute was timed in Checked builds by
@@ -2485,7 +2494,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <p>The jam project had six named quality levels and a single <code>HDRenderPipelineAsset</code> shared between them — <code>renderPipeline:</code> did not appear in <code>QualitySettings.asset</code> at all. Under HDRP the shadows, the atlases and every support flag live <em>in the pipeline asset</em>, so switching from Very Low to Ultra changed almost nothing. A quality dropdown built on that would have been another control that looks functional and does nothing.</p>
       <p>The answer was a builder tool that generated eight assets from tables written in C#. It worked, and it was wrong in a way worth recording: <strong>the numbers were invented here rather than measured anywhere.</strong> A flat 512 reflection cache failed its allocation every frame and logged so forever; ray-traced global illumination on the top two tiers rendered every dynamic object as a black silhouette. Both took a build to find, and neither was a coding error — they were confident numbers nobody had grounds for.</p>
       <p>So the tool is gone. <code>HdrpQualityPresetBuilder</code>, <code>PipelineTuning</code>, the eight generated assets and the Custom quality level are all deleted, and <strong>nothing in the project writes a pipeline asset any more.</strong> Three of the four quality levels are copies of the assets Unity ships with a new HDRP project — Performant, Balanced and High Fidelity, renamed Low, Medium and Ultra — tuned by hand in the Inspector afterwards. Unity keeps its own tiers self-consistent; this file no longer has an opinion about atlas sizes.</p>
-    <p><strong>High is the exception, and the newest tier.</strong> It is a copy of High Fidelity stepped down where the cost sits rather than where the feature list does: both it and Ultra compile SSR, SSR on transparents, SSGI, volumetrics, volumetric clouds and ray tracing, and what separates them is budget — a 4096 area shadow atlas against 8192, probe volumes at L1 against L2, and the cookie atlas at 2048 against 4096. Sky reflection is <em>not</em> one of them &mdash; both sit at 2048. None of that is a volume override, which is why the two rows in <code>GraphicsPresets</code> are nearly identical. The tier does the work, not the table.</p>
+    <p><strong>High is the exception, and the newest tier.</strong> It is a copy of High Fidelity stepped down where the cost sits rather than where the feature list does: both it and Ultra compile SSR, SSR on transparents, SSGI, volumetrics, volumetric clouds and ray tracing, and what separates them is budget — a 4096 area shadow atlas against 8192, probe volumes at L1 against L2, and the cookie atlas at 2048 against 4096. Sky reflection is <em>not</em> one of them &mdash; both sit at 2048. None of that is a volume override, which is why the two rows in <code>GraphicsPresets</code> are identical, since 30 October. The tier does the work, not the table.</p>
     <div class="warn">
       <div class="label">The default was Ultra, and three things said so</div>
       <p>The settings screen had said Medium was the default since the tiers were rebuilt. Nothing read it. <code>GraphicsPresets.DefaultIndex&nbsp;=&nbsp;1</code>, the constant whose summary names Medium, was referenced <em>nowhere in the project</em>; the tier actually came from ProjectSettings, which still held <code>Standalone:&nbsp;6</code> — an index minted when there were eight generated levels, against a list that has four.</p>
@@ -2608,7 +2617,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Shadows is the one row on that table with no <em>gated off</em> in it: every tier can cast, and Ultra starts on Medium as High does. It started a rung higher, on High, until 16 October, when
     that rung was timed at 0.65 to 0.9&nbsp;ms more than Medium in the editor, nearly all of it the sun&rsquo;s soft-shadow
     filtering reading the bigger map, for a picture within the noise of two captures of the same frame. It is also the only row that stops at its ends instead of wrapping, for the reason under <a href="#render">Rendering</a> &mdash; Off is the loudest thing the Graphics screen can do, and wrapping put it one press from where every tier starts.</p>
-    <p>The fog row's Low, Medium and High are the same three budgets on every tier that has fog &mdash; 0.166, 0.25 and 0.333 &mdash; for the reasons under <a href="#render">Rendering</a>.</p>
+    <p>The fog row's Low, Medium and High are the same three budgets on every tier that has fog &mdash; 0.166, 0.25 and 0.333 &mdash; for the reasons under <a href="#render">Rendering</a>. Ultra starts on Medium, as High does. It started on High until 30 October: High costs 1.5 to 1.8&nbsp;ms more in the editor at 2560&times;1440, and in a look test, the two swapped on one key during a run, Ian took Medium. <code>Presets_UltraFogStopsAtMedium</code> holds it.</p>
 
     <div class="warn">
       <div class="label">A row dies with its flag</div>
@@ -2766,10 +2775,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>What drives the editor</h3>
-    <p>The project carries <code>com.unity.pipeline</code>, at 0.7.0-exp.1, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
+    <p>The project carries <code>com.unity.pipeline</code>, at 0.9.1-exp.1, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
     <p>The difference that mattered was recompilation. The old relay would not trigger a domain reload, because the reload severed its own connection, so every new script needed the editor window focused by hand before it existed. The pipeline drops its connection mid-reload and reconnects on the far side, which closes the loop: write a script, compile it, attach it, and confirm the type is live in the loaded domain without touching the editor.</p>
     <p>It also made the captions visible for the first time. Capturing the game view with the composited backbuffer includes Screen Space Overlay canvases, which is where they live — before that they had been diagnosed by reading vertex counts, because the relay's camera capture rendered through a camera and missed overlay UI entirely.</p>
-    <p>The package moves with the CLI rather than on its own schedule. The CLI updated itself to 1.0.0-beta.8 and refused to talk to 0.5 at all &mdash; every command failed as <em>too old to parse command lines</em> &mdash; so it went to 0.6, which also takes array arguments as JSON; and to 0.7 when the Unity plugin for Claude Code arrived with it. It is editor-side only and ships in no build.</p>
+    <p>The package moves with the CLI rather than on its own schedule. The CLI updated itself to 1.0.0-beta.8 and refused to talk to 0.5 at all &mdash; every command failed as <em>too old to parse command lines</em> &mdash; so it went to 0.6, which also takes array arguments as JSON; and to 0.7 when the Unity plugin for Claude Code arrived with it. 0.9, on 24 October, grouped the commands under nouns &mdash; <code>script eval</code>, <code>test run</code>, <code>build status</code> &mdash; and an old name now fails with a console error naming the new one; <code>unity command --obsolete-command-names</code> lists them all. The same release moved the switch that lets the CLI reach a running build from its own settings file into a scripting define, <code>ENABLE_RUNTIME_PIPELINE_DEV</code>, which reaches development builds only. A Release build carries none of it.</p>
     <div class="warn">
       <div class="label">A script that opens a prefab stage can take the GPU down</div>
       <p><code>PrefabUtility.LoadPrefabContents</code> called from a script stalled the editor for 41 seconds and ended in a D3D12 device reset that closed it. Simple prefab edits go through a <code>SerializedObject</code> on the asset itself and are saved there, and adding or removing a component on an asset's root works the same way &mdash; which is how <code>PlayerRoundBuilder</code> is written.</p>
@@ -2778,11 +2787,11 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <div class="warn">
       <div class="label">A package that edits your player settings</div>
       <p><code>BasePipelineServer.Start()</code> sets <code>Application.runInBackground = true</code> every time it starts — every editor launch, every domain reload — so the editor keeps pumping its update loop while unfocused and can go on answering commands. In the editor that assignment writes through to PlayerSettings, so setting it back by hand lasts exactly until the next launch.</p>
-      <p>Nothing in a build asks for it: the runtime half of the pipeline is opt-in through a config asset this project does not have, and should not gain. But PlayerSettings is baked into builds. When this was written the game had no pause, so with the flag left on, alt-tabbing did not stop the run and the player returned to a death they were not present for. Since 30 September the run pauses itself when the window loses focus; the flag is still cleared, so that a build does not go on running behind another window. <code>RunInBackgroundOff</code> is an <code>IPreprocessBuildWithReport</code> that clears the flag as a build starts, which is the only place it can be won.</p>
+      <p>Nothing in a Release build asks for it: the runtime half of the pipeline reaches development builds alone, through the define above. But PlayerSettings is baked into builds. When this was written the game had no pause, so with the flag left on, alt-tabbing did not stop the run and the player returned to a death they were not present for. Since 30 September the run pauses itself when the window loses focus; the flag is still cleared, so that a build does not go on running behind another window. <code>RunInBackgroundOff</code> is an <code>IPreprocessBuildWithReport</code> that clears the flag as a build starts, which is the only place it can be won.</p>
     </div>
 
     <h3>The engine version, and what 6.6 moved</h3>
-    <p>The project runs on <strong>Unity 6.6 (6000.6.6f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.7f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
     <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
     <div class="note">
       <div class="label">The 6.6.1 patch moved nothing this project can see</div>
@@ -2798,6 +2807,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>6000.6.6f1 followed on 15 October. HDRP was file for file the same as in 6000.6.5f1; the core package changed only in
     render-graph C# and Shader Graph only in its docs, so the copies of the cloud shaders again needed nothing. All 811 tests
     passed on it. The lighting was rebaked the same morning, which is a separate change: the hanging rocks had come out.</p>
+    <p>6000.6.7f1 followed on 24 October, with the Rider, Visual Studio and pipeline packages updated alongside it. 6000.6.6f1
+    was no longer installed, so the built-in packages could not be compared file for file; the tests that hash HDRP&rsquo;s
+    cloud files passed, and the combine shader still differs from HDRP&rsquo;s only where it was changed on purpose, so the
+    copies stand. All 871 tests passed once the README named the new version. It has not been played or built yet.</p>
     </div>
     <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
 
@@ -2810,14 +2823,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <div class="note">
       <div class="label">Two things the upgrade settled</div>
-      <p><code>com.unity.pipeline</code> was the real risk in moving. It is experimental, it declares <code>&quot;unity&quot;: &quot;6000.0&quot;</code>, and it is what the terminal drives the editor through &mdash; so losing it would have cost the whole loop described above. It came through unchanged, and has moved twice since, both times for the CLI's sake.</p>
+      <p><code>com.unity.pipeline</code> was the real risk in moving. It is experimental, it declares <code>&quot;unity&quot;: &quot;6000.0&quot;</code>, and it is what the terminal drives the editor through &mdash; so losing it would have cost the whole loop described above. It came through unchanged, and has moved several times since, mostly for the CLI's sake.</p>
       <p>And the fault where a Player build nulled all six probe-volume references in <code>Game Baking Set.asset</code> <strong>did not reproduce</strong>. A confirmed clean build &mdash; the editor log says <em>&ldquo;Rebuilding Data files because BuildOptions.CleanBuildCache is set&rdquo;</em> &mdash; left the asset untouched, its modification time still predating the build, and the references at six resolved and none null, through that build and an editor restart afterwards. Two explanations died there: that Editor builds broke it while CLI builds did not, which was a false correlation drawn from three samples in which the CLI build had merely been incremental; and that clean builds were the trigger. The streaming conversion demonstrably ran, since <code>APVStreamingAssets</code> shipped into the player, so &ldquo;the conversion ran&rdquo; was never sufficient to cause the rewrite. <strong>It came back on 13 September.</strong> A clean-cache build on the Checked variant nulled all six again, so the idea that 6.6 had fixed it died too, and the trigger is still unknown. It happened again on 23 September, to a build made just after a rebake on the new machine, and not to the build made the next morning. Every build is followed by the same repair and count: restore the asset from git, force-import it so the editor lets go of the nulled copy it holds in memory, and expect six references resolved and none null. On 25 September a build&rsquo;s nulled copy went into a commit with a rebake&rsquo;s other files, so HEAD itself had lost the links; the six data files were still on disk under the same identifiers, and restoring the six lines from the commit before put them back.</p>
     </div>
   </section>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>870 tests across 83 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>871 tests across 83 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
@@ -2863,7 +2876,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
           <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
           <tr><td><code>RoundLandingTests</code></td><td class="num">3</td><td>that a round counts its hit once, even when a second enemy reports it after the first has spent it</td></tr>
-          <tr><td><code>ShadowLadderTests</code></td><td class="num">6</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, that no tier defaults to Off, and that Ultra starts on Medium</td></tr>
+          <tr><td><code>ShadowLadderTests</code></td><td class="num">7</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, that no tier defaults to Off, and that Ultra starts on Medium, its fog as well as its shadows</td></tr>
           <tr><td><code>MenuFocusTests</code></td><td class="num">11</td><td>where keyboard and pad focus lands when a screen opens &mdash; its first live control, or one authored and still live &mdash; and that a screen&rsquo;s horizontal sliders take left and right</td></tr>
           <tr><td><code>RunEndingTests</code></td><td class="num">4</td><td>that the first ending stands: once the run is over no hit reaches the player, and no round reaches the hull or an emplacement</td></tr>
           <tr><td><code>BossRoundLaneTests</code></td><td class="num">2</td><td>that every round the boss fires eases onto the player&rsquo;s lane, read off the prefabs the boss&rsquo;s attacks point at &mdash; the one suite that checks an asset rather than a rule, because the value that went to 0 lives in one</td></tr>
@@ -2910,7 +2923,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
     <p>The table was brought up to date on 9 October 2026: every suite is in it, with its count from that day&rsquo;s run. The twenty-nine at the foot are the ones added since 26 September, largest first; the far trees&rsquo; suite went out with them on 9 October. The clouds&rsquo; suite gained three on 12 October. On 15 and 16 October the storm&rsquo;s lightning gained six, the cloud ring five, and the rising wall&rsquo;s suite is new.
     Later on 16 October the cloud and shadow ladders gained one each, and the three at the very foot are new: the ray-traced
-    ladder and the async compute A/B.</p>
+    ladder and the async compute A/B. On 30 October the shadow ladder&rsquo;s suite gained one, for Ultra&rsquo;s fog.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -2941,7 +2954,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 870 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 871 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -3077,11 +3090,12 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       run, where with the wall gone the sky behind the top of the lane is darker than the old wall was (about 43 of 255 against
       57), which is the backdrop the dark Drones were once lost against. The bolts and the 7-out camera are in it too; the
       bolts were judged in the editor, never in a build. Every build since carries it; the latest,
-      <code>26_1016-1528_asyncOff</code>, also has the storm on Medium, the ray-traced ladder and async compute off.</li>
-      <li><strong>Two savings from the 16 October scan wait for a look in motion.</strong> Fog High to Medium on Ultra,
-      1.5 to 1.8&nbsp;ms in the editor, thins the haze a little everywhere; and the four lava glows lighting the fog without
-      volumetric shadows, 0.7&nbsp;ms, would lose any shafts their casters cut. Neither changes until Ian has seen it in a
-      build.</li>
+      <code>26_1016-1603_lookTest</code>, also has the storm on Medium, the ray-traced ladder, async compute off and the
+      look-test key. No build has Ultra&rsquo;s fog on Medium or Unity 6000.6.7f1 yet, both from 30 October.</li>
+      <li><strong>The two savings from the 16 October scan are answered.</strong> Both went on one debug-menu key, 0, in
+      <code>26_1016-1603_lookTest</code>. On a frame held in the editor they were worth 2.2 and 0.6&nbsp;ms. On 30 October Ian
+      took fog Medium on Ultra and kept the glows&rsquo; fog shadows, without which red haze spread over the ruins. A player
+      who saved Fog on High keeps High until they change it or pick Ultra again.</li>
       <li><strong>Two things from the night of 8 October still wait for a look:</strong> whether the ash lightning ever pulls the
       eye off the rounds, and that a second run starts quiet.</li>
       <li><strong>The Leviathan&rsquo;s first frames do not stutter.</strong> Since 2 October a build keeps
@@ -3305,7 +3319,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.6f1) · HDRP 17.6 · branch <code>main</code> · 426 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.7f1) · HDRP 17.6 · branch <code>main</code> · 429 commits
   </footer>
 
 </div>
