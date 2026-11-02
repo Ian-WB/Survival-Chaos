@@ -33,6 +33,12 @@ namespace SurvivalChaos
         /// <summary>FSR's own debug view in place of the image, for checking inputs.</summary>
         public static bool DebugView { get; set; }
 
+        /// <summary>
+        /// Which of AMD's upscalers to ask for, one of the FfxNative.Version
+        /// constants. A change makes the next frame create a new context.
+        /// </summary>
+        public static int Version { get; set; }
+
         /// <summary>The context slot the main camera used last, for the F3 overlay.</summary>
         public static int LastContextId { get; private set; } = -1;
 
@@ -78,6 +84,7 @@ namespace SurvivalChaos
             Sharpness = 0f;
             Sharpen = false;
             DebugView = false;
+            Version = FfxNative.VersionNewest;
             LastContextId = -1;
         }
 
@@ -282,6 +289,7 @@ namespace SurvivalChaos
                 fovVerticalRadians = io.fieldOfViewDegrees * Mathf.Deg2Rad,
                 reset = io.resetHistory ? 1 : 0,
                 debugView = DebugView ? 1 : 0,
+                version = Version,
             };
         }
 

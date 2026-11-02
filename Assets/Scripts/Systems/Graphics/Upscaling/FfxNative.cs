@@ -64,7 +64,18 @@ namespace SurvivalChaos
             public float fovVerticalRadians;
             public int reset;
             public int debugView;
+            public int version;
         }
+
+        /// <summary>
+        /// Which upscaler a context asks AMD's loader for. Must match
+        /// VersionChoice in SurvivalChaosFfx.cpp. Newest is the loader's own
+        /// pick: the newest the game ships, or the driver's if that is strictly
+        /// newer. A choice the card or driver does not offer falls back to it.
+        /// </summary>
+        public const int VersionNewest = 0;
+        public const int VersionFsr3 = 1;
+        public const int VersionDriver = 2;
 
         /// <summary>
         /// Which texture a texture event carries, in the low four bits of its
@@ -98,6 +109,9 @@ namespace SurvivalChaos
         [DllImport(Plugin)]
         private static extern int ScFfx_GetContextInfo(
             int contextId, StringBuilder versionName, int versionNameLength, out int lastResult);
+
+        [DllImport(Plugin)]
+        private static extern int ScFfx_ListVersions(StringBuilder names, int namesLength);
 
 #if UNITY_EDITOR
         /// <summary>
@@ -258,6 +272,22 @@ namespace SurvivalChaos
             int dispatches = ScFfx_GetContextInfo(contextId, name, name.Capacity, out lastResult);
             version = name.ToString();
             return dispatches;
+        }
+
+        /// <summary>
+        /// Every upscaler AMD's loader offers on this card, newest first, as
+        /// AMD names them; a driver's own carries a trailing " *". Empty when
+        /// FSR is unavailable.
+        /// </summary>
+        public static string OfferedVersions()
+        {
+            if (!Available)
+            {
+                return string.Empty;
+            }
+
+            StringBuilder names = new StringBuilder(256);
+            return ScFfx_ListVersions(names, names.Capacity) > 0 ? names.ToString() : string.Empty;
         }
     }
 }

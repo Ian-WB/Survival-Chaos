@@ -111,6 +111,17 @@ namespace
         float fovVerticalRadians;
         int32_t reset;
         int32_t debugView;
+        int32_t version;
+    };
+
+    // Which of the upscalers AMD's loader offers a context asks for. Must match
+    // FfxNative.cs. Newest is the loader's own choice: the newest version the
+    // game ships, or the driver's when that is strictly newer.
+    enum VersionChoice : int32_t
+    {
+        VersionNewest = 0,
+        VersionFsr3 = 1,
+        VersionDriver = 2,
     };
 
     constexpr int MaxContexts = 16;
@@ -125,6 +136,7 @@ namespace
         uint32_t displayWidth = 0;
         uint32_t displayHeight = 0;
         uint32_t createFlags = 0;
+        int32_t versionWanted = VersionNewest;
         uint64_t versionId = 0;
         char versionName[64] = {};
         int32_t lastResult = 0;
@@ -279,6 +291,68 @@ namespace
         slot.versionId = 0;
     }
 
+    // The upscalers the loader offers on this device, newest first, as AMD
+    // lists them: "4.1.2", "3.1.6", and a driver's own with a trailing " *".
+    struct Offered
+    {
+        std::vector<uint64_t> ids;
+        std::vector<const char*> names;
+    };
+
+    Offered QueryVersions(ID3D12Device* device)
+    {
+        Offered offered;
+        uint64_t count = 0;
+
+        ffxQueryDescGetVersions query = {};
+        query.header.type = FFX_API_QUERY_DESC_TYPE_GET_VERSIONS;
+        query.createDescType = FFX_API_CREATE_CONTEXT_DESC_TYPE_UPSCALE;
+        query.device = device;
+        query.outputCount = &count;
+        if (s_Ffx.Query(nullptr, &query.header) != FFX_API_RETURN_OK || count == 0)
+        {
+            return offered;
+        }
+
+        offered.ids.resize(count);
+        offered.names.resize(count);
+        query.versionIds = offered.ids.data();
+        query.versionNames = offered.names.data();
+        if (s_Ffx.Query(nullptr, &query.header) != FFX_API_RETURN_OK)
+        {
+            return Offered();
+        }
+
+        offered.ids.resize(count);
+        offered.names.resize(count);
+        return offered;
+    }
+
+    // 0 for the loader's own choice, which is also what an unmet choice falls
+    // back to: a card or driver without that version still gets an upscaler.
+    uint64_t PickVersion(int32_t wanted, ID3D12Device* device)
+    {
+        if (wanted == VersionNewest)
+        {
+            return 0;
+        }
+
+        Offered offered = QueryVersions(device);
+        for (size_t i = 0; i < offered.ids.size(); i++)
+        {
+            const char* name = offered.names[i] != nullptr ? offered.names[i] : "";
+            bool fromDriver = strchr(name, '*') != nullptr;
+            if ((wanted == VersionFsr3 && name[0] == '3' && !fromDriver) ||
+                (wanted == VersionDriver && fromDriver))
+            {
+                return offered.ids[i];
+            }
+        }
+
+        Logf(kUnityLogTypeWarning, "FSR: version choice %d is not offered here; the newest is used.", wanted);
+        return 0;
+    }
+
     bool Create(Slot& slot, const DispatchParams& p)
     {
         ffxCreateBackendDX12Desc backend = {};
@@ -299,6 +373,14 @@ namespace
         create.header.pNext = &backend.header;
         backend.header.pNext = &version.header;
 
+        ffxOverrideVersion pinned = {};
+        pinned.header.type = FFX_API_DESC_TYPE_OVERRIDE_VERSION;
+        pinned.versionId = PickVersion(p.version, backend.device);
+        if (pinned.versionId != 0)
+        {
+            version.header.pNext = &pinned.header;
+        }
+
         ffxContext context = nullptr;
         ffxReturnCode_t result = s_Ffx.CreateContext(&context, &create.header, nullptr);
         slot.lastResult = static_cast<int32_t>(result);
@@ -315,6 +397,7 @@ namespace
         slot.displayWidth = p.displayWidth;
         slot.displayHeight = p.displayHeight;
         slot.createFlags = p.createFlags;
+        slot.versionWanted = p.version;
         slot.dispatches = 0;
 
         ffxQueryGetProviderVersion provider = {};
@@ -368,7 +451,7 @@ namespace
         if (slot.context == nullptr ||
             slot.maxRenderWidth != p.maxRenderWidth || slot.maxRenderHeight != p.maxRenderHeight ||
             slot.displayWidth != p.displayWidth || slot.displayHeight != p.displayHeight ||
-            slot.createFlags != p.createFlags)
+            slot.createFlags != p.createFlags || slot.versionWanted != p.version)
         {
             Retire(slot);
             if (!Create(slot, p))
@@ -603,6 +686,33 @@ extern "C"
             }
         }
         return -1;
+    }
+
+    // Main thread. The upscalers offered on this device, newest first, joined
+    // with ", ". Returns how many there are, or -1 before FSR has loaded.
+    int32_t UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API ScFfx_ListVersions(char* names, int32_t namesLength)
+    {
+        if (s_D3D12 == nullptr || s_LoadStatus != StatusReady)
+        {
+            return -1;
+        }
+
+        Offered offered = QueryVersions(s_D3D12->GetDevice());
+        std::string joined;
+        for (const char* name : offered.names)
+        {
+            if (!joined.empty())
+            {
+                joined += ", ";
+            }
+            joined += name != nullptr ? name : "?";
+        }
+
+        if (names != nullptr && namesLength > 0)
+        {
+            strncpy_s(names, namesLength, joined.c_str(), _TRUNCATE);
+        }
+        return static_cast<int32_t>(offered.ids.size());
     }
 
     // Main thread. What the context is running, for the F3 overlay and checks.

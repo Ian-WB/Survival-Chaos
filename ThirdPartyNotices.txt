@@ -8,7 +8,7 @@ AMD FidelityFX Super Resolution
 ------------------------------------------------------------------------
 
 Survival Chaos includes AMD FidelityFX Super Resolution (FSR). It runs
-through AMD's signed libraries from the AMD FSR SDK 2.3.0,
+through AMD's signed libraries from the AMD FSR SDK 2.4.0,
 amd_fidelityfx_loader_dx12.dll and amd_fidelityfx_upscaler_dx12.dll, and
 through SurvivalChaosFfx.dll, which is built with AMD's API headers from the
 same SDK. They are provided under the following license.
