@@ -1,7 +1,8 @@
 // HDRP's VolumetricClouds.compute (com.unity.render-pipelines.high-definition 17, Unity 6000.6.5f1),
-// copied with two changes. It includes the project's VolumetricCloudsDenoising.hlsl, where the
+// copied with three changes. It includes the project's VolumetricCloudsDenoising.hlsl, where the
 // clouds' history follows the turning storm: see that file. And in the history pass below, a pixel
-// of solid ground takes no history that touches the sky: see the note there. Swapped in through
+// of solid ground takes no history that touches the sky. The upscale also handles missing or
+// weak depth-matched neighbours: see the notes below. Swapped in through
 // the pipeline's global settings (VolumetricCloudsRuntimeResources.volumetricCloudsCS);
 // CloudStormShaderTests checks the swap, the second change, and that the package's own file is
 // still the one this was copied from.
@@ -175,13 +176,31 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
         FillCloudReprojectionNeighborhoodData(threadCoord, localIndex, upsampleData);
 
         bool isSky = currentSceneDepth == UNITY_RAW_FAR_CLIP_VALUE;
+        float4 unmaskedWeightA = upsampleData.lowWeightA;
+        float4 unmaskedWeightB = upsampleData.lowWeightB;
+        float unmaskedWeightC = upsampleData.lowWeightC;
         upsampleData.lowWeightA *= ((upsampleData.lowDepthA == UNITY_RAW_FAR_CLIP_VALUE) == isSky);
         upsampleData.lowWeightB *= ((upsampleData.lowDepthB == UNITY_RAW_FAR_CLIP_VALUE) == isSky);
         upsampleData.lowWeightC *= ((upsampleData.lowDepthC == UNITY_RAW_FAR_CLIP_VALUE) == isSky);
 
+        // The same empty neighbourhood as in UPSCALE_CLOUDS can otherwise enter
+        // the history as black opaque cloud and flicker with the checkerboard.
+        bool noMatch = dot(upsampleData.lowWeightA, 1.0) + dot(upsampleData.lowWeightB, 1.0) + upsampleData.lowWeightC == 0.0;
+        if (noMatch && isSky)
+        {
+            upsampleData.lowWeightA = unmaskedWeightA;
+            upsampleData.lowWeightB = unmaskedWeightB;
+            upsampleData.lowWeightC = unmaskedWeightC;
+        }
+
         // Depth are not converted to linear 01 space on purpose here
         // But it would be slower without noticeable quality improvement
         BilUpColor3x3(currentSceneDepth, upsampleData, finalColor, finalCloudDepth);
+        if (noMatch && !isSky)
+        {
+            finalColor = float4(0.0, 0.0, 0.0, 1.0);
+            finalCloudDepth = UNITY_RAW_FAR_CLIP_VALUE;
+        }
     }
 
     // 3. Export
@@ -296,6 +315,9 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
 
     // Solves edge filtering in most cases
     bool isSky = sceneDepth == UNITY_RAW_FAR_CLIP_VALUE;
+    float4 unmaskedWeightA = upsampleData.lowWeightA;
+    float4 unmaskedWeightB = upsampleData.lowWeightB;
+    float unmaskedWeightC = upsampleData.lowWeightC;
     upsampleData.lowWeightA *= ((upsampleData.lowDepthA == UNITY_RAW_FAR_CLIP_VALUE) == isSky);
     upsampleData.lowWeightB *= ((upsampleData.lowDepthB == UNITY_RAW_FAR_CLIP_VALUE) == isSky);
     upsampleData.lowWeightC *= ((upsampleData.lowDepthC == UNITY_RAW_FAR_CLIP_VALUE) == isSky);
@@ -305,6 +327,29 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
     upsampleData.lowDepthA = Linear01Depth(upsampleData.lowDepthA, _ZBufferParams);
     upsampleData.lowDepthB = Linear01Depth(upsampleData.lowDepthB, _ZBufferParams);
     upsampleData.lowDepthC = Linear01Depth(upsampleData.lowDepthC, _ZBufferParams);
+
+    // Survival Chaos: a pixel whose nine low-resolution neighbours are all of
+    // the other kind - sky seen through a gap a pixel wide between twigs, or a
+    // twig a pixel wide against the sky - had every weight masked to zero, or
+    // only distant, weak matches left. The filter's fixed noise weight then
+    // dominated, returning near-zero colour and transmittance and a cloud depth of
+    // 1, which the manual ztest below does not catch, so the pixel drew as
+    // black opaque cloud: dark specks on the trees that FSR 4 kept where TAA
+    // and FSR 3 blurred them (2 Nov 2026). A sky pixel keeps the unmasked
+    // weights instead; a geometry pixel gets no cloud, as the ztest would have
+    // given it. Use the filter's depth-adjusted weights: spatial weights alone
+    // miss distant geometry matches. Require the noise term to contribute less
+    // than one percent of the denominator, so it cannot darken thin silhouettes.
+    float matchedWeight = dot(upsampleData.lowWeightA / (abs(linearSceneDepth - upsampleData.lowDepthA) + _UpsampleTolerance), 1.0)
+                        + dot(upsampleData.lowWeightB / (abs(linearSceneDepth - upsampleData.lowDepthB) + _UpsampleTolerance), 1.0)
+                        + upsampleData.lowWeightC / (abs(linearSceneDepth - upsampleData.lowDepthC) + _UpsampleTolerance);
+    bool insufficientWeight = matchedWeight <= 100.0 * _NoiseFilterStrength;
+    if (insufficientWeight && isSky)
+    {
+        upsampleData.lowWeightA = unmaskedWeightA;
+        upsampleData.lowWeightB = unmaskedWeightB;
+        upsampleData.lowWeightC = unmaskedWeightC;
+    }
 
     // Do the bilateral upscale
     float4 finalColor;
@@ -318,8 +363,10 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
     float finalSceneDepth = (_ZBufferParams.z * sceneDepth + _ZBufferParams.w) * _CloudNearPlane;
 
     // Manual ztest as upscaling can produce clouds behind geometry
-    if (sceneDepth != UNITY_RAW_FAR_CLIP_VALUE && finalCloudDepth <= finalSceneDepth)
+    if (sceneDepth != UNITY_RAW_FAR_CLIP_VALUE && (finalCloudDepth <= finalSceneDepth || insufficientWeight))
     {
+        if (insufficientWeight)
+            finalColor.rgb = 0.0;
         finalColor.a = 1.0f;
         finalCloudDepth = UNITY_NEAR_CLIP_VALUE;
     }
