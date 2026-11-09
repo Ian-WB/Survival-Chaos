@@ -287,10 +287,10 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 435 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 436 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>435</b><span>commits</span></div>
-      <div class="stat"><b>871</b><span>tests</span></div>
+      <div class="stat"><b>436</b><span>commits</span></div>
+      <div class="stat"><b>879</b><span>tests</span></div>
       <div class="stat"><b>162</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
@@ -800,6 +800,12 @@
       fixed a one-frame reuse edge in <code>PoolMotionReset</code>, excluded five build-rewritten assets from
       <code>BuildStampWriter</code>, removed twelve unused assets and 581&nbsp;MB of old captures in <code>Assets/Temp</code>,
       turned off the Unity splash screen, and named Release builds <code>Survival Chaos.exe</code>.</li>
+      <li><strong>Half the level-ups, at the same power</strong> &mdash; also on 9 November, at Ian&rsquo;s ask: a run brings
+      about 17 level-ups where it brought 35, and each pick does the work of two, so the ship ends where it did. The
+      curve is 95 rising by 180, the stacking picks doubled with their counts halved, and the fifteen ability picks
+      became eight, which makes the pool 22 picks where it was 43. With it, an offer nobody took comes back once, and
+      the draw puts a newly opened ability in the next offer and leans toward what has been shown least. One bot run
+      won at 552&nbsp;s against 533, at level 19 where it had been 36.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -1023,17 +1029,21 @@ transform.LookAt(pos);</code></pre>
       <table>
         <thead><tr><th>Skill</th><th>Effect</th><th class="num">Max picks</th><th>Each pick opens at level</th></tr></thead>
         <tbody>
-          <tr><td>Attack Speed</td><td>+15% fire rate, flat per pick; 10% until 1 October</td><td class="num">12</td><td>any</td></tr>
-          <tr><td>Move Speed</td><td>+12% orbit and climb, flat per pick; 10% until 1 October</td><td class="num">8</td><td>any</td></tr>
-          <tr><td>Max Health</td><td>+5 to the ceiling</td><td class="num">8</td><td>any</td></tr>
-          <tr><td>Shot Upgrade</td><td>advances double → triple → sextuple</td><td class="num">3</td><td>4, 10, 18</td></tr>
-          <tr><td>Dash, offered as Dash II to IV</td><td>1.5&nbsp;s off the dash&rsquo;s 10&nbsp;s cooldown, so three reach 5.5; never under 4</td><td class="num">3</td><td>6, 14, 22</td></tr>
-          <tr><td>Slow Mo</td><td>the whole game at 0.4 for 5 real seconds on its button, once every 30&nbsp;s, then 20, then 10; 24 and 18 until 1 October</td><td class="num">3</td><td>8, 14, 20</td></tr>
-          <tr><td>Magnet</td><td>pickups drift in from 4 units away, then 7, then 10</td><td class="num">3</td><td>5, 15, 25</td></tr>
-          <tr><td>Deflector</td><td>a charge that blocks one hit, back after 10&nbsp;s without one, then 6, then 3</td><td class="num">3</td><td>10, 20, 28</td></tr>
+          <tr><td>Attack Speed</td><td>+30% fire rate, flat per pick; 15% over twelve picks until 9 November</td><td class="num">6</td><td>any</td></tr>
+          <tr><td>Move Speed</td><td>+24% orbit and climb, flat per pick; 12% over eight picks until 9 November</td><td class="num">4</td><td>any</td></tr>
+          <tr><td>Max Health</td><td>+10 to the ceiling; +5 over eight picks until 9 November</td><td class="num">4</td><td>any</td></tr>
+          <tr><td>Shot Upgrade</td><td>double, then straight to sextuple; triple was a stage of its own until 9 November</td><td class="num">2</td><td>3, 8</td></tr>
+          <tr><td>Dash, offered as Dash II</td><td>4.5&nbsp;s off the dash&rsquo;s 10&nbsp;s cooldown in one pick, to 5.5; never under 4</td><td class="num">1</td><td>8</td></tr>
+          <tr><td>Slow Mo</td><td>the whole game at 0.4 for 5 real seconds on its button, once every 30&nbsp;s, then 10</td><td class="num">2</td><td>5, 9</td></tr>
+          <tr><td>Magnet</td><td>pickups drift in from 10 units away</td><td class="num">1</td><td>8</td></tr>
+          <tr><td>Deflector</td><td>a charge that blocks one hit, back after 10&nbsp;s without one, then 3</td><td class="num">2</td><td>6, 13</td></tr>
         </tbody>
       </table>
     </div>
+    <p>The table is the ladder of 9 November, when level-ups were halved and each pick came to do the work of two: 22 picks
+    where there were 43, with every ceiling where it was. Until then the abilities had three levels each, at 1.5&nbsp;s a Dash
+    pick, waits of 30, 20 and 10&nbsp;s on Slow Mo, 10, 6 and 3 on the Deflector and a reach of 4, 7 and 10 on the Magnet.
+    The reasoning and the bot run are under <a href="#run">Progression</a>.</p>
     <p>Skills depend on <code>ISkillTarget</code>, not on <code>Player</code> — which is what lets selection be tested without a scene. <code>SkillPool</code> takes an injectable random function for the same reason.</p>
     <div class="note">
       <div class="label">Slow Mo keeps a clock of its own</div>
@@ -1047,7 +1057,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">Healing is no longer one of them</div>
       <p><code>Heal</code> used to sit in the pool as the unlimited entry, which meant the commonest way to meet healing was as one of three pickups on a level-up — so <strong>taking the heal forfeited two upgrades, and taking an upgrade forfeited the heal</strong>. That is a trade between a reward for killing well and the thing you need when you are not, and it is not a decision worth putting in front of anyone.</p>
       <p>It went out on its own cadence after that, +2 every second level and outside any offer, and since 22 September it is not tied to levelling at all: it comes as salvage from wrecks, paced by how hurt the player is &mdash; see <a href="#run">Progression</a>. <code>SkillSelect</code> filters the type out of its pool in code rather than trusting the scene list, because putting it back is a single click with a confusing symptom.</p>
-      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are forty-two picks now, across eight upgrades, more than a full run has level-ups — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
+      <p>The pool used to run dry, since the three upgrades totalled eight picks between them and a run reached the end of its build around level nine. There are twenty-two picks now, across eight upgrades, where there were forty-three until 9 November: still more than a full run has level-ups — so the empty draw is a guard rather than the usual ending. It leaves a piece of salvage when it happens, because a level-up that puts nothing on the ring reads as broken pickups rather than as a finished build.</p>
     </div>
 
     <div class="note">
@@ -1391,7 +1401,7 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
 
   <section id="run">
     <div class="part-head"><h2>Progression and ending a run</h2></div>
-    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 4.5 since 1 October, 3 before &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 45 &mdash; 35 until 9 November. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
+    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 4.5 since 1 October, 3 before &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 180, from a first level that costs 95 &mdash; 50 and a rise of 35 until 9 November. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
     <div class="warn">
       <div class="label">Three ways experience was lost or misreported, until 24 September</div>
       <p><strong>A subscription that could miss.</strong> <code>Player</code> subscribed from <code>OnEnable</code>, and Unity orders <code>Awake</code> and <code>OnEnable</code> across objects only by execution order &mdash; 0 for both &mdash; so whether <code>EXP.Awake</code> had run yet came down to the order the scene loaded its objects in. When it had not, a null check skipped the only attempt and every kill of the run earned nothing. <code>EXP</code> wakes first now, and the player binds again from <code>Start</code> to the instance it remembers, so a second try cannot subscribe twice.</p>
@@ -1402,6 +1412,16 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
     <h3>A level-up is a choice on the ring</h3>
     <p>Levelling used to apply a random skill the instant the bar filled. That is the single biggest reason the player felt strong from the first minute: every upgrade was free, arrived without being asked for, and cost no attention at a moment when attention is the only currency the game charges.</p>
     <p>Three glowing pickups now go out around the orbit instead, spaced far enough apart that they cannot all be reached — committing to one is giving up the others, which is the whole point of handing upgrades out this way. A skill is drawn from the pool when the offer goes out but <strong>charged against its pick limit only when one is actually collected</strong>, so the two the player flew past are still available next level. An offer is not a pick. It waits 28 seconds for an answer, twice the 14 it had until 22 September, and flashes through its last three.</p>
+    <p><strong>A missed offer comes back once.</strong> Since 9 November an offer that runs out with nothing taken is put out
+    again eight seconds later, drawn afresh at the level the player has by then; the wait is
+    <code>PickupSpawner.offerReturnDelay</code>. The second showing does not come back if it is missed too, and nothing
+    returns once the run is decided. A level-up is worth two of the old ones now, and one lost to a bad moment had come
+    to cost too much. <code>PickupOfferRefreshTests</code> holds it; it has not been seen in a played run.</p>
+    <p><strong>The draw remembers what it has shown.</strong> <code>SkillPool.DrawOffer</code> puts a gated pick that has
+    just opened into the next offer, so Slow Mo opening at level 5 no longer waits on the dice, and fills the rest of the
+    offer leaning three to one toward whatever has been shown least. It is a lean and not a rota, so the same skill can
+    still come up twice running. A replacement for a pickup already on the ring uses the plain draw and is not
+    counted.</p>
     <p>Offers overlap, though &mdash; levelling again before one is answered puts a second set out &mdash; and the same skill can sit in both. Taking it from one re-checks the rest. A pickup whose next stage is still open is relabelled for it; one whose level gate or pick limit now shuts it becomes another skill the pool can still field, in the same place and with the time it had left; and with nothing left to field it leaves the ring, and if that empties its offer, a piece of salvage takes its place, as it does for a level-up with the pool spent. Until 24 September the second pickup kept its label and handed over the next stage regardless: Shot Upgrade in the level-4 and level-5 offers gave Triple Shot at level 5 instead of 10, from a pickup reading <em>Double Shot</em>. <code>SkillSelect</code> checks again as a skill is applied, so nothing the re-check misses can pass a gate either.</p>
     <p>Health is not part of a level-up any more. It rode along every second level, outside the offer, until 22 September; it comes from wrecks now &mdash; see <em>Health comes from wrecks</em> below.</p>
     <div class="warn">
@@ -1444,7 +1464,7 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
         <tbody>
           <tr><td>Attack Speed</td><td>Attack Speed Increased!</td><td>Attack Speed</td></tr>
           <tr><td>Max Health</td><td>Max HP Increased!</td><td>Max HP</td></tr>
-          <tr><td>Shot Upgrade</td><td>Double Shot! &hellip;</td><td>Double Shot / Triple Shot / SexTUPLO Shot</td></tr>
+          <tr><td>Shot Upgrade</td><td>Double Shot! &hellip;</td><td>Double Shot / SexTUPLO Shot</td></tr>
         </tbody>
       </table>
     </div>
@@ -1582,9 +1602,41 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     </div>
     <p>The same rates over two thirds of the time is a third fewer enemies, 892 where there were 1331, and the build the boss was tuned against comes from experience. So <em>Experience Multiplier</em> went from 3 to 4.5, which by the arithmetic still brings a ship that kills everything to level 36 as the boss arrives, where 3 would have left it at 30. One bot run reached level 35 at 397&nbsp;s, against 585 on the ten-minute run, with every fifth level landing at about two thirds of its old time.</p>
     <p>On 9 November the waves tightened again &mdash; every stream&rsquo;s base interval multiplied by 0.75 and the two Fighter streams pulled forward from 120 and 160&nbsp;s to 60 and 100&nbsp;s &mdash; after Ian played two fresh-install runs on <code>26_1108-1225_release</code> and found the run a bit too easy. More enemies in the same 400 seconds meant more experience, so the Player&rsquo;s <code>levelCostIncrease</code> went from 35 to 45 at the same time to keep the ship arriving at the boss near level 35. It was bot-checked once after the change, with Ian&rsquo;s own judging run still to come.</p>
+
+    <h4>Half the level-ups, at the same power</h4>
+    <p>The same day Ian asked for half as many level-ups, each buffed so the ship reaches the power it did: not a nerf and
+    not a buff. The curve went from 50 rising by 45 to <strong>95 rising by 180</strong>. That puts each new level-up
+    midway between two of the old ones, so the ship is never more than one old pick ahead of the old curve or behind it,
+    and a run that earned level 36 earns 18 or 19. The stacking picks doubled and their counts halved, to the same
+    ceilings: Attack Speed +30% six times, Move Speed +24% four times, Max Health +10 four times. Both speeds add a share
+    of the starting value, so doubling the step is exact.</p>
+    <p>The fifteen ability picks became eight, or they would have crowded the stacking picks out and made the change a
+    nerf. Shot Upgrade goes from Double straight to Sextuple, Slow Mo and the Deflector keep a first pick and one upgrade,
+    and Dash and Magnet are one pick each at their old final values. A new gate is the old one plus one, halved and
+    rounded up, and a merged pick takes the middle of the gates it replaces. <code>Player.shotStageByPick</code> names the
+    stage each Shot pick reaches, 1 then 3 in the scene; left empty, a pick moves one stage as it always did. The debug
+    menu&rsquo;s boss kits were halved to match.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>One bot run each</th><th class="num">Old ladder</th><th class="num">Halved</th></tr></thead>
+        <tbody>
+          <tr><td>Won at</td><td class="num">533&nbsp;s</td><td class="num">552&nbsp;s</td></tr>
+          <tr><td>Level as the boss arrived</td><td class="num">34 to 35</td><td class="num">18</td></tr>
+          <tr><td>Level at the end</td><td class="num">36</td><td class="num">19</td></tr>
+          <tr><td>Kills</td><td class="num">1,130</td><td class="num">1,151</td></tr>
+          <tr><td>Boss fight</td><td class="num">133&nbsp;s</td><td class="num">152&nbsp;s</td></tr>
+          <tr><td>Kills by 100, 200 and 300&nbsp;s</td><td class="num">65, 190, 453</td><td class="num">62, 201, 506</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The halved run took 18 picks from 18 level-ups: every ability, four Attack Speed, four Move Speed and two Max
+    Health, which is 36 of the old picks against the 35 the old ladder&rsquo;s run had level-ups for. The 19&nbsp;s between
+    the two wins is inside what the scan&rsquo;s three runs varied by, 466 to 515&nbsp;s, so it reads as neutral. A level-up
+    comes about every 23 seconds where it came every 11. <code>26_1109-1754_halfLevels</code> is the build for Ian&rsquo;s
+    own run.</p>
     <div class="note">
       <div class="label">What the squeeze does not keep</div>
-      <p>A level-up comes about every 11 seconds where it came every 17, so there are more trips to a pickup per minute. Cooldowns were not touched, so the dash, Slow Mo and the Deflector are used two thirds as often in a run. And the boss did not shrink, so it is about a quarter of a session where it was a seventh. The pick counts are today&rsquo;s rather than the table&rsquo;s above: twelve Attack Speed picks at 15% reach a volley every 0.179&nbsp;s, still short of the 0.15 floor.</p>
+      <p>A level-up comes about every 11 seconds where it came every 17, so there are more trips to a pickup per minute. Cooldowns were not touched, so the dash, Slow Mo and the Deflector are used two thirds as often in a run. And the boss did not shrink, so it is about a quarter of a session where it was a seventh. The pick counts were the ladder&rsquo;s of 1 October rather than the table&rsquo;s above: twelve Attack Speed picks at 15% reach a volley every 0.179&nbsp;s, still short of the 0.15 floor, and so do the six at 30% of 9 November.</p>
     </div>
 
     <p><strong>Back Shot is gone.</strong> It was the one pick that changed what the gun does rather than how
@@ -2929,13 +2981,13 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
   <section id="tests">
     <div class="part-head"><h2>The test suite</h2></div>
-    <p>871 tests across 83 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
+    <p>879 tests across 83 suites. They cover the logic that was extracted <em>out</em> of MonoBehaviours — which is the point: everything testable is testable because it was deliberately separated from Unity objects.</p>
     <div class="scroll">
       <table>
         <thead><tr><th>Suite</th><th class="num">Tests</th><th>What it protects</th></tr></thead>
         <tbody>
           <tr><td><code>DisplayOptionsTests</code></td><td class="num">33</td><td>resolution filtering, the inverted vendor quality enums, the frame cap that must not land on the refresh rate, and the caps VSync can hold by itself</td></tr>
-          <tr><td><code>SkillPoolTests</code></td><td class="num">26</td><td>both original skill bugs, that an offer is not a pick, and that each pick waits for its own level</td></tr>
+          <tr><td><code>SkillPoolTests</code></td><td class="num">31</td><td>both original skill bugs, that an offer is not a pick, that each pick waits for its own level, that an offer carries a pick that has just opened and leans toward what has been shown least, and that the shipped pool holds 22 picks</td></tr>
           <tr><td><code>CameraFramingTests</code></td><td class="num">30</td><td>that the default is 7 out at 78.6&deg; and the band is sized for 9 out at 65&deg;, that the lens presets frame the band alike and the whole-band ones fit the band they are given, and that a ship on the ceiling clears the top of the HUD with equal room above and below the band</td></tr>
           <tr><td><code>TorpedoSteerTests</code></td><td class="num">29</td><td>that a torpedo hits a still player and misses a late dodge by the real hit boxes, lets a timed dive to the floor escape, gains on a player who runs without ever catching them, turns no faster than it may, never snaps its heading, and arrives at an edge running along it</td></tr>
           <tr><td><code>MuzzleRowsTests</code></td><td class="num">20</td><td>grouping a bank of muzzles into the rows the artist modelled, pinned against the real heights off the boss</td></tr>
@@ -2973,7 +3025,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
           <tr><td><code>FrameLimiterTests</code></td><td class="num">10</td><td>the frame cap&rsquo;s schedule: an early frame waits for its slot, a late one starts at once with no catch-up burst, and cheap frames keep an exact rhythm</td></tr>
           <tr><td><code>RunOutcomeTests</code></td><td class="num">6</td><td>victory event, no leaked subscribers</td></tr>
           <tr><td><code>ExpTests</code></td><td class="num">6</td><td>the experience contract, and that <code>EXP</code> wakes before the player does</td></tr>
-          <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">5</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage</td></tr>
+          <tr><td><code>PickupOfferRefreshTests</code></td><td class="num">8</td><td>that taking a skill from one offer re-checks the others: a stage still open is relabelled, one its gate or limit shuts becomes another skill, and an offer emptied that way leaves salvage; that an offer nobody took comes back once and an answered one does not; and that a Shot pick reaches the stage its list names</td></tr>
           <tr><td><code>RoundLandingTests</code></td><td class="num">3</td><td>that a round counts its hit once, even when a second enemy reports it after the first has spent it</td></tr>
           <tr><td><code>ShadowLadderTests</code></td><td class="num">7</td><td>that the Shadows row never asks a point light for a level its atlas cannot hold, that no tier defaults to Off, and that Ultra starts on Medium, its fog as well as its shadows</td></tr>
           <tr><td><code>MenuFocusTests</code></td><td class="num">11</td><td>where keyboard and pad focus lands when a screen opens &mdash; its first live control, or one authored and still live &mdash; and that a screen&rsquo;s horizontal sliders take left and right</td></tr>
@@ -3022,7 +3074,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
     <p>The table was brought up to date on 9 October 2026: every suite is in it, with its count from that day&rsquo;s run. The twenty-nine at the foot are the ones added since 26 September, largest first; the far trees&rsquo; suite went out with them on 9 October. The clouds&rsquo; suite gained three on 12 October. On 15 and 16 October the storm&rsquo;s lightning gained six, the cloud ring five, and the rising wall&rsquo;s suite is new.
     Later on 16 October the cloud and shadow ladders gained one each, and the three at the very foot are new: the ray-traced
-    ladder and the async compute A/B. On 30 October the shadow ladder&rsquo;s suite gained one, for Ultra&rsquo;s fog.</p>
+    ladder and the async compute A/B. On 30 October the shadow ladder&rsquo;s suite gained one, for Ultra&rsquo;s fog. On 9 November the skill pool&rsquo;s suite gained five and the offer refresh&rsquo;s three, for the halved ladder.</p>
     <div class="note">
       <div class="label">What the suite does not reach</div>
       <p>Almost none of the graphics work is covered, and that is a real gap rather than an oversight. A quality preset is a set of values written into a pipeline asset; what it is worth checking is whether HDRP <em>reads</em> them, and that needs a running editor rather than an assertion. Both pipeline-clone defects were found by bisecting a live play session, and the two dead controls by reading the resolved volume stack — <code>Survival Chaos › Graphics › Report Graphics State</code> exists because that is the only way to ask.</p>
@@ -3053,7 +3105,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>Every migration — waves, enemies, the boss, the sky — was done by a tool that read the existing values and wrote the new form. None of it was transcribed by hand. That's why 21 spawners and 32 muzzle references transferred without a single typo.</p>
 
     <h3>Separate the rule from the Unity object</h3>
-    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 871 tests possible, and it's the single most repeatable idea here.</p>
+    <p><code>HealthState</code>, <code>SkillPool</code>, <code>SpawnMath</code>, <code>VolleyTimer</code>, <code>ShipMotion</code>, <code>ArenaGeometry</code>, and later <code>BarMotion</code>, <code>FrameTimeStats</code>, <code>AudioLevels</code>, <code>DisplayOptions</code>, <code>TorpedoSteer</code>, <code>SalvageClock</code> and <code>SlowMoCycle</code> — none of them are MonoBehaviours. That's what made 879 tests possible, and it's the single most repeatable idea here.</p>
 
     <h3>Put a seam where a swap is coming</h3>
     <p>The input facade was built <em>before</em> the package existed. When it arrived, the change was one class. The same shape would work for save systems, audio, or analytics.</p>
@@ -3202,7 +3254,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       time to show itself. The same day, <code>Boss.asset</code>&rsquo;s <code>maxHealth</code> went from 1,000 to 1,400,
       <code>BossEmitter.scuttleThreshold</code> from 90 to 400, every wave stream&rsquo;s interval by &times;0.75 with the two
       Fighter streams pulled forward from 120 and 160&nbsp;s to 60 and 100&nbsp;s, and the Player&rsquo;s
-      <code>levelCostIncrease</code> from 35 to 45. It was bot-checked once; Ian&rsquo;s own judging run is next.</li>
+      <code>levelCostIncrease</code> from 35 to 45, which the halved ladder replaced the same day with 95 rising by 180 (see
+      <a href="#run">Progression</a>). Each was bot-checked once, and <code>26_1109-1754_halfLevels</code> is the build for
+      Ian&rsquo;s own judging run: the pace of about 17 level-ups, a missed offer coming back, each ability turning up as it
+      opens, and whether the game is still too easy.</li>
       <li><strong>Friend testing and release are going through itch.io, after the 9 November scan and fix pass.</strong> On
       8 November Ian built <code>26_1108-1225_release</code> (534&nbsp;MB on Unity 6000.6.8f1) and chose itch.io over Steam for
       release and friend testing: about a day of store setup against weeks for Steam, and a free restricted page with
@@ -3377,8 +3432,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       two changes roughly cancel.</li>
       <li><strong>The pods passed.</strong> Whether red emplacements read against orange lava was open
       for a week; in the 11 September playtest they were always found, so they stay as they are.</li>
-      <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play.</li>
-      <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s, and then eight. A player who takes them all ends higher than the old pick left them, but one or two end a run lower than it did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
+      <li><strong>Overlapping offers stack their captions.</strong> Levelling again while an offer is still on the ring puts a second set out rather than replacing the first, which is deliberate — replacing it would quietly delete an upgrade the player had earned. Two pickups near the same bearing now stack two labels on top of each other, which was invisible when they were coloured shapes. Doubling the run made it likelier rather than rarer: a run reaches level twenty-one where it used to reach nine, so there are more than twice as many level-ups in play. Since 9 November there are half as many again, and in the one bot run on the halved ladder no ten-second sample had two offers out at once, where the old ladder&rsquo;s run had.</li>
+      <li><strong>Max Health is optional now in a way it was not.</strong> One guaranteed +20 became four +5s, then eight, and since 9 November four +10s. A player who takes them all ends higher than the old pick left them, but one or two end a run lower than it did. Whether that reads as a meaningful choice or as a nerf is a question only playing answers.</li>
       <li><strong>Whether ray-traced reflections earn their cost.</strong> They work: selected in a build on DXR hardware
       they visibly changed the image. On 16 October, in the editor on a held frame early in a run, they cost 2.5&nbsp;ms on RT
       Low and 3.8 on RT High over screen-space High, and the only reflection that changed was the ship&rsquo;s glass dome,
@@ -3449,7 +3504,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.8f1) · HDRP 17.6 · branch <code>main</code> · 435 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.8f1) · HDRP 17.6 · branch <code>main</code> · 436 commits
   </footer>
 
 </div>
