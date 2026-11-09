@@ -162,8 +162,15 @@ namespace SurvivalChaos
                 ReleaseSlow();
 
                 // Only when it runs out in play. A ship going away mid-slowdown
-                // is not the moment to announce that time is back.
-                PlayCue(GameSounds.Instance != null ? GameSounds.Instance.SlowMoEnd : null);
+                // is not the moment to announce that time is back, and nor is
+                // an ending beat: this clock runs on through the death and
+                // victory beats, so a slowdown expiring in one played the cue
+                // over the explosion. The release above still happens there;
+                // only the cue is dropped.
+                if (!RunOutcome.Decided)
+                {
+                    PlayCue(GameSounds.Instance != null ? GameSounds.Instance.SlowMoEnd : null);
+                }
             }
 
             if (GameInput.SlowMoPressed)

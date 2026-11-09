@@ -287,11 +287,11 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 433 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 435 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
-      <div class="stat"><b>433</b><span>commits</span></div>
+      <div class="stat"><b>435</b><span>commits</span></div>
       <div class="stat"><b>871</b><span>tests</span></div>
-      <div class="stat"><b>161</b><span>runtime scripts</span></div>
+      <div class="stat"><b>162</b><span>runtime scripts</span></div>
       <div class="stat"><b>15</b><span>content assets</span></div>
       <div class="stat"><b>85</b><span>bugs fixed</span></div>
     </div>
@@ -781,6 +781,25 @@
       pixels of sky between twigs that the clouds&rsquo; upscale drew as black, solid cloud. Found on a frozen frame, fixed in
       the project&rsquo;s copy of the clouds shader and finished by Codex the same day; Ian checked
       <code>26_1102-1650_cloudSpecks</code> and the tips were clean.</li>
+      <li><strong>Unity 6000.6.8f1, and a Release build for friend testing</strong> &mdash; on 8 November (<code>5cfaba8</code>)
+      the editor moved to 6000.6.8f1 alongside Project Auditor Rules 3.2.0 and pipeline 0.10.0-exp.1, whose command names are
+      unchanged while its replies drop the outer <code>&quot;data&quot;</code> wrapper. Ian built
+      <code>26_1108-1225_release</code> (534&nbsp;MB) and chose itch.io over Steam for release and friend testing: about a day
+      of store work rather than weeks, and a free restricted page with <code>butler</code> uploads.</li>
+      <li><strong>An eight-lane pre-release scan, a difficulty retune, and pipeline-state warm-up</strong> &mdash; on 9 November
+      <a href="https://claude.ai/artifact/JHoNHWn4n2mRikHSxkip4V">the scan report</a> checked tests and Project Auditor, a
+      Gemini code review, unused assets, fresh-install release readiness, three unassisted bot runs, an A/B performance bench
+      against the 16 October build (level early in the run, with the cloud speck fix intact), and the docs. Ian played two
+      fresh-install runs on <code>26_1108-1225_release</code> and found the game a bit too easy and the boss&rsquo;s third act
+      barely seen: the Leviathan went from 1,000 to 1,400 hit points and its Scuttle from 90 to 400, every wave stream&rsquo;s
+      interval was multiplied by 0.75 with Fighters pulled forward to 60 and 100&nbsp;s, and <code>levelCostIncrease</code>
+      went from 35 to 45 so the ship still reaches the boss near level 35. The same pass added
+      <code>PipelineStateWarmup</code> with traced Direct3D12 <code>.graphicsstate</code> collections for Medium and Ultra
+      (leaving the ~9&nbsp;s first-launch freeze unchanged in a cold test, while roughly halving the arena-entry hitch
+      and early in-play stutter), stopped lost runs paying XP or sounding horns and the Slow Mo end cue during an ending beat,
+      fixed a one-frame reuse edge in <code>PoolMotionReset</code>, excluded five build-rewritten assets from
+      <code>BuildStampWriter</code>, removed twelve unused assets and 581&nbsp;MB of old captures in <code>Assets/Temp</code>,
+      turned off the Unity splash screen, and named Release builds <code>Survival Chaos.exe</code>.</li>
     </ul>
     <p>27 September has no commits. Each line above from 28 to 30 September is an item on the open list, with its
     measurements; the parts of it that changed how a system works are written into Part III below.</p>
@@ -1020,7 +1039,7 @@ transform.LookAt(pos);</code></pre>
       <div class="label">Slow Mo keeps a clock of its own</div>
       <p>It took Piercing Rounds&rsquo; place on 25 September, the same day the dash went from every second to every ten, and it is the other answer that arrives late: E, or Y or the left trigger, slows the whole game to 0.4 for five seconds &mdash; three as built, five since the same evening, set in the Inspector. Everything slows, the ship with it, so what it buys is time to see and steer rather than speed. The first pick grants it and the next two shorten the wait, 30 to 20 to 10 since 1 October, where they were 24 and 18.</p>
       <p>Neither of Unity&rsquo;s clocks would do for timing it. Game time is the thing being slowed, so three seconds of it at 0.4 would last seven and a half; unscaled time runs on behind the pause menu, so a slowdown would expire and the wait run down while nothing was moving. <code>PlayerSlowMo</code> counts unpaused real seconds itself, clamped per frame the way Unity clamps game time, and hands them to <code>SlowMoCycle</code>, which holds the rules with no Unity object attached. The wait runs from the start of one use to the start of the next, where the dash&rsquo;s runs from the end of the burst, because &ldquo;every thirty seconds&rdquo; is what it promises.</p>
-      <p>The speed itself goes through <code>RunTime</code>, which multiplies the ability&rsquo;s share with the debug menu&rsquo;s rather than replacing it, so one ending cannot undo the other, and pause and the end of a run still win. The HUD&rsquo;s row above the hull bar is three bars now, dash, deflector and Slow Mo, a third each; the last stays hidden until the pick, drains over a slowdown and refills over the wait. In play the bot&rsquo;s slowdowns measured 3.01&nbsp;s of real time and 1.2 of game time, 30.4&nbsp;s apart. The length is <code>PlayerSlowMo</code>&rsquo;s Duration, and a change to it in play applies at once, to a slowdown already running as well, counted from that slowdown&rsquo;s start: set to 5, one lasted 4.97&nbsp;s, and one cut to 1.5 part-way through ended at 1.49.</p>
+      <p>The speed itself goes through <code>RunTime</code>, which multiplies the ability&rsquo;s share with the debug menu&rsquo;s rather than replacing it, so one ending cannot undo the other, and pause and the end of a run still win. When a slowdown expires during a death or victory beat it still releases its share of the time scale, and since 9 November it leaves out the <code>SlowMoEnd</code> cue once <code>RunOutcome.Decided</code> is set, so the ending beat is not interrupted by the ability&rsquo;s sound. The HUD&rsquo;s row above the hull bar is three bars now, dash, deflector and Slow Mo, a third each; the last stays hidden until the pick, drains over a slowdown and refills over the wait. In play the bot&rsquo;s slowdowns measured 3.01&nbsp;s of real time and 1.2 of game time, 30.4&nbsp;s apart. The length is <code>PlayerSlowMo</code>&rsquo;s Duration, and a change to it in play applies at once, to a slowdown already running as well, counted from that slowdown&rsquo;s start: set to 5, one lasted 4.97&nbsp;s, and one cut to 1.5 part-way through ended at 1.49.</p>
       <p>Piercing Rounds went with nothing left over. The one thing it had added that was worth keeping, a round counting its hit only once when the sweep and the physics system both report it, stays as a flag on <code>ShootScript</code>, and <code>RoundLandingTests</code> holds it.</p>
     </div>
 
@@ -1055,16 +1074,16 @@ transform.LookAt(pos);</code></pre>
       <table>
         <thead><tr><th class="num">From</th><th>What arrives</th><th>Cadence</th></tr></thead>
         <tbody>
-          <tr><td class="num">t = 0</td><td>Scouts</td><td>every 8–10s</td></tr>
-          <tr><td class="num">t ≈ 15–20</td><td>Obstacles (12 streams)</td><td>60s, tightening to ~17s</td></tr>
-          <tr><td class="num">t ≈ 120–160</td><td>Fighters</td><td>every 20s</td></tr>
-          <tr><td class="num">t ≈ 187–227</td><td>Heavies</td><td>every 60s</td></tr>
+          <tr><td class="num">t = 0</td><td>Scouts</td><td>every 6–7.5s</td></tr>
+          <tr><td class="num">t ≈ 15–20</td><td>Obstacles (12 streams)</td><td>45s, tightening to ~13s</td></tr>
+          <tr><td class="num">t = 60–100</td><td>Fighters</td><td>every 15s</td></tr>
+          <tr><td class="num">t ≈ 187–227</td><td>Heavies</td><td>every 45s</td></tr>
           <tr><td class="num">t = 400</td><td>The boss</td><td>once</td></tr>
           <tr><td class="num">t = 402</td><td>all spawning stops</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
-    <p>Those arrival times have moved twice. They doubled when the run went from five minutes to ten, and the table kept the old ones for a while afterwards: the streams were restretched and the prose describing them was not. On 1 October they came down to two thirds, with the run at 400 seconds &mdash; see <a href="#run">Progression</a>. That cutoff was a magic <code>301</code> buried in a method that also contained dead code. It isn't debris — it's the design decision <em>"stop spawning trash once the boss arrives,"</em> and it's a named field on the asset now, which is the only reason doubling the run was a matter of changing a number rather than finding one.</p>
+    <p>Those arrival times and cadences have moved three times. They doubled when the run went from five minutes to ten, and the table kept the old ones for a while afterwards: the streams were restretched and the prose describing them was not. On 1 October they came down to two thirds, with the run at 400 seconds &mdash; see <a href="#run">Progression</a>. On 9 November, after Ian played two fresh-install runs on <code>26_1108-1225_release</code> and found the waves a bit too easy, every stream&rsquo;s base interval was multiplied by 0.75 (Scouts from 8 and 10&nbsp;s to 6 and 7.5, Obstacles from 60 to 45, Fighters from 20 to 15, Heavies from 60 to 45) and the two Fighter streams moved forward from 120 and 160&nbsp;s to 60 and 100&nbsp;s. That cutoff, 402 seconds now, was once a magic <code>301</code> buried in a method that also contained dead code. It isn't debris — it's the design decision <em>"stop spawning trash once the boss arrives,"</em> and it's a named field on the asset now, which is the only reason retiming the run was a matter of changing a number rather than finding one.</p>
 
     <h3>Enemy stats</h3>
     <div class="scroll">
@@ -1075,7 +1094,7 @@ transform.LookAt(pos);</code></pre>
           <tr><td>Drone</td><td class="num">3</td><td class="num">5</td><td>Enemy 3</td></tr>
           <tr><td>Fighter</td><td class="num">2</td><td class="num">15</td><td>Enemy</td></tr>
           <tr><td>Heavy</td><td class="num">5</td><td class="num">15</td><td>Enemy 1</td></tr>
-          <tr><td>Boss</td><td class="num">1000</td><td class="num">50</td><td>Boss</td></tr>
+          <tr><td>Boss</td><td class="num">1400</td><td class="num">50</td><td>Boss</td></tr>
         </tbody>
       </table>
     </div>
@@ -1170,8 +1189,8 @@ transform.LookAt(pos);</code></pre>
         <thead><tr><th>Act</th><th class="num">Spends</th><th>What is true</th></tr></thead>
         <tbody>
           <tr><td><strong>Armoured</strong></td><td class="num">240</td><td>the hull takes nothing; the three emplacements are the only targets, 80 each</td></tr>
-          <tr><td><strong>Exposed</strong></td><td class="num">670</td><td>every gun is dead, the hull opens, and the boss starts ramming and shedding wreckage</td></tr>
-          <tr><td><strong>Scuttle</strong></td><td class="num">90</td><td>every muzzle at once, wrecked banks included</td></tr>
+          <tr><td><strong>Exposed</strong></td><td class="num">760</td><td>every gun is dead, the hull opens, and the boss starts ramming and shedding wreckage</td></tr>
+          <tr><td><strong>Scuttle</strong></td><td class="num">400</td><td>every muzzle at once, wrecked banks included</td></tr>
         </tbody>
       </table>
     </div>
@@ -1202,6 +1221,13 @@ transform.LookAt(pos);</code></pre>
       the open hull took all of it, 670 where it was 270, and the second act went from about 10&nbsp;s to
       34 and 51&nbsp;s in the bot&rsquo;s runs. The whole fight ran 99&nbsp;s with twelve Attack Speed picks and
       118&nbsp;s with eight.</p>
+      <p>On 9 November both the pool and the Scuttle went up &mdash; <code>Boss.asset</code> from <strong>1000 to
+      1400</strong> and <code>BossEmitter.scuttleThreshold</code> from <strong>90 to 400</strong>, leaving 760 for
+      the open hull while the three pods stayed at 80. In Ian&rsquo;s two fresh-install runs on
+      <code>26_1108-1225_release</code> and in the scan&rsquo;s three bot runs, a level-35 ship with Sextuple Shot
+      and a dozen Attack Speed picks burned through the 90-point Scuttle in one to five seconds, so the final act
+      sometimes barely had time to show itself. In the one bot run since, the boss fight lasted 133&nbsp;s, where
+      it had taken 67 to 116.</p>
     </div>
     <p>One pool for all three, so the bar moves throughout &mdash; including through a phase where the hull itself is taking nothing &mdash; and retuning an emplacement cannot quietly change what the boss is worth. <code>BossPhaseState</code> holds the order with no Unity object attached, because &ldquo;once, and never backwards&rdquo; is exactly the kind of rule that is impossible to check by playing: a phase that can be re-entered looks identical to one that cannot until the frame where two bullets arrive together.</p>
 
@@ -1365,7 +1391,7 @@ after    yaw  90 -&gt; keel 13.73     yaw 270 -&gt; keel 13.73</code></pre>
 
   <section id="run">
     <div class="part-head"><h2>Progression and ending a run</h2></div>
-    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 4.5 since 1 October, 3 before &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 35. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
+    <p><code>EXP</code> is a singleton event bus. Enemies call <code>EXP.Instance.AddEXP()</code> with their reward and where they died; <code>Player</code> subscribes, multiplies the reward by its <em>Experience Multiplier</em> &mdash; 4.5 since 1 October, 3 before &mdash; and uses that one number for everything: the bar, the figure that rises from the kill, and the run&rsquo;s total. At each threshold it counts the level, calls <code>SkillSelect.PickSkill()</code> and raises the requirement by 45 &mdash; 35 until 9 November. What the kill brought past the line carries into the next level, and a reward that covers two thresholds pays for both.</p>
     <div class="warn">
       <div class="label">Three ways experience was lost or misreported, until 24 September</div>
       <p><strong>A subscription that could miss.</strong> <code>Player</code> subscribed from <code>OnEnable</code>, and Unity orders <code>Awake</code> and <code>OnEnable</code> across objects only by execution order &mdash; 0 for both &mdash; so whether <code>EXP.Awake</code> had run yet came down to the order the scene loaded its objects in. When it had not, a null check skipped the only attempt and every kill of the run earned nothing. <code>EXP</code> wakes first now, and the player binds again from <code>Start</code> to the instance it remembers, so a second try cannot subscribe twice.</p>
@@ -1555,6 +1581,7 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       </table>
     </div>
     <p>The same rates over two thirds of the time is a third fewer enemies, 892 where there were 1331, and the build the boss was tuned against comes from experience. So <em>Experience Multiplier</em> went from 3 to 4.5, which by the arithmetic still brings a ship that kills everything to level 36 as the boss arrives, where 3 would have left it at 30. One bot run reached level 35 at 397&nbsp;s, against 585 on the ten-minute run, with every fifth level landing at about two thirds of its old time.</p>
+    <p>On 9 November the waves tightened again &mdash; every stream&rsquo;s base interval multiplied by 0.75 and the two Fighter streams pulled forward from 120 and 160&nbsp;s to 60 and 100&nbsp;s &mdash; after Ian played two fresh-install runs on <code>26_1108-1225_release</code> and found the run a bit too easy. More enemies in the same 400 seconds meant more experience, so the Player&rsquo;s <code>levelCostIncrease</code> went from 35 to 45 at the same time to keep the ship arriving at the boss near level 35. It was bot-checked once after the change, with Ian&rsquo;s own judging run still to come.</p>
     <div class="note">
       <div class="label">What the squeeze does not keep</div>
       <p>A level-up comes about every 11 seconds where it came every 17, so there are more trips to a pickup per minute. Cooldowns were not touched, so the dash, Slow Mo and the Deflector are used two thirds as often in a run. And the boss did not shrink, so it is about a quarter of a session where it was a seventh. The pick counts are today&rsquo;s rather than the table&rsquo;s above: twelve Attack Speed picks at 15% reach a volley every 0.179&nbsp;s, still short of the 0.15 floor.</p>
@@ -1576,7 +1603,7 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <div class="warn">
       <div class="label">The last hit of a fight could swap the ending</div>
       <p>Both endings are reached only through a hit: the player&rsquo;s death through <code>Player.TakeHit</code>, the boss&rsquo;s through its hull and its emplacements. Neither asked whether the run was already over, and stopping time does not stop the physics step an ending happens in &mdash; hits already queued in it, from the engine and from the rounds&rsquo; own sweeps, still arrive. The death and victory screens are sibling screens, so whichever ending landed second closed the first: a lethal round in the same step as the boss&rsquo;s last point would have put the death screen over the win, and the reverse was as possible. It was found by reading the code on 25 September, not in play.</p>
-      <p><strong>The first ending stands.</strong> Once <code>RunOutcome.RunEnded</code> is set the player takes no hit and consumes no ram, and neither the hull nor an emplacement takes a round. The boss&rsquo;s final experience and kill still count, because they are paid inside its own death after it has ended the run. <code>RunEndingTests</code> drives each of those handlers with the run already over, and in play a beam hit behind the death screen left the player&rsquo;s hull bar at 18.</p>
+      <p><strong>The first ending stands.</strong> Once <code>RunOutcome.RunEnded</code> is set the player takes no hit and consumes no ram, and neither the hull nor an emplacement takes a round. The boss&rsquo;s final experience and kill still count, because they are paid inside its own death after it has ended the run. Since 9 November, <code>Player.HandleEXPChange</code> also returns immediately when <code>RunOutcome.Decided &amp;&amp; !RunOutcome.Won</code>: rounds still in flight when the ship dies keep flying during the 1.2&nbsp;s death beat, and without that guard a stray kill floated <em>+XP</em> over the wreck, filled the bar and could play the level-up sound over the explosion; won runs are left as they are. <code>RunEndingTests</code> drives each of those handlers with the run already over, and in play a beam hit behind the death screen left the player&rsquo;s hull bar at 18.</p>
     </div>
 
     <h3>What the run was, once it is over</h3>
@@ -1615,8 +1642,9 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <ul>
       <li><strong>The death beat.</strong> The game runs at a quarter for 1.2&nbsp;s while the ship breaks up, the music
       fades and a pad rumbles, then the card. The run is lost from the beat&rsquo;s first frame: nothing hurts the
-      ship, nothing pauses, and no round still flying can take the boss&rsquo;s last point and put a victory over it.
-      The dials are Death Beat Seconds and Death Beat Speed on the Player.</li>
+      ship, nothing pauses, kills by rounds still in flight pay no experience, and no round still flying can take the
+      boss&rsquo;s last point and put a victory over it. The dials are Death Beat Seconds and Death Beat Speed on the
+      Player.</li>
       <li><strong>The Leviathan&rsquo;s death.</strong> A hold of 0.15&nbsp;s on the hit, then a quarter speed while blasts
       run along the hull from the emplacements outward, and the card 2.5&nbsp;s after the hit. It runs on the
       ship&rsquo;s own beat, marked as a win, so the music plays on.</li>
@@ -1624,7 +1652,10 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
       at 2% rather than stopping, so a dash pressed in it still goes.</li>
     </ul>
     <p>Two warnings came with them. A horn sounds far off ten seconds before the Leviathan arrives and again, closer,
-    as it does; and on its last hit point the ship has a heartbeat every 0.9&nbsp;s of game time until salvage lifts
+    as it does &mdash; and since 9 November <code>Timer.Update</code> stops past the clock and slider once
+    <code>RunOutcome.Decided</code> is set, so dying just before 390 or 400&nbsp;s cannot sound either horn over the
+    explosion or bring up the boss bar behind the end card. On its last hit point the ship has a heartbeat every
+    0.9&nbsp;s of game time until salvage lifts
     it. The Ship Lost card&rsquo;s first line names what ended the run, because every hit carries its source now, and
     a test fails if a round&rsquo;s prefab is renamed and its hits lose their name.</p>
 
@@ -1840,8 +1871,10 @@ Label  TextMeshPro/Distance Field   1 pass,   LightMode &quot;&quot;</code></pre
     <h3>The volcano keeps the run&rsquo;s time</h3>
     <p><code>Eruption</code> turns the run&rsquo;s clock into one level from 0 to 1 and moves numbers on things that were already drawn:
     the lava&rsquo;s glow and how much of it is molten, the crater&rsquo;s light, the plume&rsquo;s height and thickness, and the warm fill
-    on the ships. The level climbs to three quarters by the 400th second, swells by a quarter as each new kind of enemy arrives, and goes
-    to full over three seconds when the Leviathan does. <code>EruptionCurve</code> is the arithmetic, kept apart so that tests can ask it.
+    on the ships. The level climbs to three quarters by the 400th second, swells by a quarter as each new kind of enemy arrives &mdash; at
+    14.67, 60, 100, 186.67 and 226.67&nbsp;s since 9 November, when the two Fighter streams moved forward from 120 and 160&nbsp;s &mdash;
+    and goes to full over three seconds when the Leviathan does. <code>EruptionCurve</code> is the arithmetic, kept apart so that tests can
+    ask it.
     The clock is the <code>WaveDirector</code>&rsquo;s, and it reads nothing until the director has started: for three days the volcano
     asked before that, and any run after the first opened on the Leviathan&rsquo;s eruption.</p>
     <p><code>EruptionSparks</code> throws embers and lava bombs on each swell, the bombs landing well short of the lane.
@@ -2159,13 +2192,43 @@ float  edge  = HoloBand(d, _Border);</code></pre>
     held at zero while it is up, so a paused or finished run does not unpause to load and a new run starts only once
     it can be seen. A second press of Play does nothing. The old scene&rsquo;s music fades out over 0.4&nbsp;s under
     it, and the new track fades in over about a second once it has gone. Since 2 October it carries a line of advice
-    from <code>LoadingTips</code>.</p>
+    from <code>LoadingTips</code>, and since 9 November the Unity splash screen before the title is turned off
+    (<code>m_ShowUnitySplashScreen: 0</code>; Unity 6 Personal allows it, and the credits already say Made with
+    Unity).</p>
+    <p>On 9 November <code>PipelineStateWarmup</code> joined it to warm traced D3D12 graphics pipeline states from
+    <code>StreamingAssets/PipelineStates/Direct3D12_Medium.graphicsstate</code> (81 states across 65 shader variants,
+    721&nbsp;KB) and <code>Direct3D12_Ultra.graphicsstate</code> (83 states across 65 variants, 678&nbsp;KB). In
+    <code>BeforeSceneLoad</code> &mdash; in player builds only, skipped in the editor &mdash; it loads the collection
+    for the current graphics API and startup quality level alone (warming Ultra on a Medium fresh start held the
+    loading screen 0.4&nbsp;s longer for nothing), schedules the first 32 states on worker threads via
+    <code>GraphicsStateCollection.WarmUpProgressively</code> while the main thread loads <code>Menu</code>, completes
+    that batch in <code>LateUpdate</code> before <code>Menu</code> renders its first frame, and steps the remaining
+    arena states at 16 a frame across the title (or 32 while <code>LoadingScreen.Busy</code>). If the player presses
+    Play before it finishes, <code>LoadingScreen.WarmUp</code> waits for <code>!PipelineStateWarmup.Warming</code>
+    (up to <code>maximumWarmSeconds</code>) before clearing. Unity&rsquo;s <code>BeginTrace</code> records states only
+    in a <code>BuildOptions.Development</code> player &mdash; in a non-development build it writes a 292-byte header
+    with 0 states &mdash; so <code>Tools/claude/build.sh</code> takes <code>PSO_TRACE=1</code> to add
+    <code>Development</code>, and launching that build with <code>-psoTrace</code> records encountered states across
+    scenes and saves the file to <code>persistentDataPath</code> on quit. Tested across four true cold starts (registry
+    key deleted so the game starts on Medium, <code>dx12_pso_cache_lib.bin</code> deleted, and AMD&rsquo;s
+    <code>DxCache</code> and <code>DxcCache</code> cleared), the ~9&nbsp;s first-launch freeze on Frame 1 of the title
+    was unchanged (9.06&nbsp;s without, 9.19&nbsp;s with), most likely because that pause is HDRP&rsquo;s compute
+    shaders compiling in the driver, which <code>GraphicsStateCollection</code> does not cover; what the
+    warm-up cut was the arena-entry hitch on clearing the loading screen (from 1.60&nbsp;s to 1.06&nbsp;s cold) and early
+    in-play stutter during the run (from 6 hitches totalling 560&nbsp;ms, up to 150&nbsp;ms on the first wave and
+    level-up UI, down to a single 50&ndash;55&nbsp;ms hitch at +1.08&nbsp;s and none thereafter).</p>
 
     <h3>The pause screen, and the cards that end a run</h3>
     <p>The pause screen has Restart between Options and Main Menu. Restart, Main Menu and Quit each open
     &ldquo;Abandon this run?&rdquo; with No selected; the death and victory cards do not ask. Under its buttons the
     pause screen shows the run so far, written by the end card&rsquo;s own code, and its corner names the build:
-    the folder and the commit, with a + if the build had uncommitted changes. The run pauses by itself when the
+    the folder and the commit, with a + if the build had uncommitted changes. Until 9 November every one of the 40
+    launches in <code>hitches.log</code> had carried that +, because a player build rewrites five tracked files under
+    <code>Assets/</code> before the stamp is read; <code>BuildStampWriter</code> now excludes
+    <code>Assets/Settings/HDRenderPipelineGlobalSettings.asset</code>,
+    <code>Assets/Settings/Quality/HDRP High.asset</code>, <code>HDRP Medium.asset</code>,
+    <code>HDRP Ultra.asset</code> and <code>Assets/Scenes/Game/Game Baking Set.asset</code> alongside
+    <code>ProjectSettings</code>. The run pauses by itself when the
     window loses focus or the pad in use is unplugged, and the pointer is hidden while a run is being played.</p>
     <p>A is the dash and also presses the selected button, and both end cards open on Try Again, so an A pressed as
     the card came up started a new run unread. The buttons fade in over 0.6&nbsp;s and take no press until they are
@@ -2327,7 +2390,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <div class="warn">
       <div class="label">Reuse is a teleport, and the renderer reports it as movement</div>
       <p>A pooled object is moved to its new spawn point and switched back on. On its first frame the renderer therefore reports motion <strong>from wherever it last died</strong> — often right across the screen. Anything that reprojects the previous frame using motion vectors drags the old image along that path: FSR2 left visible ghost trails on the explosion particles, and TAA smeared more subtly. It happens constantly, at five volleys a second.</p>
-      <p>Motion is now suppressed for exactly one frame after reuse and then restored, because after that the object is moving normally and its motion vectors are worth having. The restore is done by a single component on the pool's root rather than a callback on each instance — at peak there are around 200 projectiles alive, and 200 per-frame callbacks to undo a flag is the cost the pool exists to avoid.</p>
+      <p>Motion is now suppressed for exactly one frame after reuse and then restored, because after that the object is moving normally and its motion vectors are worth having. The restore is done by a single component on the pool's root rather than a callback on each instance — at peak there are around 200 projectiles alive, and 200 per-frame callbacks to undo a flag is the cost the pool exists to avoid. One edge in that two-step queue was closed on 9 November: because <code>ObjectPool</code> is LIFO and <code>PooledInstance.SuppressMotionForOneFrame</code> returns early when an instance is still suppressed from the previous frame, a projectile that lived a single frame and was reused on the very next frame stayed in <code>restoring</code> and had its motion vectors turned back on in that same frame&rsquo;s <code>LateUpdate</code>, before being drawn at its new muzzle. <code>PoolMotionReset.Register</code> now removes the instance from <code>restoring</code> before adding it to <code>pending</code>.</p>
     </div>
     <p>The player and the boss build their pools up front. The boss sizes its own from its pivot count — an attack fires one projectile per pivot, so the pivots already say how many — and warms one volley per travel direction rather than the six its projectile lifetime implies, so its entrance does not stall to build a pool it will fill anyway.</p>
 
@@ -2507,7 +2570,14 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     <p>So the game camera overrides one frame setting, Asynchronous Execution, to off, and
     <code>GameCameraAsyncComputeTests</code> holds that it overrides nothing else. Switching a frame setting partway through a
     run, with FSR 3 or ray-traced GI on, could drop the card into a slow state for whole phases, 10 to 30&nbsp;ms of real
-    frames; runs that held one setting never showed it, so a frame setting is judged one setting per run.</p>
+    frames; runs that held one setting never showed it, so a frame setting is judged one setting per run. Re-run on 9 November
+    in <code>26_1109-0959_perfCheck</code> (Unity 6000.6.8f1, FSR 4.1.2 SDK 2.4.0, and the clouds twig-speck fix) against
+    <code>26_1016-1528_asyncOff</code>, on Ian&rsquo;s settings (Ultra, GI off, FSR at native) the GPU medians were 13.33&ndash;13.35&nbsp;ms early and
+    13.80&ndash;14.01&nbsp;ms at the boss, against 13.33&ndash;13.81 and 13.61&ndash;13.63 for the 16 October build; the boss
+    differs only because it sat elsewhere on screen;
+    and cold-start testing of <code>PipelineStateWarmup</code> the same day cut the arena-entry hitch from 1.60&nbsp;s to
+    1.06&nbsp;s and early in-run shader hitches from six (560&nbsp;ms total) to one of 50&ndash;55&nbsp;ms &mdash; see
+    <a href="#interface">Interface</a>.</p>
   </section>
 
   <section id="settings">
@@ -2798,10 +2868,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>What drives the editor</h3>
-    <p>The project carries <code>com.unity.pipeline</code>, at 0.9.1-exp.1, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
+    <p>The project carries <code>com.unity.pipeline</code>, at 0.10.0-exp.1, which runs an HTTP server inside the editor so Unity's CLI can drive it from a terminal: create assets, run C# against the live domain, enter play mode, capture the game view. It replaced <code>com.unity.ai.assistant</code>, whose relay did a narrower version of the same job and refused several things outright — refreshing the AssetDatabase, deleting an asset, and running C# without wrapping it in a namespace of its own.</p>
     <p>The difference that mattered was recompilation. The old relay would not trigger a domain reload, because the reload severed its own connection, so every new script needed the editor window focused by hand before it existed. The pipeline drops its connection mid-reload and reconnects on the far side, which closes the loop: write a script, compile it, attach it, and confirm the type is live in the loaded domain without touching the editor.</p>
     <p>It also made the captions visible for the first time. Capturing the game view with the composited backbuffer includes Screen Space Overlay canvases, which is where they live — before that they had been diagnosed by reading vertex counts, because the relay's camera capture rendered through a camera and missed overlay UI entirely.</p>
-    <p>The package moves with the CLI rather than on its own schedule. The CLI updated itself to 1.0.0-beta.8 and refused to talk to 0.5 at all &mdash; every command failed as <em>too old to parse command lines</em> &mdash; so it went to 0.6, which also takes array arguments as JSON; and to 0.7 when the Unity plugin for Claude Code arrived with it. 0.9, on 24 October, grouped the commands under nouns &mdash; <code>script eval</code>, <code>test run</code>, <code>build status</code> &mdash; and an old name now fails with a console error naming the new one; <code>unity command --obsolete-command-names</code> lists them all. The same release moved the switch that lets the CLI reach a running build from its own settings file into a scripting define, <code>ENABLE_RUNTIME_PIPELINE_DEV</code>, which reaches development builds only. A Release build carries none of it.</p>
+    <p>The package moves with the CLI rather than on its own schedule. The CLI updated itself to 1.0.0-beta.8 and refused to talk to 0.5 at all &mdash; every command failed as <em>too old to parse command lines</em> &mdash; so it went to 0.6, which also takes array arguments as JSON; and to 0.7 when the Unity plugin for Claude Code arrived with it. 0.9, on 24 October, grouped the commands under nouns &mdash; <code>script eval</code>, <code>test run</code>, <code>build status</code> &mdash; and an old name now fails with a console error naming the new one; <code>unity command --obsolete-command-names</code> lists them all. The same release moved the switch that lets the CLI reach a running build from its own settings file into a scripting define, <code>ENABLE_RUNTIME_PIPELINE_DEV</code>, which reaches development builds only. 0.10.0-exp.1, on 8 November, kept the command names and dropped the outer <code>&quot;data&quot;</code> wrapper from its JSON replies, so <code>script eval</code>, <code>test status</code> and <code>build status</code> return their result at the top level. A Release build carries none of it.</p>
     <div class="warn">
       <div class="label">A script that opens a prefab stage can take the GPU down</div>
       <p><code>PrefabUtility.LoadPrefabContents</code> called from a script stalled the editor for 41 seconds and ended in a D3D12 device reset that closed it. Simple prefab edits go through a <code>SerializedObject</code> on the asset itself and are saved there, and adding or removing a component on an asset's root works the same way &mdash; which is how <code>PlayerRoundBuilder</code> is written.</p>
@@ -2814,7 +2884,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>The engine version, and what 6.6 moved</h3>
-    <p>The project runs on <strong>Unity 6.6 (6000.6.7f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.8f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
     <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
     <div class="note">
       <div class="label">The 6.6.1 patch moved nothing this project can see</div>
@@ -2836,6 +2906,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     copies stand. All 871 tests passed once the README named the new version. It was built on 30 October,
     <code>26_1030-1644_fogMedium667</code>, with no errors or warnings, and Ian has played that build and
     <code>26_1102-1650_cloudSpecks</code> since.</p>
+    <p>6000.6.8f1 arrived on 8 November (<code>5cfaba8</code>), with <code>com.unity.project-auditor-rules</code> moving from
+    3.0.0 to 3.2.0 and <code>com.unity.pipeline</code> to 0.10.0-exp.1. All 871 tests and the cloud shader hash checks passed.
+    <code>26_1108-1225_release</code> (534&nbsp;MB) was built the same day and played twice on 9 November, and
+    <code>26_1109-0959_perfCheck</code> matched the 16 October build&rsquo;s GPU frame times early in the run.</p>
     </div>
     <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
 
@@ -3117,16 +3191,36 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
       <li><strong>The island&rsquo;s underside is plain rock again, and baked that way.</strong> The hanging rocks came out
       on 12 October at his word, and he rebaked without them and kept it on 15 October; the glow under the lava&rsquo;s fall
       stays.</li>
-      <li><strong>The sinking storm is built to his numbers and not yet played.</strong> <code>26_1016-0954_stormWallGone</code>
-      starts the wall at 2.2 and ends it at 0.4. Worth watching: whether the moon arrives at a good moment, and the end of the
-      run, where with the wall gone the sky behind the top of the lane is darker than the old wall was (about 43 of 255 against
-      57), which is the backdrop the dark Drones were once lost against. The bolts and the 7-out camera are in it too; the
-      bolts were judged in the editor, never in a build. Every build since carries it; the latest,
-      <code>26_1102-1650_cloudSpecks</code>, also has the storm on Medium, the ray-traced ladder, async compute off, the
-      look-test key, Ultra&rsquo;s fog on Medium, Unity 6000.6.7f1, FSR 4.1.2 and the clouds fix.</li>
+      <li><strong>The sinking storm and the fresh-install Medium preset have been played; the 9 November difficulty retune waits
+      for Ian&rsquo;s run.</strong> <code>26_1016-0954_stormWallGone</code> starts the wall at 2.2 and ends it at 0.4, with the
+      bolts and the 7-out camera. Every build since carries it; the latest also have the storm on Medium, the ray-traced
+      ladder, async compute off, the look-test key, Ultra&rsquo;s fog on Medium, FSR 4.1.2 and the clouds fix, and those from
+      8 November run on Unity 6000.6.8f1. On
+      9 November Ian played two fresh-install runs on <code>26_1108-1225_release</code> (Medium, keyboard and mouse) without
+      flagging the storm&rsquo;s timing, the moon&rsquo;s arrival, the bolts or the dark backdrop at the end of the run, and
+      judged that the bot runs were valid while the game was a bit too easy and the boss&rsquo;s third act sometimes barely got
+      time to show itself. The same day, <code>Boss.asset</code>&rsquo;s <code>maxHealth</code> went from 1,000 to 1,400,
+      <code>BossEmitter.scuttleThreshold</code> from 90 to 400, every wave stream&rsquo;s interval by &times;0.75 with the two
+      Fighter streams pulled forward from 120 and 160&nbsp;s to 60 and 100&nbsp;s, and the Player&rsquo;s
+      <code>levelCostIncrease</code> from 35 to 45. It was bot-checked once; Ian&rsquo;s own judging run is next.</li>
+      <li><strong>Friend testing and release are going through itch.io, after the 9 November scan and fix pass.</strong> On
+      8 November Ian built <code>26_1108-1225_release</code> (534&nbsp;MB on Unity 6000.6.8f1) and chose itch.io over Steam for
+      release and friend testing: about a day of store setup against weeks for Steam, and a free restricted page with
+      <code>butler</code> uploads. On 9 November <a href="https://claude.ai/artifact/JHoNHWn4n2mRikHSxkip4V">the scan report</a>
+      ran across eight lanes &mdash; tests and Project Auditor, a Gemini code review verified against the codebase, content and
+      build tidiness, fresh-install release readiness, three unassisted playtest-bot runs, an A/B GPU bench against the
+      16 October build, and the docs &mdash; and its fix pass landed the difficulty retune, <code>PipelineStateWarmup</code>, the
+      XP guard on lost runs, quiet horns and Slow Mo end cue once the run is decided, the one-frame reuse fix in
+      <code>PoolMotionReset</code>, the five excluded files in <code>BuildStampWriter</code>, the asset cleanup, the Unity splash
+      screen off, Release builds named <code>Survival Chaos.exe</code>, and F3/F4 documented in <code>README.md</code> and
+      <code>itch-page.md</code>. What remains before sending to friends, in order: Ian&rsquo;s judging run of the new difficulty;
+      checking the HUD and menus at 21:9 and 32:9 in the editor&rsquo;s Game view; the final Release build from a clean tree
+      (after backing up the bake); zipping it without the <code>..._BackUpThisFolder_ButDontShipItWithYourGame</code> folder;
+      pasting <code>itch-page.md</code> into a private itch.io page; and sending it out.</li>
       <li><strong>The black specks under FSR 4 are answered.</strong> They were the clouds&rsquo; upscale, fixed in the
-      project&rsquo;s copy on 2 November, and Ian checked <code>26_1102-1650_cloudSpecks</code> and found the twig tips clean.
-      FSR 3 pinned was not looked at again, and the fix was not timed.</li>
+      project&rsquo;s copy on 2 November, and Ian checked <code>26_1102-1650_cloudSpecks</code> and found the twig tips clean;
+      the 9 November bench build <code>26_1109-0959_perfCheck</code> re-verified them on 6000.6.8f1, with early-run GPU times
+      level with 16 October. FSR 3 pinned was not looked at again.</li>
       <li><strong>The two savings from the 16 October scan are answered.</strong> Both went on one debug-menu key, 0, in
       <code>26_1016-1603_lookTest</code>. On a frame held in the editor they were worth 2.2 and 0.6&nbsp;ms. On 30 October Ian
       took fog Medium on Ultra and kept the glows&rsquo; fog shadows, without which red haze spread over the ruins. A player
@@ -3319,9 +3413,10 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Housekeeping</h4>
     <ul>
-      <li><code>Prefabs/VFX/Explosion.prefab</code> and <code>PlayerHit.prefab</code> are orphaned outright now that <code>_Archive~</code> has gone with it the last reference to either. <code>PlayerHit</code> is the one that was wearing <code>TESTE cenario_2.mat</code>, a scenery test material, which is worth knowing before anything reuses it.</li>
+      <li><code>Prefabs/VFX/Explosion.prefab</code> and <code>PlayerHit.prefab</code> are orphaned outright now that <code>_Archive~</code> has gone with it the last reference to either. <code>PlayerHit</code> was wearing <code>TESTE cenario_2.mat</code>, a scenery test material that was removed with <code>Smoke_Mat.mat</code> on 9 November, which is worth knowing before anything reuses the prefab.</li>
       <li>The old HUD art in <code>Art/Textures</code> is no longer <em>drawn</em> — the shaders replaced all of it — but saying it is referenced by nothing was wrong, and worth correcting because it is the kind of claim that gets a live asset deleted. Unity's dependency graph puts <code>hpBar.png</code> and <code>TESTE 1 hud 4copy.png</code> on <code>Image</code> components that are active and enabled, on two root objects both named <code>Border</code>. They render nothing only because neither has a <code>Canvas</code> anywhere above it, which is a condition of the scene rather than of the files: reparent either one and the old art is back on screen. <strong>Delete the objects before the textures</strong>, or the references dangle. <code>skillSlot</code>, the four button sprites, the menu background and the PUC logo are genuinely at zero. <code>timeBar</code> has been deleted; the rest are still there.</li>
       <li><code>StarfieldCubemapBaker</code> is gone: its six source textures were deleted once the cross was baked, and the tool itself on 8 October. The scene&rsquo;s sky has been painted by <code>StormSkyBuilder</code> since 6 October. <code>StarfieldSky.png</code> stays in the project as the last copy of the old sky, with nothing pointing at it.</li>
+      <li>On 9 November twelve more unreferenced assets were removed after checking every GUID across scenes, prefabs, materials and scripts: two unused icons (<code>Icon Ship.png</code> and <code>Icon Leviathan.png</code>), seven Kenney clips in <code>Audio/SFX/Balanced/</code> (<code>laserSmall_000</code> to <code>003</code> and <code>impactMetal_000</code> to <code>002</code>, while <code>impactMetal_003</code> stays), <code>TESTE cenario_2.mat</code>, <code>Smoke_Mat.mat</code>, and <code>Assets/BigRookGames/Subgraphs/Effects Pack 1.prefab</code>. The five BigRookGames shader subgraphs stay: the HDRP particle sample shaders that draw the eruption sparks reference them, where the scan had misread them as unused. The same pass emptied <code>Assets/Temp</code> (1,339 old captures, 581&nbsp;MB, gitignored but imported by the editor).</li>
       <li>Git history still carries the 302 MB of deleted sky textures; only a history rewrite removes them.</li>
     </ul>
     <p>Four of these have since been cleared, each confirmed dead rather than assumed:
@@ -3354,7 +3449,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.7f1) · HDRP 17.6 · branch <code>main</code> · 433 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.8f1) · HDRP 17.6 · branch <code>main</code> · 435 commits
   </footer>
 
 </div>

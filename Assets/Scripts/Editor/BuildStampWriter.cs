@@ -57,8 +57,19 @@ namespace SurvivalChaos.EditorTools
             // untracked files count: a new script is a change. ProjectSettings
             // does not, because a build switches settings of its own on the way
             // out - the code variant for the debug menu, run in background -
-            // and every build would carry the mark.
-            string status = Git("status --porcelain -- . \":(exclude)ProjectSettings\"");
+            // and every build would carry the mark. The HDRP global settings,
+            // the High, Medium and Ultra quality assets and the Game scene's
+            // baking set are left out for the same reason: the build rewrites
+            // all five before the stamp is taken, so with them in, every build
+            // carried the "+". Each pathspec is quoted on its own because git
+            // is handed one command line here and four of the names have
+            // spaces in them.
+            string status = Git("status --porcelain -- . \":(exclude)ProjectSettings\""
+                + " \":(exclude)Assets/Settings/HDRenderPipelineGlobalSettings.asset\""
+                + " \":(exclude)Assets/Settings/Quality/HDRP High.asset\""
+                + " \":(exclude)Assets/Settings/Quality/HDRP Medium.asset\""
+                + " \":(exclude)Assets/Settings/Quality/HDRP Ultra.asset\""
+                + " \":(exclude)Assets/Scenes/Game/Game Baking Set.asset\"");
             return folder + "  ·  " + commit + (string.IsNullOrEmpty(status) ? "" : "+");
         }
 

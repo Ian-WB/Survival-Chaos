@@ -14,14 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.MagnetSkill
   displayName: Magnet!
   pickupName: Magnet
-  maxPicks: 3
-  availableFromLevel: 050000000f00000019000000i
+  maxPicks: 1
+  availableFromLevel: 08000000i
   pickupColor: {r: 1.2, g: 0.35, b: 3, a: 1}
   stageNames:
   - Pickups Drift To You!
-  - Magnet II!
-  - Magnet III!
   stagePickupNames:
   - Magnet
-  - Magnet II
-  - Magnet III

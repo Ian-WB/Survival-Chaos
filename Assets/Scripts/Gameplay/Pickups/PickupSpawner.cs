@@ -74,6 +74,14 @@ namespace SurvivalChaos
                  "what gives the offer stakes.")]
         private float offerLifetime = 28f;
 
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Seconds after an offer runs out with nothing taken before it is put out again, " +
+                 "once, freshly drawn. A level-up is worth two of the old ones since 9 November " +
+                 "2026, so one missed in a bad moment is not simply lost. The second showing does " +
+                 "not come back if it is missed too.")]
+        private float offerReturnDelay = 8f;
+
         [Header("Salvage")]
         [SerializeField]
         [Min(1f)]
@@ -184,6 +192,54 @@ namespace SurvivalChaos
                     playerTarget.MaxHealth,
                     salvageSecondsAtHalfHealth);
             }
+
+            AdvanceReturns(Time.deltaTime);
+        }
+
+        /// <summary>
+        /// Seconds left before each missed offer comes back. Scaled time like
+        /// the salvage clock, so a pause does not run them down.
+        /// </summary>
+        private readonly List<float> returns = new List<float>();
+
+        /// <summary>Missed offers waiting to come back. Read by tests.</summary>
+        public int ReturnsPending => returns.Count;
+
+        /// <summary>
+        /// Runs the waits down and puts back each offer whose wait is over,
+        /// drawn again at the level the player has now. Public so a test can
+        /// pass the time; Update is the only caller in play.
+        /// </summary>
+        public void AdvanceReturns(float seconds)
+        {
+            if (returns.Count == 0)
+            {
+                return;
+            }
+
+            // An ending run owes nothing: no offer goes out behind the card.
+            if (RunOutcome.Decided)
+            {
+                returns.Clear();
+                return;
+            }
+
+            for (int i = returns.Count - 1; i >= 0; i--)
+            {
+                returns[i] -= seconds;
+
+                if (returns[i] > 0f)
+                {
+                    continue;
+                }
+
+                returns.RemoveAt(i);
+
+                if (skillSelect != null)
+                {
+                    OfferLevelUp(skillSelect.DrawOffer(offerSize), returned: true);
+                }
+            }
         }
 
         /// <summary>
@@ -247,7 +303,11 @@ namespace SurvivalChaos
         /// against it - see SkillPool.Draw. May be empty once every upgrade is
         /// spent, in which case a piece of salvage goes out instead.
         /// </param>
-        public void OfferLevelUp(IReadOnlyList<SkillDefinition> skills)
+        /// <param name="returned">
+        /// True for the second showing of an offer that ran out untaken, which
+        /// does not come back again and leaves no salvage if the pool is spent.
+        /// </param>
+        public void OfferLevelUp(IReadOnlyList<SkillDefinition> skills, bool returned = false)
         {
             if (pickupPrefab == null)
             {
@@ -270,7 +330,9 @@ namespace SurvivalChaos
             // rather than as a finished build, so a spent pool leaves salvage.
             if (skillCount == 0)
             {
-                if (bearings.Length > 0)
+                // The level-up this stands in for already left its salvage
+                // when it found the pool spent, if it did.
+                if (bearings.Length > 0 && !returned)
                 {
                     PlaceSalvage(bearings[0], height);
                 }
@@ -278,7 +340,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            var offer = new SkillOffer();
+            var offer = new SkillOffer { Returned = returned };
 
             for (int i = 0; i < skillCount && i < bearings.Length; i++)
             {
@@ -568,7 +630,14 @@ namespace SurvivalChaos
             return Vector3.MoveTowards(anchor, ship, playerTarget.MagnetPullSpeed * seconds);
         }
 
-        /// <summary>Called by a pickup whose clock ran out.</summary>
+        /// <summary>
+        /// Called by a pickup whose clock ran out.
+        ///
+        /// When that was the last of an offer, nothing was taken from it: a
+        /// pick resolves the whole offer at once and never comes through here.
+        /// Such an offer comes back once after Offer Return Delay, drawn
+        /// again. It used to be gone for good, the level-up with it.
+        /// </summary>
         public void OnExpired(Pickup pickup)
         {
             if (pickup == null)
@@ -580,6 +649,11 @@ namespace SurvivalChaos
             if (offer != null && offer.Remove(pickup))
             {
                 offers.Remove(offer);
+
+                if (!offer.Returned && !RunOutcome.Decided)
+                {
+                    returns.Add(offerReturnDelay);
+                }
             }
 
             ObjectPool.Despawn(pickup.gameObject);

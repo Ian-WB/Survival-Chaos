@@ -155,8 +155,8 @@ namespace SurvivalChaos.Tests
 
             Assert.AreEqual(5, surges.Count, string.Join(", ", surges));
             Assert.AreEqual(14.67f, surges[0], 0.01f);
-            Assert.AreEqual(120f, surges[1], 0.01f);
-            Assert.AreEqual(160f, surges[2], 0.01f);
+            Assert.AreEqual(60f, surges[1], 0.01f);
+            Assert.AreEqual(100f, surges[2], 0.01f);
             Assert.AreEqual(186.67f, surges[3], 0.01f);
             Assert.AreEqual(226.67f, surges[4], 0.01f);
             Assert.That(surges, Has.None.GreaterThanOrEqualTo(wave.BossArrivesAt));

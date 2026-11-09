@@ -151,6 +151,128 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Draws a level-up's offer: up to <paramref name="count"/> distinct
+        /// skills, chosen with a memory of what earlier offers showed. Like
+        /// <see cref="Draw"/> it charges nothing against the pick limits.
+        ///
+        /// Two rules on top of the plain draw, added on 9 November 2026 when
+        /// level-ups were halved and each offer came to matter twice as much:
+        ///
+        /// A gated pick that has just opened is always in the next offer. Slow
+        /// Mo opening at level 5 used to wait on the dice, and a run could go
+        /// several offers without seeing it.
+        ///
+        /// The rest of the offer leans toward whatever has been shown least,
+        /// three to one. A lean rather than a rota, so the same skill can
+        /// still turn up twice running.
+        ///
+        /// Only this method records what was shown. Draw is left as it was for
+        /// replacements, which stand in for a pickup already on the ring.
+        /// </summary>
+        public List<SkillDefinition> DrawOffer(int count, int level = AnyLevel)
+        {
+            var drawn = new List<SkillDefinition>();
+
+            if (count < 1)
+            {
+                return drawn;
+            }
+
+            RefreshAvailable(level);
+            var remaining = new List<SkillDefinition>(availableBuffer);
+
+            // In pool order, so which of two skills opening together comes
+            // first is the list's choice rather than the dice's.
+            for (int i = 0; i < remaining.Count && drawn.Count < count; i++)
+            {
+                SkillDefinition definition = remaining[i];
+
+                if (definition.IsGated && !ShownAtThisStage(definition))
+                {
+                    drawn.Add(definition);
+                    remaining.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            while (drawn.Count < count && remaining.Count > 0)
+            {
+                drawn.Add(TakeLeastShown(remaining));
+            }
+
+            foreach (SkillDefinition definition in drawn)
+            {
+                timesShown[definition] = TimesShown(definition) + 1;
+                shownAtStage[definition] = pickCounts[definition];
+            }
+
+            return drawn;
+        }
+
+        /// <summary>How many offers a skill has been part of, for the lean in <see cref="DrawOffer"/>.</summary>
+        public int TimesShown(SkillDefinition definition)
+        {
+            return definition != null && timesShown.TryGetValue(definition, out int shown) ? shown : 0;
+        }
+
+        private readonly Dictionary<SkillDefinition, int> timesShown = new Dictionary<SkillDefinition, int>();
+
+        /// <summary>The pick count each skill had when an offer last carried it.</summary>
+        private readonly Dictionary<SkillDefinition, int> shownAtStage = new Dictionary<SkillDefinition, int>();
+
+        /// <summary>How much likelier the least-shown skills are than the rest.</summary>
+        private const int LeastShownWeight = 3;
+
+        private bool ShownAtThisStage(SkillDefinition definition)
+        {
+            return shownAtStage.TryGetValue(definition, out int stage) && stage == pickCounts[definition];
+        }
+
+        /// <summary>
+        /// Takes one entry, the least-shown ones weighted up. With every entry
+        /// shown equally often the weights are equal and this is a plain draw.
+        /// </summary>
+        private SkillDefinition TakeLeastShown(List<SkillDefinition> from)
+        {
+            int least = int.MaxValue;
+
+            foreach (SkillDefinition definition in from)
+            {
+                least = Math.Min(least, TimesShown(definition));
+            }
+
+            int total = 0;
+
+            foreach (SkillDefinition definition in from)
+            {
+                total += TimesShown(definition) == least ? LeastShownWeight : 1;
+            }
+
+            int roll = selectIndex(total);
+            if (roll < 0 || roll >= total)
+            {
+                roll = 0;
+            }
+
+            for (int i = 0; i < from.Count; i++)
+            {
+                roll -= TimesShown(from[i]) == least ? LeastShownWeight : 1;
+
+                if (roll < 0)
+                {
+                    SkillDefinition chosen = from[i];
+                    from.RemoveAt(i);
+                    return chosen;
+                }
+            }
+
+            // Unreachable: the weights sum to the total the roll is under.
+            SkillDefinition last = from[from.Count - 1];
+            from.RemoveAt(from.Count - 1);
+            return last;
+        }
+
+        /// <summary>
         /// Charges one pick against a skill's limit. Safe to call with null, and
         /// with a skill this pool does not hold - both do nothing.
         /// </summary>

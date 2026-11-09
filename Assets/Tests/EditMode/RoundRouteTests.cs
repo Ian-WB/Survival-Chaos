@@ -6,7 +6,7 @@ namespace SurvivalChaos.Tests
     /// <summary>
     /// A boss round thrown at an angle, bouncing off the band's floor and ceiling.
     ///
-    /// Pinned against the real band and the throw the boss's prefab has, because
+    /// Pinned against a fixed band and the throw the boss's prefab has, because
     /// what matters is spatial: the disc leaves from its muzzle, never leaves the
     /// band once inside it, turns back at each edge rather than passing through,
     /// and is never thrown straight out of the fight from a muzzle that sits
@@ -14,7 +14,12 @@ namespace SurvivalChaos.Tests
     /// </summary>
     public class RoundRouteTests
     {
-        /// <summary>The player's band, off the ApplyBounds box in the Game scene.</summary>
+        /// <summary>
+        /// A fixture band, written in as literals rather than read from the
+        /// Game scene, so it is not necessarily the band the arena has today.
+        /// The shipped band, with MainRun.asset's streams inside it, is covered
+        /// by WaveBandHeightTests.
+        /// </summary>
         private const float Floor = 4.42f;
         private const float Ceiling = 13.32f;
 

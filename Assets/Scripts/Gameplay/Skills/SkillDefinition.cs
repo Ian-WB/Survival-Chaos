@@ -54,6 +54,13 @@ namespace SurvivalChaos
         public bool IsUnlimited => maxPicks <= 0;
 
         /// <summary>
+        /// Whether any pick waits on a level. The gated skills are the ones
+        /// that arrive mid-run, and the pool makes sure each is shown as it
+        /// opens - see SkillPool.DrawOffer.
+        /// </summary>
+        public bool IsGated => availableFromLevel != null && availableFromLevel.Length > 0;
+
+        /// <summary>
         /// Whether the next pick can be offered to a player at
         /// <paramref name="level"/>, with <paramref name="picksTaken"/> taken so
         /// far. Says nothing about the pick limit, which the pool checks itself.

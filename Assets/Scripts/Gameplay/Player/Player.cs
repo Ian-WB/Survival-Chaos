@@ -119,8 +119,10 @@ namespace SurvivalChaos
         [Tooltip("Scales every enemy's Experience Reward, rounded to whole points. A full run " +
                  "reached about 20 level-ups at 1, 29 at 2 and 35 at 3 while each level-up still " +
                  "dropped the experience past its threshold; carrying it over adds about one. " +
-                 "There are 40 upgrade picks in the pool, and a level-up with the pool spent " +
-                 "leaves a piece of salvage instead.")]
+                 "Those counts are from the old curve: since 9 November 2026 the scene's curve " +
+                 "(95, rising by 180) gives about 17 level-ups a run at 4.5, against 22 upgrade " +
+                 "picks in the pool. A level-up with the pool spent leaves a piece of salvage " +
+                 "instead.")]
         private float experienceMultiplier = 1f;
 
         [SerializeField]
@@ -592,6 +594,16 @@ namespace SurvivalChaos
         /// </summary>
         private void HandleEXPChange(int reward, Vector3 where)
         {
+            // A lost run pays nothing more. Rounds still flying when the ship
+            // goes keep killing through the death beat, and each kill used to
+            // float a "+XP" over the wreck, fill the bar and could play the
+            // level-up sound over the explosion. A won run's beat is left as
+            // it is.
+            if (RunOutcome.Decided && !RunOutcome.Won)
+            {
+                return;
+            }
+
             int awarded = Mathf.RoundToInt(reward * experienceMultiplier);
 
             PickupLabelBoard.Experience(where, awarded);
@@ -673,12 +685,36 @@ namespace SurvivalChaos
         /// </summary>
         public const int MaxShotUpgrades = 3;
 
+        [SerializeField]
+        [Tooltip("The shot pattern stage each Shot Upgrade pick reaches, in pick order: 1 double, " +
+                 "2 triple, 3 sextuple. The last entry holds for any pick past the end. Left " +
+                 "empty, each pick moves one stage. The scene sets 1 and 3, so the second pick " +
+                 "goes from Double straight to Sextuple: level-ups were halved on 9 November 2026 " +
+                 "and each pick does the work of two.")]
+        private int[] shotStageByPick = new int[0];
+
+        /// <summary>How many Shot Upgrade picks have been taken this run.</summary>
+        private int shotPicks;
+
         public void UpgradeShotPattern(){
             if(shotUpgrades >= MaxShotUpgrades){
                 return;
             }
 
-            shotUpgrades++;
+            shotPicks++;
+
+            // Never less than one stage a pick, whatever the list says, so a
+            // pick cannot be spent on the pattern the ship already fires.
+            int stage = shotUpgrades + 1;
+
+            if (shotStageByPick != null && shotStageByPick.Length > 0)
+            {
+                stage = Mathf.Max(
+                    stage,
+                    shotStageByPick[Mathf.Clamp(shotPicks - 1, 0, shotStageByPick.Length - 1)]);
+            }
+
+            shotUpgrades = Mathf.Min(stage, MaxShotUpgrades);
         }
 
         public void Heal(int hp){

@@ -35,7 +35,11 @@ namespace SurvivalChaos.Tests
             ObjectPool.Clear();
             RunStats.Clear();
 
-            shot = Skill<ShotUpgradeSkill>(3, 4, 10, 18);
+            // A run that ended in play leaves its outcome set in the editor,
+            // and an ended run owes no offers: the return test failed on it.
+            RunOutcome.Clear();
+
+            shot =Skill<ShotUpgradeSkill>(3, 4, 10, 18);
             magnet = Skill<MagnetSkill>(2);
             deflector = Skill<DeflectorSkill>(2);
 
@@ -203,6 +207,64 @@ namespace SurvivalChaos.Tests
             Assert.AreSame(shot, second[0].Skill);
             Assert.AreEqual("Triple Shot", Caption(second[0]),
                 "the label still names the stage the player already has");
+        }
+
+        [Test]
+        public void AnOfferNobodyTook_ComesBackOnce()
+        {
+            Offering(shot, magnet);
+            List<Pickup> first = OfferAt(4, shot, magnet);
+
+            foreach (Pickup pickup in first)
+            {
+                spawner.OnExpired(pickup);
+            }
+
+            Assert.AreEqual(0, Live().Count);
+            Assert.AreEqual(1, spawner.ReturnsPending, "a missed level-up was simply lost");
+
+            spawner.AdvanceReturns(1f);
+            Assert.AreEqual(0, Live().Count, "it came back before its wait was over");
+
+            spawner.AdvanceReturns(100f);
+            List<Pickup> second = Live();
+            Assert.AreEqual(2, second.Count, "the missed offer did not come back");
+
+            foreach (Pickup pickup in second)
+            {
+                spawner.OnExpired(pickup);
+            }
+
+            Assert.AreEqual(0, spawner.ReturnsPending, "the second showing came back as well");
+        }
+
+        [Test]
+        public void AnOfferThatWasAnswered_DoesNotComeBack()
+        {
+            Offering(shot, magnet);
+            List<Pickup> first = OfferAt(4, shot, magnet);
+
+            spawner.OnCollected(first[1]);
+
+            Assert.AreEqual(0, spawner.ReturnsPending);
+        }
+
+        [Test]
+        public void AShotPick_ReachesTheStageItsListNames()
+        {
+            // The scene's list: Double, then straight to Sextuple.
+            var serialized = new SerializedObject(player);
+            SerializedProperty stages = serialized.FindProperty("shotStageByPick");
+            stages.arraySize = 2;
+            stages.GetArrayElementAtIndex(0).intValue = 1;
+            stages.GetArrayElementAtIndex(1).intValue = 3;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            player.UpgradeShotPattern();
+            Assert.AreEqual(1, ShotStage());
+
+            player.UpgradeShotPattern();
+            Assert.AreEqual(3, ShotStage());
         }
 
         [Test]

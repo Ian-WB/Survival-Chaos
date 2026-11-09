@@ -256,7 +256,7 @@ unity command build run --target StandaloneWindows64 \
 
 Naming is `YY_MMDD-HHMM_shortLabel`. It returns `{"status":"queued"}`
 immediately; poll `unity command build status` until `completed`. A healthy
-build is about 940 MB on disk and, with `CleanBuildCache`, takes about 90
+build is about 534 MB on disk and, with `CleanBuildCache`, takes about 90
 seconds once the shader cache is warm. The first build after an editor update
 recompiles every shader: 22 minutes after the move to 6.6.3.
 
@@ -269,7 +269,8 @@ method names appear as ASCII; user-facing strings appear as UTF-16LE.
 | File | What happens | What to do |
 | --- | --- | --- |
 | `Assets/Settings/HDRenderPipelineGlobalSettings.asset` | gains a debugger rid, or line-ending-only diff | revert, then `AssetDatabase.ImportAsset(..., ForceUpdate)` |
-| `ProjectSettings/TimeManager.asset` | re-serialized into 6.6 rational form | revert |
+| `Assets/Settings/Quality/HDRP High.asset`, `HDRP Medium.asset`, `HDRP Ultra.asset` | rewritten by the build | revert, then `AssetDatabase.ImportAsset(..., ForceUpdate)` |
+| `Assets/Scenes/Game/Game Baking Set.asset` | rewritten by the build; some builds null its references (see the end of this section) | revert, then `AssetDatabase.ImportAsset(..., ForceUpdate)`, then the check below |
 | assorted assets | line-ending-only diffs | revert |
 | `ProjectSettings/ProjectSettings.asset` | `runInBackground` set to 0 | see below |
 

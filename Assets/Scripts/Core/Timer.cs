@@ -152,6 +152,15 @@ namespace SurvivalChaos
                 timerSlider.value = timeValue;
             }
 
+            // The clock and its bar run on through an ending beat, but nothing
+            // past this point may: the run is settled, and a ship lost just
+            // before the lead or the arrival had a horn sound over its
+            // explosion, and the boss bar could come up behind the card.
+            if (RunOutcome.Decided)
+            {
+                return;
+            }
+
             if (timeValue < runLength)
             {
                 // A horn, far off, ahead of the arrival. There is no text for

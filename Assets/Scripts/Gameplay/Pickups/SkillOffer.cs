@@ -21,6 +21,13 @@ namespace SurvivalChaos
         /// <summary>True once a member has been taken or the whole set has run out.</summary>
         public bool Resolved { get; private set; }
 
+        /// <summary>
+        /// True for an offer that is itself a second showing: the one before
+        /// it ran out untaken. It does not come back again - see
+        /// PickupSpawner.OnExpired.
+        /// </summary>
+        public bool Returned { get; set; }
+
         /// <summary>How many of this offer's pickups are still on the ring.</summary>
         public int LiveCount => members.Count;
 

@@ -26,6 +26,11 @@ namespace SurvivalChaos
         {
             if (instance != null && !pending.Contains(instance))
             {
+                // Out of last frame's list too. A round that lived one frame
+                // and was popped again on this one (the pool is LIFO) would
+                // otherwise be restored in this LateUpdate, before it is drawn
+                // at its new muzzle, and smear from where it died.
+                restoring.Remove(instance);
                 pending.Add(instance);
             }
         }

@@ -108,7 +108,18 @@ namespace SurvivalChaos
             // upgrade being spent is something the spawner handles, by leaving a
             // piece of salvage instead. Drawn at the level just reached, so a
             // skill that opens at level 8 is first offered by the level-up to 8.
-            pickups.OfferLevelUp(Pool.Draw(pickups.OfferSize, CurrentLevel));
+            pickups.OfferLevelUp(DrawOffer(pickups.OfferSize));
+        }
+
+        /// <summary>
+        /// The skills for one offer at the player's level, uncharged. A pick
+        /// that has just opened is always among them and the rest lean toward
+        /// what has been shown least - see SkillPool.DrawOffer. Also asked by
+        /// the spawner, when an offer nobody took comes back.
+        /// </summary>
+        public List<SkillDefinition> DrawOffer(int size)
+        {
+            return Pool.DrawOffer(size, CurrentLevel);
         }
 
         /// <summary>
@@ -146,10 +157,12 @@ namespace SurvivalChaos
             int granted = 0;
             foreach (SkillDefinition skill in skills)
             {
-                int wanted = skill is ShotUpgradeSkill ? (stronger ? 3 : 2)
-                    : skill is AttackSpeedSkill ? (stronger ? 6 : 3)
-                    : skill is MoveSpeedSkill ? (stronger ? 4 : 2)
-                    : skill is MaxHealthSkill ? (stronger ? 2 : 1)
+                // Halved with the level-ups on 9 November 2026: each pick is
+                // worth two of the old ones, so the kit is about what it was.
+                int wanted = skill is ShotUpgradeSkill ? (stronger ? 2 : 1)
+                    : skill is AttackSpeedSkill ? (stronger ? 3 : 2)
+                    : skill is MoveSpeedSkill ? (stronger ? 2 : 1)
+                    : skill is MaxHealthSkill ? 1
                     : 0;
                 if (skill == null || wanted == 0) { continue; }
                 if (!skill.IsUnlimited) { wanted = Mathf.Min(wanted, skill.MaxPicks); }

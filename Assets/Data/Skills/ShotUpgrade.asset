@@ -14,14 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.ShotUpgradeSkill
   displayName: More Shots!
   pickupName: 
-  maxPicks: 3
-  availableFromLevel: 040000000a00000012000000i
+  maxPicks: 2
+  availableFromLevel: 0300000008000000i
   pickupColor: {r: 3, g: 0.85, b: 0.15, a: 1}
   stageNames:
   - Double Shot!
-  - Triple Shot!
   - SexTUPLO Shot!
   stagePickupNames:
   - Double Shot
-  - Triple Shot
   - SexTUPLO Shot

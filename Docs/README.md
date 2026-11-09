@@ -9,11 +9,14 @@ carrying binaries in its history.
 | File | What it is |
 | --- | --- |
 | `rebuild-reference.html` | The whole project: what the rebuild changed and how every system works now. The long one. |
+| `rebuild-lessons-codex.html` | Learning the rebuild — an independent study edition by Codex, seventeen chapters that explain the game one decision at a time, from an enemy's health to the evidence behind a fix. Built for comparison with the rebuild reference. |
 | `leviathan-dossier.html` | The boss fight on its own — three acts, the muzzle rig, and what measuring it turned up. |
 | `open-list.html` | What is still outstanding, as a checklist. |
 | `polish-roadmap.html` | Sixteen proposed polish items in three phases, each with a recommended answer. What is accepted moves onto the open list. |
 | `polish-roadmap-2.html` | The second pass: sixteen more, numbered 17 to 32 so a number names one item across both. Same rules. |
 | `environment-roadmap.html` | Sixteen proposed changes to the island, its sky and its lighting, numbered 33 to 48, each with a recommended answer and an expected frame cost. Same rules. |
+| `agent-guide.md` | For an AI agent with shell and file access to this machine, to read before touching anything. Most of its rules exist because a specific thing went wrong once. |
+| `playtest-bot.md` | The editor playtest bot: an opt-in baseline pilot for repeated gameplay testing, using normal movement, dash, firing direction and pickups. Not a human simulation, and its success rate is not a difficulty verdict. |
 
 ## These are snapshots, not the source
 

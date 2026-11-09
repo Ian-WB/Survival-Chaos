@@ -212,7 +212,7 @@ namespace SurvivalChaos
                 settled = Time.unscaledDeltaTime <= settledFrameSeconds ? settled + 1 : 0;
 
                 float waited = Time.realtimeSinceStartup - started;
-                bool ready = frames >= minimumWarmFrames && settled >= settledFramesNeeded;
+                bool ready = !PipelineStateWarmup.Warming && frames >= minimumWarmFrames && settled >= settledFramesNeeded;
                 if (ready || waited >= maximumWarmSeconds)
                 {
                     yield break;

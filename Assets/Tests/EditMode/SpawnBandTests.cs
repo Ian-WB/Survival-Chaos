@@ -9,8 +9,11 @@ namespace SurvivalChaos.Tests
     /// were left entirely beneath it. Nothing reported it, and the enemies that
     /// carry ObstacleScript never climb, so they stayed there.
     ///
-    /// The numbers below are the shipped ones, so a future change to the arena
-    /// that reintroduces the gap fails here rather than ten minutes into a run.
+    /// The floor and ceiling below are fixtures, written in as literals: the
+    /// band as it stood when the gap was found, not read from the arena. They
+    /// pin how SpawnBand judges a stream against a band. Whether the shipped
+    /// wave, MainRun.asset, spawns inside the band the Game scene has today is
+    /// covered by WaveBandHeightTests, which reads both.
     /// </summary>
     public class SpawnBandTests
     {

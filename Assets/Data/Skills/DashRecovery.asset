@@ -14,14 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.DashRecoverySkill
   displayName: Dash Recovers Faster!
   pickupName: Dash Recovery
-  maxPicks: 3
-  availableFromLevel: 060000000e00000016000000i
+  maxPicks: 1
+  availableFromLevel: 08000000i
   pickupColor: {r: 3, g: 2.3, b: 0.1, a: 1}
   stageNames:
   - Dash II!
-  - Dash III!
-  - Dash IV!
   stagePickupNames:
   - Dash II
-  - Dash III
-  - Dash IV

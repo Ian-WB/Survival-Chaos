@@ -792,7 +792,7 @@ MonoBehaviour:
   beamLightTemplate: {fileID: 0}
   beamLights: 4
   hullSpark: {fileID: 332305215383163923, guid: 2f786a066857bd142a040b7af39ea696, type: 3}
-  scuttleThreshold: 90
+  scuttleThreshold: 400
   phaseChangeSilence: 2
   emplacementFreeze: 0.07
   actFreeze: 0.15

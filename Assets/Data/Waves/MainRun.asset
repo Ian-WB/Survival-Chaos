@@ -25,7 +25,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 0
-    interval: 8
+    interval: 6
     intervalScale: 0.8
     rampEvery: 26.66
     minInterval: 0.1
@@ -38,7 +38,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 6.67
-    interval: 10
+    interval: 7.5
     intervalScale: 0.8
     rampEvery: 26.66
     minInterval: 0.1
@@ -51,7 +51,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 14.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -64,7 +64,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 14.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -77,7 +77,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 14.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -90,7 +90,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 17.33
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -103,7 +103,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 17.33
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -116,7 +116,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 17.33
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -129,7 +129,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 18.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -142,7 +142,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 18.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -155,7 +155,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 18.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -168,7 +168,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 18.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -181,7 +181,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 20
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -194,7 +194,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 20
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -206,8 +206,8 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 120
-    interval: 20
+    startDelay: 60
+    interval: 15
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -219,8 +219,8 @@ MonoBehaviour:
     yOffsetRange: {x: -1.1, y: 1.1}
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
-    startDelay: 160
-    interval: 20
+    startDelay: 100
+    interval: 15
     intervalScale: 0.9
     rampEvery: 33.33
     minInterval: 0.1
@@ -233,7 +233,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 186.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 40
     minInterval: 0.1
@@ -246,7 +246,7 @@ MonoBehaviour:
     lockBearing: 0
     radiusOffsetRange: {x: 0, y: 0}
     startDelay: 226.67
-    interval: 60
+    interval: 45
     intervalScale: 0.9
     rampEvery: 40
     minInterval: 0.1

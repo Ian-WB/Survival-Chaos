@@ -33420,6 +33420,7 @@ MonoBehaviour:
   offerSize: 3
   offerSeparation: 55
   offerLifetime: 28
+  offerReturnDelay: 8
   salvageSecondsAtHalfHealth: 12
   salvageAmount: 1
   salvageLifetime: 15
@@ -36801,30 +36802,27 @@ MonoBehaviour:
   deathBeatSpeed: 0.25
   deathExplosion: {fileID: 488202066062453081, guid: ee68ecc6938e6ca4ebf9ccf8e00f4bca, type: 3}
   currentExperience: 0
-  maxExperience: 50
+  maxExperience: 95
   currentLevel: 1
-  levelCostIncrease: 35
+  levelCostIncrease: 180
   experienceMultiplier: 4.5
   skillSelect: {fileID: 919132148744893763}
   dash: {fileID: 919132148744893765}
   shotUpgrades: 0
-  attackSpeedStep: 0.15
+  shotStageByPick: 0100000003000000i
+  attackSpeedStep: 0.3
   shotIntervalFloor: 0.15
-  moveSpeedStep: 0.12
-  dashCooldownStep: 1.5
+  moveSpeedStep: 0.24
+  dashCooldownStep: 4.5
   dashCooldownFloor: 4
   slowMoCooldown:
   - 30
-  - 20
   - 10
   slowMo: {fileID: 919132148744893768}
   deflectorRecharge:
   - 10
-  - 6
   - 3
   magnetReach:
-  - 4
-  - 7
   - 10
   magnetPullSpeed: 10
 --- !u!1 &1355022395

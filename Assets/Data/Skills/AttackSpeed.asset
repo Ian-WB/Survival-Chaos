@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.AttackSpeedSkill
   displayName: Attack Speed Increased!
   pickupName: Attack Speed
-  maxPicks: 12
+  maxPicks: 6
+  availableFromLevel: 
   pickupColor: {r: 0.3, g: 1.7, b: 3, a: 1}

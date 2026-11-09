@@ -199,6 +199,90 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
+        public void DrawOffer_CarriesAPickThatHasJustOpened()
+        {
+            AttackSpeedSkill a = NewSkill<AttackSpeedSkill>(8);
+            MoveSpeedSkill b = NewSkill<MoveSpeedSkill>(8);
+            MaxHealthSkill c = NewSkill<MaxHealthSkill>(8);
+            DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
+            SetLevels(deflector, 5);
+
+            // The selector always takes the front of the list, and the
+            // deflector is at the back of it: only the rule can bring it in.
+            var pool = new SkillPool(new SkillDefinition[] { a, b, c, deflector }, _ => 0);
+
+            CollectionAssert.DoesNotContain(pool.DrawOffer(2, level: 4), deflector);
+            CollectionAssert.Contains(pool.DrawOffer(2, level: 5), deflector);
+        }
+
+        [Test]
+        public void DrawOffer_PutsAnOpenedPickForwardOnlyOnce()
+        {
+            AttackSpeedSkill a = NewSkill<AttackSpeedSkill>(8);
+            MoveSpeedSkill b = NewSkill<MoveSpeedSkill>(8);
+            MaxHealthSkill c = NewSkill<MaxHealthSkill>(8);
+            DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
+            SetLevels(deflector, 5);
+            var pool = new SkillPool(new SkillDefinition[] { a, b, c, deflector }, _ => 0);
+
+            pool.DrawOffer(2, level: 5);
+
+            // Shown and passed over: after that it takes its chances.
+            CollectionAssert.DoesNotContain(pool.DrawOffer(2, level: 6), deflector);
+        }
+
+        [Test]
+        public void DrawOffer_LeansTowardWhatHasBeenShownLeast()
+        {
+            AttackSpeedSkill a = NewSkill<AttackSpeedSkill>(8);
+            MoveSpeedSkill b = NewSkill<MoveSpeedSkill>(8);
+            MaxHealthSkill c = NewSkill<MaxHealthSkill>(8);
+
+            // A roll of 2 lands on the first skill while all weigh three, on
+            // the second once the first has dropped to one, and so on down.
+            // A plain draw at index 2 would return the third every time.
+            var pool = new SkillPool(new SkillDefinition[] { a, b, c }, _ => 2);
+
+            Assert.AreSame(a, pool.DrawOffer(1)[0]);
+            Assert.AreSame(b, pool.DrawOffer(1)[0]);
+            Assert.AreSame(c, pool.DrawOffer(1)[0]);
+            Assert.AreEqual(1, pool.TimesShown(a));
+        }
+
+        [Test]
+        public void DrawOffer_ChargesNothing()
+        {
+            AttackSpeedSkill a = NewSkill<AttackSpeedSkill>(1);
+            var pool = new SkillPool(new SkillDefinition[] { a }, _ => 0);
+
+            pool.DrawOffer(3);
+            pool.DrawOffer(3);
+
+            Assert.AreEqual(0, pool.PicksTaken(a));
+            CollectionAssert.Contains(pool.DrawOffer(3), a);
+        }
+
+        [Test]
+        public void TheShippedLadder_Holds22Picks()
+        {
+            // Halved from 43 on 9 November 2026, with each pick doubled. A run
+            // brings about 17 level-ups, so the pool must stay a little larger.
+            int picks = 0;
+
+            foreach (string guid in AssetDatabase.FindAssets("t:SkillDefinition", new[] { "Assets/Data/Skills" }))
+            {
+                var skill = AssetDatabase.LoadAssetAtPath<SkillDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+
+                if (skill != null && !(skill is HealSkill))
+                {
+                    picks += skill.MaxPicks;
+                }
+            }
+
+            Assert.AreEqual(22, picks);
+        }
+
+        [Test]
         public void Draw_LeavesOutASkill_UntilItsLevel()
         {
             AttackSpeedSkill stat = NewSkill<AttackSpeedSkill>(8);

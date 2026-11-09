@@ -60,6 +60,13 @@ fly into one and the others from that level-up disappear, or leave them and
 they run out. Enemies you destroy sometimes leave green scrap, which repairs
 the ship; the more damaged you are, the more often it drops.
 
+In every build, Release included, F3 shows or hides a performance overlay:
+frame rate and its lows, CPU and GPU frame times, memory, and the graphics
+settings and hardware the game is running on. With the overlay up, F4 copies it
+as a report to the clipboard and saves the same text as
+`survival-chaos-performance.txt` beside `hitches.log`, so testers can send back
+how the game runs on their machines.
+
 In the editor, and in builds made with the debug menu, F8 opens the debug menu.
 
 ## Tests
