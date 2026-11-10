@@ -62,7 +62,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7960029942569959851}
@@ -173,6 +173,7 @@ MonoBehaviour:
   shootPivot_1: {fileID: 5736866341520450878}
   shootPrefab: {fileID: 6051693256502410095, guid: 8f80ca6c995a25246b9e63c7ea31cd87, type: 3}
   shootPrefab1: {fileID: 6051693256502410095, guid: 7cad7d0394d04be40923fd9c5fee88f1, type: 3}
+  roundsPerVolley: 2
   initialDelay: 1
   spawnDelay: 3
 --- !u!1 &7263175716945439791

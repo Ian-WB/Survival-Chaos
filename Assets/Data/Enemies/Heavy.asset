@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Heavy
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.EnemyDefinition
   displayName: Heavy
-  maxHealth: 5
+  maxHealth: 10
   experienceReward: 15
+  deathSound: {fileID: 0}

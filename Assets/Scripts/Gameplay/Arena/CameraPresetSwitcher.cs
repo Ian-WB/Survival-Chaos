@@ -65,6 +65,47 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// The index in <see cref="CameraFraming.Presets"/> of the preset on the
+        /// main camera, or <see cref="CameraFraming.DefaultIndex"/> when it has
+        /// no switcher. Read by the intro and the trailer tools as they take the
+        /// camera, so they can hand back the preset the player chose rather than
+        /// the default.
+        /// </summary>
+        public static int CurrentIndex
+        {
+            get
+            {
+                Camera main = Camera.main;
+                return main != null && main.TryGetComponent(out CameraPresetSwitcher switcher) && switcher.applied
+                    ? switcher.current
+                    : CameraFraming.DefaultIndex;
+            }
+        }
+
+        /// <summary>
+        /// Gives the camera back after a cinematic: preset <paramref name="index"/>
+        /// as <see cref="CameraFraming.RestoreIndex"/> reads it, and, on a preset
+        /// that climbs with the ship, the ship's height - a shot left it wherever
+        /// it ended, and it would follow the ship's climbs from there.
+        /// Nothing happens on a camera without a switcher.
+        /// </summary>
+        public static void Restore(int index)
+        {
+            Camera main = Camera.main;
+            if (main == null || !main.TryGetComponent(out CameraPresetSwitcher switcher))
+            {
+                return;
+            }
+
+            switcher.Apply(CameraFraming.RestoreIndex(index));
+
+            if (!CameraFraming.Presets[switcher.current].HoldsBandMiddle)
+            {
+                switcher.RejoinShip();
+            }
+        }
+
         /// <summary>How far outside the lane the main camera sits, slider included.</summary>
         public static float Distance
         {
@@ -198,16 +239,22 @@ namespace SurvivalChaos
             // was left and frame it off-centre for the rest of the run.
             if (was.HoldsBandMiddle && !preset.HoldsBandMiddle)
             {
-                Player player = FindAnyObjectByType<Player>();
-                if (player != null)
-                {
-                    Vector3 position = transform.position;
-                    position.y = player.transform.position.y;
-                    transform.position = position;
-                }
+                RejoinShip();
             }
 
             Place();
+        }
+
+        /// <summary>Puts the camera level with the ship.</summary>
+        private void RejoinShip()
+        {
+            Player player = FindAnyObjectByType<Player>();
+            if (player != null)
+            {
+                Vector3 position = transform.position;
+                position.y = player.transform.position.y;
+                transform.position = position;
+            }
         }
 
         /// <summary>Puts the camera at its distance and lens now.</summary>
@@ -229,6 +276,11 @@ namespace SurvivalChaos
 
         private void LateUpdate()
         {
+            if (ArenaIntroDirector.IsPlaying || CinematicTrailerCam.IsActive || CinematicTrailerDirector.IsRunning)
+            {
+                return;
+            }
+
             CameraPreset preset = CameraFraming.Presets[current];
 
             if (!preset.HoldsBandMiddle || bounds == null

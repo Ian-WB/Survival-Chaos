@@ -211,6 +211,15 @@ namespace SurvivalChaos
         /// </summary>
         public float Speed => speed;
 
+        [SerializeField, Min(1)]
+        [Tooltip("Hit points this round takes off the player's ship. Every round took 1 until " +
+                 "10 November 2026, when the Fighter's and the Heavy's went to 2. The Leviathan's " +
+                 "stay at 1. Read by Player; the player's own rounds ignore it.")]
+        private int damage = 1;
+
+        /// <summary>Hit points a hit from this round costs the player.</summary>
+        public int Damage => Mathf.Max(1, damage);
+
         [SerializeField]
         [Tooltip("How fast this projectile settles onto the lane the player flies in. 0 leaves " +
                  "it at whatever distance from the arena's axis it was fired at, which is what " +

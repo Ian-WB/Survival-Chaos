@@ -28,6 +28,7 @@ namespace SurvivalChaos.Tests
         {
             { Vfx + "EnemyShot.mat", "_EmissiveColor" },
             { Vfx + "EnemyShotTip.mat", "_EmissiveColor" },
+            { Vfx + "EnemyRoundTrail.mat", "_TrailColor" },
             { "Assets/Art/Materials/Ships/New Material.mat", "_EmissiveColor" },
             { Vfx + "BossRound.mat", "_EmissiveColor" },
             { Vfx + "BossRoundShell.mat", "_EmissiveColor" },

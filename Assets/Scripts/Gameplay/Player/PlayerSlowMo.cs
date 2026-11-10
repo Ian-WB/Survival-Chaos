@@ -148,7 +148,7 @@ namespace SurvivalChaos
 
         private void Update()
         {
-            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded)
+            if (PauseMenu.GameIsPaused || RunOutcome.RunEnded || ArenaIntroDirector.IsPlaying)
             {
                 return;
             }

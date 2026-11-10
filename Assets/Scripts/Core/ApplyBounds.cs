@@ -29,6 +29,35 @@ namespace SurvivalChaos
 
         private bool warned;
 
+        /// <summary>Whether this is the camera's copy, which a cinematic can take off its leash.</summary>
+        private bool onCamera;
+
+        /// <summary>
+        /// True while something has taken the camera for a shot of its own: the
+        /// arena intro, the trailer, or one of the trailer camera's free modes.
+        /// Every one of them asks for more height than the band, and the
+        /// camera's copy of this clamp, running after them each frame, held
+        /// every such shot at the ceiling (about 12.65). The ship's copy is
+        /// never released.
+        /// </summary>
+        public static bool CameraHeld =>
+            ArenaIntroDirector.IsPlaying || CinematicTrailerDirector.IsRunning || CinematicTrailerCam.IsActive;
+
+        /// <summary>
+        /// Whether a clamp clamps this frame: always on the ship, and on the
+        /// camera only while no cinematic holds it. Released and restored by
+        /// the cinematic's own flag, so nothing has to remember to put it back.
+        /// </summary>
+        public static bool Clamps(bool isCamera, bool cameraHeld)
+        {
+            return !isCamera || !cameraHeld;
+        }
+
+        private void Awake()
+        {
+            onCamera = GetComponent<Camera>() != null;
+        }
+
         /// <summary>
         /// The band the player is held inside, in world space. False when no box
         /// is assigned - the same condition <see cref="applyBounds"/> warns about.
@@ -60,6 +89,11 @@ namespace SurvivalChaos
 
         private void applyBounds()
         {
+            if (!Clamps(onCamera, CameraHeld))
+            {
+                return;
+            }
+
             if (playerBounds == null)
             {
                 if (!warned)

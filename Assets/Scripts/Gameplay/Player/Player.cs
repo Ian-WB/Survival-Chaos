@@ -239,7 +239,10 @@ namespace SurvivalChaos
 
             if (other.CompareTag("enemy_Shoot"))
             {
-                TakeHit(spawnHitEffect: true, DamageSource.OfRound(other.gameObject));
+                // A round says what it costs: 2 for a Fighter's or a Heavy's since
+                // 10 November 2026, 1 for the Leviathan's and for anything unmarked.
+                int cost = other.TryGetComponent(out ShootScript hit) ? hit.Damage : 1;
+                TakeHit(spawnHitEffect: true, DamageSource.OfRound(other.gameObject), cost);
 
                 // A torpedo goes off when it hits. Plain rounds fly on through,
                 // which is harmless for a round that never comes back; a torpedo
@@ -323,7 +326,7 @@ namespace SurvivalChaos
             TakeHit(spawnHitEffect: true, DamageSource.LeviathanLance);
         }
 
-        private void TakeHit(bool spawnHitEffect, string source)
+        private void TakeHit(bool spawnHitEffect, string source, int damage = 1)
         {
             // The run is over, won or lost, and the first ending stands. Stopping
             // time does not stop the physics step the ending happened in: hits
@@ -371,7 +374,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            bool killed = health.TakeDamage(1);
+            bool killed = health.TakeDamage(Mathf.Max(1, damage));
             LastHitBy = source;
 
             if (killed)
@@ -541,6 +544,11 @@ namespace SurvivalChaos
 
         private void Shoot()
         {
+            if (ArenaIntroDirector.IsPlaying)
+            {
+                return;
+            }
+
             lastVolleyAt = Time.time;
 
             // Once per volley, not once per bullet. The widest pattern fires six at

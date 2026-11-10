@@ -25,6 +25,11 @@ namespace SurvivalChaos
         [SerializeField]
         private GameObject shootPrefab1;
 
+        [SerializeField, Range(1, 2)]
+        [Tooltip("Rounds in a volley. 2 fires one from each pivot, as both ships did until " +
+                 "10 November 2026; 1 fires from the first pivot only, which is the Fighter now.")]
+        private int roundsPerVolley = 2;
+
         [Header("Delay")]
         [SerializeField]
         [Range(0f, 10f)]
@@ -92,7 +97,11 @@ namespace SurvivalChaos
                 : shootPrefab1;
 
             ObjectPool.Spawn(bullet, shootPivot.position, Quaternion.Euler(0f, 0f, 90f));
-            ObjectPool.Spawn(bullet, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
+
+            if (roundsPerVolley > 1)
+            {
+                ObjectPool.Spawn(bullet, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
+            }
         }
     }
 }

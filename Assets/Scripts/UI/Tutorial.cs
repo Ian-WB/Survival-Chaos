@@ -173,7 +173,7 @@ namespace SurvivalChaos
         /// </summary>
         void Update()
         {
-            if (!hinting || text == null)
+            if (!hinting || text == null || ArenaIntroDirector.IsPlaying)
             {
                 Refresh();
                 return;

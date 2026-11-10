@@ -462,7 +462,7 @@ namespace SurvivalChaos.EditorTools
         /// running one step of exactly what ShootScript.Update does - face the
         /// arena axis, orbit it - rather than by reasoning about handedness.
         /// </summary>
-        private static float TravelSignAlongLocalX(float speed)
+        internal static float TravelSignAlongLocalX(float speed)
         {
             Vector3 position = new Vector3(0f, 0f, ArenaGeometry.OrbitRadius);
             Quaternion facing = Quaternion.LookRotation(-position, Vector3.up);
@@ -486,9 +486,21 @@ namespace SurvivalChaos.EditorTools
         /// </summary>
         private static Mesh BuildStreakMesh(float unitsPerWorld, float behind, string assetPath)
         {
-            float tailX = behind * StreakLength;
-            float head = StreakHeadWidth * 0.5f;
-            float tail = StreakTailWidth * 0.5f;
+            return BuildStreakMesh(unitsPerWorld, behind, assetPath, StreakLength, StreakHeadWidth, StreakTailWidth, Vector3.zero);
+        }
+
+        /// <summary>
+        /// The same streak at any size, in world units. EnemyRoundBuilder draws the
+        /// Fighter's and the Heavy's rounds with it. <paramref name="origin"/> is
+        /// where the head sits in the root's own units, for a round whose model is
+        /// not on its pivot; the bounds stay centred on it.
+        /// </summary>
+        internal static Mesh BuildStreakMesh(float unitsPerWorld, float behind, string assetPath,
+                                             float length, float headWidth, float tailWidth, Vector3 origin)
+        {
+            float tailX = behind * length;
+            float head = headWidth * 0.5f;
+            float tail = tailWidth * 0.5f;
 
             var vertices = new[]
             {
@@ -498,7 +510,7 @@ namespace SurvivalChaos.EditorTools
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                vertices[i] *= unitsPerWorld;
+                vertices[i] = vertices[i] * unitsPerWorld + origin;
             }
 
             var uvs = new[]
@@ -526,11 +538,11 @@ namespace SurvivalChaos.EditorTools
             mesh.uv = uvs;
             mesh.SetTriangles(triangles, 0, calculateBounds: false);
             mesh.RecalculateNormals();
-            mesh.bounds = new Bounds(Vector3.zero, new Vector3(StreakLength * 2f, StreakHeadWidth, StreakHeadWidth) * unitsPerWorld);
+            mesh.bounds = new Bounds(origin, new Vector3(length * 2f, headWidth, headWidth) * unitsPerWorld);
 
             if (isNew)
             {
-                EnsureFolder(MeshFolder);
+                EnsureFolder(System.IO.Path.GetDirectoryName(assetPath).Replace('\\', '/'));
                 AssetDatabase.CreateAsset(mesh, assetPath);
             }
             else

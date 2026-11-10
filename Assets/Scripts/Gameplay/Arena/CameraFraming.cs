@@ -217,6 +217,28 @@ namespace SurvivalChaos
                 : preset.FieldOfView;
         }
 
+        /// <summary>
+        /// The preset to hand the camera back on after a cinematic took it:
+        /// <paramref name="taken"/>, the one it was on, while that names a
+        /// preset, and <see cref="DefaultIndex"/> otherwise. Until 10 November
+        /// 2026 the intro and the trailer tools always handed back the default,
+        /// over whatever the player had picked.
+        /// </summary>
+        public static int RestoreIndex(int taken)
+        {
+            return taken >= 0 && taken < Presets.Length ? taken : DefaultIndex;
+        }
+
+        /// <summary>
+        /// Where a camera on <paramref name="preset"/> sits up and down: the
+        /// band's middle for a preset that holds it, level with the ship for
+        /// one that climbs with it. Where the arena intro lands its last shot.
+        /// </summary>
+        public static float StationHeight(CameraPreset preset, float shipHeight, float floor, float ceiling)
+        {
+            return preset.HoldsBandMiddle ? SpawnBand.Middle(floor, ceiling) : shipHeight;
+        }
+
         /// <summary>The preset every run starts on - see <see cref="DefaultIndex"/>.</summary>
         public static CameraPreset Default => Presets[DefaultIndex];
 

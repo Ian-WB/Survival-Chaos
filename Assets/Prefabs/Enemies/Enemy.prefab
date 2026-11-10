@@ -141,6 +141,7 @@ MonoBehaviour:
   shootPivot_1: {fileID: 1449221108018617522}
   shootPrefab: {fileID: 6051693256502410095, guid: aed2fea2f22f1284bb24be4d4095fb2c, type: 3}
   shootPrefab1: {fileID: 6051693256502410095, guid: f3f845b96029d3b4b90483623c43e978, type: 3}
+  roundsPerVolley: 1
   initialDelay: 1
   spawnDelay: 3
 --- !u!1 &3328684436521233923

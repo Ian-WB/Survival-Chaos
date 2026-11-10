@@ -180,7 +180,7 @@ namespace SurvivalChaos
         /// </summary>
         void Update()
         {
-            if (center == null)
+            if (center == null || ArenaIntroDirector.IsPlaying)
             {
                 return;
             }

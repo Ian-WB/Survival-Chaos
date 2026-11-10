@@ -137,6 +137,30 @@ namespace SurvivalChaos
             timeValue = Mathf.Min(timeValue + seconds, runLength);
         }
 
+        /// <summary>
+        /// Starts the countdown again from nothing, as the arena intro hands over.
+        /// The intro restarts the waves' clock as it ends, and the boss is sent by
+        /// that clock and revealed by this one; restarting only the first left the
+        /// bar 3.5 s ahead of the boss (10 November 2026). Not an assist, unlike
+        /// <see cref="AdvanceBy"/>: the run is no shorter for it. Too late once
+        /// the boss is in.
+        /// </summary>
+        public void RestartClock()
+        {
+            if (handedOver)
+            {
+                return;
+            }
+
+            timeValue = 0f;
+            hornSounded = false;
+
+            if (timerSlider != null)
+            {
+                timerSlider.value = timeValue;
+            }
+        }
+
         void Update()
         {
             if (handedOver)

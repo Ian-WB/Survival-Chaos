@@ -175,7 +175,7 @@ namespace SurvivalChaos
                 ReleaseBurst();
             }
 
-            if (PauseMenu.GameIsPaused || RunOutcome.Decided || Time.timeScale <= 0f) { return; }
+            if (PauseMenu.GameIsPaused || RunOutcome.Decided || Time.timeScale <= 0f || ArenaIntroDirector.IsPlaying) { return; }
 
             if (!GameInput.DashPressed || !cycle.TryBegin(now))
             {

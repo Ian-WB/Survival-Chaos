@@ -164,6 +164,16 @@ namespace SurvivalChaos
             return false;
         }
 
+        /// <summary>
+        /// Resets the wave clock to start right now. Called when the arena intro
+        /// finishes so enemy waves begin their schedule only once the player has control.
+        /// </summary>
+        public void ResetStartTime()
+        {
+            startTime = Time.time;
+            started = true;
+        }
+
         private void Start()
         {
             startTime = Time.time;

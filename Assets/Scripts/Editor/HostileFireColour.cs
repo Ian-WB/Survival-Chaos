@@ -101,8 +101,10 @@ namespace SurvivalChaos.EditorTools
         private static readonly LitRound[] LitRounds =
         {
             // The peaks were 1.3, 0.65, 1.6, 3, 1.1 and 2.4 until 5 October 2026.
-            new LitRound(VfxFolder + "EnemyShot.mat", Bright, 1.1f, false),
-            new LitRound(VfxFolder + "EnemyShotTip.mat", Deep, 0.55f, false),
+            // The Fighter's two went from 1.1 and 0.55 to 1.6 and 0.8 on 10 November
+            // 2026, when its rounds were made easier to see.
+            new LitRound(VfxFolder + "EnemyShot.mat", Bright, 1.6f, false),
+            new LitRound(VfxFolder + "EnemyShotTip.mat", Deep, 0.8f, false),
             new LitRound("Assets/Art/Materials/Ships/New Material.mat", Bright, 1.6f, true),
             new LitRound(VfxFolder + "BossRound.mat", Bright, 1.6f, true),
             new LitRound(VfxFolder + "BossRoundShell.mat", Deep, 0.75f, true),
