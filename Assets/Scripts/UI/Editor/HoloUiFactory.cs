@@ -820,6 +820,12 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>What a settings row is made of, before a setting is attached to it.</summary>
+        /// <summary>Width of the note under an option row: from the label to just short of the left arrow.</summary>
+        public const float NoteWidth = 318f;
+
+        /// <summary>The smallest a note shrinks to before it is cut.</summary>
+        public const float NoteSmallest = 10f;
+
         private struct RowParts
         {
             public OptionRow Row;
@@ -883,11 +889,18 @@ namespace SurvivalChaos.EditorTools
             Button next = CreateButton(panel, label + " Next", anchor, middle,
                 new Vector2(columnX + 290f, top), new Vector2(46f, 40f), panelMaterial, ">", 20f);
 
+            // Ends short of the left arrow, which starts at columnX + 27, and
+            // shrinks to fit. It was 560 wide, and the longer notes ran on
+            // under the arrow (12 November 2026).
             TextMeshProUGUI note = CreateText(panel, label + " Note", anchor,
-                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top - 24f), new Vector2(560f, 20f),
+                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top - 24f), new Vector2(NoteWidth, 20f),
                 14f, TextAlignmentOptions.Left);
             note.text = string.Empty;
             note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
+            note.textWrappingMode = TextWrappingModes.NoWrap;
+            note.enableAutoSizing = true;
+            note.fontSizeMin = NoteSmallest;
+            note.fontSizeMax = 14f;
 
             // The arrows are for the mouse. The pad stands on the row and uses
             // left and right, so it has to pass over them.

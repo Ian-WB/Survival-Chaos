@@ -18,6 +18,18 @@ is enabled later. A debug-menu speed other than 1 also ends the session; the
 player's own Slow Mo does not, since that is the game being played, not changed.
 Pausing suspends gameplay decisions. Stopping the bot does not pause the game.
 
+### Faster test runs
+
+`SurvivalPlaytestBot.StartSessionAt(speed)`, from an eval, starts a session with
+the whole game running at 1 to 4 times speed, to get through balance runs
+sooner. The pilot times everything in game seconds, so it reacts as it would at
+normal speed. What changes is how much game time one frame covers: at 3 times
+speed and 72 frames a second each frame is 42 ms of game, which is the game at
+24 frames a second. Keep speed times frame time near a normal frame (2 times
+speed was about 30 ms on 12 November 2026), and treat a fast run as rougher
+evidence than a normal one. The run is marked assisted and sets no record, and
+every sound plays at the same multiple of its pitch.
+
 Reports are written automatically to `Logs/PlaytestBot/`, outside `Assets`, when
 the session ends. They contain decision changes, health/level changes, camera
 settings, boss phase diagnostics, total kills and collected upgrade counts. The

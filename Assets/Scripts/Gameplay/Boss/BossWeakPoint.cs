@@ -104,7 +104,44 @@ namespace SurvivalChaos
             if (glow != null)
             {
                 restingScale = glow.localScale;
+                BuildCore();
             }
+        }
+
+        [Header("Core")]
+        [SerializeField]
+        [Tooltip("Drawn on a smaller sphere inside the pod, which then reads as a bright core in " +
+                 "a dimmer shell. With one flat colour the pod was an orange oval with no form " +
+                 "(12 November 2026). Left empty, no core is built.")]
+        private Material coreMaterial;
+
+        [SerializeField, Range(0.3f, 0.95f)]
+        [Tooltip("The core's size as a share of the pod's.")]
+        private float coreScale = 0.66f;
+
+        /// <summary>
+        /// Adds the core under the glow, so it swells with a telegraph and goes
+        /// out with the pod: <see cref="Show"/> switches every renderer there.
+        /// Built here rather than authored because the pod's mesh is the
+        /// glow's own, whatever that is.
+        /// </summary>
+        private void BuildCore()
+        {
+            if (coreMaterial == null || !glow.TryGetComponent(out MeshFilter shell) || shell.sharedMesh == null)
+            {
+                return;
+            }
+
+            var core = new GameObject("Core");
+            core.layer = glow.gameObject.layer;
+            core.transform.SetParent(glow, worldPositionStays: false);
+            core.transform.localScale = Vector3.one * coreScale;
+            core.AddComponent<MeshFilter>().sharedMesh = shell.sharedMesh;
+
+            MeshRenderer drawn = core.AddComponent<MeshRenderer>();
+            drawn.sharedMaterial = coreMaterial;
+            drawn.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            drawn.receiveShadows = false;
         }
 
         /// <summary>

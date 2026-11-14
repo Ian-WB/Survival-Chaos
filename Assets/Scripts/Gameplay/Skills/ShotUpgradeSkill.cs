@@ -20,7 +20,7 @@ namespace SurvivalChaos
         {
             "Double Shot!",
             "Triple Shot!",
-            "SexTUPLO Shot!"
+            "Sextuple Shot!"
         };
 
         [SerializeField]
@@ -30,7 +30,7 @@ namespace SurvivalChaos
         {
             "Double Shot",
             "Triple Shot",
-            "SexTUPLO Shot"
+            "Sextuple Shot"
         };
 
         public override string GetDisplayName(int picksTaken)

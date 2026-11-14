@@ -23,7 +23,11 @@ namespace SurvivalChaos
     {
         private const string Prefix = "SurvivalChaos.Records.";
         private const string LongestKey = Prefix + "LongestSeconds";
-        private const string LevelKey = Prefix + "HighestLevel";
+        // A new key since 12 November 2026. Level-ups were halved on the 9th, so a
+        // run now ends near level 19 where it used to end near 36, and a best
+        // saved under the old ladder could never be beaten. The old key,
+        // "HighestLevel", is left where it is and no longer read.
+        private const string LevelKey = Prefix + "HighestLevel.Ladder2";
         private const string FastestKey = Prefix + "FastestWinSeconds";
 
         /// <summary>Which records a run beat.</summary>

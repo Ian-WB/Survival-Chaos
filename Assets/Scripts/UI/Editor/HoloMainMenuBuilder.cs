@@ -311,7 +311,7 @@ namespace SurvivalChaos.EditorTools
             // panel's height since it began naming everyone the rebuild uses.
             RectTransform window = HoloUiFactory.CreateRect(panel, "Credits Window",
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -130f),
-                new Vector2(800f, 400f));
+                new Vector2(800f, 388f));
             Undo.AddComponent<RectMask2D>(window.gameObject);
 
             TextMeshProUGUI text = HoloUiFactory.CreateText(window, "Credits Text",
@@ -335,8 +335,10 @@ namespace SurvivalChaos.EditorTools
             HoloUiFactory.Assign(roll, "content", textRect);
 
             TextMeshProUGUI hint = HoloUiFactory.CreateText(panel, "Credits Hint",
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -538f),
-                new Vector2(800f, 24f), 15f, TextAlignmentOptions.Center);
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -521f),
+                new Vector2(800f, 20f), 15f, TextAlignmentOptions.Center);
+            // Between the window's foot at -518 and the Back button's top at
+            // -544. It sat at -538 and the button cut its lower half.
             hint.text = "Up and down, or the wheel, to scroll";
             Color quiet = HoloUiFactory.Edge;
             quiet.a = 0.6f;

@@ -154,7 +154,7 @@ namespace SurvivalChaos
 
             if (badgeTimer > 0f)
             {
-                badgeTimer -= Time.unscaledDeltaTime;
+                badgeTimer -= CaptureClock.UnscaledDelta;
             }
 
             // Ensure references
@@ -207,7 +207,7 @@ namespace SurvivalChaos
             Vector3 playerPos = player.transform.position;
             float laneRadius = ArenaGeometry.LaneRadius;
             float playerBearing = Mathf.Atan2(playerPos.x, playerPos.z);
-            float dt = Time.unscaledDeltaTime;
+            float dt = CaptureClock.UnscaledDelta;
 
             switch (CurrentMode)
             {

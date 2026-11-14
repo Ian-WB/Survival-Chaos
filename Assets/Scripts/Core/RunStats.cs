@@ -195,6 +195,22 @@ namespace SurvivalChaos
             Clear();
         }
 
+        /// <summary>
+        /// Starts the run's clock again from nothing, as the arena intro hands
+        /// over. The clock starts at the scene's load, so a watched intro put
+        /// its 3.5 s into "Survived" and the fastest-win record and a skipped
+        /// one did not (12 November 2026). Nothing happens once a run has ended.
+        /// </summary>
+        public static void RestartClock()
+        {
+            if (endedAt >= 0f)
+            {
+                return;
+            }
+
+            startedAt = Clock();
+        }
+
         public static void Clear()
         {
             EnemiesDestroyed = 0;

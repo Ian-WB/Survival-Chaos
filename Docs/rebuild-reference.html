@@ -287,7 +287,7 @@
   <header class="mast">
     <div class="eyebrow">Unity 6 · HDRP branch · project reference</div>
     <h1>Survival Chaos: what the rebuild changed, and how the game works now</h1>
-    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 436 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
+    <p class="standfirst">A 2023 university jam project, revived and rebuilt across 438 commits. This is both a record of what was done and a guide to the systems as they stand — written to be read by the person who owns it.</p>
     <div class="stats">
       <div class="stat"><b>436</b><span>commits</span></div>
       <div class="stat"><b>879</b><span>tests</span></div>
@@ -1103,7 +1103,7 @@ transform.LookAt(pos);</code></pre>
           <tr><td>Scout</td><td class="num">1</td><td class="num">5</td><td>Enemy 2</td></tr>
           <tr><td>Drone</td><td class="num">3</td><td class="num">5</td><td>Enemy 3</td></tr>
           <tr><td>Fighter</td><td class="num">2</td><td class="num">15</td><td>Enemy</td></tr>
-          <tr><td>Heavy</td><td class="num">5</td><td class="num">15</td><td>Enemy 1</td></tr>
+          <tr><td>Heavy</td><td class="num">10</td><td class="num">30</td><td>Enemy 1</td></tr>
           <tr><td>Boss</td><td class="num">1400</td><td class="num">50</td><td>Boss</td></tr>
         </tbody>
       </table>
@@ -2936,7 +2936,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     </div>
 
     <h3>The engine version, and what 6.6 moved</h3>
-    <p>The project runs on <strong>Unity 6.6 (6000.6.8f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
+    <p>The project runs on <strong>Unity 6.6 (6000.6.9f1)</strong> and HDRP 17.6. The renderer did not move with it: HDRP&rsquo;s 17.6 changelog records only that its version rose to match a related graphics package, so this was an editor and tooling upgrade rather than a rendering one.</p>
     <p>Five packages left the manifest first, each checked rather than assumed &mdash; <strong>Entities</strong> and <strong>Entities Graphics</strong>, against a project with no ECS types, systems or bakers anywhere in it; <strong>Timeline</strong>, against no <code>PlayableDirector</code> in any script, scene or prefab and no <code>.playable</code> asset; <strong>AI&nbsp;Navigation</strong>, against no NavMesh of any kind, since the enemies chase by orbit arithmetic rather than by pathfinding; and <strong>Multiplayer Center</strong>, against a single-player game. Eight entries left the lock, because Serialization, Scriptable Build Pipeline and Profiling Core had come in behind Entities &mdash; and Serialization is deprecated in 6.6, so it would have needed answering for regardless.</p>
     <div class="note">
       <div class="label">The 6.6.1 patch moved nothing this project can see</div>
@@ -2962,6 +2962,8 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
     3.0.0 to 3.2.0 and <code>com.unity.pipeline</code> to 0.10.0-exp.1. All 871 tests and the cloud shader hash checks passed.
     <code>26_1108-1225_release</code> (534&nbsp;MB) was built the same day and played twice on 9 November, and
     <code>26_1109-0959_perfCheck</code> matched the 16 October build&rsquo;s GPU frame times early in the run.</p>
+    <p>6000.6.9f1 arrived on 12 November and needed nothing: the manifest and the lock file did not change, and all 956
+    tests passed once the README named the new version.</p>
     </div>
     <p><code>Collections</code> and <code>Burst</code> look just as unused and cannot go: <code>Render Pipelines Core</code> depends on both, so they are HDRP&rsquo;s rather than the project&rsquo;s, and Burst&rsquo;s 2.0 major arrives with the engine whatever the manifest says.</p>
 
@@ -3228,6 +3230,26 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
 
     <h4>Open on the current front</h4>
     <ul>
+      <li><strong>The enemies are harder, the run has an opening, and a second scan&rsquo;s fixes are in.</strong> On
+      10 November (<code>ae3864d</code>) the Heavy doubled in size and went to 10 health, the Fighter&rsquo;s and the
+      Heavy&rsquo;s rounds went to 2 damage with a violet streak so they can be seen, and the Fighter fires one round a
+      volley. The same commit added <code>ArenaIntroDirector</code>, a 3.5&nbsp;s camera dive and ship drop that can be
+      skipped, and <code>TitleSplashDirector</code>, a developer card and an attract prompt ahead of the menu. A scan on
+      12 November, read from the code and from a played session the game filmed itself, found thirty things and its fix
+      pass changed these. The intro plays on the first run of a session only, restarts the run&rsquo;s own clock as it
+      ends (a watched intro had cost 3.5&nbsp;s of &ldquo;Survived&rdquo;), lets the ship&rsquo;s height clamp go so the
+      drop is the 12 units it was written as, and is not drawn over the pause menu. The splash goes to the menu in one
+      press, no longer names the game in plain text ahead of the logo, and asks the music to wait
+      (<code>MusicSource.HeldBack</code>) where it had fought the music component over the volume. Both draw in the
+      HUD&rsquo;s font through <code>OverlayFont</code>. The end card&rsquo;s numbers are in that font too, name skills
+      plainly and fit the card; the level-up banner sits under the timer bar; the second shot upgrade is Sextuple Shot in
+      English; option notes stop short of their arrows; the title film dims behind the options and the credits; far pickup
+      captions shrink to 0.7 and no further; and the saved best level starts again, because the halved ladder could never
+      beat an old one. Two changes wait for Ian&rsquo;s eye: a bright core inside each Leviathan weak point
+      (<code>BossEmplacementCore.mat</code>) and the player&rsquo;s round light down from 16 to 12 lumen. A violet glow on
+      enemy hulls was tried and taken out on 13 November: Ian did not like the enemies purple. The Heavy pays 30 experience where it paid the Fighter&rsquo;s 15.
+      <strong>Three bot runs after the fixes all lost</strong>, at 289 s, at 423 s to the Leviathan and at 223 s, flown at two and three times speed; before the fixes, at normal speed, one lost at 297 s and one won at 511 s. No difficulty was changed on that. 956 tests pass, and the work is in <code>26_1113-0919_noGlow</code>, a Checked build. Not done: the shader
+      warm-up files are still the ones recorded on 6000.6.8f1, and no Release build has been made since 8 November.</li>
       <li><strong>The 5 October look was judged that day.</strong> 9 out at 65&deg; is the view that was wanted, the
       Leviathan&rsquo;s weak points on the floor and the ceiling are not awkward, and the violet fire reads as an
       enemy&rsquo;s. The ship still looked a little lit from inside, which was called no big deal.</li>
@@ -3504,7 +3526,7 @@ ToDecibels(0.0)  = -80 dB     // floored, never -Infinity</code></pre>
   </section>
 
   <footer>
-    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.8f1) · HDRP 17.6 · branch <code>main</code> · 436 commits
+    Survival Chaos · rebuild reference · Unity 6.6 (6000.6.9f1) · HDRP 17.6 · branch <code>main</code> · 438 commits
   </footer>
 
 </div>

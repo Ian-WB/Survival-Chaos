@@ -11,17 +11,22 @@ namespace SurvivalChaos
     ///
     /// It sweeps the camera across the volcanic caldera and storm wall with a dynamic
     /// orbital dive and Dutch banking roll, drops the ship into its orbital lane with
-    /// supersonic plunge, thruster retro-burn rumble and screen shake, displays high-tech
-    /// HUD calibration telemetry with reticle lock-on, boots up the holographic HUD,
-    /// and hands control seamlessly to the player as the wave clock begins.
+    /// supersonic plunge, thruster retro-burn rumble and screen shake, shows two short
+    /// lines in the HUD's font, brings the HUD up, and hands control to the player as
+    /// the wave clock begins.
+    ///
+    /// It plays on the first run of a session only: Try Again, Restart and a second
+    /// Play go straight to the run (12 November 2026).
     ///
     /// Space, Enter or the dash button (A on a pad) skips the intro. Escape and
     /// Start are left to the pause menu, which holds the intro where it is.
     ///
     /// While it runs it owns the camera: the camera's ApplyBounds lets go (see
     /// <see cref="ApplyBounds.CameraHeld"/>), and the preset the camera was on is
-    /// handed back at the end. It also restarts both clocks at the end - the
-    /// waves' and the HUD's countdown - so the boss arrives when the bar says.
+    /// handed back at the end. The ship's ApplyBounds lets go too, so the drop
+    /// starts above the band. It also restarts the clocks at the end - the waves',
+    /// the HUD's countdown and the run's own - so the boss arrives when the bar
+    /// says and a watched intro costs the run no time.
     /// </summary>
     [AddComponentMenu("")]
     [DisallowMultipleComponent]
@@ -36,6 +41,9 @@ namespace SurvivalChaos
 
         private static ArenaIntroDirector instance;
         private static bool isPlaying;
+
+        /// <summary>Whether the intro has played since the game started. It plays once.</summary>
+        private static bool playedThisSession;
 
         /// <summary>True while the opening cinematic sequence is running.</summary>
         public static bool IsPlaying => isPlaying;
@@ -81,9 +89,6 @@ namespace SurvivalChaos
 
         private Texture2D blackTexture;
         private GUIStyle titleStyle;
-        private GUIStyle subStyle;
-        private GUIStyle telemetryStyle;
-        private GUIStyle reticleStyle;
         private GUIStyle hintStyle;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -108,6 +113,7 @@ namespace SurvivalChaos
         {
             instance = null;
             isPlaying = false;
+            playedThisSession = false;
 
             // The editor keeps the domain between plays, so a switch turned off
             // in one would otherwise still be off in the next.
@@ -135,8 +141,10 @@ namespace SurvivalChaos
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             StopAllCoroutines();
-            if (scene.name == "Game" && Enabled)
+            if (ShouldPlay(scene.name, Enabled, playedThisSession))
             {
+                playedThisSession = true;
+
                 // Taken now rather than a frame later, so the first frame drawn
                 // shows neither the gameplay camera nor the HUD: the HUD goes
                 // here, and the camera's clamp and preset hold off on IsPlaying.
@@ -157,6 +165,25 @@ namespace SurvivalChaos
                 isPlaying = false;
                 finished = true;
             }
+        }
+
+        /// <summary>
+        /// Whether a scene's load starts the intro: the Game scene, with the
+        /// switch on, and only the first time in a session.
+        /// </summary>
+        public static bool ShouldPlay(string scene, bool enabled, bool alreadyPlayed)
+        {
+            return scene == "Game" && enabled && !alreadyPlayed;
+        }
+
+        /// <summary>
+        /// Whether the intro's bars and lines are drawn this frame. Not under
+        /// the pause menu or the loading screen: they are drawn over every
+        /// canvas, and paused mid-intro the banner sat across the pause card.
+        /// </summary>
+        public static bool OverlayShown(bool playing, bool finished, bool paused, bool loading)
+        {
+            return playing && !finished && !paused && !loading;
         }
 
         private void OnSceneUnloaded(Scene scene)
@@ -496,11 +523,13 @@ namespace SurvivalChaos
             {
                 runTimer.RestartClock();
             }
+
+            RunStats.RestartClock();
         }
 
         private void OnGUI()
         {
-            if (!isPlaying || finished)
+            if (!OverlayShown(isPlaying, finished, PauseMenu.GameIsPaused, LoadingScreen.Busy))
             {
                 return;
             }
@@ -526,89 +555,42 @@ namespace SurvivalChaos
                 GUI.DrawTexture(new Rect(0f, screenH - barH, screenW, barH), blackTexture);
             }
 
-            // 2. High-Tech Corner HUD Viewport Brackets
-            float cornerAlpha = Mathf.Clamp01(timer / 0.5f) * (1f - Mathf.Clamp01((timer - LetterboxSlideStart) / 0.6f));
-            if (cornerAlpha > 0.01f)
-            {
-                Color prevTc = telemetryStyle.normal.textColor;
-                telemetryStyle.normal.textColor = new Color(prevTc.r, prevTc.g, prevTc.b, cornerAlpha * 0.75f);
-
-                float marginX = 28f;
-                float topY = barH + 12f;
-                float botY = screenH - barH - 30f;
-
-                GUI.Label(new Rect(marginX, topY, 360f, 22f), "┌─ [ ORBITAL INGRESS // VECTOR: 342.8° ]", telemetryStyle);
-                GUI.Label(new Rect(screenW - marginX - 360f, topY, 360f, 22f), "[ SECTOR 01: CALDERA EYE ] ─┐", telemetryStyle);
-
-                string engineStatus = timer < ShipDropLand ? "IGNITION PENDING" : "RETRO-BURN LOCKED [OK]";
-                GUI.Label(new Rect(marginX, botY, 360f, 22f), $"└─ [ THRUSTERS: {engineStatus} ]", telemetryStyle);
-                GUI.Label(new Rect(screenW - marginX - 360f, botY, 360f, 22f), "[ SYSTEMS: ONLINE // WEAPONS: ARMED ] ─┘", telemetryStyle);
-            }
-
-            // 3. Dynamic Screen-Space Ship Reticle Bracket
-            if (cam != null && player != null && timer >= 1.2f && timer < 2.9f)
-            {
-                Vector3 shipScreen = cam.WorldToScreenPoint(player.transform.position);
-                if (shipScreen.z > 0f)
-                {
-                    float reticleAlpha = timer < 1.7f ? (timer - 1.2f) / 0.5f : (2.9f - timer) / 0.5f;
-                    reticleAlpha = Mathf.Clamp01(reticleAlpha);
-
-                    Color rc = reticleStyle.normal.textColor;
-                    reticleStyle.normal.textColor = new Color(rc.r, rc.g, rc.b, reticleAlpha * 0.9f);
-
-                    float rx = shipScreen.x;
-                    float ry = Screen.height - shipScreen.y;
-                    float rw = 160f;
-                    float rh = 28f;
-
-                    string lockLabel = timer < ShipDropLand ? "◈ ACQUIRING ◈" : "◈ ORBIT LOCKED ◈";
-                    GUI.Label(new Rect(rx - rw * 0.5f, ry - rh * 0.5f, rw, rh), $"[ {lockLabel} ]", reticleStyle);
-                }
-            }
-
-            // 4. Holographic Text Banners
-            float centerY = screenH * 0.75f;
-            Rect titleRect = new Rect(0f, centerY, screenW, 38f);
-            Rect subRect = new Rect(0f, centerY + 34f, screenW, 24f);
+            // 2. One line at a time, low in the frame. The corner read-outs
+            // and the bracket that followed the ship went on 12 November
+            // 2026: at 1440p the bracket's label wrapped and sat on the ship,
+            // and the corner lines ran into the HUD and the skip prompt.
+            float titleH = titleStyle.fontSize * 1.5f;
+            Rect titleRect = new Rect(0f, screenH * 0.75f, screenW, titleH);
 
             if (timer >= 0.2f && timer < 1.9f)
             {
                 float alpha = timer < 0.6f ? (timer - 0.2f) / 0.4f : (1.9f - timer) / 0.4f;
-                alpha = Mathf.Clamp01(alpha);
-
-                Color c = titleStyle.normal.textColor;
-                titleStyle.normal.textColor = new Color(c.r, c.g, c.b, alpha);
-                Color sc = subStyle.normal.textColor;
-                subStyle.normal.textColor = new Color(sc.r, sc.g, sc.b, alpha * 0.85f);
-
-                GUI.Label(titleRect, "// SECTOR 01: CALDERA EYE //", titleStyle);
-                GUI.Label(subRect, "VOLCANIC CORE DETECTED • ORBITAL COMBAT ZONE", subStyle);
+                DrawLine(titleRect, "ENTERING ORBIT", titleStyle, TitleColour, Mathf.Clamp01(alpha));
             }
             else if (timer >= 2.05f && timer < 3.4f)
             {
                 float alpha = timer < 2.45f ? (timer - 2.05f) / 0.4f : (3.4f - timer) / 0.4f;
-                alpha = Mathf.Clamp01(alpha);
-
-                Color c = titleStyle.normal.textColor;
-                titleStyle.normal.textColor = new Color(c.r, c.g, c.b, alpha);
-                Color sc = subStyle.normal.textColor;
-                subStyle.normal.textColor = new Color(sc.r, sc.g, sc.b, alpha * 0.85f);
-
-                GUI.Label(titleRect, "// ALL SYSTEMS ONLINE //", titleStyle);
-                GUI.Label(subRect, "ENGAGE COMBAT ORBIT • DEFENSES ARMED", subStyle);
+                DrawLine(titleRect, "WEAPONS ARMED", titleStyle, TitleColour, Mathf.Clamp01(alpha));
             }
 
-            // 5. Skip prompt
-            if (timer >= 0.5f)
+            // 3. Skip prompt, inside the bottom bar and gone with it.
+            if (timer >= 0.5f && barH > hintStyle.fontSize * 1.6f)
             {
-                float skipAlpha = Mathf.Clamp01((timer - 0.5f) / 0.5f);
-                Color hc = hintStyle.normal.textColor;
-                hintStyle.normal.textColor = new Color(hc.r, hc.g, hc.b, skipAlpha * 0.7f);
-
-                Rect hintRect = new Rect(screenW - 240f, screenH - barH - 32f, 220f, 24f);
-                GUI.Label(hintRect, "[SPACE / A] SKIP INTRO", hintStyle);
+                float skipAlpha = Mathf.Clamp01((timer - 0.5f) / 0.5f) * 0.7f;
+                float hintH = hintStyle.fontSize * 1.6f;
+                float margin = screenH * 0.03f;
+                Rect hintRect = new Rect(0f, screenH - (barH + hintH) * 0.5f, screenW - margin, hintH);
+                DrawLine(hintRect, "SPACE / A   SKIP", hintStyle, HintColour, skipAlpha);
             }
+        }
+
+        private static readonly Color TitleColour = new Color(0.35f, 0.88f, 1f, 1f);
+        private static readonly Color HintColour = new Color(0.6f, 0.75f, 0.85f, 1f);
+
+        private static void DrawLine(Rect rect, string text, GUIStyle style, Color colour, float alpha)
+        {
+            style.normal.textColor = new Color(colour.r, colour.g, colour.b, colour.a * alpha);
+            GUI.Label(rect, text, style);
         }
 
         private void InitStyles()
@@ -622,58 +604,17 @@ namespace SurvivalChaos
 
             if (titleStyle == null)
             {
-                titleStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.034f), 18, 34),
-                    fontStyle = FontStyle.Bold
-                };
-                titleStyle.normal.textColor = new Color(0.35f, 0.88f, 1f, 1f);
-            }
-
-            if (subStyle == null)
-            {
-                subStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.018f), 12, 19),
-                    fontStyle = FontStyle.Normal
-                };
-                subStyle.normal.textColor = new Color(0.72f, 0.92f, 1f, 0.85f);
-            }
-
-            if (telemetryStyle == null)
-            {
-                telemetryStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleLeft,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.015f), 11, 15),
-                    fontStyle = FontStyle.Bold
-                };
-                telemetryStyle.normal.textColor = new Color(0.28f, 0.82f, 1f, 0.75f);
-            }
-
-            if (reticleStyle == null)
-            {
-                reticleStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.016f), 11, 16),
-                    fontStyle = FontStyle.Bold
-                };
-                reticleStyle.normal.textColor = new Color(0.3f, 0.95f, 1f, 0.9f);
+                titleStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, wordWrap = false };
             }
 
             if (hintStyle == null)
             {
-                hintStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleRight,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.016f), 11, 16),
-                    fontStyle = FontStyle.Normal
-                };
-                hintStyle.normal.textColor = new Color(0.6f, 0.75f, 0.85f, 0.6f);
+                hintStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleRight, wordWrap = false };
             }
+
+            // Every frame: the resolution can change in the options.
+            OverlayFont.Fit(titleStyle, 0.034f, 18, 48);
+            OverlayFont.Fit(hintStyle, 0.016f, 11, 22);
         }
     }
 }

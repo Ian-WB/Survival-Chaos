@@ -94,6 +94,16 @@ namespace SurvivalChaos
                 return;
             }
 
+            // The ship's copy lets go for the arena intro only, which drops the
+            // ship in from 12 above its lane. Held, it sat at the ceiling for
+            // the first second and fell 5.65 instead (seen in play, 12 November
+            // 2026). The intro puts the ship back on its lane as it ends, and
+            // nothing flies it meanwhile.
+            if (!onCamera && ArenaIntroDirector.IsPlaying)
+            {
+                return;
+            }
+
             if (playerBounds == null)
             {
                 if (!warned)

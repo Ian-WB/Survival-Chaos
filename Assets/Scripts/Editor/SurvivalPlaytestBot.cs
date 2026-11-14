@@ -23,8 +23,37 @@ namespace SurvivalChaos.EditorTools
         [MenuItem("Survival Chaos/Playtest Bot", priority = 200)]
         public static void Open() => GetWindow<SurvivalPlaytestBot>("Playtest Bot");
 
+        /// <summary>
+        /// The game speed this session flies at. 1 except in a test started
+        /// with <see cref="StartSessionAt"/>.
+        /// </summary>
+        public static float TestSpeed { get; private set; } = 1f;
+
+        /// <summary>
+        /// Starts a session with the whole game running faster, to get through
+        /// balance runs sooner (asked for on 12 November 2026). Everything the
+        /// pilot does is timed in game seconds, so it reacts as it would at
+        /// normal speed; what changes is the game time each frame covers, so
+        /// keep speed times frame time near a normal frame. The run is marked
+        /// assisted and can set no record.
+        /// </summary>
+        public static string StartSessionAt(float speed)
+        {
+            float wanted = Mathf.Clamp(speed, 1f, 4f);
+            string result = StartSession();
+            if (result != "Started") return result;
+            TestSpeed = wanted;
+            if (!Mathf.Approximately(wanted, 1f))
+            {
+                RunRecords.MarkAssisted();
+                RunTime.SetSpeed(wanted);
+            }
+            return "Started at x" + wanted.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
         public static string StartSession()
         {
+            TestSpeed = 1f;
             var window = GetWindow<SurvivalPlaytestBot>("Playtest Bot");
             if (window.pilot != null) return "Already running";
             try { window.pilot = new Pilot(window.reaction); return "Started"; }
@@ -355,7 +384,7 @@ namespace SurvivalChaos.EditorTools
                     // Paused: hold still. The debug menu's speed voids the run; Slow Mo,
                     // the player's own ability, does not.
                     if (Time.timeScale <= 0f) { axes = Vector2.zero; return; }
-                    if (!Mathf.Approximately(RunTime.RequestedSpeed, 1f))
+                    if (!Mathf.Approximately(RunTime.RequestedSpeed, TestSpeed))
                     { axes = Vector2.zero; EndReason = "Nonstandard time scale; run invalidated"; return; }
                     RecordHealth();
                     foreach (string skill in RunStats.SkillOrder)

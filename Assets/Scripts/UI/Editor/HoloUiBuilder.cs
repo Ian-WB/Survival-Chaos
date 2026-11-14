@@ -474,12 +474,15 @@ namespace SurvivalChaos.EditorTools
 
         private static void BuildLevelUpBanner(Transform parent, Material panel)
         {
+            // Under the timer bar, at the top of the screen. It stood 220 above
+            // the centre until 12 November 2026, which is inside the band the
+            // ship flies in, and covered the ship when it climbed.
             Image image = HoloUiFactory.CreatePanel(parent, "Level Up Banner",
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 220f),
-                new Vector2(620f, 130f), panel, HoloUiFactory.PanelFill, "LevelUpPanel");
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -100f),
+                new Vector2(520f, 92f), panel, HoloUiFactory.PanelFill, "LevelUpPanel");
 
             HoloUiFactory.CreateText(image.transform, "Level Up Text", new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(560f, 100f), 30f,
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(480f, 76f), 26f,
                 TextAlignmentOptions.Center).text = "Level Up";
 
             image.gameObject.SetActive(false);

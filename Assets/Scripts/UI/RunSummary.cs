@@ -105,18 +105,53 @@ namespace SurvivalChaos
                 {
                     string skill = RunStats.SkillOrder[i];
 
+                    // Three to a line: nine skills are three lines, where two
+                    // to a line ran off the bottom of the card.
                     if (i > 0)
                     {
-                        if (i % 2 == 0) { into.AppendLine(); }
-                        else { into.Append("   "); }
+                        if (i % SkillsPerLine == 0) { into.AppendLine(); }
+                        else { into.Append("    "); }
                     }
 
-                    into.Append(skill).Append(" x").Append(RunStats.PicksOf(skill));
+                    into.Append(ShortName(skill)).Append(" x").Append(RunStats.PicksOf(skill));
                 }
             }
 
             return into.ToString();
         }
+
+        /// <summary>How many skills the card lists on one line.</summary>
+        public const int SkillsPerLine = 3;
+
+        /// <summary>
+        /// A skill as the card names it. Skills are recorded under the words
+        /// their level-up banner announces - "Attack Speed Increased!",
+        /// "Deflector Online!" - and the card listed them like that, each
+        /// with its exclamation mark (12 November 2026). Here the announcement
+        /// is taken off and the name set in capitals like the lines above it.
+        /// </summary>
+        public static string ShortName(string announced)
+        {
+            if (string.IsNullOrEmpty(announced))
+            {
+                return string.Empty;
+            }
+
+            string name = announced.Trim().TrimEnd('!').Trim();
+
+            foreach (string tail in AnnouncementTails)
+            {
+                if (name.Length > tail.Length && name.EndsWith(tail, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    name = name.Substring(0, name.Length - tail.Length);
+                    break;
+                }
+            }
+
+            return name.ToUpperInvariant();
+        }
+
+        private static readonly string[] AnnouncementTails = { " Increased", " Online", " Recovers Faster" };
 
         /// <summary>The Ship Lost card's first line: "LOST TO A LEVIATHAN TORPEDO".</summary>
         public static string LostTo(string source)
@@ -190,17 +225,22 @@ namespace SurvivalChaos
 
             var text = holder.AddComponent<TextMeshProUGUI>();
 
-            if (font != null)
+            // The card's own typeface. Left to TextMeshPro's default, the
+            // numbers were in Liberation Sans under a title and buttons in
+            // the HUD's font.
+            TMP_FontAsset face = font != null ? font : BorrowFont(host);
+            if (face != null)
             {
-                text.font = font;
+                text.font = face;
             }
 
             text.alignment = TextAlignmentOptions.Top;
             text.fontSize = 18f;
             text.textWrappingMode = TextWrappingModes.Normal;
             text.enableAutoSizing = true;
-            text.fontSizeMin = 14f;
+            text.fontSizeMin = 11f;
             text.fontSizeMax = 18f;
+            text.color = new Color(0.72f, 0.95f, 1f, 1f);
             text.raycastTarget = false;
 
             RectTransform rect = text.rectTransform;
@@ -211,6 +251,20 @@ namespace SurvivalChaos
             rect.anchoredPosition = new Vector2(0f, -288f);
 
             return text;
+        }
+
+        /// <summary>The font of the first text already on the card: its title.</summary>
+        private static TMP_FontAsset BorrowFont(Transform card)
+        {
+            foreach (TextMeshProUGUI other in card.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (other.font != null && other.gameObject.name != "Run Summary")
+                {
+                    return other.font;
+                }
+            }
+
+            return null;
         }
     }
 }

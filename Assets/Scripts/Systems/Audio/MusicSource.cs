@@ -128,6 +128,22 @@ namespace SurvivalChaos
         /// <summary>Latched by the ending beat: a lost run's music stays gone under the card.</summary>
         private bool lost;
 
+        /// <summary>
+        /// True while something wants the music to wait before it fades in:
+        /// the title splash, under its opening card. The splash used to set the
+        /// AudioSource's volume itself, and this component sets it every frame,
+        /// so the two fought over one number and the splash's level ignored the
+        /// Music slider (12 November 2026). Now it only asks, and the fade-in
+        /// here does the rest at the player's own level.
+        /// </summary>
+        public static bool HeldBack { get; set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetHold()
+        {
+            HeldBack = false;
+        }
+
         private void Awake()
         {
             source = GetComponent<AudioSource>();
@@ -353,7 +369,7 @@ namespace SurvivalChaos
 
             // In once the loading screen has gone, so the first thing heard of
             // a scene is not its slow first frames; out as it is left.
-            if (!LoadingScreen.Busy)
+            if (!LoadingScreen.Busy && !HeldBack)
             {
                 arrival = fadeInSeconds > 0f
                     ? Mathf.MoveTowards(arrival, 1f, Time.unscaledDeltaTime / fadeInSeconds)

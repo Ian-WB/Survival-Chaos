@@ -200,7 +200,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            float dt = Time.unscaledDeltaTime;
+            float dt = CaptureClock.UnscaledDelta;
             trailerTimer += dt;
 
             if (cam == null)

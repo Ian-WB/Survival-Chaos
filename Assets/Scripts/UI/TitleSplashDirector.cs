@@ -13,10 +13,12 @@ namespace SurvivalChaos
     /// Coordinates the cinematic boot splash and attract mode on the Title Menu (Menu.unity).
     ///
     /// On initial launch:
-    /// 1. Plays a cinematic developer splash ("IAN WANDERLEY PRESENTS") with expanding laser rules.
-    /// 2. Slams into the holographic title card ("SURVIVAL CHAOS") with audio impact cue.
-    /// 3. Fades smoothly into the video background (TitleScreen.mp4) with music crescendo.
-    /// 4. Holds in arcade attract mode with a breathing "[ ◈ PRESS ANY KEY TO ENGAGE ◈ ]" prompt.
+    /// 1. Plays a developer card ("IAN WANDERLEY PRESENTS") with expanding rules, in silence.
+    /// 2. Fades into the title scene and its logo. A text card naming the game stood between
+    ///    the two until 12 November 2026; the logo says it better.
+    /// 3. The music fades in with it. That fade is the music component's own: this only holds
+    ///    it back until then (see MusicSource.HeldBack).
+    /// 4. Holds in arcade attract mode with a breathing "PRESS ANY KEY" prompt.
     /// 5. On keypress, triggers a reactor ignition flash, sound burst, animated menu reveal,
     ///    and auto-focuses the first button for pad/keyboard navigation.
     /// 6. If idle on the title panel for 40 seconds, smoothly returns to attract mode. Only
@@ -24,8 +26,8 @@ namespace SurvivalChaos
     ///    options or credits it covered a screen someone was reading. Mouse movement, the
     ///    wheel, the sticks and the d-pad count as activity, as well as presses.
     ///
-    /// Pressing any key during the splash skips directly to attract/menu. Returning to the menu
-    /// from a run skips the splash and presents the ready menu.
+    /// Pressing any key during the splash goes straight to the menu, in one press. Returning to
+    /// the menu from a run skips the splash and presents the ready menu.
     /// </summary>
     [AddComponentMenu("")]
     [DisallowMultipleComponent]
@@ -35,7 +37,6 @@ namespace SurvivalChaos
         {
             None,
             DeveloperCard,
-            TitleCard,
             FadeToAttract,
             AttractMode,
             RevealingMenu,
@@ -63,19 +64,24 @@ namespace SurvivalChaos
         private float flashAlpha = 0f;
         private float menuIdleTimer;
 
+        /// <summary>
+        /// How bright the title film stays behind the options and the credits.
+        /// The film carries the logo, and at full strength it showed through
+        /// those panels behind their text (12 November 2026).
+        /// </summary>
+        public const float BackdropBehindPanels = 0.3f;
+
+        private Graphic backdrop;
+        private float backdropLevel = 1f;
+
         private CanvasGroup titleScreenCanvasGroup;
         private RectTransform titleScreenRect;
-        private AudioSource menuMusic;
-        private float originalMusicVolume = 0.2066f;
 
         private Texture2D blackTexture;
         private Texture2D whiteTexture;
         private GUIStyle devCardStyle;
         private GUIStyle devSubStyle;
-        private GUIStyle titleCardStyle;
-        private GUIStyle titleSubStyle;
         private GUIStyle attractPromptStyle;
-        private GUIStyle attractSubPromptStyle;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Create()
@@ -132,8 +138,13 @@ namespace SurvivalChaos
             if (scene.name != "Menu" || !Enabled)
             {
                 state = SplashState.None;
+                MusicSource.HeldBack = false;
                 return;
             }
+
+            // Asked for now, before the scene's first frame, so not a note of
+            // the music is heard under the opening card.
+            MusicSource.HeldBack = !hasPlayedSessionSplash;
 
             StopAllCoroutines();
             StartCoroutine(SetupMenuScene());
@@ -147,7 +158,8 @@ namespace SurvivalChaos
                 state = SplashState.None;
                 titleScreenCanvasGroup = null;
                 titleScreenRect = null;
-                menuMusic = null;
+                backdrop = null;
+                MusicSource.HeldBack = false;
             }
         }
 
@@ -166,11 +178,9 @@ namespace SurvivalChaos
                 titleScreenRect = titleScreenGo.GetComponent<RectTransform>();
             }
 
-            GameObject musicGo = GameObject.Find("Music");
-            if (musicGo != null && musicGo.TryGetComponent(out menuMusic))
-            {
-                originalMusicVolume = menuMusic.volume > 0.01f ? menuMusic.volume : 0.2066f;
-            }
+            GameObject backdropGo = GameObject.Find("Video Background");
+            backdrop = backdropGo != null ? backdropGo.GetComponent<Graphic>() : null;
+            backdropLevel = 1f;
 
             if (!hasPlayedSessionSplash)
             {
@@ -179,11 +189,6 @@ namespace SurvivalChaos
                 blackAlpha = 1f;
                 flashAlpha = 0f;
                 menuIdleTimer = 0f;
-
-                if (menuMusic != null)
-                {
-                    menuMusic.volume = 0f;
-                }
 
                 if (titleScreenCanvasGroup != null)
                 {
@@ -198,6 +203,7 @@ namespace SurvivalChaos
             else
             {
                 // Returning from a run: menu entries ready immediately
+                MusicSource.HeldBack = false;
                 blackAlpha = 0f;
                 flashAlpha = 0f;
                 if (titleScreenCanvasGroup != null)
@@ -225,7 +231,7 @@ namespace SurvivalChaos
             // Capped, because the first frame after the load carries the load's
             // hitch: in the editor it was about 1.5 s, which the developer card
             // took off its own 2.1 s and showed for 0.65 (10 November 2026).
-            float dt = Mathf.Min(Time.unscaledDeltaTime, MaxSplashStep);
+            float dt = Mathf.Min(CaptureClock.UnscaledDelta, MaxSplashStep);
             stateTimer += dt;
 
             // Decay engagement flash
@@ -233,6 +239,8 @@ namespace SurvivalChaos
             {
                 flashAlpha = Mathf.Max(0f, flashAlpha - dt * 3.5f);
             }
+
+            DimBackdrop(dt);
 
             // Idle on the title panel in the Ready state returns to attract mode.
             // Anywhere else the count starts again, so backing out of the options
@@ -252,18 +260,14 @@ namespace SurvivalChaos
             {
                 case SplashState.DeveloperCard:
                     blackAlpha = 1f;
-                    if (AnyInputTriggered() || stateTimer >= 2.1f)
+                    if (AnyInputTriggered())
+                    {
+                        SkipToMenu();
+                    }
+                    else if (stateTimer >= 2.1f)
                     {
                         PlayTitleSting();
-                        state = SplashState.TitleCard;
-                        stateTimer = 0f;
-                    }
-                    break;
-
-                case SplashState.TitleCard:
-                    blackAlpha = 1f;
-                    if (AnyInputTriggered() || stateTimer >= 2.3f)
-                    {
+                        MusicSource.HeldBack = false;
                         state = SplashState.FadeToAttract;
                         stateTimer = 0f;
                     }
@@ -273,18 +277,13 @@ namespace SurvivalChaos
                     float fadeT = Mathf.Clamp01(stateTimer / 0.85f);
                     blackAlpha = Mathf.Lerp(1f, 0f, fadeT);
 
-                    if (menuMusic != null)
+                    if (AnyInputTriggered())
                     {
-                        menuMusic.volume = Mathf.Lerp(0f, originalMusicVolume, fadeT);
+                        SkipToMenu();
                     }
-
-                    if (AnyInputTriggered() || stateTimer >= 0.85f)
+                    else if (stateTimer >= 0.85f)
                     {
                         blackAlpha = 0f;
-                        if (menuMusic != null)
-                        {
-                            menuMusic.volume = originalMusicVolume;
-                        }
                         state = SplashState.AttractMode;
                         stateTimer = 0f;
                     }
@@ -335,6 +334,38 @@ namespace SurvivalChaos
                     }
                     break;
             }
+        }
+
+        /// <summary>
+        /// One press during the opening goes to the menu. It used to take one
+        /// for each card, one for the fade and one for the prompt.
+        /// </summary>
+        private void SkipToMenu()
+        {
+            blackAlpha = 0f;
+            MusicSource.HeldBack = false;
+            TriggerMenuReveal();
+        }
+
+        /// <summary>
+        /// The level the title film is drawn at: full with the title panel up,
+        /// <see cref="BackdropBehindPanels"/> with another screen open over it.
+        /// </summary>
+        public static float BackdropTarget(bool titlePanelActive)
+        {
+            return titlePanelActive ? 1f : BackdropBehindPanels;
+        }
+
+        private void DimBackdrop(float dt)
+        {
+            if (backdrop == null || titleScreenCanvasGroup == null)
+            {
+                return;
+            }
+
+            float want = BackdropTarget(titleScreenCanvasGroup.gameObject.activeInHierarchy);
+            backdropLevel = Mathf.MoveTowards(backdropLevel, want, dt * 4f);
+            backdrop.color = new Color(backdropLevel, backdropLevel, backdropLevel, 1f);
         }
 
         private void EnterAttractMode()
@@ -534,8 +565,9 @@ namespace SurvivalChaos
                 float centerY = screenH * 0.45f - stateTimer * 4f;
 
                 // Center text
-                GUI.Label(new Rect(0f, centerY, screenW, 36f), "IAN WANDERLEY", devCardStyle);
-                GUI.Label(new Rect(0f, centerY + 38f, screenW, 24f), "PRESENTS", devSubStyle);
+                float nameH = devCardStyle.fontSize * 1.4f;
+                GUI.Label(new Rect(0f, centerY, screenW, nameH), "IAN WANDERLEY", devCardStyle);
+                GUI.Label(new Rect(0f, centerY + nameH, screenW, devSubStyle.fontSize * 1.6f), "PRESENTS", devSubStyle);
 
                 // Laser rules flanking the text
                 if (whiteTexture != null && alpha > 0.01f)
@@ -544,8 +576,8 @@ namespace SurvivalChaos
                     GUI.color = new Color(0.4f, 0.85f, 1f, alpha * 0.6f);
 
                     float textMidX = screenW * 0.5f;
-                    float textGap = 160f;
-                    float ruleY = centerY + 18f;
+                    float textGap = devCardStyle.fontSize * 6f;
+                    float ruleY = centerY + nameH * 0.5f;
 
                     // Left rule
                     GUI.DrawTexture(new Rect(textMidX - textGap - lineW, ruleY, lineW, 2f), whiteTexture);
@@ -555,38 +587,15 @@ namespace SurvivalChaos
                     GUI.color = prev;
                 }
             }
-            // 3. Title Card with holographic styling
-            else if (state == SplashState.TitleCard)
-            {
-                float alpha = stateTimer < 0.4f ? (stateTimer / 0.4f) :
-                              stateTimer > 1.9f ? (2.3f - stateTimer) / 0.4f : 1f;
-                alpha = Mathf.Clamp01(alpha);
-
-                Color c = titleCardStyle.normal.textColor;
-                titleCardStyle.normal.textColor = new Color(c.r, c.g, c.b, alpha);
-                Color sc = titleSubStyle.normal.textColor;
-                titleSubStyle.normal.textColor = new Color(sc.r, sc.g, sc.b, alpha * 0.85f);
-
-                // A version line under these, "SYSTEM REVISION 2.4.0", was invented
-                // and matched no build; Ian had it taken out on 10 November 2026.
-                float centerY = screenH * 0.43f - stateTimer * 3f;
-                GUI.Label(new Rect(0f, centerY, screenW, 52f), "SURVIVAL CHAOS", titleCardStyle);
-                GUI.Label(new Rect(0f, centerY + 54f, screenW, 26f), "AN ORBITAL SURVIVAL SHOOTER", titleSubStyle);
-            }
             // 4. Arcade Attract Mode: pulsing prompt over video background
-            else if (state == SplashState.AttractMode)
+            if (state == SplashState.AttractMode)
             {
                 float pulse = 0.50f + 0.50f * Mathf.Sin(Time.unscaledTime * 4.8f);
                 Color pc = attractPromptStyle.normal.textColor;
                 attractPromptStyle.normal.textColor = new Color(pc.r, pc.g, pc.b, pulse);
 
-                float subPulse = 0.65f + 0.35f * Mathf.Sin(Time.unscaledTime * 4.8f + 0.5f);
-                Color spc = attractSubPromptStyle.normal.textColor;
-                attractSubPromptStyle.normal.textColor = new Color(spc.r, spc.g, spc.b, subPulse * 0.8f);
-
-                float promptY = screenH * 0.80f;
-                GUI.Label(new Rect(0f, promptY, screenW, 36f), "[ ◈ PRESS ANY KEY TO ENGAGE ◈ ]", attractPromptStyle);
-                GUI.Label(new Rect(0f, promptY + 34f, screenW, 22f), "[ SPACE  •  ENTER  •  GAMEPAD A ]", attractSubPromptStyle);
+                float promptH = attractPromptStyle.fontSize * 1.5f;
+                GUI.Label(new Rect(0f, screenH * 0.80f, screenW, promptH), "PRESS ANY KEY", attractPromptStyle);
             }
 
             // 5. Engagement Ignition Screen Flash
@@ -617,69 +626,26 @@ namespace SurvivalChaos
 
             if (devCardStyle == null)
             {
-                devCardStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.038f), 22, 38),
-                    fontStyle = FontStyle.Bold
-                };
+                devCardStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, wordWrap = false };
                 devCardStyle.normal.textColor = new Color(0.92f, 0.96f, 1f, 1f);
             }
 
             if (devSubStyle == null)
             {
-                devSubStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.020f), 13, 20),
-                    fontStyle = FontStyle.Normal
-                };
+                devSubStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, wordWrap = false };
                 devSubStyle.normal.textColor = new Color(0.6f, 0.78f, 0.92f, 0.8f);
-            }
-
-            if (titleCardStyle == null)
-            {
-                titleCardStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.054f), 32, 58),
-                    fontStyle = FontStyle.Bold
-                };
-                titleCardStyle.normal.textColor = new Color(0.35f, 0.88f, 1f, 1f);
-            }
-
-            if (titleSubStyle == null)
-            {
-                titleSubStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.022f), 14, 22),
-                    fontStyle = FontStyle.Normal
-                };
-                titleSubStyle.normal.textColor = new Color(0.68f, 0.88f, 1f, 0.85f);
             }
 
             if (attractPromptStyle == null)
             {
-                attractPromptStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.026f), 16, 26),
-                    fontStyle = FontStyle.Bold
-                };
+                attractPromptStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, wordWrap = false };
                 attractPromptStyle.normal.textColor = new Color(0.40f, 0.92f, 1f, 1f);
             }
 
-            if (attractSubPromptStyle == null)
-            {
-                attractSubPromptStyle = new GUIStyle(GUI.skin.label)
-                {
-                    alignment = TextAnchor.MiddleCenter,
-                    fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.016f), 11, 16),
-                    fontStyle = FontStyle.Normal
-                };
-                attractSubPromptStyle.normal.textColor = new Color(0.55f, 0.80f, 0.92f, 0.75f);
-            }
+            // Every frame: the resolution can change in the options.
+            OverlayFont.Fit(devCardStyle, 0.038f, 22, 54);
+            OverlayFont.Fit(devSubStyle, 0.020f, 13, 28);
+            OverlayFont.Fit(attractPromptStyle, 0.026f, 16, 38);
         }
     }
 }

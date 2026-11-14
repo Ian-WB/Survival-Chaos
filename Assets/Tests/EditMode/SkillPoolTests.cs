@@ -130,7 +130,7 @@ namespace SurvivalChaos.Tests
 
             Assert.AreEqual("Double Shot!", shots.GetDisplayName(1));
             Assert.AreEqual("Triple Shot!", shots.GetDisplayName(2));
-            Assert.AreEqual("SexTUPLO Shot!", shots.GetDisplayName(3));
+            Assert.AreEqual("Sextuple Shot!", shots.GetDisplayName(3));
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace SurvivalChaos.Tests
             // Clamped rather than wrapped: past the last stage the name holds at
             // the one the player actually has, instead of starting over at
             // "Double Shot!" and reading as the upgrade having been undone.
-            Assert.AreEqual("SexTUPLO Shot!", shots.GetDisplayName(99));
+            Assert.AreEqual("Sextuple Shot!", shots.GetDisplayName(99));
         }
 
         /// <summary>Fills a staged skill's two name lists the way the Inspector would.</summary>
