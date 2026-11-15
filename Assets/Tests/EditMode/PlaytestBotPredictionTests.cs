@@ -202,5 +202,53 @@ namespace SurvivalChaos.Tests
                 "scored on the horizon's end, sitting still would win");
             Assert.That(Miss(Held(Vector2.up)),Is.LessThan(Miss(Held(Vector2.zero))));
         }
+
+        // The run table (Logs/PlaytestBot/runs.csv) and the batch summary.
+        private static Type Report =>
+            Type.GetType("SurvivalChaos.EditorTools.SurvivalPlaytestBot+Report, SurvivalChaos.Editor")
+            ?? throw new InvalidOperationException(
+                "SurvivalPlaytestBot.Report is not in the SurvivalChaos.Editor assembly any more.");
+
+        private static T Reported<T>(string method, params object[] arguments)
+        {
+            return (T)Report.GetMethod(method, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+                .Invoke(null, arguments);
+        }
+
+        [Test]
+        public void RunTable_QuotesOnlyTheCellsThatNeedIt()
+        {
+            Assert.That(Reported<string>("Quote", "ramming a Scout=3; a Fighter's round=2"),
+                Is.EqualTo("ramming a Scout=3; a Fighter's round=2"));
+            Assert.That(Reported<string>("Quote", "Run ended; final HP=0, at last"),
+                Is.EqualTo("\"Run ended; final HP=0, at last\""));
+            Assert.That(Reported<string>("Quote", "the \"Leviathan\""), Is.EqualTo("\"the \"\"Leviathan\"\"\""));
+            Assert.That(Reported<string>("Quote", new object[] { null }), Is.EqualTo(""));
+            Assert.That(Reported<string>("Line", new object[] { new[] { "a", "b,c", "" } }), Is.EqualTo("a,\"b,c\","));
+        }
+
+        [Test]
+        public void RunTable_HasACellForEveryColumn()
+        {
+            // A column added to one list and not the other shifts every later
+            // value under the wrong heading, and nothing else would say so.
+            var columns = (string[])Report.GetField("Columns").GetValue(null);
+            Type row = Type.GetType("SurvivalChaos.EditorTools.SurvivalPlaytestBot+Row, SurvivalChaos.Editor");
+            Assert.That(row, Is.Not.Null);
+            var cells = Reported<string[]>("Cells", Activator.CreateInstance(row, true));
+
+            Assert.That(cells.Length, Is.EqualTo(columns.Length));
+            Assert.That(columns, Is.Unique);
+        }
+
+        [Test]
+        public void Median_IsTheMiddleRun_AndLeavesTheRunsInOrder()
+        {
+            var runs = new[] { 291.8f, 222.6f, 278.1f };
+            Assert.That(Reported<float>("Median", new object[] { runs }), Is.EqualTo(278.1f));
+            Assert.That(runs[0], Is.EqualTo(291.8f), "the caller's array is not sorted under it");
+            Assert.That(Reported<float>("Median", new object[] { new[] { 1f, 2f, 3f, 4f } }), Is.EqualTo(2.5f));
+            Assert.That(Reported<float>("Median", new object[] { new float[0] }), Is.EqualTo(0f));
+        }
     }
 }

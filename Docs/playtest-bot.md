@@ -12,9 +12,11 @@ and its success rate is not a difficulty verdict.
 4. Click **Stop and export report**, close the bot window, or exit Play mode to
    return control. Normal pause input remains available while it runs.
 
-The tool never starts Play mode itself, skips waves, grants upgrades, changes
-health or restarts a run. It refuses god mode and invalidates a run if god mode
-is enabled later. A debug-menu speed other than 1 also ends the session; the
+The tool never starts Play mode itself, skips waves, grants upgrades or changes
+health, and only a batch (below) restarts a run. Every run it flies is marked
+assisted, at any speed, so the pilot can set no record: until 15 November 2026 a
+normal-speed session could leave its own best in the editor's saved records. It
+refuses god mode and invalidates a run if god mode is enabled later. A debug-menu speed other than 1 also ends the session; the
 player's own Slow Mo does not, since that is the game being played, not changed.
 Pausing suspends gameplay decisions. Stopping the bot does not pause the game.
 
@@ -30,18 +32,80 @@ speed was about 30 ms on 12 November 2026), and treat a fast run as rougher
 evidence than a normal one. The run is marked assisted and sets no record, and
 every sound plays at the same multiple of its pitch.
 
+A session stopped while it flies faster hands the game back at normal speed.
+
+### Batches
+
+`SurvivalPlaytestBot.StartBatch(runs, speed, firstSeed)`, from an eval or the
+window's **Fly a batch of fresh runs** button, flies whole runs one after
+another. Each starts from a fresh load of the Game scene, waits out the loading
+screen and the arena intro, and runs on its own seed: `firstSeed`, then the next
+number, and so on. When the game ends a run the batch waits for the end card and
+loads the next. `BatchStatus()` reports the run in flight and, afterwards, the
+batch's table; `StopBatch()` ends it early. Leaving Play mode, closing the
+window, a script reload, or a run stopped by anything but the game ends the
+batch there, and the table says why.
+
+The seed is the run's, not the bot's (`RunRandom`, added with batches on 15
+November 2026). Where each enemy arrives, which way an offer fans out and which
+upgrades a level-up draws come from numbered streams of their own, one for each
+wave stream, so a wave stream's fortieth enemy takes the same numbers in every
+run on one seed. Before that these came from Unity's shared generator, which
+lightning, fireflies and every sound's pitch also draw from at the frame rate's
+pace, so no two runs could be given the same arrivals. A seed does not replay a
+run: the ship's position decides which side of the ring an arrival keeps clear
+of, and frame timing decides the rest. Two runs on one seed meet the same
+arrivals, not the same fight. An ordinary run takes a new seed at every load.
+
+Fly the same seeds before and after a balance change and compare the medians.
+One run says little: three wins on 9 November 2026 took 22, 2 and 3 damage, and
+a fourth that afternoon took 70. A batch also puts the editor's hint-run count
+back as it found it, and keeps the game running while the editor is not focused.
+
+### Reports
+
 Reports are written automatically to `Logs/PlaytestBot/`, outside `Assets`, when
 the session ends. They contain decision changes, health/level changes, camera
-settings, boss phase diagnostics, total kills and collected upgrade counts. The
-summary's `healingObserved` is health gained beyond what maximum-health picks
-explain, which in practice is salvage collected.
+settings, boss phase diagnostics, total kills and collected upgrade counts.
+Numbers are written with a full stop on any machine; before 15 November 2026
+they took the machine's language, and here every decimal carried a comma.
+
+The `START` line says what the run was flown as: game speed, seed, the commit
+(with a `+` when `Assets` or `Packages` hold changes it does not), the editor
+version, the graphics tier (`quality`), how far into the run the pilot took over (`runClock`), whether the
+debug menu, a kit or a wound-on clock had already marked it (`assistedBefore`),
+how many upgrades it already held, and its batch and run number.
+
+The `SUMMARY` line adds the outcome (`won`, `lost`, or `stopped` for a session
+ended from outside), damage from ramming, when the boss arrived on the run's
+clock, and the real and game time of an average frame (`frameMs`, `gameStepMs`:
+the second is what a fast run costs in fidelity). After it come `KILLED BY`,
+`DAMAGE BY CAUSE` and `DAMAGE BY MINUTE`, the minutes counted on the run's own
+clock. The cause of each hit is the game's own record of it, the one the Ship
+Lost card reads. `healingObserved` is health gained beyond what maximum-health
+picks explain, which in practice is salvage collected.
+
+Every session, batch or not, also adds one row to `Logs/PlaytestBot/runs.csv`
+with the same figures, and a batch ends with `batch-<label>.txt`: one line a run
+and the medians of the runs the game ended. A run stopped from outside is listed
+and left out of the medians. When the table's columns change, the old
+`runs.csv` is renamed `runs-until-<time>.csv` and a new one started, so no row
+sits under another column's heading.
+
+The graphics tier matters only through the frame time: the pilot sees objects,
+not pixels. A batch about gameplay can be flown on Medium, where frames are
+shorter and a higher speed costs no more per step. On 15 November 2026 a frame
+took 12.8 ms on Ultra and 8.6 ms on Medium at twice speed, so 22.8 and 17.1 ms
+of game a frame. Compare batches flown alike: the tier and both frame times are
+in every row.
+
 Health losses include recent candidate decisions, predicted landing risk, input,
 dash state and the nearest delayed observations. These are evidence of what the
-bot knew, not proof of which object caused the hit. Fatal health loss is recorded
-even when the ending stops gameplay updates.
+bot knew when it was hit. Fatal health loss is recorded even when the ending
+stops gameplay updates.
 Totals belong to the whole game run; bot elapsed time measures only its session.
-Damage attribution is deliberately unknown. No reports or editor tool enter a
-standalone build. No prefab or scene installation is needed.
+No reports or editor tool enter a standalone build. No prefab or scene
+installation is needed.
 
 ## How it works
 
@@ -151,7 +215,9 @@ run ending or faults. Export failure cannot prevent input restoration.
   information than a human has even with reaction delay.
 - Some project integration reads private fields for movement, glow transforms,
   firing prefabs, gun positions and each enemy's height-chase settings. Missing fields stop the bot rather than invent values.
-- No automatic batch runs, learned behaviour or difficulty recommendations.
+- No learned behaviour or difficulty recommendations. A batch's medians compare
+  one state of the game with another under the same pilot; they do not say
+  whether either is hard for a person.
 
 ## Validation performed
 
@@ -184,8 +250,23 @@ the fix took 7 hits in its first eight minutes, against 25 for the one blind
 run that lived that long, then 36 between eight and ten minutes in, and died 8
 seconds into Armoured at level 20.
 
+On 15 November 2026 batches, the run seed and the run table were added and
+flown at twice speed. A two-run batch on seeds 1 and 2 loaded each run on the
+seed asked for, wrote both rows and its table, and ended by itself; both runs
+were lost before the boss, at 291 and 252 seconds. Seed 1 was then flown twice
+more and seed 2 once, each stopped after two minutes, with every enemy's height
+recorded as it was first seen in the opening 45 seconds: the two seed 1 runs
+gave the same 27 heights to the hundredth, and seed 2 shared none of them. That
+is the arrivals; upgrade draws and the offer fan use the same streams and were
+not compared in play. The editor's saved records and hint-run count read the
+same after the batch as before it. A one-run batch on Medium recorded its tier
+and left the saved graphics rows as they were. A full batch to a win, a batch
+ended by a fault, and the window's own batch button have not been tried.
+
 ## Removal
 
 Stop the bot, then delete `Assets/Scripts/Editor/SurvivalPlaytestBot.cs` through
-Unity. There are no saved scene components or gameplay edits to undo. This
+Unity. There are no saved scene components to undo. `RunRandom` stays: the waves,
+the offers and the upgrade draws take their numbers from it whether or not the
+bot exists. This
 document and exported reports may be removed independently.

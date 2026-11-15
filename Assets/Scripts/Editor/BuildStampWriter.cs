@@ -74,7 +74,7 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>Runs git in the project folder. Empty when git is missing or fails.</summary>
-        private static string Git(string arguments)
+        internal static string Git(string arguments)
         {
             try
             {

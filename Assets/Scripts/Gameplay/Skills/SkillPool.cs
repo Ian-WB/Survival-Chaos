@@ -22,11 +22,11 @@ namespace SurvivalChaos
         /// </param>
         /// <param name="selectIndex">
         /// Chooses an index given the number of available skills. Defaults to
-        /// UnityEngine.Random; tests supply a deterministic function.
+        /// the run's own stream (RunRandom); tests supply a deterministic function.
         /// </param>
         public SkillPool(IEnumerable<SkillDefinition> definitions, Func<int, int> selectIndex = null)
         {
-            this.selectIndex = selectIndex ?? (count => UnityEngine.Random.Range(0, count));
+            this.selectIndex = selectIndex ?? (count => RunRandom.Index(RunRandom.Skills, count));
 
             if (definitions == null)
             {

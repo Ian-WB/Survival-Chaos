@@ -290,6 +290,24 @@ namespace SurvivalChaos
         /// </summary>
         private const float HardMinimumInterval = 0.05f;
 
+        /// <summary>
+        /// Where a stream sits in the wave, which is the number of the run
+        /// stream it draws its arrivals from. 0 for one the wave does not hold.
+        /// </summary>
+        private int StreamIndex(SpawnStream stream)
+        {
+            var streams = wave.Streams;
+            for (int i = 0; i < streams.Count; i++)
+            {
+                if (ReferenceEquals(streams[i], stream))
+                {
+                    return i;
+                }
+            }
+
+            return 0;
+        }
+
         private static bool IsBoss(SpawnStream stream)
         {
             return stream != null && stream.Prefab != null && stream.Prefab.GetComponent<BossEmitter>() != null;
@@ -349,8 +367,11 @@ namespace SurvivalChaos
                 HitchLog.Note("Leviathan arrives");
             }
 
-            float offsetX = Random.Range(stream.XOffsetRange.x, stream.XOffsetRange.y);
-            float offsetY = Random.Range(stream.YOffsetRange.x, stream.YOffsetRange.y);
+            // Each stream draws from its own run stream, so one seed gives it the
+            // same arrivals whatever the others have spawned. See RunRandom.
+            int draws = StreamIndex(stream);
+            float offsetX = RunRandom.Range(draws, stream.XOffsetRange.x, stream.XOffsetRange.y);
+            float offsetY = RunRandom.Range(draws, stream.YOffsetRange.x, stream.YOffsetRange.y);
             float height = stream.Position.y + offsetY;
 
             // The same place in the player's band as it had in the band the wave
@@ -370,7 +391,7 @@ namespace SurvivalChaos
 
             if (!stream.LockBearing)
             {
-                position = AtRandomBearing(position, stream, enemy);
+                position = AtRandomBearing(position, stream, enemy, draws);
             }
 
             // Pooled. Enemies were the last thing in the game still going through
@@ -413,7 +434,7 @@ namespace SurvivalChaos
         /// height. Keeping the authored radius keeps each stream's character,
         /// which is how far out it comes from; only the bearing changes.
         /// </summary>
-        private Vector3 AtRandomBearing(Vector3 authored, SpawnStream stream, bool keepClearOfShip)
+        private Vector3 AtRandomBearing(Vector3 authored, SpawnStream stream, bool keepClearOfShip, int draws)
         {
             Vector3 center = Center;
 
@@ -421,7 +442,7 @@ namespace SurvivalChaos
             flat.y = 0f;
 
             float radius = flat.magnitude
-                           + Random.Range(stream.RadiusOffsetRange.x, stream.RadiusOffsetRange.y);
+                           + RunRandom.Range(draws, stream.RadiusOffsetRange.x, stream.RadiusOffsetRange.y);
 
             // A stream authored on the axis has no direction to preserve and no
             // radius to randomise around, so it stays where it was put.
@@ -431,8 +452,8 @@ namespace SurvivalChaos
             }
 
             float bearing = keepClearOfShip && ship != null
-                ? SpawnBearing.Pick(Random.value, PickupPlacement.BearingOf(ship.position, center), clearOfShipDegrees)
-                : Random.Range(-180f, 180f);
+                ? SpawnBearing.Pick(RunRandom.Value(draws), PickupPlacement.BearingOf(ship.position, center), clearOfShipDegrees)
+                : RunRandom.Range(draws, -180f, 180f);
 
             return PickupPlacement.PointAt(bearing, center, radius, authored.y);
         }

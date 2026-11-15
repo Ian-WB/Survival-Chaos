@@ -323,7 +323,7 @@ namespace SurvivalChaos
                 bearing,
                 Mathf.Max(1, skillCount),
                 offerSeparation,
-                clockwise: Random.value < 0.5f,
+                clockwise: RunRandom.Value(RunRandom.Offers) < 0.5f,
                 LiveOfferBearings());
 
             // A level-up that puts nothing on the ring reads as broken pickups

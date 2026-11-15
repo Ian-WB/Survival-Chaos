@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace SurvivalChaos.EditorTools
@@ -16,16 +18,22 @@ namespace SurvivalChaos.EditorTools
     public sealed class SurvivalPlaytestBot : EditorWindow
     {
         private Pilot pilot;
+        private Batch batch;
         private string lastReport = "";
         private float reaction = .25f;
         private Vector2 scroll;
+        // What the window's own batch button asks for.
+        private int batchRuns = 5, batchSeed = 1;
+        private float batchSpeed = 2f;
+        // The commit reports are stamped with, read as a session or a batch starts.
+        private static string commit = "unknown";
 
         [MenuItem("Survival Chaos/Playtest Bot", priority = 200)]
         public static void Open() => GetWindow<SurvivalPlaytestBot>("Playtest Bot");
 
         /// <summary>
         /// The game speed this session flies at. 1 except in a test started
-        /// with <see cref="StartSessionAt"/>.
+        /// with <see cref="StartSessionAt"/> or in a batch flown faster.
         /// </summary>
         public static float TestSpeed { get; private set; } = 1f;
 
@@ -39,31 +47,27 @@ namespace SurvivalChaos.EditorTools
         /// </summary>
         public static string StartSessionAt(float speed)
         {
-            float wanted = Mathf.Clamp(speed, 1f, 4f);
-            string result = StartSession();
-            if (result != "Started") return result;
-            TestSpeed = wanted;
-            if (!Mathf.Approximately(wanted, 1f))
-            {
-                RunRecords.MarkAssisted();
-                RunTime.SetSpeed(wanted);
-            }
-            return "Started at x" + wanted.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            var window = GetWindow<SurvivalPlaytestBot>("Playtest Bot");
+            if (window.batch != null) return "A batch is running";
+            ReadCommit();
+            string result = window.Begin(speed, "", 0);
+            return result != "Started" ? result
+                : "Started at x" + TestSpeed.ToString("0.##", CultureInfo.InvariantCulture);
         }
 
         public static string StartSession()
         {
-            TestSpeed = 1f;
             var window = GetWindow<SurvivalPlaytestBot>("Playtest Bot");
-            if (window.pilot != null) return "Already running";
-            try { window.pilot = new Pilot(window.reaction); return "Started"; }
-            catch (Exception e) { return e.Message; }
+            if (window.batch != null) return "A batch is running";
+            ReadCommit();
+            return window.Begin(1f, "", 0);
         }
 
         public static string StopSession()
         {
             var window = GetWindow<SurvivalPlaytestBot>("Playtest Bot");
-            window.Stop("Manual stop");
+            if (window.batch != null) window.EndBatch("Manual stop");
+            else window.Stop("Manual stop");
             return window.lastReport;
         }
 
@@ -74,31 +78,215 @@ namespace SurvivalChaos.EditorTools
             return "Stopped";
         }
 
+        /// <summary>
+        /// Flies <paramref name="runs"/> whole runs one after another, each from a
+        /// fresh load of the Game scene on its own seed, <paramref name="firstSeed"/>
+        /// and up, so the same batch can be flown again against a changed game
+        /// and meet the same arrivals and the same upgrade draws (RunRandom).
+        /// Every run adds a row to Logs/PlaytestBot/runs.csv and the batch ends
+        /// with a table of its own beside the reports. Needs Play mode, like a
+        /// session; the first load replaces whatever run is under way.
+        ///
+        /// One run says little: three wins on 9 November 2026 took 22, 2 and 3
+        /// damage and a fourth that afternoon took 70. Compare medians.
+        /// </summary>
+        public static string StartBatch(int runs, float speed = 2f, int firstSeed = 1)
+        {
+            var window = GetWindow<SurvivalPlaytestBot>("Playtest Bot");
+            if (window.batch != null) return "A batch is running";
+            if (window.pilot != null) return "Already running";
+            if (!EditorApplication.isPlaying || EditorApplication.isPaused) return "Enter an unpaused Play session first.";
+            ReadCommit();
+            window.batch = new Batch
+            {
+                label = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture),
+                runs = Mathf.Clamp(runs, 1, 50), speed = Mathf.Clamp(speed, 1f, 4f), firstSeed = firstSeed,
+                background = Application.runInBackground,
+                hintRuns = PlayerPrefs.HasKey(Tutorial.RunsSeenKey) ? PlayerPrefs.GetInt(Tutorial.RunsSeenKey) : -1,
+            };
+            window.LoadRun();
+            return window.batch.Describe();
+        }
+
+        /// <summary>The batch in flight, or the last thing reported when there is none.</summary>
+        public static string BatchStatus()
+        {
+            foreach (var w in Resources.FindObjectsOfTypeAll<SurvivalPlaytestBot>())
+            {
+                if (w.batch != null) return w.batch.Describe() + (w.pilot != null ? "\n" + w.pilot.Status : "");
+                return "No batch running.\n" + w.lastReport;
+            }
+            return "No batch running.";
+        }
+
+        public static string StopBatch()
+        {
+            var window = GetWindow<SurvivalPlaytestBot>("Playtest Bot");
+            window.EndBatch("Manual stop");
+            return window.lastReport;
+        }
+
+        private sealed class Batch
+        {
+            public enum Stage { Loading, Flying, Ending }
+            public string label, waitingOn = "";
+            public int runs, firstSeed, current, hintRuns;
+            public float speed;
+            public bool background, loaded;
+            public Stage stage;
+            // Editor seconds, which keep counting while the game's clock is stopped.
+            public double since;
+            public readonly List<Row> rows = new List<Row>();
+            public int Seed => firstSeed + current;
+            public string Describe() => string.Format(CultureInfo.InvariantCulture,
+                "Batch {0}: run {1} of {2}, seed {3}, x{4:0.##}, {5}{6}", label, current + 1, runs, Seed, speed,
+                stage == Stage.Loading ? "loading" : stage == Stage.Flying ? "flying" : "waiting for the end card",
+                waitingOn.Length > 0 && stage == Stage.Loading ? " (" + waitingOn + ")" : "");
+        }
+
+        // A load that has not produced a flyable run in this long has failed, and
+        // an ending that has not reached its card is left behind.
+        private const double LoadTimeout = 120, EndingTimeout = 30;
+
+        private static void ReadCommit()
+        {
+            string head = BuildStampWriter.Git("rev-parse --short HEAD");
+            // The mark is for anything the commit does not hold that a run could
+            // feel. ProjectSettings is left out: the open editor rewrites it.
+            commit = string.IsNullOrEmpty(head) ? "unknown"
+                : head + (string.IsNullOrEmpty(BuildStampWriter.Git("status --porcelain -- Assets Packages")) ? "" : "+");
+        }
+
+        /// <summary>
+        /// Puts a pilot in the run under way. Every flown run is marked assisted,
+        /// at any speed: a best the pilot set is not the player's, and until 15
+        /// November 2026 a normal-speed session could leave one in the editor's
+        /// saved records.
+        /// </summary>
+        private string Begin(float speed, string batchLabel, int run)
+        {
+            if (pilot != null) return "Already running";
+            float wanted = Mathf.Clamp(speed, 1f, 4f);
+            try { pilot = new Pilot(reaction, wanted, commit, batchLabel, run); }
+            catch (Exception e) { return e.Message; }
+            TestSpeed = wanted;
+            RunRecords.MarkAssisted();
+            if (!Mathf.Approximately(wanted, 1f)) RunTime.SetSpeed(wanted);
+            return "Started";
+        }
+
+        private void LoadRun()
+        {
+            batch.stage = Batch.Stage.Loading;
+            batch.since = EditorApplication.timeSinceStartup;
+            batch.loaded = false;
+            batch.waitingOn = "";
+            // Losing focus would otherwise open the pause menu over the run.
+            Application.runInBackground = true;
+            RunRandom.SeedNext(batch.Seed);
+            LoadingScreen.Load("Game", "Entering the arena");
+        }
+
+        private void AdvanceBatch()
+        {
+            if (!EditorApplication.isPlaying) { EndBatch("Play mode ended"); return; }
+            double waited = EditorApplication.timeSinceStartup - batch.since;
+            if (batch.stage == Batch.Stage.Ending)
+            {
+                // The card, so the game's own ending has run its course before
+                // the scene under it goes.
+                if (!(RunOutcome.RunEnded && waited > 1) && waited < EndingTimeout) return;
+                if (batch.current + 1 >= batch.runs) { EndBatch("Complete"); return; }
+                batch.current++;
+                LoadRun();
+            }
+            else if (batch.stage == Batch.Stage.Loading)
+            {
+                if (!batch.loaded) batch.waitingOn = "the Game scene";
+                else if (LoadingScreen.Busy) batch.waitingOn = "the loading screen";
+                else if (ArenaIntroDirector.IsPlaying) batch.waitingOn = "the arena intro";
+                else
+                {
+                    string result = Begin(batch.speed, batch.label, batch.current + 1);
+                    if (result == "Started")
+                    {
+                        batch.stage = Batch.Stage.Flying;
+                        // A run on any other seed is not the run this row says it is.
+                        if (RunRandom.Seed != batch.Seed)
+                            EndBatch("Run " + (batch.current + 1) + " loaded on seed " + RunRandom.Seed + ", not " + batch.Seed);
+                        return;
+                    }
+                    batch.waitingOn = result;
+                }
+                if (waited > LoadTimeout) EndBatch("Run " + (batch.current + 1) + " never started: " + batch.waitingOn);
+            }
+        }
+
+        private void EndBatch(string reason)
+        {
+            if (batch == null) return;
+            Stop("Batch stopped: " + reason);
+            var done = batch;
+            batch = null;
+            Application.runInBackground = done.background;
+            // The tutorial counts the runs it has hinted, and these were not the player's.
+            if (done.hintRuns >= 0) PlayerPrefs.SetInt(Tutorial.RunsSeenKey, done.hintRuns);
+            else PlayerPrefs.DeleteKey(Tutorial.RunsSeenKey);
+            try { lastReport = Report.WriteBatch(done.label, done.runs, done.speed, reaction, commit, reason, done.rows); }
+            catch (Exception e) { lastReport = "Batch report failed: " + e.Message; Debug.LogException(e); }
+        }
+
+        private void SceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (batch != null && scene.name == "Game") batch.loaded = true;
+        }
+
         private void OnEnable()
         {
             EditorApplication.update += Monitor;
             EditorApplication.playModeStateChanged += PlayChanged;
             AssemblyReloadEvents.beforeAssemblyReload += BeforeReload;
+            SceneManager.sceneLoaded += SceneLoaded;
         }
         private void OnDisable()
         {
+            EndBatch("Window closed");
             Stop("Window closed");
             EditorApplication.update -= Monitor;
             EditorApplication.playModeStateChanged -= PlayChanged;
             AssemblyReloadEvents.beforeAssemblyReload -= BeforeReload;
+            SceneManager.sceneLoaded -= SceneLoaded;
         }
-        private void BeforeReload() => Stop("Assembly reload");
+        private void BeforeReload() { EndBatch("Assembly reload"); Stop("Assembly reload"); }
         private void PlayChanged(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.ExitingPlayMode) Stop("Play mode ended");
+            if (state != PlayModeStateChange.ExitingPlayMode) return;
+            EndBatch("Play mode ended");
+            Stop("Play mode ended");
         }
         private void Monitor()
         {
-            if (pilot == null) return;
-            pilot.CheckEnd();
-            if (!EditorApplication.isPlaying || pilot.EndReason != null)
-                Stop(pilot.EndReason ?? "Play mode ended");
-            Repaint();
+            if (pilot != null)
+            {
+                pilot.CheckEnd();
+                if (!EditorApplication.isPlaying || pilot.EndReason != null)
+                {
+                    string reason = pilot.EndReason ?? "Play mode ended";
+                    Stop(reason);
+                    if (batch != null)
+                    {
+                        // Only an ending the game reached leads on to the next run.
+                        if (EditorApplication.isPlaying && reason.StartsWith("Run ended", StringComparison.Ordinal))
+                        {
+                            batch.stage = Batch.Stage.Ending;
+                            batch.since = EditorApplication.timeSinceStartup;
+                        }
+                        else EndBatch("Run " + (batch.current + 1) + " stopped: " + reason);
+                    }
+                }
+            }
+            if (batch != null) AdvanceBatch();
+            if (pilot != null || batch != null) Repaint();
         }
         private void Stop(string reason)
         {
@@ -107,20 +295,44 @@ namespace SurvivalChaos.EditorTools
             pilot = null;
             // Input restoration must succeed even if the filesystem is unavailable.
             old.Release();
-            try { lastReport = old.Export(reason); }
+            // The game goes back at the speed a person plays it.
+            if (!Mathf.Approximately(TestSpeed, 1f)) RunTime.SetSpeed(1f);
+            TestSpeed = 1f;
+            try
+            {
+                lastReport = old.Export(reason);
+                Report.Append(old.Row);
+                if (batch != null) batch.rows.Add(old.Row);
+            }
             catch (Exception e) { lastReport = "Report failed: " + e.Message; Debug.LogException(e); }
         }
         private void OnGUI()
         {
             EditorGUILayout.HelpBox("A delayed, state-based pilot, not human vision. It cannot judge fog, contrast or laser readability. Start during Play mode with god mode off. Close this window to return control.", MessageType.Info);
-            using (new EditorGUI.DisabledScope(pilot != null))
+            using (new EditorGUI.DisabledScope(pilot != null || batch != null))
+            {
                 reaction = EditorGUILayout.Slider("Reaction delay (seconds)", reaction, .1f, .6f);
-            if (pilot == null)
+                batchRuns = EditorGUILayout.IntSlider("Batch: runs", batchRuns, 1, 50);
+                batchSpeed = EditorGUILayout.Slider("Batch: game speed", batchSpeed, 1f, 4f);
+                batchSeed = EditorGUILayout.IntField("Batch: first seed", batchSeed);
+            }
+            if (batch != null)
+            {
+                EditorGUILayout.LabelField(batch.Describe(), EditorStyles.wordWrappedLabel);
+                if (pilot != null) EditorGUILayout.LabelField(pilot.Status, EditorStyles.wordWrappedLabel);
+                if (GUILayout.Button("Stop the batch")) EndBatch("Manual stop");
+            }
+            else if (pilot == null)
             {
                 if (GUILayout.Button("Start in current run"))
                 {
                     string result = StartSession();
                     if (result != "Started") EditorUtility.DisplayDialog("Playtest Bot", result, "OK");
+                }
+                if (GUILayout.Button("Fly a batch of fresh runs"))
+                {
+                    string result = StartBatch(batchRuns, batchSpeed, batchSeed);
+                    if (!result.StartsWith("Batch ", StringComparison.Ordinal)) EditorUtility.DisplayDialog("Playtest Bot", result, "OK");
                 }
             }
             else
@@ -129,8 +341,148 @@ namespace SurvivalChaos.EditorTools
                 if (GUILayout.Button("Stop and export report")) Stop("Manual stop");
             }
             scroll = EditorGUILayout.BeginScrollView(scroll);
-            EditorGUILayout.SelectableLabel(lastReport, EditorStyles.wordWrappedLabel, GUILayout.Height(100));
+            EditorGUILayout.SelectableLabel(lastReport, EditorStyles.wordWrappedLabel, GUILayout.Height(160));
             EditorGUILayout.EndScrollView();
+        }
+
+        /// <summary>
+        /// One flown run as a line of Logs/PlaytestBot/runs.csv, which every
+        /// session adds to, batch or not. Text and whole numbers as they are
+        /// written; see <see cref="Report.Columns"/> for the order.
+        /// </summary>
+        private sealed class Row
+        {
+            public string file = "", time = "", commit = "", quality = "", batch = "", outcome = "", end = "", killedBy = "", bossPhase = "";
+            public string damageByCause = "", damageByMinute = "", upgrades = "";
+            public int run, seed, level, kills, hp, maxHp, damage, rammingDamage, healing, dashes, slowMo;
+            public float speed, reaction, startedAtRunSeconds, runSeconds, botSeconds, bossAtRunSeconds, bossSeconds, frameMs, gameStepMs;
+            public bool assistedBefore;
+        }
+
+        /// <summary>
+        /// The run table and the batch summary. Numbers are written with a full
+        /// stop whatever the machine's language: the reports were not, and on
+        /// this one every decimal came out with a comma beside vectors written
+        /// with full stops.
+        /// </summary>
+        private static class Report
+        {
+            public static readonly string[] Columns =
+            {
+                "file", "time", "commit", "unity", "quality", "batch", "run", "seed", "speed", "reaction", "assistedBefore",
+                "startedAtRunSeconds", "outcome", "end", "killedBy", "runSeconds", "botSeconds", "level", "kills",
+                "hp", "maxHp", "damage", "rammingDamage", "healing", "dashes", "slowMo", "bossAtRunSeconds",
+                "bossSeconds", "bossPhase", "frameMs", "gameStepMs", "damageByCause", "damageByMinute", "upgrades",
+            };
+
+            private static string N(float value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+            private static string N(int value) => value.ToString(CultureInfo.InvariantCulture);
+
+            private static string[] Cells(Row r) => new[]
+            {
+                r.file, r.time, r.commit, Application.unityVersion, r.quality, r.batch, N(r.run), N(r.seed), N(r.speed), N(r.reaction),
+                r.assistedBefore ? "1" : "0", N(r.startedAtRunSeconds), r.outcome, r.end, r.killedBy, N(r.runSeconds),
+                N(r.botSeconds), N(r.level), N(r.kills), N(r.hp), N(r.maxHp), N(r.damage), N(r.rammingDamage), N(r.healing),
+                N(r.dashes), N(r.slowMo), N(r.bossAtRunSeconds), N(r.bossSeconds), r.bossPhase, N(r.frameMs), N(r.gameStepMs),
+                r.damageByCause, r.damageByMinute, r.upgrades,
+            };
+
+            /// <summary>A cell as CSV wants it: quoted when it holds a comma, a quote or a line break.</summary>
+            public static string Quote(string cell)
+            {
+                cell = cell ?? "";
+                return cell.IndexOfAny(new[] { ',', '"', '\n', '\r' }) < 0 ? cell : "\"" + cell.Replace("\"", "\"\"") + "\"";
+            }
+
+            public static string Line(string[] cells)
+            {
+                var quoted = new string[cells.Length];
+                for (int i = 0; i < cells.Length; i++) quoted[i] = Quote(cells[i]);
+                return string.Join(",", quoted);
+            }
+
+            /// <summary>The middle value, or the mean of the middle two. 0 for none.</summary>
+            public static float Median(float[] values)
+            {
+                if (values == null || values.Length == 0) return 0f;
+                var sorted = (float[])values.Clone();
+                Array.Sort(sorted);
+                int mid = sorted.Length / 2;
+                return sorted.Length % 2 == 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) * .5f;
+            }
+
+            private static string Folder()
+            {
+                string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/PlaytestBot"));
+                Directory.CreateDirectory(dir);
+                return dir;
+            }
+
+            public static void Append(Row row)
+            {
+                if (row == null) return;
+                string path = Path.Combine(Folder(), "runs.csv");
+                string header = Line(Columns);
+                // A table started under other columns is set aside, not added to:
+                // its rows would sit under the wrong headings.
+                if (File.Exists(path))
+                {
+                    using (var reader = new StreamReader(path))
+                        if (reader.ReadLine() == header) header = null;
+                    if (header != null)
+                        File.Move(path, Path.Combine(Folder(), "runs-until-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + ".csv"));
+                }
+                if (header != null) File.WriteAllText(path, header + "\n");
+                File.AppendAllText(path, Line(Cells(row)) + "\n");
+            }
+
+            /// <summary>
+            /// The batch as a table, one line a run, and what its finished runs
+            /// come to. A run stopped from outside is listed but left out of the
+            /// medians: how long it lasted says nothing about the game.
+            /// </summary>
+            public static string WriteBatch(string label, int asked, float speed, float reaction, string commit, string reason, List<Row> rows)
+            {
+                var text = new System.Text.StringBuilder();
+                text.AppendLine(string.Format(CultureInfo.InvariantCulture,
+                    "BATCH {0} commit={1} unity={2} quality={3} speed={4:0.##} reaction={5:0.##} runs={6}/{7} end={8}",
+                    label, commit, Application.unityVersion, rows.Count > 0 ? rows[0].quality : "unknown", speed, reaction,
+                    rows.Count, asked, reason));
+                text.AppendLine("run  seed outcome  runSec level kills  dmg  ram heal bossAt frameMs  ended by");
+                var finished = new List<Row>();
+                foreach (Row r in rows)
+                {
+                    if (r.outcome != "stopped") finished.Add(r);
+                    text.AppendLine(string.Format(CultureInfo.InvariantCulture,
+                        "{0,3} {1,5} {2,-8} {3,6:0.0} {4,5} {5,5} {6,4} {7,4} {8,4} {9,6} {10,7:0.0}  {11}",
+                        r.run, r.seed, r.outcome, r.runSeconds, r.level, r.kills, r.damage, r.rammingDamage, r.healing,
+                        r.bossAtRunSeconds > 0 ? r.bossAtRunSeconds.ToString("0", CultureInfo.InvariantCulture) : "-",
+                        r.frameMs, r.outcome == "won" ? "the Leviathan's fall" : r.outcome == "lost" ? r.killedBy : r.end));
+                }
+                if (finished.Count > 0)
+                {
+                    int won = 0, boss = 0, damage = 0, ramming = 0;
+                    var seconds = new float[finished.Count];
+                    var levels = new float[finished.Count];
+                    var damages = new float[finished.Count];
+                    for (int i = 0; i < finished.Count; i++)
+                    {
+                        Row r = finished[i];
+                        seconds[i] = r.runSeconds; levels[i] = r.level; damages[i] = r.damage;
+                        if (r.outcome == "won") won++;
+                        if (r.bossAtRunSeconds > 0) boss++;
+                        damage += r.damage; ramming += r.rammingDamage;
+                    }
+                    Array.Sort(seconds);
+                    text.AppendLine(string.Format(CultureInfo.InvariantCulture,
+                        "MEDIAN of {0} finished: runSec {1:0.0} (min {2:0.0}, max {3:0.0}) | level {4:0.#} | damage {5:0.#} | ramming {6:0}% of damage | reached the boss {7}/{0} | won {8}/{0}",
+                        finished.Count, Median(seconds), seconds[0], seconds[seconds.Length - 1], Median(levels), Median(damages),
+                        damage > 0 ? 100f * ramming / damage : 0f, boss, won));
+                }
+                string path = Path.Combine(Folder(), "batch-" + label + ".txt");
+                File.WriteAllText(path, text.ToString());
+                return text + path;
+            }
         }
 
         private sealed class Pilot : IGameInput
@@ -192,6 +544,19 @@ namespace SurvivalChaos.EditorTools
             private int injuries, healed, dashRequests, slowMoUses;
             private float lastFailureDump = -10;
             private string lastPlan = "No plan yet";
+            // For the summary and the run table: what the run was flown as, what
+            // the damage came from and in which minute of the run's own clock,
+            // and what a frame cost, in real time and in game time.
+            private readonly float speed, startedAtRunSeconds;
+            private readonly string commit, batchLabel, quality;
+            private readonly int runNumber;
+            private readonly bool assistedBefore;
+            private readonly List<string> causes = new List<string>();
+            private readonly Dictionary<string, int> damageByCause = new Dictionary<string, int>();
+            private readonly List<int> damageByMinute = new List<int>();
+            private float bossAtRunSeconds, realSeconds, gameSeconds;
+            private int frames;
+            public Row Row { get; private set; }
             private readonly MaterialPropertyBlock observedBlock = new MaterialPropertyBlock();
             public string EndReason { get; private set; }
             public string Status => $"{reason}\nElapsed {Time.time - started:F1}s | HP {(player != null ? player.CurrentHealth : 0)} | observed {known?.items.Count ?? 0} | input {axes}";
@@ -234,7 +599,28 @@ namespace SurvivalChaos.EditorTools
                 public List<Item> items = new List<Item>();
             }
 
-            public Pilot(float reaction)
+            /// <summary>
+            /// Has every number written while it is held come out with a full
+            /// stop. Held round each of the pilot's entry points and put back on
+            /// the way out, so the game never runs under it: a report line is an
+            /// interpolated string, which takes the machine's language at the
+            /// moment it is built, and one that forgot to ask otherwise would be
+            /// back to decimal commas.
+            /// </summary>
+            private readonly struct Invariant : IDisposable
+            {
+                private readonly CultureInfo was;
+                private Invariant(CultureInfo was) { this.was = was; }
+                public static Invariant Numbers()
+                {
+                    var held = new Invariant(CultureInfo.CurrentCulture);
+                    CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+                    return held;
+                }
+                public void Dispose() { CultureInfo.CurrentCulture = was; }
+            }
+
+            public Pilot(float reaction, float speed, string commit, string batchLabel, int runNumber)
             {
                 if (!EditorApplication.isPlaying || EditorApplication.isPaused)
                     throw new InvalidOperationException("Enter an unpaused Play session first.");
@@ -256,8 +642,26 @@ namespace SurvivalChaos.EditorTools
                 maxHealth = player.MaxHealth;
                 level = player.currentLevel;
                 previous = GameInput.Source;
-                Log($"START hp={health}/{player.MaxHealth} level={level} reaction={delay} observation={ObserveEvery} commitment={CommitFor} horizon={Horizon}");
-                Log("LIMITS: state perception; physics occlusion only; no contrast/fog/audio perception; no offscreen memory; prediction updates observed turns/bounces but cannot foresee them; hull flashes are ambiguous and may be damage, not ram charge; damage cause is the game's own record of the last hit. Existing run randomness is not reseeded.");
+                this.speed = speed;
+                this.commit = commit;
+                this.batchLabel = batchLabel;
+                this.runNumber = runNumber;
+                // Before the session marks the run itself: whether the debug menu,
+                // a kit or a wound-on clock had already touched it.
+                assistedBefore = RunRecords.Assisted;
+                startedAtRunSeconds = RunStats.Seconds;
+                int held = 0;
+                foreach (string skill in RunStats.SkillOrder) held += RunStats.PicksOf(skill);
+                // The graphics tier, because it sets the frame time and the frame
+                // time is what a fast run's steps are made of.
+                string[] tiers = QualitySettings.names;
+                int tier = QualitySettings.GetQualityLevel();
+                quality = tier >= 0 && tier < tiers.Length ? tiers[tier] : "unknown";
+                using var numbers = Invariant.Numbers();
+                Log($"START hp={health}/{player.MaxHealth} level={level} reaction={delay} observation={ObserveEvery} commitment={CommitFor} horizon={Horizon}"
+                    + $" speed={speed:0.##} seed={RunRandom.Seed} commit={commit} unity={Application.unityVersion} quality={quality} runClock={startedAtRunSeconds:F1}"
+                    + $" assistedBefore={assistedBefore} upgradesHeld={held}" + (batchLabel.Length > 0 ? $" batch={batchLabel} run={runNumber}" : ""));
+                Log("LIMITS: state perception; physics occlusion only; no contrast/fog/audio perception; no offscreen memory; prediction updates observed turns/bounces but cannot foresee them; hull flashes are ambiguous and may be damage, not ram charge; damage cause is the game's own record of the last hit. The seed fixes arrivals and upgrade draws, not the fight: the ship's position and frame timing still vary.");
                 GameInput.Source = this;
             }
             private static T Read<T>(object instance, string field)
@@ -278,17 +682,55 @@ namespace SurvivalChaos.EditorTools
             }
             public string Export(string end)
             {
+                using var numbers = Invariant.Numbers();
+                int hp = player != null ? player.CurrentHealth : 0;
+                // Won or lost is the game's word. A session ended from outside is
+                // neither, however the ship was doing.
+                string outcome = player == null ? "stopped" : RunOutcome.Decided && RunOutcome.Won ? "won"
+                    : hp <= 0 || RunOutcome.Decided ? "lost" : "stopped";
+                float botSeconds = Time.time - started;
+                float bossSeconds = bossStarted < 0 ? 0 : Time.time - bossStarted;
+                float frameMs = frames > 0 ? realSeconds / frames * 1000f : 0;
+                float gameStepMs = frames > 0 ? gameSeconds / frames * 1000f : 0;
+                int ramming = 0;
+                var byCause = new List<string>();
+                foreach (string cause in causes)
+                {
+                    byCause.Add($"{cause}={damageByCause[cause]}");
+                    if (cause.StartsWith("ramming", StringComparison.Ordinal)) ramming += damageByCause[cause];
+                }
+                var upgrades = new List<string>();
+                foreach (string skill in RunStats.SkillOrder) upgrades.Add($"{skill}={RunStats.PicksOf(skill)}");
                 Log("END " + end);
-                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={Time.time - started:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={(player != null ? player.CurrentHealth : 0)} bossSeconds={(bossStarted < 0 ? 0 : Time.time - bossStarted):F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses}");
+                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={botSeconds:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={hp} bossSeconds={bossSeconds:F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses}"
+                    + $" outcome={outcome} maxHp={maxHealth} rammingDamage={ramming} bossAtRunSeconds={bossAtRunSeconds:F2} frameMs={frameMs:F2} gameStepMs={gameStepMs:F2} speed={speed:0.##} seed={RunRandom.Seed} commit={commit} assistedBefore={assistedBefore}");
+                if (outcome == "lost") Log("KILLED BY " + (RunStats.KilledBy ?? "unknown"));
+                Log("DAMAGE BY CAUSE " + (byCause.Count > 0 ? string.Join("; ", byCause) : "none"));
+                Log("DAMAGE BY MINUTE " + string.Join(" ", damageByMinute));
                 foreach (string skill in RunStats.SkillOrder) Log($"UPGRADE {skill}: {RunStats.PicksOf(skill)}");
                 string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/PlaytestBot"));
                 Directory.CreateDirectory(dir);
-                string path = Path.Combine(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".txt");
+                DateTime now = DateTime.Now;
+                string path = Path.Combine(dir, now.ToString("yyyyMMdd-HHmmss-fff") + ".txt");
+                Row = new Row
+                {
+                    file = Path.GetFileName(path), time = now.ToString("yyyy-MM-dd HH:mm:ss"), commit = commit, quality = quality, batch = batchLabel,
+                    run = runNumber, seed = RunRandom.Seed, speed = speed, reaction = delay, assistedBefore = assistedBefore,
+                    startedAtRunSeconds = startedAtRunSeconds, outcome = outcome, end = end,
+                    killedBy = outcome == "lost" ? RunStats.KilledBy ?? "unknown" : "",
+                    runSeconds = RunStats.Seconds, botSeconds = botSeconds, level = RunStats.LevelReached,
+                    kills = RunStats.EnemiesDestroyed, hp = hp, maxHp = maxHealth, damage = injuries, rammingDamage = ramming,
+                    healing = healed, dashes = dashRequests, slowMo = slowMoUses, bossAtRunSeconds = bossAtRunSeconds,
+                    bossSeconds = bossSeconds, bossPhase = bossPhase, frameMs = frameMs, gameStepMs = gameStepMs,
+                    damageByCause = string.Join("; ", byCause), damageByMinute = string.Join(" ", damageByMinute),
+                    upgrades = string.Join("; ", upgrades),
+                };
                 File.WriteAllLines(path, log);
                 return path;
             }
             public void CheckEnd()
             {
+                using var numbers = Invariant.Numbers();
                 // Before the early return: the run can end inside a frame's input read,
                 // and the fatal hit went unlogged when it did.
                 RecordHealth();
@@ -305,7 +747,7 @@ namespace SurvivalChaos.EditorTools
                 // to measure garbage.
                 if (boss != null && (bossStarted < 0 || boss.Phase != lastPhase))
                 {
-                    if (bossStarted < 0) bossStarted = Time.time;
+                    if (bossStarted < 0) { bossStarted = Time.time; bossAtRunSeconds = RunStats.Seconds; }
                     lastPhase = boss.Phase;
                     bossPhase = lastPhase.ToString();
                     Log("BOSS PHASE " + bossPhase);
@@ -335,6 +777,14 @@ namespace SurvivalChaos.EditorTools
                 if (current < health)
                 {
                     injuries += health - current;
+                    string cause = player.LastHitBy ?? "unknown";
+                    if (!damageByCause.TryGetValue(cause, out int soFar)) causes.Add(cause);
+                    damageByCause[cause] = soFar + health - current;
+                    // The run's clock, which is what the waves ramp on, and which
+                    // has stopped at the deciding hit by the time that hit is read.
+                    int minute = Mathf.Max(0, (int)(RunStats.Seconds / 60f));
+                    while (damageByMinute.Count <= minute) damageByMinute.Add(0);
+                    damageByMinute[minute] += health - current;
                     if (Time.time - lastFailureDump >= .5f || current <= 0)
                     {
                         lastFailureDump = Time.time;
@@ -376,6 +826,7 @@ namespace SurvivalChaos.EditorTools
                 if (stepped == Time.frameCount || released) return;
                 stepped = Time.frameCount;
                 dashEdge = flipEdge = slowEdge = false;
+                using var numbers = Invariant.Numbers();
                 try
                 {
                     if (player == null || RunOutcome.RunEnded || player.CurrentHealth <= 0)
@@ -387,6 +838,9 @@ namespace SurvivalChaos.EditorTools
                     if (!Mathf.Approximately(RunTime.RequestedSpeed, TestSpeed))
                     { axes = Vector2.zero; EndReason = "Nonstandard time scale; run invalidated"; return; }
                     RecordHealth();
+                    frames++;
+                    realSeconds += Time.unscaledDeltaTime;
+                    gameSeconds += Time.deltaTime;
                     foreach (string skill in RunStats.SkillOrder)
                     {
                         int count = RunStats.PicksOf(skill);
