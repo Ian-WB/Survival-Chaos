@@ -4,11 +4,11 @@ namespace SurvivalChaos
 {
     /// <summary>
     /// The arithmetic behind <see cref="StormRise"/>: how far the storm has
-    /// opened on the run's clock, how tall the wall stands for that, and what
+    /// grown on the run's clock, how tall the wall stands for that, and what
     /// the cloud layer and its map have to be set to for the wall to stand
     /// so.
     ///
-    /// Kept apart from the component so that "the moon is clear when the
+    /// Kept apart from the component so that "the storm is full when the
     /// boss is due" and "the floor under the island never moves" can be
     /// tested without a scene, the way <see cref="EruptionCurve"/> is.
     /// </summary>
@@ -18,15 +18,15 @@ namespace SurvivalChaos
         public const float PlanetRadius = 6378100f;
 
         /// <summary>
-        /// How far the storm has opened, 0 as the run starts and 1 as the
-        /// boss is due, and 1 from then on.
+        /// How far the storm has grown: 0, calm, until <paramref name="startsAt"/>
+        /// of the way to the boss, then evenly up to 1, full, as the boss is
+        /// due, and 1 from then on.
         /// </summary>
-        /// <param name="lateness">
-        /// 1 opens evenly. Above 1 the wall holds high through the first
-        /// minutes and does most of its sinking late; below 1 it drops early
-        /// and the last of it comes slowly.
+        /// <param name="startsAt">
+        /// The share of the time to the boss the storm stays calm for: 0.75
+        /// starts it growing three quarters of the way in.
         /// </param>
-        public static float Open(float elapsed, float bossAt, float lateness)
+        public static float Grown(float elapsed, float bossAt, float startsAt)
         {
             if (bossAt <= 0f)
             {
@@ -34,16 +34,28 @@ namespace SurvivalChaos
             }
 
             float share = Mathf.Clamp01(elapsed / bossAt);
-            return Mathf.Pow(share, Mathf.Max(lateness, 0.01f));
+            float start = Mathf.Clamp(startsAt, 0f, 0.99f);
+            return Mathf.Clamp01((share - start) / (1f - start));
+        }
+
+        /// <summary>
+        /// How much of the cloud is there, 0 none to 1 all of it, as the
+        /// storm grows: the clouds condense from nothing over the first
+        /// <paramref name="formsBy"/> of the growth, eased at both ends so
+        /// neither their arrival nor their filling in is a step.
+        /// </summary>
+        public static float Formed(float grown, float formsBy)
+        {
+            return Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(grown / Mathf.Max(formsBy, 0.01f)));
         }
 
         /// <summary>
         /// How many times its painted height the wall stands:
-        /// <paramref name="tallest"/> shut, <paramref name="lowest"/> open.
+        /// <paramref name="lowest"/> calm, <paramref name="tallest"/> full.
         /// </summary>
-        public static float Rise(float open, float tallest, float lowest)
+        public static float Rise(float grown, float tallest, float lowest)
         {
-            return Mathf.Lerp(Mathf.Max(tallest, 0f), Mathf.Max(lowest, 0f), Mathf.Clamp01(open));
+            return Mathf.Lerp(Mathf.Max(lowest, 0f), Mathf.Max(tallest, 0f), Mathf.Clamp01(grown));
         }
 
         /// <summary>

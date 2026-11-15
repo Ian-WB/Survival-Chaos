@@ -7,7 +7,7 @@ namespace SurvivalChaos
     /// </summary>
     public interface ISkillTarget
     {
-        /// <summary>Advances the shot pattern one step (double, triple, sextuple).</summary>
+        /// <summary>Advances the shot pattern: Hydra's two, four, then eight rounds a volley.</summary>
         void UpgradeShotPattern();
 
         /// <summary>Raises the health ceiling and grants the same amount as current health.</summary>

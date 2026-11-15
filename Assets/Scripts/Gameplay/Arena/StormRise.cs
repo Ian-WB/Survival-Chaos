@@ -1,23 +1,36 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace SurvivalChaos
 {
     /// <summary>
-    /// The storm opens over the run: its wall starts a run standing over the
-    /// moon and sinks until, as the Leviathan comes, little of it is left
-    /// and the moon and the stars are clear over the cloud floor.
+    /// The storm grows at the end of the run, from nothing: no cloud at all
+    /// for the first three quarters of the way to the Leviathan, no eye, no
+    /// wall and no cloud floor, only the island, the moon and the stars.
+    /// Then the clouds condense and the wall rises until, as the boss is
+    /// due, it stands full over the moon, and it stays full through the
+    /// fight.
     ///
-    /// Ian's idea, 15 October 2026, built on three picks he said yes to: the
-    /// wall goes down on the run's clock, the one the eruption keeps, and is
-    /// down when the boss is due; the moonlight follows it, the island darker
-    /// at the start and brightening as the moon shows; and it ends at the
-    /// wall the scene already has. He played that and asked for the start a
-    /// bit higher and the end way lower, almost all of it gone (16 October),
-    /// so the end is no longer the scene's wall. More open sky behind the
-    /// lane puts dark ships against dark stars; that was the reason for the
-    /// third pick, and it is his call.
+    /// Ian asked for this on 15 November 2026: "grow to full instead of
+    /// decreasing", starting at 75% of the run and full when the boss
+    /// arrives, and then that the eye and the clouds only show up when the
+    /// storm starts, "so basically it should start from nothing". Before
+    /// that it ran the other way round, his idea of 15 October: the wall
+    /// started a run over the moon and sank to almost nothing by the boss
+    /// (start a bit higher and end way lower, at his word, 16 October). The
+    /// heights at either end are the ones he tuned then.
+    ///
+    /// **From nothing.** The clouds' density is the scene's times
+    /// <see cref="Formed"/>, which comes up from 0 over the first
+    /// <see cref="formsBy"/> of the growth while the wall begins to rise
+    /// from its lowest. At 0 there is no cloud to see, though the clouds are
+    /// still traced: switching them off with the volume's Enable was tried
+    /// first, on 15 November, and they never came back when it was turned on
+    /// again, and the moon and the stars went with them under a flat haze.
+    /// The storm's lightning waits for the clouds to be whole
+    /// (StormLightning).
     ///
     /// **How the wall stands taller or shorter.** The scene's layer of cloud
     /// tops out 750 over the arena, which no wall a kilometre and more away
@@ -32,33 +45,26 @@ namespace SurvivalChaos
     /// since HDRP stretches the map by the layer's middle, so the eye keeps
     /// its size.
     ///
-    /// **Its height, start to end.** Twice the painted height hides the whole
-    /// moon from the starting camera at every moment of the storm's turn,
-    /// with the wall's lit crown at the top of the frame; at 1.9 the moon
-    /// showed through gaps. Ian asked for a bit higher, and 2.2 still shows
-    /// the crown's edge from time to time. It ends at 0.4, Ian's number
-    /// (16 October), which sinks the wall's tops under the horizon: nothing
-    /// is left but the flat cloud floor, as at 0.5 and 0.6. At 0.7 a low band
-    /// stood just over the horizon, and 0.8 is a thin bank.
+    /// **Its height, calm to full.** Calm is 0.4 of the painted height, Ian's
+    /// number (16 October), which sinks the wall's tops under the horizon:
+    /// nothing is left but the flat cloud floor, as at 0.5 and 0.6. At 0.7 a
+    /// low band stood just over the horizon, and 0.8 is a thin bank. Full is
+    /// 2.2: twice the painted height hides the whole moon from the starting
+    /// camera at every moment of the storm's turn, with the wall's lit crown
+    /// at the top of the frame, and Ian asked for a bit higher than 2.
     ///
     /// **The moonlight follows on its own.** The taller wall's shadow takes
     /// the island's moonlit rock from about 32 to about 20 (of 255), from
-    /// either side of the island, and the haze with it. All of that is the
-    /// clouds' shadow: with the Shadows setting at Off the island is as
-    /// bright shut as open, and nothing here makes up for it.
-    ///
-    /// **It sinks late.** At <see cref="lateness"/> 1.5 the moon's top shows
-    /// about a quarter of the way into the run and half of it about half
-    /// way. The rest of the fall, the wall going down past its painted
-    /// height and under the horizon, comes as the volcano climbs to the boss;
-    /// the last of the wall goes about nine tenths of the way in.
+    /// either side of the island, and the haze with it, so the boss is fought
+    /// on a darker island than the run before it. All of that is the clouds'
+    /// shadow: with the Shadows setting at Off the island is as bright full
+    /// as calm, and nothing here makes up for it.
     ///
     /// The clock is the WaveDirector's, so the debug menu's Advance and Skip
-    /// to boss move the storm with everything else; it sinks at no more than
-    /// <see cref="fastestOpening"/> a second, so a skip is a slow fall and not
-    /// a cut. A new run starts it shut again. On the Low tier there are no
-    /// clouds, and it changes nothing. It changes no rule of the
-    /// fight.
+    /// to boss move the storm with everything else; it grows at no more than
+    /// <see cref="fastestGrowth"/> a second, so a skip is a slow rise and not
+    /// a cut. A new run starts it calm again. On the Low tier there are no
+    /// clouds, and it changes nothing. It changes no rule of the fight.
     /// </summary>
     public sealed class StormRise : MonoBehaviour
     {
@@ -69,12 +75,12 @@ namespace SurvivalChaos
         [Header("The storm")]
         [SerializeField]
         [Range(1f, 4f)]
-        [Tooltip("How many times its painted height the wall stands as a run starts. 1 is the scene's wall.")]
+        [Tooltip("How many times its painted height the wall stands when the storm is full, as the boss arrives. 1 is the scene's wall.")]
         private float tallest = 2.2f;
 
         [SerializeField]
         [Range(0.3f, 1f)]
-        [Tooltip("How many times its painted height the wall stands once the storm is open. 1 is the scene's wall; at 0.6 and under only the flat cloud floor is left.")]
+        [Tooltip("How many times its painted height the wall stands while the storm is calm, from the start of a run. 1 is the scene's wall; at 0.6 and under only the flat cloud floor is left.")]
         private float lowest = 0.4f;
 
         [SerializeField]
@@ -86,19 +92,25 @@ namespace SurvivalChaos
         private ComputeShader shadowTracer;
 
         [SerializeField]
-        [Range(0.3f, 3f)]
-        [Tooltip("How late the wall sinks. 1 sinks evenly across the run. Higher holds it high through the first minutes and saves the fall for the end; lower drops it early.")]
-        private float lateness = 1.5f;
+        [Range(0f, 0.95f)]
+        [Tooltip("How far into the time before the boss the storm starts to grow, as a share of it. 0.75 is three quarters of the way; from there it rises evenly to full as the boss arrives.")]
+        private float startsAt = 0.75f;
+
+        [SerializeField]
+        [Range(0.05f, 1f)]
+        [Tooltip("How much of the growth the clouds take to condense from nothing to the scene's density, as a share of it. 0.3 is the first 30 s of the 100 from 300 s to the boss.")]
+        private float formsBy = 0.3f;
 
         [SerializeField]
         [Range(0.01f, 1f)]
-        [Tooltip("The most the storm opens in a second, as a share of the whole fall, so winding the clock on is a slow sink.")]
-        private float fastestOpening = 0.08f;
+        [FormerlySerializedAs("fastestOpening")]
+        [Tooltip("The most the storm grows in a second, as a share of the whole rise, so winding the clock on is a slow rise.")]
+        private float fastestGrowth = 0.08f;
 
         [Header("Trying it out")]
         [SerializeField]
         [Range(-1f, 1f)]
-        [Tooltip("In play, holds the storm this far open so a look can be judged. Under 0 it follows the run, which is how the scene must be saved.")]
+        [Tooltip("In play, holds the storm this far grown (0 calm, 1 full) so a look can be judged. Under 0 it follows the run, which is how the scene must be saved.")]
         private float holdAt = -1f;
 
         /// <summary>A volume over the scene's and under GraphicsDirector's, which sets the clouds' steps and shadows.</summary>
@@ -113,14 +125,18 @@ namespace SurvivalChaos
         private float bottom;
         private float lowDepth;
         private Vector2 lowTiling;
+        private float density;
 
-        /// <summary>How far the storm has opened, 0 shut to 1 open.</summary>
-        public float Open { get; private set; }
+        /// <summary>How far the storm has grown, 0 calm to 1 full.</summary>
+        public float Grown { get; private set; }
 
         private static readonly int WallRiseId = Shader.PropertyToID("_StormWallRise");
 
         /// <summary>How many times its painted height the wall stands now.</summary>
-        public float Rise => StormRiseCurve.Rise(Open, tallest, lowest);
+        public float Rise => StormRiseCurve.Rise(Grown, tallest, lowest);
+
+        /// <summary>How much of the cloud is there, 0 none to 1 the scene's density.</summary>
+        public float Formed => StormRiseCurve.Formed(Grown, formsBy);
 
         private void Start()
         {
@@ -139,6 +155,7 @@ namespace SurvivalChaos
             bottom = sceneClouds.bottomAltitude.value;
             lowDepth = sceneClouds.altitudeRange.value;
             lowTiling = sceneClouds.cloudTiling.value;
+            density = sceneClouds.densityMultiplier.value;
 
             Volume volume = gameObject.AddComponent<Volume>();
             volume.isGlobal = true;
@@ -149,14 +166,15 @@ namespace SurvivalChaos
             clouds = profile.Add<VolumetricClouds>();
             clouds.altitudeRange.overrideState = true;
             clouds.cloudTiling.overrideState = true;
+            clouds.densityMultiplier.overrideState = true;
 
-            Open = Target();
+            Grown = Target();
             Apply();
         }
 
         private void Update()
         {
-            Open = Mathf.MoveTowards(Open, Target(), fastestOpening * Time.deltaTime);
+            Grown = Mathf.MoveTowards(Grown, Target(), fastestGrowth * Time.deltaTime);
             Apply();
         }
 
@@ -184,7 +202,7 @@ namespace SurvivalChaos
                 return 1f;
             }
 
-            return StormRiseCurve.Open(director.Elapsed, bossAt, lateness);
+            return StormRiseCurve.Grown(director.Elapsed, bossAt, startsAt);
         }
 
         private void Apply()
@@ -192,6 +210,8 @@ namespace SurvivalChaos
             float depth = StormRiseCurve.Depth(lowDepth, Rise);
             clouds.altitudeRange.value = depth;
             clouds.cloudTiling.value = lowTiling * StormRiseCurve.Tiling(1f, bottom, lowDepth, depth);
+
+            clouds.densityMultiplier.value = density * Formed;
             SetWallRise(Rise);
         }
 

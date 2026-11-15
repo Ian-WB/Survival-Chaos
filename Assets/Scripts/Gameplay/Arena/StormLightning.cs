@@ -235,6 +235,7 @@ namespace SurvivalChaos
         private int strokes;
 
         private Camera view;
+        private StormRise storm;
         private Material boltMaterial;
         private float startedAt;
         private float nextAt;
@@ -367,8 +368,18 @@ namespace SurvivalChaos
         private void OnEnable()
         {
             view = Camera.main;
+            storm = FindAnyObjectByType<StormRise>();
             nextAt = Time.time + Random.Range(gap.x, gap.y);
         }
+
+        /// <summary>
+        /// Whether the clouds are there to strike in. Since 15 November 2026
+        /// the storm starts a run as nothing and condenses from 300 s
+        /// (StormRise), and a flash with no cloud to light is a bolt out of a
+        /// clear sky. With no StormRise running, the clouds are the scene's
+        /// all run long, as they were before.
+        /// </summary>
+        private bool CloudsAreWhole => storm == null || !storm.isActiveAndEnabled || storm.Formed >= 1f;
 
         private void OnDisable()
         {
@@ -396,7 +407,7 @@ namespace SurvivalChaos
             float now = Time.time;
             if (!Striking)
             {
-                if (now < nextAt || (ash != null && (ash.Striking || now - ash.EndedAt < AshLightning.Turn)))
+                if (now < nextAt || !CloudsAreWhole || (ash != null && (ash.Striking || now - ash.EndedAt < AshLightning.Turn)))
                 {
                     return;
                 }

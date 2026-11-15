@@ -18,8 +18,6 @@ MonoBehaviour:
   availableFromLevel: 0500000009000000i
   pickupColor: {r: 3, g: 0.25, b: 0.3, a: 1}
   stageNames:
-  - Slow Mo! Press E or Y
+  - Slow Mo I! Press E or Y
   - Slow Mo II!
-  stagePickupNames:
-  - Slow Mo
-  - Slow Mo II
+  stagePickupNames: []

@@ -3,8 +3,16 @@ using UnityEngine;
 namespace SurvivalChaos
 {
     /// <summary>
-    /// Advances the player's shot pattern. Three picks walk the whole
-    /// progression: double, triple, sextuple.
+    /// Hydra: more rounds a volley. Three picks walk the whole progression,
+    /// two rounds, then four, then eight (Ian, 15 November 2026: a middle
+    /// stage, a last stage of eight, and a name of its own in place of
+    /// "Double Shot" and "Sextuple Shot"). The last waits for level 14, near
+    /// the end of a run; the gates and the banners are in the asset, the
+    /// rows each stage fires in Player.ForwardPattern.
+    ///
+    /// A StagedSkill since then. It used to carry its own copy of the two name
+    /// lists, under the same field names, so the asset kept its data across
+    /// the move.
     ///
     /// There was a fourth, Back Shot, which added four shots the other way round
     /// the ring. It was the only upgrade that changed what the gun does rather
@@ -12,61 +20,8 @@ namespace SurvivalChaos
     /// backward firing path in Player.
     /// </summary>
     [CreateAssetMenu(fileName = "ShotUpgrade", menuName = "Survival Chaos/Skills/Shot Upgrade")]
-    public sealed class ShotUpgradeSkill : SkillDefinition
+    public sealed class ShotUpgradeSkill : StagedSkill
     {
-        [SerializeField]
-        [Tooltip("Banner text per stage, in pick order.")]
-        private string[] stageNames =
-        {
-            "Double Shot!",
-            "Triple Shot!",
-            "Sextuple Shot!"
-        };
-
-        [SerializeField]
-        [Tooltip("Pickup text per stage, in pick order. Left empty, the banner names above " +
-                 "are used.")]
-        private string[] stagePickupNames =
-        {
-            "Double Shot",
-            "Triple Shot",
-            "Sextuple Shot"
-        };
-
-        public override string GetDisplayName(int picksTaken)
-        {
-            return Stage(stageNames, picksTaken) ?? base.GetDisplayName(picksTaken);
-        }
-
-        /// <summary>
-        /// The stage the player would get next, without the banner's exclamation.
-        ///
-        /// Falls through to the banner names rather than to the plain display
-        /// name: "More Shots!" is accurate for every stage and therefore useless
-        /// on a pickup, where the whole question is which one this is.
-        /// </summary>
-        public override string GetPickupName(int picksTaken)
-        {
-            return Stage(stagePickupNames, picksTaken) ?? GetDisplayName(picksTaken);
-        }
-
-        /// <summary>
-        /// The entry for a pick count, or null when the list cannot answer.
-        ///
-        /// Clamped rather than wrapped, so the last stage keeps naming itself
-        /// once the progression is spent instead of starting over at "Double
-        /// Shot" - which would read as the upgrade having been undone.
-        /// </summary>
-        private static string Stage(string[] names, int picksTaken)
-        {
-            if (names == null || names.Length == 0)
-            {
-                return null;
-            }
-
-            return names[Mathf.Clamp(picksTaken - 1, 0, names.Length - 1)];
-        }
-
         public override void Apply(ISkillTarget target)
         {
             target.UpgradeShotPattern();

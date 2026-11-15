@@ -18,6 +18,5 @@ MonoBehaviour:
   availableFromLevel: 08000000i
   pickupColor: {r: 1.2, g: 0.35, b: 3, a: 1}
   stageNames:
-  - Pickups Drift To You!
-  stagePickupNames:
-  - Magnet
+  - Magnet I! Pickups Drift To You
+  stagePickupNames: []

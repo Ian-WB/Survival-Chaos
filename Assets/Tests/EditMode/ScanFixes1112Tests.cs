@@ -103,13 +103,12 @@ namespace SurvivalChaos.Tests
             var shots = AssetDatabase.LoadAssetAtPath<ShotUpgradeSkill>("Assets/Data/Skills/ShotUpgrade.asset");
             Assert.IsNotNull(shots);
 
+            // Renamed Hydra on 15 November 2026; the Portuguese is still not back.
             for (int picks = 0; picks <= 3; picks++)
             {
                 StringAssert.DoesNotContain("TUPLO", shots.GetDisplayName(picks));
                 StringAssert.DoesNotContain("TUPLO", shots.GetPickupName(picks));
             }
-
-            Assert.AreEqual("Sextuple Shot!", shots.GetDisplayName(99));
         }
 
         [Test]

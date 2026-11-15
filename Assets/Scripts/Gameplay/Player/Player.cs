@@ -523,9 +523,11 @@ namespace SurvivalChaos
         /// of near-identical Spawn calls, and that is how the sextuple stage came to
         /// fire five shots with nobody noticing.
         ///
-        /// The sextuple row is offset by half a step so its six sit symmetrically
-        /// about the pivot. The stages either side put a shot dead centre and pair
-        /// the rest around it, which only works for odd counts.
+        /// The four and eight rows are offset by half a step so they sit
+        /// symmetrically about the pivot. The double keeps the shape it always
+        /// had, one on the pivot and one above. Until 15 November 2026 the rows
+        /// were one, two, three and six; Ian asked for a middle stage of four
+        /// and a last of eight, and nothing offers the three-row now.
         ///
         /// There used to be a fifth row, Back Shot, which fired five forward and
         /// four the other way round the ring. It is gone: it was the one upgrade
@@ -538,9 +540,15 @@ namespace SurvivalChaos
         {
             new[] { 0f },
             new[] { 0f, 1f },
-            new[] { 0f, 1f, -1f },
-            new[] { 0.5f, -0.5f, 1.5f, -1.5f, 2.5f, -2.5f }
+            new[] { 0.5f, -0.5f, 1.5f, -1.5f },
+            new[] { 0.5f, -0.5f, 1.5f, -1.5f, 2.5f, -2.5f, 3.5f, -3.5f }
         };
+
+        /// <summary>How many rounds a volley fires at a shot stage, for the tests.</summary>
+        public static int RoundsAtStage(int stage)
+        {
+            return ForwardPattern[Mathf.Clamp(stage, 0, ForwardPattern.Length - 1)].Length;
+        }
 
         private void Shoot()
         {
@@ -551,7 +559,7 @@ namespace SurvivalChaos
 
             lastVolleyAt = Time.time;
 
-            // Once per volley, not once per bullet. The widest pattern fires six at
+            // Once per volley, not once per bullet. The widest pattern fires eight at
             // the same instant and should still read as one shot.
             if (GameSounds.Instance != null)
             {
@@ -680,7 +688,7 @@ namespace SurvivalChaos
         // How many shot upgrades have been taken. Indexes ForwardPattern, which
         // Shoot() reads.
         [SerializeField]
-        [Tooltip("Shot pattern stage: 0 single, 1 double, 2 triple, 3 sextuple. Serialized so a " +
+        [Tooltip("Shot pattern stage: 0 one round, 1 two, 2 four, 3 eight. Serialized so a " +
                  "stage can be tried from here without playing up to it - it replaced four " +
                  "separate bools that had to be kept mutually exclusive by hand.")]
         private int shotUpgrades;
@@ -694,11 +702,10 @@ namespace SurvivalChaos
         public const int MaxShotUpgrades = 3;
 
         [SerializeField]
-        [Tooltip("The shot pattern stage each Shot Upgrade pick reaches, in pick order: 1 double, " +
-                 "2 triple, 3 sextuple. The last entry holds for any pick past the end. Left " +
-                 "empty, each pick moves one stage. The scene sets 1 and 3, so the second pick " +
-                 "goes from Double straight to Sextuple: level-ups were halved on 9 November 2026 " +
-                 "and each pick does the work of two.")]
+        [Tooltip("The shot pattern stage each Hydra pick reaches, in pick order: 1 two rounds, " +
+                 "2 four, 3 eight. The last entry holds for any pick past the end. Left empty, " +
+                 "each pick moves one stage. The scene sets 1, 2 and 3 since 15 November 2026; " +
+                 "it set 1 and 3 before, when the second pick jumped from two rounds to six.")]
         private int[] shotStageByPick = new int[0];
 
         /// <summary>How many Shot Upgrade picks have been taken this run.</summary>

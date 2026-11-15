@@ -159,7 +159,9 @@ namespace SurvivalChaos
             {
                 // Halved with the level-ups on 9 November 2026: each pick is
                 // worth two of the old ones, so the kit is about what it was.
-                int wanted = skill is ShotUpgradeSkill ? (stronger ? 2 : 1)
+                // The stronger kit takes Hydra to its last stage, eight rounds,
+                // as it took the old gun to six.
+                int wanted = skill is ShotUpgradeSkill ? (stronger ? 3 : 1)
                     : skill is AttackSpeedSkill ? (stronger ? 3 : 2)
                     : skill is MoveSpeedSkill ? (stronger ? 2 : 1)
                     : skill is MaxHealthSkill ? 1

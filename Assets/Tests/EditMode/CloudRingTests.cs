@@ -287,7 +287,7 @@ namespace SurvivalChaos.Tests
             Object.DestroyImmediate(lookup);
         }
 
-        /// <summary>How many times its painted height the wall stands as a run starts (tallest) or ends (lowest): the Game scene's StormRise.</summary>
+        /// <summary>How many times its painted height the wall stands with the storm full, as the boss arrives (tallest), or calm, from the start of a run (lowest): the Game scene's StormRise.</summary>
         private static float StormRiseField(string field)
         {
             SavedScene scene = SavedScene.Load("Assets/Scenes/Game.unity");
@@ -302,12 +302,13 @@ namespace SurvivalChaos.Tests
 
         /// <summary>
         /// Ian asked for the storm to end with almost all of the wall gone,
-        /// then lower still (16 October): its tops sink under the horizon on
+        /// then lower still (16 October); since 15 November it is the wall
+        /// the storm condenses at from nothing, at 300 s: its tops sink under the horizon on
         /// every bearing, and what is left out there is cloud under it, a
         /// floor reaching to the horizon and not a hole into the dark.
         /// </summary>
         [Test]
-        public void TheWall_SinksUnderTheHorizon_WhenTheStormIsOpen()
+        public void TheWall_IsUnderTheHorizon_WhileTheStormIsCalm()
         {
             Texture2D map = Read(MapPath);
             Texture2D lookup = Read(LookupPath);
@@ -327,12 +328,13 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// The storm starts a run standing over the moon (StormRise). From the
+        /// The full storm stands over the moon as the boss arrives (StormRise;
+        /// it started runs there until 15 November). From the
         /// camera the moon reaches 27 degrees up, which 2,100 out is about
         /// 1,070 over the arena: solid wall there on every bearing.
         /// </summary>
         [Test]
-        public void TheWall_StandsOverTheMoon_AsARunStarts()
+        public void TheWall_StandsOverTheMoon_WhenTheStormIsFull()
         {
             Texture2D map = Read(MapPath);
             Texture2D lookup = Read(LookupPath);

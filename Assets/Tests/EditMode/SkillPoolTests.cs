@@ -127,21 +127,25 @@ namespace SurvivalChaos.Tests
         public void ShotUpgrade_NamesEachStageInPickOrder()
         {
             ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(3);
+            SetStages(shots, "stageNames", "Hydra I! Two Rounds", "Hydra II! Four Rounds", "Hydra III! Eight Rounds");
 
-            Assert.AreEqual("Double Shot!", shots.GetDisplayName(1));
-            Assert.AreEqual("Triple Shot!", shots.GetDisplayName(2));
-            Assert.AreEqual("Sextuple Shot!", shots.GetDisplayName(3));
+            Assert.AreEqual("Hydra I! Two Rounds", shots.GetDisplayName(1));
+            Assert.AreEqual("Hydra II! Four Rounds", shots.GetDisplayName(2));
+            Assert.AreEqual("Hydra III! Eight Rounds", shots.GetDisplayName(3));
         }
 
         [Test]
         public void ShotUpgrade_ClampsStageNameBeyondTheLastStage()
         {
             ShotUpgradeSkill shots = NewSkill<ShotUpgradeSkill>(3);
+            SetStages(shots, "stageNames", "Hydra I! Two Rounds", "Hydra II! Four Rounds", "Hydra III! Eight Rounds");
+            SetStages(shots, "stagePickupNames", "Hydra");
 
             // Clamped rather than wrapped: past the last stage the name holds at
             // the one the player actually has, instead of starting over at
-            // "Double Shot!" and reading as the upgrade having been undone.
-            Assert.AreEqual("Sextuple Shot!", shots.GetDisplayName(99));
+            // the first and reading as the upgrade having been undone.
+            Assert.AreEqual("Hydra III! Eight Rounds", shots.GetDisplayName(99));
+            Assert.AreEqual("Hydra III", shots.GetPickupName(99));
         }
 
         /// <summary>Fills a staged skill's two name lists the way the Inspector would.</summary>
@@ -165,9 +169,9 @@ namespace SurvivalChaos.Tests
             DeflectorSkill deflector = NewSkill<DeflectorSkill>(2);
             SetStages(deflector, "stagePickupNames", "Deflector", "Faster Deflector");
 
-            Assert.AreEqual("Deflector", deflector.GetPickupName(1));
-            Assert.AreEqual("Faster Deflector", deflector.GetPickupName(2));
-            Assert.AreEqual("Faster Deflector", deflector.GetPickupName(5));
+            Assert.AreEqual("Deflector I", deflector.GetPickupName(1));
+            Assert.AreEqual("Faster Deflector II", deflector.GetPickupName(2));
+            Assert.AreEqual("Faster Deflector II", deflector.GetPickupName(5));
         }
 
         [Test]
@@ -179,8 +183,8 @@ namespace SurvivalChaos.Tests
             serialized.FindProperty("pickupName").stringValue = "Magnet";
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
-            Assert.AreEqual("Magnet Range Increased!", magnet.GetDisplayName(2));
-            Assert.AreEqual("Magnet", magnet.GetPickupName(2));
+            Assert.AreEqual("Magnet II!", magnet.GetDisplayName(2));
+            Assert.AreEqual("Magnet II", magnet.GetPickupName(2));
         }
 
         /// <summary>Sets the level each pick opens at, the way the Inspector would.</summary>
@@ -263,10 +267,11 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void TheShippedLadder_Holds22Picks()
+        public void TheShippedLadder_Holds23Picks()
         {
             // Halved from 43 on 9 November 2026, with each pick doubled. A run
             // brings about 17 level-ups, so the pool must stay a little larger.
+            // 23 since 15 November 2026: Hydra's middle stage of four rounds.
             int picks = 0;
 
             foreach (string guid in AssetDatabase.FindAssets("t:SkillDefinition", new[] { "Assets/Data/Skills" }))
@@ -279,7 +284,7 @@ namespace SurvivalChaos.Tests
                 }
             }
 
-            Assert.AreEqual(22, picks);
+            Assert.AreEqual(23, picks);
         }
 
         [Test]

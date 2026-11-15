@@ -84,10 +84,59 @@ namespace SurvivalChaos
         /// Banner text for a pick. Takes the number of times this skill has now
         /// been taken so multi-stage skills can name each stage, without the
         /// asset holding run state - ScriptableObjects outlive a play session.
+        ///
+        /// An upgrade's banner is its pickup's name with the numeral, so the
+        /// two agree: the "Attack Speed II" the player flew into is announced
+        /// as "Attack Speed II!". Heal has no pick limit and keeps its own
+        /// line - "Heal XIV" would count something nobody is counting.
         /// </summary>
         public virtual string GetDisplayName(int picksTaken)
         {
-            return displayName;
+            return IsUnlimited ? displayName : GetPickupName(picksTaken) + "!";
+        }
+
+        /// <summary>
+        /// Appends the pick's Roman numeral to a name: the first pick of any
+        /// upgrade is I, the second II (Ian, 15 November 2026). Before this
+        /// some numerals counted picks (Deflector II) and one counted levels
+        /// of an ability the ship starts with (Dash II), and the stat upgrades
+        /// had none at all.
+        ///
+        /// Clamped to the pick limit, as the stage names are, so a spent
+        /// upgrade keeps naming the stage the player has.
+        /// </summary>
+        protected string Numbered(string name, int picksTaken)
+        {
+            if (IsUnlimited || string.IsNullOrWhiteSpace(name))
+            {
+                return name;
+            }
+
+            return name.TrimEnd('!', ' ') + " " + Roman(Mathf.Clamp(picksTaken, 1, maxPicks));
+        }
+
+        /// <summary>A whole number from 1 to 3999 in Roman numerals; anything else as digits.</summary>
+        public static string Roman(int number)
+        {
+            if (number < 1 || number > 3999)
+            {
+                return number.ToString();
+            }
+
+            int[] values = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+            string[] numerals = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+            var text = new System.Text.StringBuilder();
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                while (number >= values[i])
+                {
+                    text.Append(numerals[i]);
+                    number -= values[i];
+                }
+            }
+
+            return text.ToString();
         }
 
         /// <summary>
@@ -99,15 +148,14 @@ namespace SurvivalChaos
         /// "Attack Speed Increased!" - which reads oddly floating above something
         /// nobody has touched yet. The label names a thing on offer.
         ///
-        /// Falls back to the banner text when no pickup name is authored, so a
+        /// Falls back to the display name when no pickup name is authored, so a
         /// skill asset that has not been given one still labels its pickup rather
-        /// than showing nothing.
+        /// than showing nothing. An upgrade's label carries its pick's numeral.
         /// </summary>
         public virtual string GetPickupName(int picksTaken)
         {
-            return string.IsNullOrWhiteSpace(pickupName)
-                ? GetDisplayName(picksTaken)
-                : pickupName;
+            string name = string.IsNullOrWhiteSpace(pickupName) ? displayName : pickupName;
+            return Numbered(name, picksTaken);
         }
 
         public abstract void Apply(ISkillTarget target);

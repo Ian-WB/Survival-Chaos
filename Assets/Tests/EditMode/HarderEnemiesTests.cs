@@ -131,7 +131,7 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void TheHeavy_IsTwiceTheSize_WithTenHealth()
+        public void TheHeavy_IsTwiceTheSize_WithTwentyHealth()
         {
             GameObject heavy = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemies/Enemy 1.prefab");
             Assert.IsNotNull(heavy);
@@ -139,7 +139,8 @@ namespace SurvivalChaos.Tests
 
             var definition = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/Data/Enemies/Heavy.asset");
             Assert.IsNotNull(definition);
-            Assert.AreEqual(10, definition.MaxHealth);
+            // 10 on 10 November, doubled on 15 November: "it wasn't enough".
+            Assert.AreEqual(20, definition.MaxHealth);
         }
     }
 }

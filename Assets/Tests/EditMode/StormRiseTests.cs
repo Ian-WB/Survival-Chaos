@@ -9,11 +9,13 @@ using UnityEngine.Rendering.HighDefinition;
 namespace SurvivalChaos.Tests
 {
     /// <summary>
-    /// The storm opens over the run (StormRise, 15 October 2026): the wall
-    /// starts a run over the moon and sinks to a stub of itself by the time
-    /// the boss is due. The arithmetic, the scene's wiring, and the
-    /// shader that reads the wall's height off the layer's depth. What the
-    /// cloud then looks like, shut and open, is in CloudRingTests.
+    /// The storm grows at the end of the run (StormRise; built 15 October
+    /// 2026 sinking, turned round 15 November): calm, the wall under the
+    /// horizon, for three quarters of the way to the boss, then rising to
+    /// full over the moon as the boss is due. The arithmetic, the scene's
+    /// wiring, and the shader that reads the wall's height off the layer's
+    /// depth. What the cloud then looks like, calm and full, is in
+    /// CloudRingTests.
     /// </summary>
     public class StormRiseTests
     {
@@ -22,58 +24,78 @@ namespace SurvivalChaos.Tests
         private const string ProfilePath = "Assets/Scenes/Game/Scene Volume Profile.asset";
 
         [Test]
-        public void TheStorm_IsShutAsTheRunStarts_AndOpenWhenTheBossIsDue()
+        public void TheStorm_IsCalmFor75Percent_AndFullWhenTheBossIsDue()
         {
-            Assert.AreEqual(0f, StormRiseCurve.Open(0f, BossAt, 1.5f), 1e-6f);
-            Assert.AreEqual(1f, StormRiseCurve.Open(BossAt, BossAt, 1.5f), 1e-6f);
-            Assert.AreEqual(1f, StormRiseCurve.Open(BossAt + 60f, BossAt, 1.5f), 1e-6f, "the wall comes back up after the boss");
+            Assert.AreEqual(0f, StormRiseCurve.Grown(0f, BossAt, 0.75f), 1e-6f);
+            Assert.AreEqual(0f, StormRiseCurve.Grown(299f, BossAt, 0.75f), 1e-6f, "it grew before 75% of the run");
+            Assert.AreEqual(0.5f, StormRiseCurve.Grown(350f, BossAt, 0.75f), 1e-5f, "half grown half way from 300 s to the boss");
+            Assert.AreEqual(1f, StormRiseCurve.Grown(BossAt, BossAt, 0.75f), 1e-6f);
+            Assert.AreEqual(1f, StormRiseCurve.Grown(BossAt + 60f, BossAt, 0.75f), 1e-6f, "the storm calmed during the fight");
         }
 
+        [TestCase(0f)]
         [TestCase(0.5f)]
-        [TestCase(1f)]
-        [TestCase(1.5f)]
-        [TestCase(3f)]
-        public void TheStorm_NeverCloses_AsTheRunGoesOn(float lateness)
+        [TestCase(0.75f)]
+        [TestCase(0.95f)]
+        public void TheStorm_NeverCalms_AsTheRunGoesOn(float startsAt)
         {
             float previous = 0f;
             for (float elapsed = 0f; elapsed <= BossAt + 20f; elapsed += 5f)
             {
-                float open = StormRiseCurve.Open(elapsed, BossAt, lateness);
-                Assert.That(open, Is.GreaterThanOrEqualTo(previous), "the wall rose again at " + elapsed + " s");
-                previous = open;
+                float grown = StormRiseCurve.Grown(elapsed, BossAt, startsAt);
+                Assert.That(grown, Is.GreaterThanOrEqualTo(previous), "the wall sank again at " + elapsed + " s");
+                previous = grown;
+            }
+
+            Assert.AreEqual(1f, previous, 1e-6f);
+        }
+
+        /// <summary>
+        /// Ian, 15 November 2026: the eye and the clouds only show up when
+        /// the storm starts, "it should start from nothing". The clouds'
+        /// density is the scene's times this share.
+        /// </summary>
+        [Test]
+        public void TheClouds_AreNothingUntilTheStormStarts_AndWholeBy30PercentOfIt()
+        {
+            Assert.AreEqual(0f, StormRiseCurve.Formed(StormRiseCurve.Grown(0f, BossAt, 0.75f), 0.3f), 1e-6f);
+            Assert.AreEqual(0f, StormRiseCurve.Formed(StormRiseCurve.Grown(300f, BossAt, 0.75f), 0.3f), 1e-6f, "cloud before the storm started");
+            Assert.That(StormRiseCurve.Formed(StormRiseCurve.Grown(315f, BossAt, 0.75f), 0.3f), Is.InRange(0.3f, 0.7f));
+            Assert.AreEqual(1f, StormRiseCurve.Formed(StormRiseCurve.Grown(330f, BossAt, 0.75f), 0.3f), 1e-6f);
+            Assert.AreEqual(1f, StormRiseCurve.Formed(1f, 0.3f), 1e-6f);
+
+            float previous = 0f;
+            for (float grown = 0f; grown <= 1f; grown += 0.02f)
+            {
+                float formed = StormRiseCurve.Formed(grown, 0.3f);
+                Assert.That(formed, Is.GreaterThanOrEqualTo(previous), "the clouds thinned again at " + grown);
+                previous = formed;
             }
         }
 
         [Test]
-        public void Lateness_HoldsTheWallHighThroughTheFirstMinutes()
+        public void TheWall_GoesFromItsLowest_ToItsTallest()
         {
-            Assert.That(StormRiseCurve.Open(BossAt * 0.5f, BossAt, 1.5f), Is.LessThan(0.5f));
-            Assert.That(StormRiseCurve.Open(BossAt * 0.5f, BossAt, 1f), Is.EqualTo(0.5f).Within(1e-5f));
-        }
-
-        [Test]
-        public void TheWall_GoesFromItsTallest_ToItsLowest()
-        {
-            Assert.AreEqual(2.2f, StormRiseCurve.Rise(0f, 2.2f, 0.6f), 1e-6f);
-            Assert.AreEqual(0.6f, StormRiseCurve.Rise(1f, 2.2f, 0.6f), 1e-6f);
+            Assert.AreEqual(0.6f, StormRiseCurve.Rise(0f, 2.2f, 0.6f), 1e-6f);
+            Assert.AreEqual(2.2f, StormRiseCurve.Rise(1f, 2.2f, 0.6f), 1e-6f);
             Assert.AreEqual(1.4f, StormRiseCurve.Rise(0.5f, 2.2f, 0.6f), 1e-6f);
         }
 
         /// <summary>
         /// The floor under the island is in the same layer as the wall, so
         /// the layer never gets shallower than the scene's, however low the
-        /// wall sinks: open, the layer and the tiling StormRise sets are the
+        /// wall sinks: calm, the layer and the tiling StormRise sets are the
         /// scene's own numbers, to the last digit.
         /// </summary>
         [Test]
-        public void OpenStorm_KeepsTheScenesLayer()
+        public void CalmStorm_KeepsTheScenesLayer()
         {
             VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ProfilePath);
             Assert.IsNotNull(profile, ProfilePath);
             Assert.IsTrue(profile.TryGet(out VolumetricClouds clouds), "the scene has no clouds");
 
             float lowDepth = clouds.altitudeRange.value;
-            float depth = StormRiseCurve.Depth(lowDepth, StormRiseCurve.Rise(1f, 2.2f, 0.6f));
+            float depth = StormRiseCurve.Depth(lowDepth, StormRiseCurve.Rise(0f, 2.2f, 0.6f));
             Assert.AreEqual(lowDepth, depth);
             Assert.AreEqual(1f, StormRiseCurve.Tiling(1f, clouds.bottomAltitude.value, lowDepth, depth));
         }
@@ -121,8 +143,10 @@ namespace SurvivalChaos.Tests
                 Assert.That(scene.Reference(rise, field), Is.Not.Null.And.Not.EqualTo("0"), "StormRise's " + field + " is not assigned");
             }
 
-            Assert.That(scene.Float(rise, "tallest"), Is.InRange(1.5f, 3f), "the wall has to start over the moon");
-            Assert.That(scene.Float(rise, "lowest"), Is.InRange(0.3f, 1f), "the wall ends lower than it starts, and not under the floor");
+            Assert.That(scene.Float(rise, "tallest"), Is.InRange(1.5f, 3f), "the full storm has to stand over the moon");
+            Assert.That(scene.Float(rise, "lowest"), Is.InRange(0.3f, 1f), "the calm wall is lower than the full one, and not under the floor");
+            Assert.AreEqual(0.75f, scene.Float(rise, "startsAt"), 1e-4f, "Ian: the storm starts at 75% of the run");
+            Assert.That(scene.Float(rise, "formsBy"), Is.InRange(0.05f, 0.5f), "the clouds have to be whole well before the boss");
 
             // Left at or above zero by a tuning session, the storm would hold one height for the whole run.
             Assert.That(scene.Float(rise, "holdAt"), Is.LessThan(0f),

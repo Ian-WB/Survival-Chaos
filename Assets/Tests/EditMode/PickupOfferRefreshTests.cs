@@ -200,12 +200,13 @@ namespace SurvivalChaos.Tests
             List<Pickup> first = OfferAt(11, shot, magnet);
             List<Pickup> second = OfferAt(12, shot, magnet);
 
-            Assert.AreEqual("Double Shot", Caption(second[0]));
+            Assert.AreEqual(shot.GetPickupName(1), Caption(second[0]));
 
             spawner.OnCollected(first[0]);
 
             Assert.AreSame(shot, second[0].Skill);
-            Assert.AreEqual("Triple Shot", Caption(second[0]),
+            Assert.AreNotEqual(shot.GetPickupName(1), shot.GetPickupName(2));
+            Assert.AreEqual(shot.GetPickupName(2), Caption(second[0]),
                 "the label still names the stage the player already has");
         }
 
@@ -252,7 +253,8 @@ namespace SurvivalChaos.Tests
         [Test]
         public void AShotPick_ReachesTheStageItsListNames()
         {
-            // The scene's list: Double, then straight to Sextuple.
+            // A list that skips a stage, as the scene's did until 15 November
+            // 2026: two rounds, then straight to the last.
             var serialized = new SerializedObject(player);
             SerializedProperty stages = serialized.FindProperty("shotStageByPick");
             stages.arraySize = 2;
