@@ -541,7 +541,9 @@ namespace SurvivalChaos.EditorTools
             private BossEmitter podsOf;
             private BossWeakPoint[] pods;
             private float bossStarted = -1;
-            private int injuries, healed, dashRequests, slowMoUses;
+            private int injuries, healed, dashRequests, slowMoUses, flipRequests, flipsSeen;
+            // The guns' real direction as last seen, so a press can be told from a turn.
+            private bool facingFlipped;
             private float lastFailureDump = -10;
             private string lastPlan = "No plan yet";
             // For the summary and the run table: what the run was flown as, what
@@ -650,6 +652,7 @@ namespace SurvivalChaos.EditorTools
                 // a kit or a wound-on clock had already touched it.
                 assistedBefore = RunRecords.Assisted;
                 startedAtRunSeconds = RunStats.Seconds;
+                facingFlipped = player.DirectionFlipped;
                 int held = 0;
                 foreach (string skill in RunStats.SkillOrder) held += RunStats.PicksOf(skill);
                 // The graphics tier, because it sets the frame time and the frame
@@ -702,7 +705,7 @@ namespace SurvivalChaos.EditorTools
                 var upgrades = new List<string>();
                 foreach (string skill in RunStats.SkillOrder) upgrades.Add($"{skill}={RunStats.PicksOf(skill)}");
                 Log("END " + end);
-                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={botSeconds:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={hp} bossSeconds={bossSeconds:F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses}"
+                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={botSeconds:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={hp} bossSeconds={bossSeconds:F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses} flipRequests={flipRequests} flipsSeen={flipsSeen}"
                     + $" outcome={outcome} maxHp={maxHealth} rammingDamage={ramming} bossAtRunSeconds={bossAtRunSeconds:F2} frameMs={frameMs:F2} gameStepMs={gameStepMs:F2} speed={speed:0.##} seed={RunRandom.Seed} commit={commit} assistedBefore={assistedBefore}");
                 if (outcome == "lost") Log("KILLED BY " + (RunStats.KilledBy ?? "unknown"));
                 Log("DAMAGE BY CAUSE " + (byCause.Count > 0 ? string.Join("; ", byCause) : "none"));
@@ -838,6 +841,12 @@ namespace SurvivalChaos.EditorTools
                     if (!Mathf.Approximately(RunTime.RequestedSpeed, TestSpeed))
                     { axes = Vector2.zero; EndReason = "Nonstandard time scale; run invalidated"; return; }
                     RecordHealth();
+                    if (player.DirectionFlipped != facingFlipped)
+                    {
+                        facingFlipped = player.DirectionFlipped;
+                        flipsSeen++;
+                        Log(facingFlipped ? "FACING flipped" : "FACING forward");
+                    }
                     frames++;
                     realSeconds += Time.unscaledDeltaTime;
                     gameSeconds += Time.deltaTime;
@@ -1448,7 +1457,7 @@ namespace SurvivalChaos.EditorTools
                     GameObject prefab = Read<GameObject>(player, player.DirectionFlipped ? "shootPrefab" : "shootPrefab1");
                     var shot = prefab.GetComponent<ShootScript>();
                     if (Mathf.Abs(delta) > 1 && shot != null && Mathf.Sign(shot.Speed) != Mathf.Sign(delta))
-                    { flipEdge = true; nextFlip = Time.time + .5f; }
+                    { flipEdge = true; flipRequests++; nextFlip = Time.time + .5f; }
                 }
                 string next = selectedDanger > 0 ? "Evading observed threat"
                     : wrongSide != 0 ? "Going round to the front of " + goal.Value.label
