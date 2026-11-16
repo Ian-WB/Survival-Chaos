@@ -233,13 +233,135 @@ namespace SurvivalChaos
         public const int MinimumDisplayHeadroom = 2;
 
         /// <summary>
-        /// Frame rate caps offered, with 0 meaning uncapped.
+        /// The lowest cap the slider offers.
         ///
         /// A cap below the display's rate is the cheapest way to stop a laptop
-        /// cooking itself on a menu screen, which is why 30 stays on the list even
-        /// though nobody chooses it for play.
+        /// cooking itself on a menu screen, which is why the slider reaches down
+        /// to 30 even though nobody chooses it for play. Below that the game is
+        /// not playable, so there is nothing to offer.
         /// </summary>
-        public static readonly int[] FrameRateCaps = { 0, MatchDisplay, 30, 60, 90, 120, 144, 165, 240 };
+        public const int MinimumFrameCap = 30;
+
+        /// <summary>The highest cap the slider offers. Past it is uncapped.</summary>
+        public const int MaximumFrameCap = 300;
+
+        /// <summary>
+        /// The caps the row offered while it was a cycler, until 16 November
+        /// 2026. Kept so the tests can show that every value an older build
+        /// could have saved still loads as itself.
+        /// </summary>
+        public static readonly int[] FormerFrameRateCaps = { 0, MatchDisplay, 30, 60, 90, 120, 144, 165, 240 };
+
+        /// <summary>
+        /// A stored cap brought into what the game offers: 0 for uncapped,
+        /// <see cref="MatchDisplay"/>, or a whole number from
+        /// <see cref="MinimumFrameCap"/> to <see cref="MaximumFrameCap"/>.
+        ///
+        /// The cap is saved as the frame rate itself and always was, so a value
+        /// from the cycler needs no translating. This only catches a number no
+        /// control could have written, such as a settings file edited by hand.
+        /// </summary>
+        public static int ClampCap(int cap)
+        {
+            if (cap == MatchDisplay)
+            {
+                return MatchDisplay;
+            }
+
+            if (cap <= 0)
+            {
+                return 0;
+            }
+
+            if (cap < MinimumFrameCap)
+            {
+                return MinimumFrameCap;
+            }
+
+            return cap > MaximumFrameCap ? MaximumFrameCap : cap;
+        }
+
+        /// <summary>
+        /// The slider's leftmost position, one below the lowest cap: Just under
+        /// display. It is the cap the game works out for itself, so it sits
+        /// apart from the numbers the player types in by hand.
+        /// </summary>
+        public const int CapSliderFirst = MinimumFrameCap - 1;
+
+        /// <summary>
+        /// The slider's rightmost position, one above the highest cap:
+        /// uncapped, which is where "more than 300" belongs.
+        /// </summary>
+        public const int CapSliderLast = MaximumFrameCap + 1;
+
+        /// <summary>Where a cap sits on the slider. Between the two ends the position is the frame rate.</summary>
+        public static int CapToSlider(int cap)
+        {
+            cap = ClampCap(cap);
+
+            if (cap == MatchDisplay)
+            {
+                return CapSliderFirst;
+            }
+
+            return cap == 0 ? CapSliderLast : cap;
+        }
+
+        /// <summary>The cap a slider position stands for.</summary>
+        public static int SliderToCap(int position)
+        {
+            if (position <= CapSliderFirst)
+            {
+                return MatchDisplay;
+            }
+
+            return position >= CapSliderLast ? 0 : position;
+        }
+
+        /// <summary>
+        /// How far one press of left or right moves the slider: one frame at
+        /// first, then five and ten while the direction is held.
+        ///
+        /// One a press is the point of the slider, and 271 presses is no way to
+        /// cross it, so a held direction speeds up.
+        /// </summary>
+        /// <param name="repeats">Presses in a row in one direction with no pause, not counting the first.</param>
+        public static int CapSliderStep(int repeats)
+        {
+            if (repeats < 5)
+            {
+                return 1;
+            }
+
+            return repeats < 20 ? 5 : 10;
+        }
+
+        /// <summary>
+        /// The slider position one press away. A step of five or ten lands on
+        /// the round numbers, so a held direction passes 60, 120 and 240 rather
+        /// than 61, 121 and 241.
+        /// </summary>
+        public static int NextCapSliderPosition(int position, int direction, int repeats)
+        {
+            int step = CapSliderStep(repeats);
+            int next;
+
+            if (direction > 0)
+            {
+                next = (position / step + 1) * step;
+            }
+            else
+            {
+                next = ((position + step - 1) / step - 1) * step;
+            }
+
+            if (next < CapSliderFirst)
+            {
+                return CapSliderFirst;
+            }
+
+            return next > CapSliderLast ? CapSliderLast : next;
+        }
 
         /// <summary>
         /// The cap to actually apply, resolving <see cref="MatchDisplay"/> against
@@ -362,6 +484,40 @@ namespace SurvivalChaos
             }
 
             return cap <= 0 ? "Uncapped" : cap + " FPS";
+        }
+
+        /// <summary>
+        /// The line under the frame cap: what is holding it, when that is worth
+        /// saying. Empty for an ordinary cap paced by the frame limiter.
+        /// </summary>
+        /// <param name="cap">The cap as stored.</param>
+        /// <param name="resolved">The cap in force (<see cref="ResolveCap"/>).</param>
+        /// <param name="syncInterval">Refreshes per frame when VSync holds the cap, else 0 (<see cref="SyncInterval"/>).</param>
+        public static string DescribeCapHolder(int cap, int resolved, int syncInterval)
+        {
+            // A whole fraction of the refresh rate goes to VSync rather than the
+            // frame limiter, which is worth saying: it is the one cap that paces
+            // on the display's clock.
+            if (syncInterval == 1)
+            {
+                return "Held by VSync on its own";
+            }
+
+            if (syncInterval > 1)
+            {
+                return "Held by VSync, one frame every " + syncInterval + " refreshes";
+            }
+
+            if (cap != MatchDisplay)
+            {
+                return string.Empty;
+            }
+
+            // The derived cap shows the number it resolved to, so it is not a
+            // promise the player has to take on trust.
+            return resolved > 0
+                ? resolved + " FPS: clear of the refresh rate, where pacing gets rough"
+                : "Stays clear of the refresh rate, where pacing gets rough";
         }
 
         // ---------- upscaling ----------

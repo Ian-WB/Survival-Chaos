@@ -13,7 +13,8 @@ namespace SurvivalChaos
     /// from the director as well as writing to it, so the pause menu and the
     /// title screen cannot disagree about where the slider sits.
     ///
-    /// This is the only graphics setting that is a slider rather than a cycler.
+    /// One of the two graphics settings that is a slider rather than a cycler;
+    /// the frame cap is the other.
     /// The rest step because they have performance cliffs - render scale in tens,
     /// because 73% is not a choice anybody means to make. Sharpening costs the
     /// same at every value, so there is no cliff to step around and every position

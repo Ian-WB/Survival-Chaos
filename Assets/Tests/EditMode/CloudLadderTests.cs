@@ -148,7 +148,7 @@ namespace SurvivalChaos.Tests
 
             // 11 was the old on/off clouds row. Rows serialised with any of these
             // by an older build must not come back as something else.
-            foreach (int retired in new[] { 6, 8, 11, 15, 18, 19, 20, 21 })
+            foreach (int retired in new[] { 4, 6, 8, 11, 15, 18, 19, 20, 21 })
             {
                 Assert.IsFalse(Enum.IsDefined(typeof(GraphicsOptionKind), retired), retired.ToString());
             }

@@ -76,7 +76,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.pipeline": {
-      "version": "0.10.0-exp.1",
+      "version": "1.0.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -104,7 +104,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.recorder": {
-      "version": "5.1.7",
+      "version": "5.1.8",
       "depth": 0,
       "source": "registry",
       "dependencies": {

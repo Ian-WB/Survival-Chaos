@@ -99,9 +99,8 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void FrameRateCaps_StartWithUncapped()
+        public void DescribeCap_NamesUncappedAndTheNumbers()
         {
-            Assert.AreEqual(0, DisplayOptions.FrameRateCaps[0]);
             Assert.AreEqual("Uncapped", DisplayOptions.DescribeCap(0));
             Assert.AreEqual("60 FPS", DisplayOptions.DescribeCap(60));
         }

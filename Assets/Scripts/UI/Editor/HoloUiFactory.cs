@@ -476,6 +476,60 @@ namespace SurvivalChaos.EditorTools
         public static Slider CreateSharpnessRow(Transform panel, string label,
             float columnX, float top, Material barMaterial)
         {
+            Slider slider = CreateSliderRow<Slider>(panel, label, columnX, top, barMaterial,
+                "33%  (Low)", out TextMeshProUGUI readout, out TextMeshProUGUI note);
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = 0.33f;
+
+            SharpnessControl control = Undo.AddComponent<SharpnessControl>(slider.gameObject);
+            SerializedObject so = new SerializedObject(control);
+            so.FindProperty("slider").objectReferenceValue = slider;
+            so.FindProperty("readout").objectReferenceValue = readout;
+            so.FindProperty("note").objectReferenceValue = note;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return slider;
+        }
+
+        /// <summary>
+        /// The frame cap slider: any whole number from 30 to 300, with Just
+        /// under display at the left end and Uncapped at the right.
+        ///
+        /// The same bar as the sharpness row, so the two sliders on the screen
+        /// read as one kind of control. A FrameCapSlider rather than a plain
+        /// Slider, so a held direction on the keys or the pad speeds up instead
+        /// of crossing 270 values one at a time.
+        /// </summary>
+        public static Slider CreateFrameCapRow(Transform panel, string label,
+            float columnX, float top, Material barMaterial)
+        {
+            FrameCapSlider slider = CreateSliderRow<FrameCapSlider>(panel, label, columnX, top, barMaterial,
+                "Uncapped", out TextMeshProUGUI readout, out TextMeshProUGUI note);
+            slider.wholeNumbers = true;
+            slider.minValue = DisplayOptions.CapSliderFirst;
+            slider.maxValue = DisplayOptions.CapSliderLast;
+            slider.value = DisplayOptions.CapSliderLast;
+
+            FrameCapControl control = Undo.AddComponent<FrameCapControl>(slider.gameObject);
+            SerializedObject so = new SerializedObject(control);
+            so.FindProperty("slider").objectReferenceValue = slider;
+            so.FindProperty("readout").objectReferenceValue = readout;
+            so.FindProperty("note").objectReferenceValue = note;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return slider;
+        }
+
+        /// <summary>
+        /// A label, a readout, a draggable bar and a note line, laid out to
+        /// occupy one cycler row's worth of height with the bar under the label,
+        /// so it drops into a column without moving anything below it.
+        /// </summary>
+        private static T CreateSliderRow<T>(Transform panel, string label, float columnX, float top,
+            Material barMaterial, string placeholder, out TextMeshProUGUI readout, out TextMeshProUGUI note)
+            where T : Slider
+        {
             Vector2 anchor = new Vector2(0.5f, 1f);
             Vector2 middle = new Vector2(0.5f, 0.5f);
 
@@ -484,38 +538,28 @@ namespace SurvivalChaos.EditorTools
                 21f, TextAlignmentOptions.Left);
             caption.text = label;
 
-            TextMeshProUGUI readout = CreateText(panel, label + " Readout", anchor,
+            readout = CreateText(panel, label + " Readout", anchor,
                 new Vector2(1f, 0.5f), new Vector2(columnX + 340f, top), new Vector2(200f, 30f),
                 18f, TextAlignmentOptions.Right);
-            readout.text = "33%  (Low)";
+            readout.text = placeholder;
 
             Image image = CreateBarImage(panel, label + " Bar", anchor, middle,
                 new Vector2(columnX + 30f, top - 26f), new Vector2(560f, 20f), barMaterial, Accent, 8f);
             image.raycastTarget = true;
 
-            Slider slider = Undo.AddComponent<Slider>(image.gameObject);
+            T slider = Undo.AddComponent<T>(image.gameObject);
             slider.transition = Selectable.Transition.None;
-            slider.minValue = 0f;
-            slider.maxValue = 1f;
-            slider.value = 0.33f;
             slider.handleRect = CreateHandle((RectTransform)image.transform);
             slider.targetGraphic = image;
 
             HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
             ConfigureBar(holo, slider, 0f);
 
-            TextMeshProUGUI note = CreateText(panel, label + " Note", anchor,
+            note = CreateText(panel, label + " Note", anchor,
                 new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top - 44f), new Vector2(560f, 20f),
                 14f, TextAlignmentOptions.Left);
             note.text = string.Empty;
             note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
-
-            SharpnessControl control = Undo.AddComponent<SharpnessControl>(image.gameObject);
-            SerializedObject so = new SerializedObject(control);
-            so.FindProperty("slider").objectReferenceValue = slider;
-            so.FindProperty("readout").objectReferenceValue = readout;
-            so.FindProperty("note").objectReferenceValue = note;
-            so.ApplyModifiedPropertiesWithoutUndo();
 
             return slider;
         }
@@ -581,15 +625,18 @@ namespace SurvivalChaos.EditorTools
             const float top = -170f;
             const float step = 84f;
 
+            // Where the frame cap slider sits in the left column: after VSync.
+            const int FrameCapRow = 3;
+
             (GraphicsOptionKind kind, string label)[] screen =
             {
                 (GraphicsOptionKind.Resolution, "Resolution"),
                 (GraphicsOptionKind.ScreenMode, "Window Mode"),
                 (GraphicsOptionKind.VSync, "VSync"),
-                (GraphicsOptionKind.FrameCap, "Frame Cap"),
-                // Beside the frame cap rather than with the upscalers: both are
-                // about holding a frame rate, and a player looking for one will
-                // be looking for the other.
+                // Then the Frame Cap slider (FrameCapRow), and beside it rather
+                // than with the upscalers Dynamic Resolution: both are about
+                // holding a frame rate, and a player looking for one will be
+                // looking for the other.
                 (GraphicsOptionKind.DynamicResolution, "Dynamic Resolution")
             };
 
@@ -601,10 +648,16 @@ namespace SurvivalChaos.EditorTools
                 (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing")
             };
 
-            for (int i = 0; i < screen.Length; i++)
+            for (int i = 0, slot = 0; i < screen.Length; i++, slot++)
             {
+                if (i == FrameCapRow)
+                {
+                    order.Add(CreateFrameCapRow(panel, "Frame Cap", LeftColumn, top - slot * step, barMaterial));
+                    slot++;
+                }
+
                 order.Add(CreateOptionRow(panel, screen[i].kind, screen[i].label,
-                    LeftColumn, top - i * step, panelMaterial));
+                    LeftColumn, top - slot * step, panelMaterial));
             }
 
             for (int i = 0; i < reconstruction.Length; i++)

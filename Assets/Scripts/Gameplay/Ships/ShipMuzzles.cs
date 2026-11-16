@@ -29,10 +29,10 @@ namespace SurvivalChaos
         /// <summary>How long a round takes to reach its place in the pattern.</summary>
         public const float FanSeconds = 0.09f;
 
-        public const float HeatSize = 0.05f;
-        public const float HeatBrightness = 2.5f;
-        public const float FlashSize = 0.12f;
-        public const float FlashBrightness = 4f;
+        public const float HeatSize = 0.14f;
+        public const float HeatBrightness = 5f;
+        public const float FlashSize = 0.2f;
+        public const float FlashBrightness = 6f;
 
         private const int Nose = 0;
         private const int Under = 1;

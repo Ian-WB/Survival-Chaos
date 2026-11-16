@@ -18,7 +18,6 @@ namespace SurvivalChaos
         Resolution = 1,
         ScreenMode = 2,
         VSync = 3,
-        FrameCap = 4,
         RenderScale = 5,
         Reflections = 7,
         VolumetricFog = 9,
@@ -42,6 +41,10 @@ namespace SurvivalChaos
         // 15 was Sharpness, before it became a slider rather than a cycler. The
         // number stays retired rather than reused: a row serialised as 15 by an
         // older build would otherwise silently become whatever took its place.
+        //
+        // 4 was Frame Cap, a cycler over nine fixed rates until 16 November
+        // 2026. It is a slider now (FrameCapControl), any whole number from 30
+        // to 300, and 4 is retired for the same reason.
         //
         // 6 was Lighting, a two-way Baked/Ray traced switch whose only job was
         // toggling global illumination. GlobalIllumination replaced it with a
@@ -73,7 +76,7 @@ namespace SurvivalChaos
     /// <summary>
     /// One row of the graphics screen: a label, a value, and a step either way.
     ///
-    /// Every setting is a cycler, including the on/off ones. A toggle and a
+    /// Every setting here is a cycler, including the on/off ones. A toggle and a
     /// two-item cycler do the same job, and having one control type means one
     /// place to fix, one visual language, and no argument about which settings
     /// deserve which widget. It also suits settings with performance cliffs —
@@ -443,7 +446,6 @@ namespace SurvivalChaos
 
                 case GraphicsOptionKind.Resolution: return director.Sizes.Count;
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
-                case GraphicsOptionKind.FrameCap: return DisplayOptions.FrameRateCaps.Length;
                 case GraphicsOptionKind.RenderScale: return RenderScales.Length;
                 case GraphicsOptionKind.DynamicResolution: return DisplayOptions.DynamicTargets.Length;
                 case GraphicsOptionKind.UpscaleMethod: return Methods(director).Count;
@@ -468,7 +470,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Resolution: return Mathf.Max(0, director.SizeIndex);
                 case GraphicsOptionKind.ScreenMode: return IndexOfMode(director.ScreenMode);
                 case GraphicsOptionKind.VSync: return director.VSync ? 1 : 0;
-                case GraphicsOptionKind.FrameCap: return IndexOfCap(director.FrameCap);
                 case GraphicsOptionKind.RenderScale: return IndexOfScale(director.RenderScale);
                 case GraphicsOptionKind.DynamicResolution: return IndexOfDynamic(director.DynamicTarget);
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
@@ -492,7 +493,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Resolution: director.SizeIndex = index; break;
                 case GraphicsOptionKind.ScreenMode: director.ScreenMode = ScreenModes[index]; break;
                 case GraphicsOptionKind.VSync: director.VSync = index == 1; break;
-                case GraphicsOptionKind.FrameCap: director.FrameCap = DisplayOptions.FrameRateCaps[index]; break;
                 case GraphicsOptionKind.RenderScale: director.RenderScale = RenderScales[index]; break;
                 case GraphicsOptionKind.DynamicResolution: director.DynamicTarget = DisplayOptions.DynamicTargets[index]; break;
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
@@ -526,13 +526,6 @@ namespace SurvivalChaos
 
                 case GraphicsOptionKind.VSync:
                     return director.VSync ? "On" : "Off";
-
-                case GraphicsOptionKind.FrameCap:
-                    // The derived cap shows the number it resolved to, so it is
-                    // not a promise the player has to take on trust.
-                    return director.FrameCap == DisplayOptions.MatchDisplay && director.ResolvedFrameCap > 0
-                        ? director.ResolvedFrameCap + " FPS"
-                        : DisplayOptions.DescribeCap(director.FrameCap);
 
                 case GraphicsOptionKind.RenderScale:
                     // Shows what the game is actually rendering at, which an
@@ -617,18 +610,6 @@ namespace SurvivalChaos
                 // rather than how sharp it is, so it says what went.
                 case GraphicsOptionKind.Shadows when director.Shadows == EffectQuality.Off:
                     return "The sun, the lava, the clouds and the rounds cast no shadows";
-
-                // A whole fraction of the refresh rate goes to VSync rather than
-                // the frame limiter (DisplayOptions.SyncInterval), which is worth
-                // saying: it is the one cap that paces on the display's clock.
-                case GraphicsOptionKind.FrameCap when director.CapSyncInterval == 1:
-                    return "Held by VSync on its own";
-
-                case GraphicsOptionKind.FrameCap when director.CapSyncInterval > 1:
-                    return "Held by VSync, one frame every " + director.CapSyncInterval + " refreshes";
-
-                case GraphicsOptionKind.FrameCap when director.FrameCap == DisplayOptions.MatchDisplay:
-                    return "Stays clear of the refresh rate, where pacing gets rough";
 
                 // Sitting exactly on the display's rate is the one cap that paces
                 // badly, so the row says so rather than leaving it to be found.
@@ -724,19 +705,6 @@ namespace SurvivalChaos
             }
 
             return 1;
-        }
-
-        private static int IndexOfCap(int cap)
-        {
-            for (int i = 0; i < DisplayOptions.FrameRateCaps.Length; i++)
-            {
-                if (DisplayOptions.FrameRateCaps[i] == cap)
-                {
-                    return i;
-                }
-            }
-
-            return 0;
         }
 
         private static int IndexOfDynamic(int target)

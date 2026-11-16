@@ -445,10 +445,15 @@ namespace SurvivalChaos
             set => SetInt("VSync", value ? 1 : 0);
         }
 
+        /// <summary>
+        /// The frame cap as stored: 0 for uncapped, DisplayOptions.MatchDisplay,
+        /// or a frame rate from 30 to 300. Clamped both ways, so a number from a
+        /// hand-edited settings file cannot reach the limiter.
+        /// </summary>
         public int FrameCap
         {
-            get => GetInt("FrameCap", 0);
-            set => SetInt("FrameCap", value);
+            get => DisplayOptions.ClampCap(GetInt("FrameCap", 0));
+            set => SetInt("FrameCap", DisplayOptions.ClampCap(value));
         }
 
         /// <summary>The display's refresh rate, or 0 when it reports nothing usable.</summary>

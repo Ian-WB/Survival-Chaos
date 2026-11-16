@@ -23,6 +23,19 @@ namespace SurvivalChaos
         /// <summary>How quickly the measured velocity follows, so one odd frame does not kink the streak.</summary>
         private const float Response = 12f;
 
+        /// <summary>Half the hull's length and height in the model's space, guns and rocket included.</summary>
+        public const float HullHalfLength = 0.25f;
+        public const float HullHalfHeight = 0.12f;
+
+        /// <summary>
+        /// How much of its brightness the streak keeps flying tail-first.
+        /// The retro flares on the nose already say the ship is backing up,
+        /// and a full streak off the nose read as a beam being fired.
+        /// </summary>
+        public const float TailFirstBrightness = 0.45f;
+
+        private Vector3 anchor;
+
         private Transform body;
         private Renderer streak;
         private MaterialPropertyBlock block;
@@ -56,6 +69,7 @@ namespace SurvivalChaos
 
             ShipTrail trail = streak.gameObject.AddComponent<ShipTrail>();
             trail.body = body;
+            trail.anchor = anchor;
             trail.streak = streak;
             trail.block = new MaterialPropertyBlock();
             trail.lengthPerSpeed = lengthPerSpeed;
@@ -75,6 +89,27 @@ namespace SurvivalChaos
         }
 
         /// <summary>A reused ship does not draw a streak back to where it last died.</summary>
+        /// <summary>
+        /// Where the streak starts, from the hull's middle: the edge of the
+        /// hull on the side the ship is coming from. It started at the middle
+        /// until 16 November 2026, so a ship flying tail-first wore it
+        /// through its canopy and out between its guns.
+        /// </summary>
+        public static Vector2 Edge(Vector2 behind, float halfLength, float halfHeight)
+        {
+            float x = behind.x / Mathf.Max(0.0001f, halfLength);
+            float y = behind.y / Mathf.Max(0.0001f, halfHeight);
+            float reach = Mathf.Sqrt(x * x + y * y);
+
+            return reach < 0.0001f ? Vector2.zero : behind / reach;
+        }
+
+        /// <summary>The share of its brightness a streak keeps, by how far it points out of the nose (0 to 1).</summary>
+        public static float Dim(float towardNose)
+        {
+            return Mathf.Lerp(1f, TailFirstBrightness, Mathf.Clamp01(towardNose));
+        }
+
         private void OnEnable()
         {
             hasLast = false;
@@ -120,8 +155,22 @@ namespace SurvivalChaos
             // the ship came from.
             transform.rotation = Quaternion.FromToRotation(Vector3.right, -velocity / speed);
 
-            // A ship still growing in draws a streak its own size.
             Transform host = transform.parent;
+
+            // From the hull's trailing edge, in the model's own space, where
+            // the nose is +X.
+            float towardNose = 0f;
+
+            if (host != null)
+            {
+                Vector3 behind = host.InverseTransformDirection(-velocity / speed);
+                Vector2 edge = Edge(new Vector2(behind.x, behind.y), HullHalfLength, HullHalfHeight);
+
+                transform.localPosition = anchor + new Vector3(edge.x, edge.y, 0f);
+                towardNose = behind.x;
+            }
+
+            // A ship still growing in draws a streak its own size.
             float hostScale = host != null ? Mathf.Max(0.0001f, Mathf.Abs(host.lossyScale.x)) : 1f;
             float grown = Mathf.Abs(body.lossyScale.x) / restScale;
             float toLocal = grown / hostScale;
@@ -129,7 +178,7 @@ namespace SurvivalChaos
             ShipFlare.Set(
                 streak, block,
                 new Vector3(length * toLocal, width * toLocal, width * toLocal),
-                brightness * Mathf.Clamp01(length / Mathf.Max(0.0001f, maxLength) + 0.35f));
+                brightness * Dim(towardNose) * Mathf.Clamp01(length / Mathf.Max(0.0001f, maxLength) + 0.35f));
         }
     }
 }
