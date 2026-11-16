@@ -32,25 +32,15 @@ namespace SurvivalChaos.Tests
         }
 
         [Test]
-        public void TheTrail_StartsAtTheHullsEdge_NotItsMiddle()
+        public void AShipThatCanBackUp_DrawsItsTrailOnlyForTheSpeedAlongItsNose()
         {
-            Vector2 aft = ShipTrail.Edge(new Vector2(-1f, 0f), 0.25f, 0.12f);
-            Vector2 fore = ShipTrail.Edge(new Vector2(1f, 0f), 0.25f, 0.12f);
-            Vector2 below = ShipTrail.Edge(new Vector2(0f, -1f), 0.25f, 0.12f);
+            Vector3 nose = Vector3.right;
 
-            Assert.AreEqual(-0.25f, aft.x, 0.0001f);
-            Assert.AreEqual(0.25f, fore.x, 0.0001f);
-            Assert.AreEqual(-0.12f, below.y, 0.0001f);
-            Assert.AreEqual(Vector2.zero, ShipTrail.Edge(Vector2.zero, 0.25f, 0.12f));
-        }
-
-        [Test]
-        public void TheTrail_IsDimmerOffTheNose()
-        {
-            Assert.AreEqual(1f, ShipTrail.Dim(-1f), 0.0001f);
-            Assert.AreEqual(1f, ShipTrail.Dim(0f), 0.0001f);
-            Assert.AreEqual(ShipTrail.TailFirstBrightness, ShipTrail.Dim(1f), 0.0001f);
-            Assert.Less(ShipTrail.TailFirstBrightness, 0.6f);
+            Assert.AreEqual(6f, ShipTrail.Speed(new Vector3(6f, 0f, 0f), nose), 0.0001f, "nose-first");
+            Assert.AreEqual(6f, ShipTrail.Speed(new Vector3(6f, 8f, 0f), nose), 0.0001f, "climbing as well");
+            Assert.AreEqual(0f, ShipTrail.Speed(new Vector3(0f, 8f, 0f), nose), 0.0001f, "only climbing");
+            Assert.AreEqual(0f, ShipTrail.Speed(new Vector3(-6f, 0f, 0f), nose), 0.0001f, "tail-first");
+            Assert.AreEqual(10f, ShipTrail.Speed(new Vector3(6f, 8f, 0f), Vector3.zero), 0.0001f, "a ship that turns to fly");
         }
     }
 }

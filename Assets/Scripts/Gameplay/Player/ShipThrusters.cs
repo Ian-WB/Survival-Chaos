@@ -174,9 +174,6 @@ namespace SurvivalChaos
         private float trailMaxLength = 1.4f;
 
         [SerializeField]
-        private float trailWidth = 0.035f;
-
-        [SerializeField]
         [Tooltip("Emission multiplier at full length. Dim on purpose: the plume is the engine, " +
                  "this is only the speed.")]
         private float trailBrightness = 1.6f;
@@ -272,14 +269,16 @@ namespace SurvivalChaos
             muzzleFlare = BuildFlare("Muzzle Flash", glowMesh, muzzleOffset, Quaternion.identity);
             muzzleFlare.enabled = false;
 
-            // From the middle of the hull and not the engine: the ship can
-            // fly tail-first, and the streak lies along the way it came.
+            // From the engine, as the enemies' is, and half the flame's
+            // width: the streak is that flame drawn out by speed. Flying
+            // tail-first there is none (see ShipTrail.Speed).
             if (player != null && trailLengthPerSpeed > 0f)
             {
                 ShipTrail.Build(
-                    transform, player.transform, plumeMesh, flareMaterial,
-                    new Vector3(0f, mainOffset.y, 0f),
-                    trailLengthPerSpeed, trailMaxLength, trailWidth, trailBrightness, trailMinSpeed);
+                    transform, player.transform, plumeMesh, flareMaterial, mainOffset,
+                    trailLengthPerSpeed, trailMaxLength,
+                    mainWidth * Mathf.Abs(transform.lossyScale.y) * 0.5f,
+                    trailBrightness, trailMinSpeed, Vector3.right);
             }
 
             block = new MaterialPropertyBlock();
