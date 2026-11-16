@@ -509,6 +509,21 @@ namespace SurvivalChaos.EditorTools
             // The aim diagnostic's probe: about a player round's half size (its box is
             // 0.21 by 0.11, scaled 0.54), stepped along the ring well inside a hull.
             private const float RoundRadius = .05f, AimProbeStep = .2f;
+            // An arrival is whatever will reach the ship soonest, if anything will
+            // inside ArrivalWindow seconds. On 15 Nov, with the guns kept on the
+            // target, 88 of the 136 rams that came along the ring came from the
+            // side the guns faced away from.
+            // ArrivalHeight is how far off the ship's height something may still
+            // be at contact and count, past its own half height.
+            private const float ArrivalWindow = 2f, ArrivalHeight = .5f;
+            // An arrival the guns can finish this long before it gets here is met
+            // rather than fled: the pilot holds level with it, guns on it, and its
+            // collision stops counting from the volley that kills it. Covers the
+            // observation's age being misjudged and the round's own flight.
+            private const float KillMargin = .25f;
+            // Read off the base class: Read looks on the object's own type, and an
+            // enemy's health is private to EnemyBase.
+            private static readonly FieldInfo EnemyHealth = typeof(EnemyBase).GetField("health", BindingFlags.Instance | BindingFlags.NonPublic);
             private readonly float delay;
             private readonly IGameInput previous;
             private readonly Player player;
@@ -542,6 +557,10 @@ namespace SurvivalChaos.EditorTools
             private BossWeakPoint[] pods;
             private float bossStarted = -1;
             private int injuries, healed, dashRequests, slowMoUses, flipRequests, flipsSeen;
+            // Hits taken, and how many of them came with the dash ready and unused.
+            private int hits, hitsDashReady;
+            // Decisions spent meeting an arrival the guns could kill first.
+            private int meetDecisions;
             // The guns' real direction as last seen, so a press can be told from a turn.
             private bool facingFlipped;
             private float lastFailureDump = -10;
@@ -587,6 +606,8 @@ namespace SurvivalChaos.EditorTools
                 public float fireDirection;
                 // The boss's hull, which is armoured while any emplacement stands.
                 public bool hull;
+                // An enemy's health as it stands, for whether the guns can finish it.
+                public int health;
                 // For an emplacement: which side of the hull it sticks out of, +1 or
                 // -1 in this pilot's angle convention. The hull swallows rounds, so
                 // an emplacement can only be shot from that side.
@@ -705,7 +726,7 @@ namespace SurvivalChaos.EditorTools
                 var upgrades = new List<string>();
                 foreach (string skill in RunStats.SkillOrder) upgrades.Add($"{skill}={RunStats.PicksOf(skill)}");
                 Log("END " + end);
-                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={botSeconds:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={hp} bossSeconds={bossSeconds:F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses} flipRequests={flipRequests} flipsSeen={flipsSeen}"
+                Log($"SUMMARY runSeconds={RunStats.Seconds:F2} botSeconds={botSeconds:F2} kills={RunStats.EnemiesDestroyed} level={RunStats.LevelReached} hp={hp} bossSeconds={bossSeconds:F2} phase={bossPhase} damageObserved={injuries} healingObserved={healed} dashRequests={dashRequests} slowMoUses={slowMoUses} flipRequests={flipRequests} flipsSeen={flipsSeen} hits={hits} hitsDashReady={hitsDashReady} meetDecisions={meetDecisions}"
                     + $" outcome={outcome} maxHp={maxHealth} rammingDamage={ramming} bossAtRunSeconds={bossAtRunSeconds:F2} frameMs={frameMs:F2} gameStepMs={gameStepMs:F2} speed={speed:0.##} seed={RunRandom.Seed} commit={commit} assistedBefore={assistedBefore}");
                 if (outcome == "lost") Log("KILLED BY " + (RunStats.KilledBy ?? "unknown"));
                 Log("DAMAGE BY CAUSE " + (byCause.Count > 0 ? string.Join("; ", byCause) : "none"));
@@ -776,10 +797,14 @@ namespace SurvivalChaos.EditorTools
             {
                 if (player == null || health == player.CurrentHealth) return;
                 int current = player.CurrentHealth;
-                Log($"HP {health}->{current}; cause={(current < health ? player.LastHitBy ?? "unknown" : "healing")}; at={player.transform.position}; input={axes}; dashActive={(dash != null && dash.Invincible)}");
+                float dashReady = dash != null ? dash.ReadyFraction : 0f;
+                Log($"HP {health}->{current}; cause={(current < health ? player.LastHitBy ?? "unknown" : "healing")}; at={player.transform.position}; input={axes}; dashActive={(dash != null && dash.Invincible)}"
+                    + $"; dashReady={dashReady:F2}; slowMoReady={(slowMo != null && slowMo.Ready)}");
                 if (current < health)
                 {
                     injuries += health - current;
+                    hits++;
+                    if (dash != null && dashReady >= 1f && !dash.Invincible) hitsDashReady++;
                     string cause = player.LastHitBy ?? "unknown";
                     if (!damageByCause.TryGetValue(cause, out int soFar)) causes.Add(cause);
                     damageByCause[cause] = soFar + health - current;
@@ -1106,6 +1131,7 @@ namespace SurvivalChaos.EditorTools
                 var track = new Track { position = p, angle = angle, height = p.y, radius = radius, time = s.time, generation = generation };
                 if (obj is EnemyBase && obj.GetComponent<BossEmitter>() == null)
                 {
+                    item.health = (EnemyHealth?.GetValue(obj) as HealthState)?.Current ?? 1;
                     // What a practised player knows about each kind by sight: which
                     // ones come after your height, and how hard. Read from the enemy's
                     // own settings, like the other identity labels this pilot uses.
@@ -1273,6 +1299,30 @@ namespace SurvivalChaos.EditorTools
                 return heights;
             }
             /// <summary>
+            /// Seconds until something <paramref name="gap"/> degrees round the ring from
+            /// the ship (its angle minus the ship's) reaches it, with it and the ship
+            /// turning at <paramref name="itemRate"/> and <paramref name="shipRate"/> degrees
+            /// a second; infinity while the gap is opening or holding.
+            /// </summary>
+            private static float ContactTime(float gap, float itemRate, float shipRate)
+            {
+                if (Mathf.Abs(gap) < 1e-4f) return 0f;
+                float closing = (shipRate - itemRate) * Mathf.Sign(gap);
+                return closing > 1e-4f ? Mathf.Abs(gap) / closing : float.PositiveInfinity;
+            }
+            /// <summary>
+            /// Seconds from now until the gun has fired <paramref name="volleys"/> volleys
+            /// it can aim, counting only those at or after <paramref name="from"/>, with the
+            /// next due in <paramref name="nextVolley"/> and one every <paramref name="interval"/>.
+            /// </summary>
+            private static float KillTime(float from, float nextVolley, float interval, int volleys)
+            {
+                if (interval <= 0f) return float.PositiveInfinity;
+                float first = nextVolley;
+                if (first < from) first += Mathf.Ceil((from - first) / interval - 1e-4f) * interval;
+                return first + (Mathf.Max(1, volleys) - 1) * interval;
+            }
+            /// <summary>
             /// Whether <paramref name="pointAngle"/>, at <paramref name="pointHeight"/>, sits in
             /// the stretch of ring a gun at <paramref name="gunAngle"/> fires down before
             /// its rounds can be seen and answered.
@@ -1300,7 +1350,7 @@ namespace SurvivalChaos.EditorTools
                     ? CaughtUp(item.position.y, known.playerPosition.y, player.transform.position.y, item.homeRate, age)
                     : item.position.y;
             }
-            private float RouteDanger(Vector3[] route, float age, float invincibleFor, out float landing)
+            private float RouteDanger(Vector3[] route, float age, float invincibleFor, Object spared, float sparedFrom, out float landing)
             {
                 float danger=0; landing=0;
                 // Each height chaser's heights along this route. The chase runs through
@@ -1331,6 +1381,7 @@ namespace SurvivalChaos.EditorTools
                             if(chased[j]!=null) gun.y=chased[j][i];
                             cost=InLineOfFire(Angle(gun),gun.y,item.fireDirection,Angle(route[i]),route[i].y) ? LineOfFireCost : 0;
                         }
+                        else if(spared!=null && t>=sparedFrom && ReferenceEquals(item.source,spared)) continue;
                         else
                         {
                             // A world-space box is still approximate, but a tall hull no longer
@@ -1357,8 +1408,49 @@ namespace SurvivalChaos.EditorTools
                 if (known == null || !band.TryGetBand(out float floor, out float ceiling)) return;
                 Vector3 origin = player.transform.position;
                 float age = Time.time - known.time;
-                Item? goal = null;
+                float orbit = Read<float>(movement, "orbitSpeed"), climb = Read<float>(movement, "climbSpeed");
+                var multiplier = typeof(PlayerMovement).GetField("speedMultiplier", BindingFlags.Static | BindingFlags.NonPublic);
+                if (multiplier == null) throw new InvalidOperationException("Movement multiplier unavailable");
+                orbit *= (float)multiplier.GetValue(null); climb *= (float)multiplier.GetValue(null);
+                // What will reach the ship soonest along the ring at its height, the
+                // chase it is seen making included, and whether the guns can finish it
+                // first. On 15 Nov a Scout, one round's worth, did 209 of 325 rams: it
+                // follows the ship's height and outruns it round the ring, so fleeing
+                // one only spends the time the guns needed. Enemies due inside the
+                // window that the guns cannot finish first are not lined up with.
+                float shipAngle = Angle(origin);
+                float shipRate = -axes.x * orbit / ArenaGeometry.LaneRadius * Mathf.Rad2Deg;
+                float interval = Read<float>(player, "spawnDelay");
+                float nextVolley = Read<float>(player, "lastVolleyAt") + interval - Time.time;
+                if (interval > 0f && nextVolley < 0f) nextVolley += Mathf.Ceil(-nextVolley / interval) * interval;
+                var forwardShot = Read<GameObject>(player, player.DirectionFlipped ? "shootPrefab" : "shootPrefab1").GetComponent<ShootScript>();
+                float gunsSide = forwardShot != null ? Mathf.Sign(forwardShot.Speed) : 0f;
+                Item? arrival = null;
+                float arrivalIn = ArrivalWindow, arrivalAngle = float.NaN, killAt = float.PositiveInfinity;
+                var unkillable = new HashSet<Object>();
+                foreach (var item in known.items)
+                {
+                    if (item.kind != Kind.Target || item.hull || item.side != 0) continue;
+                    Vector3 now = Predict(item, age);
+                    float gap = Mathf.DeltaAngle(shipAngle, Angle(now));
+                    if (Mathf.Abs(gap) <= 1) continue;
+                    float contact = ContactTime(gap, item.angleRate, shipRate);
+                    if (contact >= ArrivalWindow) continue;
+                    float height = item.homeRate > 0 ? HomedHeight(ChaserHeightNow(item, age), origin.y, item.homeRate, contact) : now.y;
+                    if (Mathf.Abs(height - origin.y) > item.extents.y + ArrivalHeight) continue;
+                    // The guns turn at once if the flip is free, else when it comes round.
+                    float gunsFrom = Mathf.Sign(gap) == gunsSide ? 0f : Mathf.Max(0f, nextFlip - Time.time);
+                    float kill = KillTime(gunsFrom, nextVolley, interval, item.health);
+                    bool killable = kill <= contact - KillMargin;
+                    if (!killable && item.source != null) unkillable.Add(item.source);
+                    if (contact < arrivalIn) { arrivalIn = contact; arrival = item; arrivalAngle = Angle(now); killAt = killable ? kill : float.PositiveInfinity; }
+                }
+                bool meeting = arrival.HasValue && !float.IsPositiveInfinity(killAt);
+                Object spared = meeting ? arrival.Value.source : null;
+                float sparedFrom = meeting ? killAt : float.PositiveInfinity;
+                Item? goal = meeting ? arrival : null;
                 float bestGoal = float.NegativeInfinity;
+                if (meeting) meetDecisions++;
                 // The hull takes no damage while an emplacement stands, and the orange
                 // emplacements say so plainly: while one is in sight, the hull is not a
                 // target. It was, and with the remaining emplacements a few units off
@@ -1368,16 +1460,14 @@ namespace SurvivalChaos.EditorTools
                 foreach (var item in known.items) if (item.kind == Kind.Target && item.side != 0) emplacementInSight = true;
                 foreach (var item in known.items)
                 {
+                    if (meeting) break;
                     if (item.kind != Kind.Target && item.kind != Kind.Pickup) continue;
                     if (item.hull && emplacementInSight) continue;
+                    if (item.kind == Kind.Target && item.source != null && unkillable.Contains(item.source)) continue;
                     float distance = Mathf.Abs(Mathf.DeltaAngle(Angle(origin), Angle(item.position))) * Mathf.Deg2Rad * ArenaGeometry.LaneRadius + Mathf.Abs(item.position.y - origin.y);
                     float score = item.priority * 3 - distance + (item.source != null && ReferenceEquals(item.source, goalSource) ? GoalStickiness : 0);
                     if (score > bestGoal) { bestGoal = score; goal = item; }
                 }
-                float orbit = Read<float>(movement, "orbitSpeed"), climb = Read<float>(movement, "climbSpeed");
-                var multiplier = typeof(PlayerMovement).GetField("speedMultiplier", BindingFlags.Static | BindingFlags.NonPublic);
-                if (multiplier == null) throw new InvalidOperationException("Movement multiplier unavailable");
-                orbit *= (float)multiplier.GetValue(null); climb *= (float)multiplier.GetValue(null);
                 Vector2 best = desired;
                 float bestScore = float.PositiveInfinity, selectedDanger = 0, selectedLanding=0;
                 float bestWalkDanger=float.PositiveInfinity;
@@ -1418,7 +1508,7 @@ namespace SurvivalChaos.EditorTools
                     float burst=useDash ? duration : remaining;
                     Vector3[] route=PredictRoute(origin,centre.position,axes,candidate,orbit,climb,ArenaGeometry.LaneRadius,floor,ceiling,heading,burst,boost,climbBoost);
                     Vector3 end=route[route.Length-1];
-                    float danger=RouteDanger(route,age,burst,out float landing);
+                    float danger=RouteDanger(route,age,burst,spared,sparedFrom,out float landing);
                     if(!useDash) bestWalkDanger=Mathf.Min(bestWalkDanger,danger);
                     float score = danger*10 + landing*20 + (candidate - desired).sqrMagnitude * .15f + (useDash ? 4 : 0);
                     if (wrongSide!=0)
@@ -1448,21 +1538,34 @@ namespace SurvivalChaos.EditorTools
                 // the dash is not there to take - the moment a person would.
                 slowEdge = !selectedDash && bestWalkDanger >= 1 && slowMo != null && slowMo.Ready;
                 if (slowEdge) { slowMoUses++; Log($"SLOWMO bestWalkDanger={bestWalkDanger:F2} dashReady={(dash != null && dash.ReadyFraction >= 1)}"); }
-                lastPlan=$"age={age:F3} input={desired} dash={dashEdge} bestWalkDanger={bestWalkDanger:F2} chosenDanger={selectedDanger:F2} landingRisk={selectedLanding:F2} predictedEnd={selectedEnd}";
+                lastPlan=$"age={age:F3} input={desired} dash={dashEdge} bestWalkDanger={bestWalkDanger:F2} chosenDanger={selectedDanger:F2} landingRisk={selectedLanding:F2} predictedEnd={selectedEnd} meeting={(meeting ? arrival.Value.label + " kill=" + killAt.ToString("F2") + "s contact=" + arrivalIn.ToString("F2") + "s" : "none")}";
                 recentDecisions.Enqueue($"{Time.time-started:F3} {lastPlan}");
                 while(recentDecisions.Count>15) recentDecisions.Dequeue();
-                if (goal.HasValue && goal.Value.kind == Kind.Target && Time.time >= nextFlip)
+                // The guns face one way along the ring, so they cover what will get
+                // here first: an enemy that will be at the ship's height when it
+                // arrives, the chase it is seen making included. With nothing due,
+                // they stay on the target being worked on.
+                string aimNote = "";
+                if (Time.time >= nextFlip)
                 {
-                    float delta = Mathf.DeltaAngle(Angle(origin), Angle(goal.Value.position));
-                    GameObject prefab = Read<GameObject>(player, player.DirectionFlipped ? "shootPrefab" : "shootPrefab1");
-                    var shot = prefab.GetComponent<ShootScript>();
-                    if (Mathf.Abs(delta) > 1 && shot != null && Mathf.Sign(shot.Speed) != Mathf.Sign(delta))
-                    { flipEdge = true; flipRequests++; nextFlip = Time.time + .5f; }
+                    // Only an arrival being met takes the guns. Turned to every arrival,
+                    // they swung between it and the target being lined up with: on 15
+                    // Nov half of all facings lasted under a second and kills fell.
+                    float aimAngle = meeting ? arrivalAngle : float.NaN;
+                    if (meeting) aimNote = $"; guns={arrival.Value.label} contact={arrivalIn:F2}s";
+                    if (float.IsNaN(aimAngle) && goal.HasValue && goal.Value.kind == Kind.Target) aimAngle = Angle(goal.Value.position);
+                    if (!float.IsNaN(aimAngle))
+                    {
+                        float delta = Mathf.DeltaAngle(shipAngle, aimAngle);
+                        if (Mathf.Abs(delta) > 1 && gunsSide != 0 && gunsSide != Mathf.Sign(delta))
+                        { flipEdge = true; flipRequests++; nextFlip = Time.time + .5f; }
+                    }
                 }
-                string next = selectedDanger > 0 ? "Evading observed threat"
+                string next = meeting ? "Meeting " + arrival.Value.label
+                    : selectedDanger > 0 ? "Evading observed threat"
                     : wrongSide != 0 ? "Going round to the front of " + goal.Value.label
                     : goal.HasValue ? (goal.Value.kind == Kind.Pickup ? "Collecting " : "Aligning with ") + goal.Value.label : "Searching";
-                if (next != reason || desired != lastLoggedInput || dashEdge || flipEdge) Log($"{next}; input={desired}; dash={dashEdge}; flip={flipEdge}");
+                if (next != reason || desired != lastLoggedInput || dashEdge || flipEdge) Log($"{next}; input={desired}; dash={dashEdge}; flip={flipEdge}" + (flipEdge ? aimNote : ""));
                 if (goal.HasValue && goal.Value.side != 0 && Time.time >= nextAim) { nextAim = Time.time + 1f; LogAim(goal.Value, origin); }
                 lastLoggedInput = desired;
                 reason = next;

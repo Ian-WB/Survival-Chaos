@@ -111,9 +111,10 @@ namespace SurvivalChaos.Tests
             StringAssert.Contains("Press E or Y", slowMo.GetDisplayName(1));
         }
 
-        [TestCase("Assets/Data/Enemies/Fighter.asset", 4)]
-        [TestCase("Assets/Data/Enemies/Heavy.asset", 20)]
-        public void TheShootingShips_HaveDoubleTheirTenthOfNovemberHealth(string path, int health)
+        // Doubled to 4 and 20 on 15 November, and put back the same night.
+        [TestCase("Assets/Data/Enemies/Fighter.asset", 2)]
+        [TestCase("Assets/Data/Enemies/Heavy.asset", 10)]
+        public void TheShootingShips_KeepTheirTenthOfNovemberHealth(string path, int health)
         {
             var definition = AssetDatabase.LoadAssetAtPath<EnemyDefinition>(path);
             Assert.IsNotNull(definition, path);

@@ -50,6 +50,18 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// How wild the storm is once its clouds are there: 0 until they are
+        /// whole, <paramref name="formsBy"/> of the way through the growth,
+        /// then evenly up to 1 as the storm is full. The storm's lightning
+        /// comes faster by it (StormLightning).
+        /// </summary>
+        public static float Fury(float grown, float formsBy)
+        {
+            float whole = Mathf.Clamp(formsBy, 0f, 0.99f);
+            return Mathf.Clamp01((Mathf.Clamp01(grown) - whole) / (1f - whole));
+        }
+
+        /// <summary>
         /// How many times its painted height the wall stands:
         /// <paramref name="lowest"/> calm, <paramref name="tallest"/> full.
         /// </summary>

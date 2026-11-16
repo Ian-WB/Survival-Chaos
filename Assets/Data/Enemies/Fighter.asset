@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Fighter
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.EnemyDefinition
   displayName: Fighter
-  maxHealth: 4
+  maxHealth: 2
   experienceReward: 15
   deathSound: {fileID: 0}

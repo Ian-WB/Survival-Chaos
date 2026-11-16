@@ -45889,6 +45889,14 @@ MonoBehaviour:
   tracer: {fileID: 7200000, guid: fa0083b168e09d94da2c95f39c82ae76, type: 3}
   ash: {fileID: 1708216014}
   gap: {x: 6, y: 14}
+  gapAtFull: {x: 2, y: 5}
+  flickerGap: {x: 4, y: 9}
+  flickerGapAtFull: {x: 1, y: 3}
+  flickerDepth: {x: 40, y: 220}
+  flickerReach: 320
+  flickerBrightness: {x: 0.35, y: 0.9}
+  flickerRise: 0.1
+  flickerFade: 0.17
   faceFoot: {x: 1550, y: 220}
   faceTop: {x: 1800, y: 420}
   depth: {x: 0, y: 120}

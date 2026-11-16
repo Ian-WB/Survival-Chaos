@@ -119,9 +119,120 @@ namespace SurvivalChaos.Tests
 
             Assert.That(StormLightning.MostStrokes, Is.LessThanOrEqualTo(3));
             Assert.That(scene.Vector(lightning, "gap").x, Is.GreaterThanOrEqualTo(2f), "one flash follows another too soon");
+            Assert.That(scene.Vector(lightning, "gapAtFull").x, Is.GreaterThanOrEqualTo(2f), "one flash follows another too soon when the storm is full");
             Assert.That(scene.Vector(lightning, "strokeGap").x, Is.GreaterThanOrEqualTo(0.08f));
             Assert.That(scene.Float(lightning, "strokeRise"), Is.GreaterThanOrEqualTo(0.03f),
                 "a stroke that arrives in a frame shows the cloud tracer's squares");
+
+            // A flicker is one stroke more. It is kept a second from the end of whatever was lit
+            // before it, by its own gap, and a flash is kept a second from a flicker's start.
+            Assert.That(StormLightning.Clear, Is.GreaterThanOrEqualTo(1f));
+            Assert.That(scene.Vector(lightning, "flickerGap").x, Is.GreaterThanOrEqualTo(StormLightning.Clear), "a flicker follows a flash too soon");
+            Assert.That(scene.Vector(lightning, "flickerGapAtFull").x, Is.GreaterThanOrEqualTo(StormLightning.Clear),
+                "a flicker follows a flash too soon when the storm is full");
+            Assert.That(scene.Float(lightning, "flickerRise"), Is.GreaterThanOrEqualTo(0.03f),
+                "a flicker that arrives in a frame shows the cloud tracer's squares");
+        }
+
+        /// <summary>
+        /// 15 November 2026: the full storm is the darkest the sky gets, so
+        /// the flashes come faster as the wall rises, and a gap chosen while
+        /// the storm was young shortens with it.
+        /// </summary>
+        [Test]
+        public void TheWait_ShortensAsTheStormGrows()
+        {
+            Vector2 first = new Vector2(6f, 14f);
+            Vector2 full = new Vector2(2f, 5f);
+
+            Assert.AreEqual(6f, StormLightning.Wait(first, full, 0f, 0f), 1e-5f);
+            Assert.AreEqual(14f, StormLightning.Wait(first, full, 0f, 1f), 1e-5f);
+            Assert.AreEqual(2f, StormLightning.Wait(first, full, 1f, 0f), 1e-5f);
+            Assert.AreEqual(5f, StormLightning.Wait(first, full, 1f, 1f), 1e-5f);
+            Assert.AreEqual(6.75f, StormLightning.Wait(first, full, 0.5f, 0.5f), 1e-5f);
+            Assert.AreEqual(5f, StormLightning.Wait(first, full, 3f, 2f), 1e-5f, "past full, the gap went on shortening");
+
+            for (float roll = 0f; roll <= 1f; roll += 0.25f)
+            {
+                float previous = float.PositiveInfinity;
+                for (float fury = 0f; fury <= 1f; fury += 0.1f)
+                {
+                    float wait = StormLightning.Wait(first, full, fury, roll);
+                    Assert.That(wait, Is.LessThanOrEqualTo(previous), "the wait grew as the storm did");
+                    previous = wait;
+                }
+            }
+        }
+
+        [Test]
+        public void TheSavedGaps_AreShorterWhenTheStormIsFull()
+        {
+            SavedScene scene = SavedScene.Load(ScenePath);
+            string lightning = Lightning(scene);
+
+            foreach (string name in new[] { "gap", "flickerGap" })
+            {
+                Vector2 first = scene.Vector(lightning, name);
+                Vector2 full = scene.Vector(lightning, name + "AtFull");
+                Assert.That(first.y, Is.GreaterThanOrEqualTo(first.x), name + " has its most under its least");
+                Assert.That(full.y, Is.GreaterThanOrEqualTo(full.x), name + "AtFull has its most under its least");
+                Assert.That(full.x, Is.LessThan(first.x), name + " is no shorter when the storm is full");
+                Assert.That(full.y, Is.LessThan(first.y), name + " is no shorter when the storm is full");
+            }
+        }
+
+        /// <summary>
+        /// A flicker and a flash share the one light in the tracer and the
+        /// one count of strokes in a second. A flicker waits its own gap and
+        /// never starts when a flash is due within the clear second, so it
+        /// cannot hold a flash up; a flash waits out the second after a
+        /// flicker began.
+        /// </summary>
+        [Test]
+        public void AFlicker_NeverHoldsAFlashUp_AndAFlashKeepsClearOfAFlicker()
+        {
+            Assert.IsFalse(StormLightning.FlickerMayStart(10f, 11f, 30f), "a flicker before its wait is over");
+            Assert.IsTrue(StormLightning.FlickerMayStart(11f, 11f, 30f));
+            Assert.IsFalse(StormLightning.FlickerMayStart(11f, 11f, 11.5f), "a flicker with a flash due in half a second");
+            Assert.IsTrue(StormLightning.FlickerMayStart(11f, 11f, 11f + StormLightning.Clear));
+            Assert.IsFalse(StormLightning.FlickerMayStart(12f, 11f, 11.5f), "a flicker after the flash was due, in its place");
+
+            Assert.IsFalse(StormLightning.FlashMayStart(10f, 11f, float.NegativeInfinity), "a flash before its wait is over");
+            Assert.IsTrue(StormLightning.FlashMayStart(11f, 11f, float.NegativeInfinity), "with no flicker yet, a flash waits for one");
+            Assert.IsFalse(StormLightning.FlashMayStart(11f, 11f, 10.5f), "a flash half a second after a flicker began");
+            Assert.IsTrue(StormLightning.FlashMayStart(11.5f, 11f, 10.5f));
+        }
+
+        /// <summary>
+        /// A flicker is the wall's pulse and not a second flash: dimmer than
+        /// the dimmest flash, deeper in the cloud, broader, slower to arrive,
+        /// and out before its clear second is, so a flash never waits for one
+        /// to die. Like a flash it stays over the horizon and out in the wall.
+        /// </summary>
+        [Test]
+        public void AFlicker_IsDimmerDeeperAndSlowerThanAFlash()
+        {
+            SavedScene scene = SavedScene.Load(ScenePath);
+            string lightning = Lightning(scene);
+
+            Assert.That(scene.Vector(lightning, "flickerBrightness").y, Is.LessThan(scene.Vector(lightning, "brightness").x),
+                "the brightest flicker is as bright as a flash");
+            Assert.That(scene.Vector(lightning, "flickerBrightness").x, Is.GreaterThan(0f));
+            Assert.That(scene.Float(lightning, "flickerReach"), Is.GreaterThanOrEqualTo(scene.Float(lightning, "reach")));
+            Assert.That(scene.Float(lightning, "flickerRise"), Is.GreaterThan(scene.Float(lightning, "strokeRise")));
+
+            Vector2 depth = scene.Vector(lightning, "flickerDepth");
+            Assert.That(depth.x, Is.GreaterThan(scene.Vector(lightning, "depth").x), "a flicker can sit on the wall's face, where it is a bright patch");
+
+            Vector2 foot = scene.Vector(lightning, "faceFoot");
+            Vector2 top = scene.Vector(lightning, "faceTop");
+            Vector2 lowest = StormLightning.Place(foot, top, 0f, depth.y);
+            Assert.That(lowest.y, Is.GreaterThan(50f), "the lowest flicker is at the horizon or under it");
+            Assert.That(lowest.x, Is.LessThan(2000f), "the deepest flicker is too far into the wall to show");
+
+            float[] at = { 0f };
+            float length = StormLightning.Length(at, 1, scene.Float(lightning, "flickerRise"), scene.Float(lightning, "flickerFade"));
+            Assert.That(length, Is.LessThanOrEqualTo(StormLightning.Clear), "a flicker is still lit when the flash it kept clear of is due");
         }
 
         /// <summary>

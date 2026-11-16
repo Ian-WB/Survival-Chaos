@@ -250,5 +250,62 @@ namespace SurvivalChaos.Tests
             Assert.That(Reported<float>("Median", new object[] { new[] { 1f, 2f, 3f, 4f } }), Is.EqualTo(2.5f));
             Assert.That(Reported<float>("Median", new object[] { new float[0] }), Is.EqualTo(0f));
         }
+
+        private static float ContactTime(float gap, float itemRate, float shipRate)
+        {
+            return (float)Pilot.GetMethod("ContactTime", BindingFlags.NonPublic | BindingFlags.Static)
+                .Invoke(null, new object[] { gap, itemRate, shipRate });
+        }
+
+        [Test]
+        public void ContactTime_HeadOn_ClosesAtBothRates()
+        {
+            // 20 degrees ahead, coming back at 20 a second, the ship going to meet it at 16.
+            Assert.That(ContactTime(20f, -20f, 16f), Is.EqualTo(20f / 36f).Within(1e-4f));
+            Assert.That(ContactTime(-20f, 20f, -16f), Is.EqualTo(20f / 36f).Within(1e-4f));
+        }
+
+        [Test]
+        public void ContactTime_FromBehind_ClosesOnlyAtTheDifference()
+        {
+            // A Scout 10 degrees behind at 20 a second, the ship running from it at 16.3.
+            Assert.That(ContactTime(-10f, 20f, 16.3f), Is.EqualTo(10f / 3.7f).Within(1e-3f));
+        }
+
+        [Test]
+        public void ContactTime_IsInfinite_WhileTheGapOpensOrHolds()
+        {
+            Assert.That(float.IsPositiveInfinity(ContactTime(10f, 20f, 0f)), Is.True);
+            Assert.That(float.IsPositiveInfinity(ContactTime(-10f, 16f, 16f)), Is.True);
+        }
+
+        private static float KillTime(float from, float nextVolley, float interval, int volleys)
+        {
+            return (float)Pilot.GetMethod("KillTime", BindingFlags.NonPublic | BindingFlags.Static)
+                .Invoke(null, new object[] { from, nextVolley, interval, volleys });
+        }
+
+        [Test]
+        public void KillTime_CountsVolleysFromTheNextOne()
+        {
+            // A Scout's one round is the next volley; a Fighter's four take three more.
+            Assert.That(KillTime(0f, .3f, .5f, 1), Is.EqualTo(.3f).Within(1e-4f));
+            Assert.That(KillTime(0f, .3f, .5f, 4), Is.EqualTo(1.8f).Within(1e-4f));
+        }
+
+        [Test]
+        public void KillTime_SkipsVolleysFiredBeforeTheGunsTurn()
+        {
+            // The guns face it from 0.4 s: the volley at 0.3 goes the other way.
+            Assert.That(KillTime(.4f, .3f, .5f, 1), Is.EqualTo(.8f).Within(1e-4f));
+            // A volley due the moment the guns turn still counts.
+            Assert.That(KillTime(.8f, .3f, .5f, 1), Is.EqualTo(.8f).Within(1e-4f));
+        }
+
+        [Test]
+        public void KillTime_IsInfinite_WithoutAGun()
+        {
+            Assert.That(float.IsPositiveInfinity(KillTime(0f, .3f, 0f, 1)), Is.True);
+        }
     }
 }

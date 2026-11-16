@@ -138,6 +138,9 @@ namespace SurvivalChaos
         /// <summary>How much of the cloud is there, 0 none to 1 the scene's density.</summary>
         public float Formed => StormRiseCurve.Formed(Grown, formsBy);
 
+        /// <summary>How wild the storm is, 0 as its clouds become whole to 1 full; its lightning comes faster by it.</summary>
+        public float Fury => StormRiseCurve.Fury(Grown, formsBy);
+
         private void Start()
         {
             director = FindAnyObjectByType<WaveDirector>();

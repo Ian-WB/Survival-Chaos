@@ -73,6 +73,30 @@ namespace SurvivalChaos.Tests
             }
         }
 
+        /// <summary>
+        /// The storm's lightning comes faster by this (15 November 2026):
+        /// nothing until the clouds are whole, at 330 s, and all of it when
+        /// the storm is full, as the boss is due and through the fight.
+        /// </summary>
+        [Test]
+        public void TheStormsFury_StartsWhenTheCloudsAreWhole_AndIsAllThereAtTheBoss()
+        {
+            Assert.AreEqual(0f, StormRiseCurve.Fury(StormRiseCurve.Grown(0f, BossAt, 0.75f), 0.3f), 1e-6f);
+            Assert.AreEqual(0f, StormRiseCurve.Fury(StormRiseCurve.Grown(315f, BossAt, 0.75f), 0.3f), 1e-6f, "fury while the clouds are still forming");
+            Assert.AreEqual(0f, StormRiseCurve.Fury(StormRiseCurve.Grown(330f, BossAt, 0.75f), 0.3f), 1e-5f);
+            Assert.AreEqual(0.5f, StormRiseCurve.Fury(StormRiseCurve.Grown(365f, BossAt, 0.75f), 0.3f), 1e-5f, "half way from whole clouds to the boss");
+            Assert.AreEqual(1f, StormRiseCurve.Fury(StormRiseCurve.Grown(BossAt, BossAt, 0.75f), 0.3f), 1e-6f);
+            Assert.AreEqual(1f, StormRiseCurve.Fury(StormRiseCurve.Grown(BossAt + 90f, BossAt, 0.75f), 0.3f), 1e-6f, "the storm calmed during the fight");
+
+            float previous = 0f;
+            for (float grown = 0f; grown <= 1f; grown += 0.02f)
+            {
+                float fury = StormRiseCurve.Fury(grown, 0.3f);
+                Assert.That(fury, Is.GreaterThanOrEqualTo(previous), "the storm calmed again at " + grown);
+                previous = fury;
+            }
+        }
+
         [Test]
         public void TheWall_GoesFromItsLowest_ToItsTallest()
         {

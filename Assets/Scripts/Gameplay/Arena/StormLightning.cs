@@ -72,13 +72,35 @@ namespace SurvivalChaos
     /// is a time and not a count of frames: at 30 it is a frame and a half,
     /// and the squares were only looked for at 60.
     ///
+    /// **It comes faster as the storm grows** (15 November 2026). Since the
+    /// storm grows from nothing to a wall over the moon, the full storm is
+    /// the darkest the sky gets, and a flash is the only thing that shows
+    /// the wall has a shape. So the time between flashes shortens from
+    /// <see cref="gap"/>, as the clouds become whole, to
+    /// <see cref="gapAtFull"/> when the storm is full, by StormRise's Fury,
+    /// and stays there through the fight. With no StormRise in the scene the
+    /// gap is the first one all run long.
+    ///
+    /// **Between flashes the wall flickers:** a dim glow deep in the cloud,
+    /// one slow stroke with no bolt, broader than a flash and a fraction as
+    /// bright, so the wall has a pulse while it waits for the next strike.
+    /// Flickers too come faster as the storm grows
+    /// (<see cref="flickerGap"/> to <see cref="flickerGapAtFull"/>). They
+    /// use the same one light in the tracer, so a flicker and a flash are
+    /// never lit together, and a flicker never holds a flash up: none starts
+    /// when a flash is due within <see cref="Clear"/>.
+    ///
     /// **No more than three strokes to a flash,** and flashes seconds
     /// apart, so this component, left to its own clock, never flashes the
     /// clouds more than three times in a second, which is the usual limit
-    /// for flashing light. <see cref="Strike"/> called from outside is not
-    /// counted. The volcano's own lightning (<see cref="AshLightning"/>,
-    /// 8 October) is a second source of flashes, so the two take turns:
-    /// neither starts while the other is lit or within a second of it.
+    /// for flashing light. A flicker is one stroke, counted like any other:
+    /// it starts no sooner than <see cref="Clear"/> after a flash or another
+    /// flicker has ended, and a flash starts no sooner than that after a
+    /// flicker began. <see cref="Strike"/> and <see cref="Flicker"/> called
+    /// from outside are not counted. The volcano's own lightning
+    /// (<see cref="AshLightning"/>, 8 October) is a second source of
+    /// flashes, so the two take turns: neither starts while the other is
+    /// lit, flicker or flash, or within a second of it.
     ///
     /// With no clouds drawn, on the Low quality tier, nothing shows.
     /// </summary>
@@ -93,6 +115,13 @@ namespace SurvivalChaos
         /// <summary>The most corners of a bolt the tracer lights the cloud along; STORM_BOLT_CORNERS in the include.</summary>
         public const int CloudCorners = 12;
 
+        /// <summary>
+        /// Seconds kept clear round a flicker: from the end of a flash or a
+        /// flicker to a flicker's start, and from a flicker's start to a
+        /// flash's. See the note on flashing light above before lowering it.
+        /// </summary>
+        public const float Clear = 1f;
+
         [SerializeField]
         [Tooltip("The project's copy of HDRP's cloud tracer, which draws the glow: Art/Shaders/VolumetricCloudsTrace.")]
         private ComputeShader tracer;
@@ -103,8 +132,44 @@ namespace SurvivalChaos
 
         [Header("When")]
         [SerializeField]
-        [Tooltip("Seconds from the end of one flash to the start of the next, least (X) and most (Y).")]
+        [Tooltip("Seconds from the end of one flash to the start of the next, least (X) and most (Y), as the storm's clouds become whole.")]
         private Vector2 gap = new Vector2(6f, 14f);
+
+        [SerializeField]
+        [Tooltip("The same when the storm is full, as the boss arrives and through the fight. The gap shortens evenly from the one above to this as the wall rises.")]
+        private Vector2 gapAtFull = new Vector2(2f, 5f);
+
+        [Header("Flickers")]
+        [SerializeField]
+        [Tooltip("Seconds from the end of a flash or a flicker to the next flicker, least (X) and most (Y), as the storm's clouds become whole. A flicker is a dim glow deep in the wall, with no bolt.")]
+        private Vector2 flickerGap = new Vector2(4f, 9f);
+
+        [SerializeField]
+        [Tooltip("The same when the storm is full. Never under a second: see the note on flashing light in the script.")]
+        private Vector2 flickerGapAtFull = new Vector2(1f, 3f);
+
+        [SerializeField]
+        [Tooltip("How far under the wall's face a flicker is, least (X) and most (Y). Deeper than a flash, so it is a glow behind the cloud in front.")]
+        private Vector2 flickerDepth = new Vector2(40f, 220f);
+
+        [SerializeField]
+        [Min(1f)]
+        [Tooltip("How far a flicker's light reaches through the cloud: a quarter of it is left this far away. More than a flash's, so it is a broad patch.")]
+        private float flickerReach = 320f;
+
+        [SerializeField]
+        [Tooltip("How bright a flicker is at its heart, against the moonlight on the same cloud, least (X) and most (Y). Its light reaches further than a flash's, so at 2.5 it showed as bright as a flash; at 0.35 it is a faint glow on the full wall and at 0.9 a plain soft patch.")]
+        private Vector2 flickerBrightness = new Vector2(0.35f, 0.9f);
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Seconds a flicker takes to arrive. Slower than a flash's stroke: it swells.")]
+        private float flickerRise = 0.1f;
+
+        [SerializeField]
+        [Min(0.01f)]
+        [Tooltip("Seconds a flicker takes to fall to about a third, once it has arrived.")]
+        private float flickerFade = 0.17f;
 
         [Header("Where")]
         [SerializeField]
@@ -238,10 +303,24 @@ namespace SurvivalChaos
         private StormRise storm;
         private Material boltMaterial;
         private float startedAt;
-        private float nextAt;
         private float peak;
         private bool bolting;
         private int struck;
+
+        // What is lit now: a flash's strokes or a flicker's one, and how fast each arrives and dies.
+        private bool flickering;
+        private float rise;
+        private float fade;
+
+        // The gaps are counted from these, and each is a place between its least and most, chosen
+        // when the last one ended: the seconds are worked out as the storm grows, so a long gap
+        // chosen while it was young shortens with it.
+        private bool wereWhole;
+        private float flashFrom;
+        private float flickerFrom;
+        private float flashRoll;
+        private float flickerRoll;
+        private float flickerBegan = float.NegativeInfinity;
 
         /// <summary>True from a flash's first stroke until its last has died away.</summary>
         public bool Striking { get; private set; }
@@ -270,6 +349,38 @@ namespace SurvivalChaos
             }
 
             return glow;
+        }
+
+        /// <summary>
+        /// Seconds to wait for the next flash or flicker:
+        /// <paramref name="first"/> (least X, most Y) while the storm is
+        /// young, <paramref name="full"/> when it is full, evenly between by
+        /// <paramref name="fury"/>, and <paramref name="roll"/> of the way
+        /// from the least to the most.
+        /// </summary>
+        public static float Wait(Vector2 first, Vector2 full, float fury, float roll)
+        {
+            Vector2 now = Vector2.Lerp(first, full, Mathf.Clamp01(fury));
+            return Mathf.Lerp(now.x, now.y, Mathf.Clamp01(roll));
+        }
+
+        /// <summary>
+        /// Whether a flicker may start <paramref name="now"/>: its own wait
+        /// is over, and the next flash is not due within
+        /// <see cref="Clear"/>, which a flicker would hold up.
+        /// </summary>
+        public static bool FlickerMayStart(float now, float flickerDue, float flashDue)
+        {
+            return now >= flickerDue && flashDue - now >= Clear;
+        }
+
+        /// <summary>
+        /// Whether a flash may start <paramref name="now"/>: its wait is
+        /// over and the last flicker began at least <see cref="Clear"/> ago.
+        /// </summary>
+        public static bool FlashMayStart(float now, float flashDue, float flickerBegan)
+        {
+            return now >= flashDue && now - flickerBegan >= Clear;
         }
 
         /// <summary>
@@ -369,8 +480,11 @@ namespace SurvivalChaos
         {
             view = Camera.main;
             storm = FindAnyObjectByType<StormRise>();
-            nextAt = Time.time + Random.Range(gap.x, gap.y);
+            wereWhole = false;
         }
+
+        /// <summary>How wild the storm is, 0 to 1; with no StormRise running it is the scene's storm, at its first gap.</summary>
+        private float Fury => storm != null && storm.isActiveAndEnabled ? storm.Fury : 0f;
 
         /// <summary>
         /// Whether the clouds are there to strike in. Since 15 November 2026
@@ -407,26 +521,62 @@ namespace SurvivalChaos
             float now = Time.time;
             if (!Striking)
             {
-                if (now < nextAt || !CloudsAreWhole || (ash != null && (ash.Striking || now - ash.EndedAt < AshLightning.Turn)))
+                if (!CloudsAreWhole)
+                {
+                    wereWhole = false;
+                    return;
+                }
+
+                if (!wereWhole)
+                {
+                    // The clouds have just become whole, or this has just been switched on: both waits start here.
+                    wereWhole = true;
+                    flashFrom = now;
+                    flickerFrom = now;
+                    flashRoll = Random.value;
+                    flickerRoll = Random.value;
+                }
+
+                if (ash != null && (ash.Striking || now - ash.EndedAt < AshLightning.Turn))
                 {
                     return;
                 }
 
-                Strike();
+                float fury = Fury;
+                float flashDue = flashFrom + Wait(gap, gapAtFull, fury, flashRoll);
+                if (FlashMayStart(now, flashDue, flickerBegan))
+                {
+                    Strike();
+                }
+                else if (FlickerMayStart(now, flickerFrom + Wait(flickerGap, flickerGapAtFull, fury, flickerRoll), flashDue))
+                {
+                    Flicker();
+                }
+                else
+                {
+                    return;
+                }
             }
 
             float since = now - startedAt;
-            if (since >= Length(strokeAt, strokes, strokeRise, strokeFade))
+            if (since >= Length(strokeAt, strokes, rise, fade))
             {
                 Striking = false;
                 EndedAt = now;
-                nextAt = now + Random.Range(gap.x, gap.y);
+                flickerFrom = now;
+                flickerRoll = Random.value;
+                if (!flickering)
+                {
+                    flashFrom = now;
+                    flashRoll = Random.value;
+                }
+
                 Light(0f);
                 HideBolt();
                 return;
             }
 
-            float glow = Glow(since, strokeAt, strokeHeight, strokes, strokeRise, strokeFade);
+            float glow = Glow(since, strokeAt, strokeHeight, strokes, rise, fade);
             Light(peak * glow);
 
             if (bolting)
@@ -449,16 +599,7 @@ namespace SurvivalChaos
                 return;
             }
 
-            if (view == null)
-            {
-                view = Camera.main;
-            }
-
-            Vector3 ahead = view != null ? view.transform.forward : Vector3.forward;
-            ahead.y = 0f;
-            ahead = ahead.sqrMagnitude > 1e-6f ? ahead.normalized : Vector3.forward;
-
-            Vector3 towards = Quaternion.AngleAxis(Random.Range(-spread, spread), Vector3.up) * ahead;
+            Vector3 towards = Towards();
             bolting = bolt != null && Random.value < boltShare;
             Vector3 from = Vector3.zero;
             Vector3 to = Vector3.zero;
@@ -508,7 +649,7 @@ namespace SurvivalChaos
                 HideBolt();
             }
 
-            strokes =Random.Range(2, MostStrokes + 1);
+            strokes = Random.Range(2, MostStrokes + 1);
             int strongest = Random.Range(0, strokes);
             float when = 0f;
             for (int i = 0; i < strokes; i++)
@@ -519,8 +660,58 @@ namespace SurvivalChaos
             }
 
             peak = Random.Range(brightness.x, brightness.y);
+            rise = strokeRise;
+            fade = strokeFade;
+            flickering = false;
             startedAt = Time.time;
             Striking = true;
+        }
+
+        /// <summary>
+        /// Starts a flicker now: one slow, dim stroke deep in the wall the
+        /// camera can see, with no bolt.
+        /// </summary>
+        [ContextMenu("Flicker now")]
+        public void Flicker()
+        {
+            if (tracer == null)
+            {
+                return;
+            }
+
+            Vector2 place = Place(faceFoot, faceTop, Random.value, Random.Range(flickerDepth.x, flickerDepth.y));
+            Vector3 at = Towards() * place.x + Vector3.up * place.y;
+            tracer.SetVector(FlashId, new Vector4(at.x, at.y, at.z, flickerReach));
+
+            bolting = false;
+            HideBolt();
+
+            strokes = 1;
+            strokeAt[0] = 0f;
+            strokeHeight[0] = 1f;
+
+            peak = Random.Range(flickerBrightness.x, flickerBrightness.y);
+            rise = flickerRise;
+            fade = flickerFade;
+            flickering = true;
+            startedAt = Time.time;
+            flickerBegan = startedAt;
+            Striking = true;
+        }
+
+        /// <summary>A level bearing from the island's axis, within the spread either side of where the camera looks.</summary>
+        private Vector3 Towards()
+        {
+            if (view == null)
+            {
+                view = Camera.main;
+            }
+
+            Vector3 ahead = view != null ? view.transform.forward : Vector3.forward;
+            ahead.y = 0f;
+            ahead = ahead.sqrMagnitude > 1e-6f ? ahead.normalized : Vector3.forward;
+
+            return Quaternion.AngleAxis(Random.Range(-spread, spread), Vector3.up) * ahead;
         }
 
         private void HideBolt()
