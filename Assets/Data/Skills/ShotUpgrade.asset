@@ -17,6 +17,10 @@ MonoBehaviour:
   maxPicks: 3
   availableFromLevel: 03000000080000000e000000i
   pickupColor: {r: 3, g: 0.85, b: 0.15, a: 1}
+  effectLines:
+  - Two rounds
+  - Four rounds
+  - Eight rounds
   stageNames:
   - Hydra I! Two Rounds
   - Hydra II! Four Rounds

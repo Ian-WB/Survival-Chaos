@@ -36,6 +36,27 @@ namespace SurvivalChaos
         /// <summary>Whether the board should be drawing this at all.</summary>
         public bool Live { get; private set; }
 
+        private Pickup pickup;
+        private bool pickupLooked;
+
+        /// <summary>
+        /// How much of its pickup's time is left, 1 to 0; 1 for a label with
+        /// no pickup above it.
+        /// </summary>
+        public float LifeLeft
+        {
+            get
+            {
+                if (!pickupLooked)
+                {
+                    pickupLooked = true;
+                    pickup = GetComponentInParent<Pickup>();
+                }
+
+                return pickup != null ? pickup.LifeLeft : 1f;
+            }
+        }
+
         /// <summary>
         /// Sets what the caption says and starts it being drawn. An empty string
         /// stops it, which is what a pickup with nothing to announce wants.

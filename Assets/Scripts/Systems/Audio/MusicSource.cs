@@ -24,6 +24,11 @@ namespace SurvivalChaos
     /// And the Leviathan has its own track since then. When the boss arrives,
     /// the run's track hands over to it, and it loops over the part of itself
     /// set below, so its quiet intro and its fade-out are heard once at most.
+    ///
+    /// The run's track can loop over part of itself too, since 16 November
+    /// 2026, with the loop set on its Sound asset (Loop Start and Loop End):
+    /// it plays from the top once, so its quiet start is the start of the run,
+    /// and after that only over the loop.
     /// </summary>
     [AddComponentMenu("Survival Chaos/Music Source")]
     [RequireComponent(typeof(AudioSource))]
@@ -101,6 +106,10 @@ namespace SurvivalChaos
         /// </summary>
         private float sceneLevel = 1f;
 
+        /// <summary>The run's track's loop, from its asset. An end of 0 loops the clip whole.</summary>
+        private float runLoopStart;
+        private float runLoopEnd;
+
         private AudioSource bossSource;
         private AudioLowPassFilter bossMuffle;
         private float bossAuthoredVolume;
@@ -161,6 +170,8 @@ namespace SurvivalChaos
                 source.clip = track.PickClip(ref cursor);
                 source.outputAudioMixerGroup = track.Output;
                 authoredVolume *= track.Volume;
+                runLoopStart = track.LoopStart;
+                runLoopEnd = track.LoopEnd;
             }
 
             captured = true;
@@ -305,6 +316,29 @@ namespace SurvivalChaos
             bossSource.timeSamples = MusicLoop.ToSamples(bossLoopStart, bossSource.clip.frequency);
         }
 
+        /// <summary>
+        /// Sends the run's track back to its loop start once it reaches the loop
+        /// end. The AudioSource still loops the whole clip, as the fallback for a
+        /// track with no loop of its own.
+        /// </summary>
+        private void KeepRunInLoop()
+        {
+            if (runLoopEnd <= 0f || source.clip == null || !source.isPlaying)
+            {
+                return;
+            }
+
+            int frequency = source.clip.frequency;
+            int wrapped = MusicLoop.Wrap(source.timeSamples,
+                MusicLoop.ToSamples(runLoopStart, frequency),
+                MusicLoop.ToSamples(runLoopEnd, frequency));
+
+            if (wrapped >= 0)
+            {
+                source.timeSamples = wrapped;
+            }
+        }
+
         /// <summary>Sends the Leviathan's track back to its loop start once it reaches the loop end.</summary>
         private void KeepBossInLoop()
         {
@@ -385,6 +419,7 @@ namespace SurvivalChaos
 
             ApplyVolumes();
             source.pitch = pitch;
+            KeepRunInLoop();
 
             bool open = cutoff > OpenCutoff * 0.95f;
             Muffle(muffle, open);

@@ -545,7 +545,59 @@ namespace SurvivalChaos
             hpBar.maxValue = health.Max;
             hpBar.value = health.Current;
 
+            if (hpBar.TryGetComponent(out BarMarks marks))
+            {
+                marks.Show(StageMarks(health.Max, EmplacementHealth(), scuttleThreshold));
+            }
+
             return hpBar;
+        }
+
+        /// <summary>The health the emplacements spend from the pool between them.</summary>
+        private int EmplacementHealth()
+        {
+            int total = 0;
+
+            if (emplacements != null)
+            {
+                foreach (BossWeakPoint emplacement in emplacements)
+                {
+                    if (emplacement != null)
+                    {
+                        total += emplacement.MaxHealth;
+                    }
+                }
+            }
+
+            return total;
+        }
+
+        /// <summary>
+        /// Where the acts end on the bar, as fractions of the pool: the hull is
+        /// exposed once the emplacements have spent their share, and the last
+        /// act begins at the scuttle threshold. A boss without emplacements has
+        /// only the second mark.
+        /// </summary>
+        public static float[] StageMarks(int max, int emplacementHealth, int scuttle)
+        {
+            if (max <= 0)
+            {
+                return new float[0];
+            }
+
+            var fractions = new List<float>(2);
+
+            if (emplacementHealth > 0 && emplacementHealth < max)
+            {
+                fractions.Add((max - emplacementHealth) / (float)max);
+            }
+
+            if (scuttle > 0 && scuttle < max)
+            {
+                fractions.Add(scuttle / (float)max);
+            }
+
+            return fractions.ToArray();
         }
 
         /// <summary>
@@ -634,6 +686,15 @@ namespace SurvivalChaos
 
         private void Update()
         {
+            // The bar is hidden when the boss starts and a tag search cannot see
+            // a hidden object, so Start's look missed it and the bar was only
+            // wired at the first hit: its marks appeared then, not with the bar
+            // (16 November 2026). Look each frame until it shows, then never again.
+            if (hpBar == null)
+            {
+                Bar();
+            }
+
             if (timers == null || dying)
             {
                 return;
@@ -1717,6 +1778,7 @@ namespace SurvivalChaos
 
             // The act's own beat covers the last one, which is longer.
             RunTime.Freeze(emplacementFreeze);
+            ScreenShake.Add(0.6f);
             Rumble.Pulse(Rumble.Strength.Heavy);
         }
 
@@ -1769,6 +1831,7 @@ namespace SurvivalChaos
             // thumps, and the act has a sound of its own. Before the silence
             // below, which the sound is heard over.
             RunTime.Freeze(actFreeze);
+            ScreenShake.Add(0.85f);
             Rumble.Pulse(Rumble.Strength.Heavy);
             if (GameSounds.Instance != null)
             {

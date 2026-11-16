@@ -55,6 +55,12 @@ namespace SurvivalChaos
                  "brightness is set per renderer, so one material covers all four.")]
         private Material flareMaterial;
 
+        /// <summary>The glow every small light on the ship is drawn with, for the guns' own.</summary>
+        public Mesh GlowMesh => glowMesh;
+
+        /// <summary>The one material every flare on the ship shares.</summary>
+        public Material FlareMaterial => flareMaterial;
+
         [Header("Main engine")]
         [SerializeField]
         [Tooltip("Where the main plume starts, in the model's own space. The back face of the " +
@@ -139,6 +145,46 @@ namespace SurvivalChaos
                  "and easy to miss in motion; an overshoot that decays has a leading edge.")]
         private float popStrength = 1.5f;
 
+        [Header("Muzzle flash")]
+        [SerializeField]
+        [Tooltip("Where the gun's flash sits, in the model's own space: just ahead of the nose.")]
+        private Vector3 muzzleOffset = new Vector3(0.2f, -0.02f, 0f);
+
+        [SerializeField]
+        [Tooltip("World size of the flash on the frame the gun fires. The ship is about 0.4 across.")]
+        private float muzzleSize = 0.16f;
+
+        [SerializeField]
+        private float muzzleBrightness = 4f;
+
+        [SerializeField]
+        [Range(0.02f, 0.3f)]
+        [Tooltip("Seconds the flash takes to die away. Shorter than the fastest gun's 0.15 between " +
+                 "volleys, so two never run together into a light that is simply on.")]
+        private float muzzleSeconds = 0.08f;
+
+        [Header("Speed trail")]
+        [SerializeField]
+        [Tooltip("World length of the streak behind the ship for each unit a second it is doing " +
+                 "above the speed below. 0 for no trail.")]
+        private float trailLengthPerSpeed = 0.12f;
+
+        [SerializeField]
+        [Tooltip("The longest the streak gets, which is what a dash draws it out to.")]
+        private float trailMaxLength = 1.4f;
+
+        [SerializeField]
+        private float trailWidth = 0.035f;
+
+        [SerializeField]
+        [Tooltip("Emission multiplier at full length. Dim on purpose: the plume is the engine, " +
+                 "this is only the speed.")]
+        private float trailBrightness = 1.6f;
+
+        [SerializeField]
+        [Tooltip("World units a second below which there is no streak.")]
+        private float trailMinSpeed = 2f;
+
         [Header("Response")]
         [SerializeField]
         [Tooltip("How quickly a flare lights. High - an engine catches, it does not fade in.")]
@@ -167,6 +213,10 @@ namespace SurvivalChaos
         private Renderer mainFlare;
         private Renderer[] retroFlares;
         private Renderer readyLight;
+        private Renderer muzzleFlare;
+
+        /// <summary>When the gun last fired. Negative infinity is "not flashing", as for the dash.</summary>
+        private float firedAt = float.NegativeInfinity;
 
         private MaterialPropertyBlock block;
 
@@ -219,6 +269,18 @@ namespace SurvivalChaos
             }
 
             readyLight = BuildFlare("Dash Ready Light", glowMesh, readyOffset, Quaternion.identity);
+            muzzleFlare = BuildFlare("Muzzle Flash", glowMesh, muzzleOffset, Quaternion.identity);
+            muzzleFlare.enabled = false;
+
+            // From the middle of the hull and not the engine: the ship can
+            // fly tail-first, and the streak lies along the way it came.
+            if (player != null && trailLengthPerSpeed > 0f)
+            {
+                ShipTrail.Build(
+                    transform, player.transform, plumeMesh, flareMaterial,
+                    new Vector3(0f, mainOffset.y, 0f),
+                    trailLengthPerSpeed, trailMaxLength, trailWidth, trailBrightness, trailMinSpeed);
+            }
 
             block = new MaterialPropertyBlock();
 
@@ -256,6 +318,22 @@ namespace SurvivalChaos
             }
 
             UpdateReadyLight();
+
+            // Brightest on the frame of the shot and gone a few frames later:
+            // it marks the moment, where the plume shows a state.
+            float flash = 1f - Mathf.Clamp01((Time.time - firedAt) / muzzleSeconds);
+            float burst = flash * flash;
+            Apply(muzzleFlare, burst, muzzleSize, muzzleSize * burst, muzzleBrightness);
+        }
+
+        /// <summary>
+        /// Flashes the muzzle, once a volley. The same rigid mesh the ready
+        /// light is, on the model, so it turns with the ship and FSR has its
+        /// motion to go by.
+        /// </summary>
+        public void MuzzleFlash()
+        {
+            firedAt = Time.time;
         }
 
         /// <summary>

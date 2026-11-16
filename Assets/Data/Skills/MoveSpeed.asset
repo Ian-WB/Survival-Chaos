@@ -17,3 +17,5 @@ MonoBehaviour:
   maxPicks: 4
   availableFromLevel: 
   pickupColor: {r: 0.35, g: 2.6, b: 0.8, a: 1}
+  effectLines:
+  - +24% flight speed

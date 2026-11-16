@@ -94,6 +94,47 @@ namespace SurvivalChaos
                  "same spot separate instead of stacking into an unreadable pile.")]
         private float numberRise = 2.2f;
 
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("A kill's experience joins the last number instead of starting its own when " +
+                 "that number is younger than this, in seconds, and near enough (below). 0 " +
+                 "gives every kill its own number again.")]
+        private float mergeSeconds = 0.35f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How near, in world units, a kill must be to the last number to join it.")]
+        private float mergeDistance = 3.5f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Canvas units at the top of the screen that kill numbers fade out of before they " +
+                 "reach. The timer and boss bars are there, and their empty track is see-through, " +
+                 "so a number under one still showed across it. 0 lets numbers rise anywhere.")]
+        private float hudTopBand = 100f;
+
+        [Header("Offers out of sight")]
+        [SerializeField]
+        [Tooltip("Draw an offer's caption at the side of the screen, with an arrow, while the " +
+                 "pickup is behind the volcano or off screen.")]
+        private bool edgeArrows = true;
+
+        [SerializeField]
+        [Tooltip("Gap between the screen edge and an edge caption, in canvas units.")]
+        private float edgeMargin = 28f;
+
+        [SerializeField]
+        [Range(0.2f, 1f)]
+        [Tooltip("Size an edge caption shrinks to as its offer runs out, as a share of the " +
+                 "caption size. It starts at full size.")]
+        private float edgeSmallest = 0.55f;
+
+        [SerializeField]
+        [Range(0f, 0.5f)]
+        [Tooltip("How far from the top and bottom of the screen an edge caption is kept, as a " +
+                 "share of the screen's height.")]
+        private float edgeBand = 0.25f;
+
         /// <summary>
         /// The board every label talks to.
         ///
@@ -127,6 +168,27 @@ namespace SurvivalChaos
             public string Caption;
             public Color Tint;
             public float Born;
+
+            /// <summary>The experience it shows, so kills that join it can add to it. 0 for health.</summary>
+            public int Amount;
+        }
+
+        /// <summary>
+        /// Whether a kill's experience should join a number already up rather
+        /// than start its own: it is young enough, and the kill is near where
+        /// it now stands.
+        ///
+        /// Hydra's rounds take a cluster down within a few frames, and each
+        /// kill used to raise its own "+22" from nearly the same point; they
+        /// overlapped into a run of digits nobody could read (15 November
+        /// 2026 capture). One number counting up says the same and stays legible.
+        /// </summary>
+        public static bool ShouldMerge(Vector3 numberNow, float age, Vector3 kill,
+            float windowSeconds, float distance)
+        {
+            return windowSeconds > 0f
+                && age <= windowSeconds
+                && (numberNow - kill).sqrMagnitude <= distance * distance;
         }
 
         /// <summary>
@@ -235,7 +297,49 @@ namespace SurvivalChaos
                 return;
             }
 
-            Instance.Add(where, "+" + amount, Instance.experienceTint);
+            Instance.AddExperience(where, amount);
+        }
+
+        /// <summary>
+        /// Adds a kill's experience to the newest experience number when it
+        /// is young and near, and starts a number otherwise. A joined number
+        /// starts its life again from where it stands, so it keeps rising
+        /// without a jump and stays up while the kills keep coming.
+        /// </summary>
+        private void AddExperience(Vector3 where, int amount)
+        {
+            float now = Time.unscaledTime;
+
+            for (int i = numbers.Count - 1; i >= 0; i--)
+            {
+                FloatingNumber number = numbers[i];
+                if (number.Amount <= 0)
+                {
+                    continue;
+                }
+
+                float age = now - number.Born;
+                Vector3 standing = number.Origin + Vector3.up * (numberRise * age);
+
+                if (ShouldMerge(standing, age, where, mergeSeconds, mergeDistance))
+                {
+                    number.Amount += amount;
+                    number.Caption = "+" + number.Amount;
+                    number.Origin = standing;
+                    number.Born = now;
+                    numbers[i] = number;
+                    return;
+                }
+
+                // Only the newest experience number is a candidate. An older
+                // one that happens to be near is already on its way out.
+                break;
+            }
+
+            Add(where, "+" + amount, experienceTint);
+            FloatingNumber added = numbers[numbers.Count - 1];
+            added.Amount = amount;
+            numbers[numbers.Count - 1] = added;
         }
 
         /// <summary>
@@ -310,6 +414,11 @@ namespace SurvivalChaos
             }
 
             int drawn = 0;
+            int leftEdge = 0;
+            int rightEdge = 0;
+
+            occupied.Clear();
+            pendingEdges.Clear();
 
             for (int i = 0; i < attached.Count; i++)
             {
@@ -325,26 +434,66 @@ namespace SurvivalChaos
                 // Behind the camera projects to a mirrored point in front of it,
                 // so without this a pickup at the player's back draws its caption
                 // across the middle of the screen.
-                if (screen.z <= 0f)
-                {
-                    continue;
-                }
+                bool behind = screen.z <= 0f;
 
                 // In front of the camera is not the same as visible: the volcano
                 // stands in the middle of the ring, and a pickup on the far side
                 // projects to a perfectly good screen position behind it.
-                if (Occluded(camera.transform.position, label.transform.position))
+                bool hidden = behind || Occluded(camera.transform.position, label.transform.position);
+
+                bool offScreen = !behind
+                    && (screen.x < 0f || screen.x > Screen.width || screen.y < 0f || screen.y > Screen.height);
+
+                if (!hidden && !offScreen)
                 {
+                    TextMeshProUGUI slot = Slot(drawn++);
+
+                    slot.gameObject.SetActive(true);
+                    slot.text = label.Caption;
+                    Place(slot, screen, Side.Centre);
+                    slot.fontSize = fontSize * ScaleAt(screen.z);
+
+                    occupied.Add(Footprint(slot, screen, Side.Centre));
+                    Paint(drawn - 1, label.Tint);
                     continue;
                 }
 
-                TextMeshProUGUI slot = Slot(drawn++);
+                if (edgeArrows)
+                {
+                    pendingEdges.Add(new PendingEdge { Label = label, Screen = screen, Behind = behind });
+                }
+            }
 
-                slot.gameObject.SetActive(true);
-                slot.text = label.Caption;
-                slot.rectTransform.position = screen;
-                slot.fontSize = fontSize * ScaleAt(screen.z);
+            // After every caption on screen, so an edge caption can step
+            // clear of one it would land on: offers sit at the ship's height,
+            // so the one at the side and one just inside it share a line.
+            float step = fontSize * 1.2f * CanvasScale();
 
+            for (int i = 0; i < pendingEdges.Count; i++)
+            {
+                PendingEdge pending = pendingEdges[i];
+                PickupLabel label = pending.Label;
+
+                bool left = EdgeIsLeft(camera, pending.Screen, pending.Behind);
+                int stacked = left ? leftEdge++ : rightEdge++;
+                Side side = left ? Side.Left : Side.Right;
+
+                TextMeshProUGUI edge = Slot(drawn++);
+                edge.gameObject.SetActive(true);
+                edge.text = left ? "<  " + label.Caption : label.Caption + "  >";
+                edge.fontSize = fontSize * Mathf.Lerp(edgeSmallest, 1f, label.LifeLeft);
+
+                Vector3 point = EdgePoint(pending.Screen, pending.Behind, left, stacked);
+                Rect footprint = Footprint(edge, point, side);
+
+                for (int tries = 0; tries < 4 && Overlaps(footprint, occupied); tries++)
+                {
+                    point.y -= step;
+                    footprint.y -= step;
+                }
+
+                Place(edge, point, side);
+                occupied.Add(footprint);
                 Paint(drawn - 1, label.Tint);
             }
 
@@ -388,23 +537,193 @@ namespace SurvivalChaos
                     continue;
                 }
 
+                // Kept out of the band the top bars live in. The board already
+                // draws under the HUD, but an empty track is see-through, and
+                // a number rising into the timer bar read as on top of it
+                // (15 November 2026 capture).
+                float clear = TopBandFade(screen.y);
+                if (clear <= 0f)
+                {
+                    continue;
+                }
+
                 TextMeshProUGUI slot = Slot(drawn++);
 
                 slot.gameObject.SetActive(true);
                 slot.text = number.Caption;
-                slot.rectTransform.position = screen;
+                Place(slot, screen, Side.Centre);
                 slot.fontSize = fontSize * ScaleAt(screen.z);
 
                 // Faded through the face and glow alpha rather than by shrinking
                 // or moving, so a number stays exactly as legible as the captions
                 // beside it right up until it goes.
                 Color tint = number.Tint;
-                tint.a = 1f - (age / numberSeconds);
+                tint.a = (1f - (age / numberSeconds)) * clear;
 
                 Paint(drawn - 1, tint);
             }
 
             return drawn;
+        }
+
+        /// <summary>
+        /// 1 below the top band, falling to 0 across the band's lower edge, so
+        /// a number fades as it rises into the bars rather than vanishing.
+        /// </summary>
+        private float TopBandFade(float screenY)
+        {
+            if (hudTopBand <= 0f)
+            {
+                return 1f;
+            }
+
+            float scale = CanvasScale();
+            return BandFade(screenY, Screen.height - hudTopBand * scale, 24f * scale);
+        }
+
+        /// <summary>
+        /// How visible something at a height is under a band that starts at
+        /// <paramref name="bandFrom"/>: 1 a full <paramref name="fade"/>
+        /// below it, 0 at it and above.
+        /// </summary>
+        public static float BandFade(float y, float bandFrom, float fade)
+        {
+            if (fade <= 0f)
+            {
+                return y < bandFrom ? 1f : 0f;
+            }
+
+            return Mathf.Clamp01((bandFrom - y) / fade);
+        }
+
+        private enum Side { Centre, Left, Right }
+
+        /// <summary>An offer out of sight, waiting for the captions on screen to be placed first.</summary>
+        private struct PendingEdge
+        {
+            public PickupLabel Label;
+            public Vector3 Screen;
+            public bool Behind;
+        }
+
+        private readonly List<PendingEdge> pendingEdges = new List<PendingEdge>();
+
+        /// <summary>Screen rectangles the captions drawn this frame cover.</summary>
+        private readonly List<Rect> occupied = new List<Rect>();
+
+        /// <summary>
+        /// The screen rectangle a caption covers at a point, from the width
+        /// TextMeshPro would give its text at its current size.
+        /// </summary>
+        private Rect Footprint(TextMeshProUGUI slot, Vector3 point, Side side)
+        {
+            float scale = CanvasScale();
+            Vector2 size = slot.GetPreferredValues(slot.text) * scale;
+            float x = side == Side.Left ? point.x
+                : side == Side.Right ? point.x - size.x
+                : point.x - size.x * 0.5f;
+
+            return new Rect(x, point.y - size.y * 0.5f, size.x, size.y);
+        }
+
+        /// <summary>Whether a rectangle overlaps any in a list.</summary>
+        public static bool Overlaps(Rect rect, List<Rect> others)
+        {
+            for (int i = 0; i < others.Count; i++)
+            {
+                if (rect.Overlaps(others[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Which side of the screen points the shorter way round the ring to a
+        /// pickup out of sight.
+        ///
+        /// The line from the camera through the volcano splits the ring in
+        /// two, and each half projects onto its own side of the volcano on
+        /// screen. So a pickup hidden behind it is on the left half when it
+        /// projects left of the volcano's centre - even by a pixel - and the
+        /// shorter way to it is left. Behind the camera the projection is
+        /// mirrored, so the side flips.
+        /// </summary>
+        private bool EdgeIsLeft(Camera camera, Vector3 screen, bool behind)
+        {
+            float centre = Screen.width * 0.5f;
+            Vector3 axis = arenaCenter != null ? arenaCenter.position : Vector3.zero;
+            axis.y = camera.transform.position.y;
+            Vector3 projected = camera.WorldToScreenPoint(axis);
+
+            if (projected.z > 0f)
+            {
+                centre = projected.x;
+            }
+
+            float offset = screen.x - centre;
+            return behind ? offset > 0f : offset < 0f;
+        }
+
+        /// <summary>
+        /// Where an edge caption sits: just inside the screen's side, at the
+        /// pickup's height on screen but kept within the middle band, and
+        /// stepped down a line for each caption already on that side.
+        /// </summary>
+        private Vector3 EdgePoint(Vector3 screen, bool behind, bool left, int stacked)
+        {
+            float scale = CanvasScale();
+            float lowest = Screen.height * edgeBand;
+            float highest = Screen.height * (1f - edgeBand);
+            float y = behind ? Screen.height * 0.5f : Mathf.Clamp(screen.y, lowest, highest);
+
+            y -= stacked * fontSize * 1.2f * scale;
+
+            float x = left ? edgeMargin * scale : Screen.width - edgeMargin * scale;
+            return new Vector3(x, y, 0f);
+        }
+
+        private Canvas canvas;
+
+        private float CanvasScale()
+        {
+            if (canvas == null)
+            {
+                canvas = GetComponentInParent<Canvas>();
+            }
+
+            return canvas != null ? canvas.scaleFactor : 1f;
+        }
+
+        /// <summary>
+        /// Puts a slot at a screen point, centred on it or hung from it by one
+        /// side. Slots change jobs every frame, so this writes the alignment
+        /// and pivot each time, but only when they differ: either change
+        /// makes TextMeshPro rebuild the caption.
+        /// </summary>
+        private static void Place(TextMeshProUGUI slot, Vector3 point, Side side)
+        {
+            TextAlignmentOptions align = side == Side.Left ? TextAlignmentOptions.Left
+                : side == Side.Right ? TextAlignmentOptions.Right
+                : TextAlignmentOptions.Center;
+
+            Vector2 pivot = side == Side.Left ? new Vector2(0f, 0.5f)
+                : side == Side.Right ? new Vector2(1f, 0.5f)
+                : new Vector2(0.5f, 0.5f);
+
+            if (slot.alignment != align)
+            {
+                slot.alignment = align;
+            }
+
+            if (slot.rectTransform.pivot != pivot)
+            {
+                slot.rectTransform.pivot = pivot;
+            }
+
+            slot.rectTransform.position = point;
         }
 
         /// <summary>

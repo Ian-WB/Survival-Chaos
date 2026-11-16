@@ -6,6 +6,7 @@
         "UnityEditor.TestRunner",
         "SurvivalChaos",
         "UnityEngine.UI",
+        "Unity.TextMeshPro",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime"
     ],

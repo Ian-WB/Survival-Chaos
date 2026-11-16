@@ -104,6 +104,15 @@ namespace SurvivalChaos
         /// <summary>The offer this belongs to, or null for a standalone drop.</summary>
         public SkillOffer Offer { get; set; }
 
+        /// <summary>The lifetime this pickup was given when it went out.</summary>
+        private float lifespan;
+
+        /// <summary>
+        /// How much of its time is left, 1 as it goes out and 0 as it expires.
+        /// Read by the edge arrow that points at an offer out of sight.
+        /// </summary>
+        public float LifeLeft => lifespan > 0f ? Mathf.Clamp01((expiresAt - Time.time) / lifespan) : 1f;
+
         private void Awake()
         {
             if (tintTarget == null)
@@ -161,6 +170,7 @@ namespace SurvivalChaos
             // Time.time is the right one: a paused game should not expire an
             // offer the player never got to answer.
             expiresAt = Time.time + Mathf.Max(0.1f, lifetime);
+            lifespan = Mathf.Max(0.1f, lifetime);
             lastTick = int.MaxValue;
 
             // Only a child's scale. On the root it would scale the trigger too.

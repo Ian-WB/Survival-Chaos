@@ -107,6 +107,16 @@ namespace SurvivalChaos
         private MaterialPropertyBlock block;
         private Coroutine running;
 
+        /// <summary>
+        /// Changes what a strike looks like, for the one hull that is not an
+        /// enemy's: the player's lights white, and for a little longer.
+        /// </summary>
+        public void Set(Color flashColor, float flashSeconds)
+        {
+            color = flashColor;
+            seconds = Mathf.Max(0.01f, flashSeconds);
+        }
+
         /// <summary>The flash on an object, adding one the first time it is asked for.</summary>
         public static HitFlash On(GameObject host)
         {

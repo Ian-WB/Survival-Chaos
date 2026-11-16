@@ -17,6 +17,9 @@ MonoBehaviour:
   maxPicks: 2
   availableFromLevel: 0500000009000000i
   pickupColor: {r: 3, g: 0.25, b: 0.3, a: 1}
+  effectLines:
+  - Press E or Y to slow time
+  - Back in 10 s
   stageNames:
   - Slow Mo I! Press E or Y
   - Slow Mo II!

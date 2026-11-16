@@ -17,6 +17,8 @@ MonoBehaviour:
   maxPicks: 1
   availableFromLevel: 08000000i
   pickupColor: {r: 1.2, g: 0.35, b: 3, a: 1}
+  effectLines:
+  - Pickups drift to you
   stageNames:
   - Magnet I! Pickups Drift To You
   stagePickupNames: []

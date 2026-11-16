@@ -502,6 +502,15 @@ namespace SurvivalChaos.EditorTools
             // pickup but a heal when low; a current target is kept unless something
             // else beats it by GoalStickiness.
             private const float EmplacementPriority = 10f, GoalStickiness = 6f;
+            // Ian, 16 Nov 2026: Hydra and Attack Speed first. An offer's three
+            // pickups sit up to 110 degrees apart (about 38 units of ring), and a
+            // priority step is worth 3 units, so the two are put far enough above
+            // the rest to win across a whole offer. PrizedPickup marks them.
+            private const float HydraPriority = 20f, AttackSpeedPriority = 18f, PrizedPickup = 18f;
+            // How close a route may pass an offer's other pickups while one of the
+            // prized two is in it, beyond the pickup's drawn size: touching any one
+            // takes it and forfeits the rest of the set.
+            private const float ShunMargin = 1f;
             // Going round starts once the ship is a degree behind the emplacement's
             // face and ends once it is 8 in front, so it does not flicker at the edge.
             private const float BehindDegrees = 1f, FrontDegrees = 8f;
@@ -1031,8 +1040,8 @@ namespace SurvivalChaos.EditorTools
                 {
                     // Salvage restores 1 and comes often when hurt: worth a detour
                     // whenever anything is missing, ahead of everything when low.
-                    float priority = pickup.HealAmount > 0 ? (health < player.MaxHealth * .5f ? 12 : health < player.MaxHealth ? 4 : -1)
-                        : pickup.Skill is ShotUpgradeSkill ? 8 : pickup.Skill is AttackSpeedSkill ? 7
+                    float priority = pickup.HealAmount > 0 ? (health < player.MaxHealth * .5f ? 22 : health < player.MaxHealth ? 4 : -1)
+                        : pickup.Skill is ShotUpgradeSkill ? HydraPriority : pickup.Skill is AttackSpeedSkill ? AttackSpeedPriority
                         : pickup.Skill is MaxHealthSkill ? 6 : 5;
                     if (priority > 0) Add(pickup, Kind.Pickup, priority, 0, snapshot, seen);
                 }
@@ -1484,6 +1493,18 @@ namespace SurvivalChaos.EditorTools
                 }
                 else goingRound=false;
                 goalSource = goal.HasValue ? goal.Value.source : null;
+                // While Hydra or Attack Speed is on offer, the other upgrades in the
+                // same offer are flown round, whatever the goal is: one touched on
+                // the way, or while meeting an arrival, takes it and loses the prize.
+                var shunned = new List<Item>();
+                foreach (var other in known.items)
+                {
+                    if (other.kind != Kind.Pickup || !(other.source is Pickup taken) || taken == null || taken.Offer == null || taken.HealAmount > 0) continue;
+                    if (goal.HasValue && ReferenceEquals(other.source, goal.Value.source)) continue;
+                    foreach (var prize in known.items)
+                        if (prize.kind == Kind.Pickup && prize.priority >= PrizedPickup && prize.priority > other.priority
+                            && prize.source is Pickup prized && prized != null && prized.Offer == taken.Offer) { shunned.Add(other); break; }
+                }
                 Vector3 selectedEnd=origin;
                 float duration=dash!=null ? Read<float>(dash,"duration") : 0;
                 float boost=dash!=null ? Read<float>(dash,"speedMultiplier") : 1;
@@ -1529,6 +1550,13 @@ namespace SurvivalChaos.EditorTools
                         }
                     }
                     else score += x == 1 && y == 0 ? 0 : 1;
+                    foreach (var other in shunned)
+                    {
+                        float closest = float.PositiveInfinity;
+                        foreach (var point in route) closest = Mathf.Min(closest, Vector3.Distance(point, other.position));
+                        // Under a predicted hit's 10 at worst: an upgrade is not worth a hull point.
+                        score += Mathf.Max(0, other.radius + ShunMargin - closest) * 4;
+                    }
                     if (score < bestScore) { bestScore = score; best = candidate; selectedDanger = danger; selectedDash=useDash; selectedLanding=landing; selectedEnd=end; }
                 }
                 desired = best;

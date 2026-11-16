@@ -17,4 +17,6 @@ MonoBehaviour:
   maxPicks: 4
   availableFromLevel: 
   pickupColor: {r: 2.75, g: 0.5625, b: 3, a: 1}
+  effectLines:
+  - +10 hull
   amount: 10

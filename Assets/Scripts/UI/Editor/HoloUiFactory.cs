@@ -45,6 +45,16 @@ namespace SurvivalChaos.EditorTools
         public static readonly Color Loss = new Color(1.00f, 0.32f, 0.34f, 1.00f);
         public static readonly Color Health = new Color(0.40f, 1.00f, 0.80f, 1.00f);
         public static readonly Color Boss = new Color(1.00f, 0.55f, 0.25f, 1.00f);
+
+        /// <summary>
+        /// Experience: the gold of the numbers a kill raises, so the bar they
+        /// fill reads as theirs. It was the dash bar's cyan until 16 November
+        /// 2026, which tied it to the wrong thing.
+        /// </summary>
+        public static readonly Color Experience = new Color(1.00f, 0.78f, 0.25f, 1.00f);
+
+        /// <summary>The XP bar's trail as it empties at a level-up: dim gold, not the damage red.</summary>
+        public static readonly Color ExperienceTrail = new Color(0.75f, 0.55f, 0.18f, 1.00f);
         public static readonly Color Scrim = new Color(0.01f, 0.03f, 0.05f, 0.82f);
 
         public static Material EnsureBaseMaterial(string name, string shaderName)

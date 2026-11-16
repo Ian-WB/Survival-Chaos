@@ -14,11 +14,15 @@ namespace SurvivalChaos
     ///
     /// On initial launch:
     /// 1. Plays a developer card ("IAN WANDERLEY PRESENTS") with expanding rules, in silence.
-    /// 2. Fades into the title scene and its logo. A text card naming the game stood between
-    ///    the two until 12 November 2026; the logo says it better.
+    /// 2. Fades into the title film, held on its empty sky, and lets it run once the fade is
+    ///    done, so the logo powers on in plain view (see TitleFilm.HeldBack). The film used to
+    ///    run under the card, and the logo was lit before anyone saw it (16 November 2026). A
+    ///    text card naming the game stood between the two until 12 November 2026; the logo
+    ///    says it better.
     /// 3. The music fades in with it. That fade is the music component's own: this only holds
     ///    it back until then (see MusicSource.HeldBack).
-    /// 4. Holds in arcade attract mode with a breathing "PRESS ANY KEY" prompt.
+    /// 4. Holds in arcade attract mode with a breathing "PRESS ANY KEY" prompt, which comes up
+    ///    once the logo has lit.
     /// 5. On keypress, triggers a reactor ignition flash, sound burst, animated menu reveal,
     ///    and auto-focuses the first button for pad/keyboard navigation.
     /// 6. If idle on the title panel for 40 seconds, smoothly returns to attract mode. Only
@@ -139,12 +143,15 @@ namespace SurvivalChaos
             {
                 state = SplashState.None;
                 MusicSource.HeldBack = false;
+                TitleFilm.HeldBack = false;
                 return;
             }
 
             // Asked for now, before the scene's first frame, so not a note of
-            // the music is heard under the opening card.
+            // the music is heard under the opening card, and the film is still
+            // on its first frame when the card goes.
             MusicSource.HeldBack = !hasPlayedSessionSplash;
+            TitleFilm.HeldBack = !hasPlayedSessionSplash;
 
             StopAllCoroutines();
             StartCoroutine(SetupMenuScene());
@@ -160,6 +167,7 @@ namespace SurvivalChaos
                 titleScreenRect = null;
                 backdrop = null;
                 MusicSource.HeldBack = false;
+                TitleFilm.HeldBack = false;
             }
         }
 
@@ -204,6 +212,7 @@ namespace SurvivalChaos
             {
                 // Returning from a run: menu entries ready immediately
                 MusicSource.HeldBack = false;
+                TitleFilm.HeldBack = false;
                 blackAlpha = 0f;
                 flashAlpha = 0f;
                 if (titleScreenCanvasGroup != null)
@@ -283,7 +292,9 @@ namespace SurvivalChaos
                     }
                     else if (stateTimer >= 0.85f)
                     {
+                        // The sky is up: now the logo powers on.
                         blackAlpha = 0f;
+                        TitleFilm.HeldBack = false;
                         state = SplashState.AttractMode;
                         stateTimer = 0f;
                     }
@@ -344,7 +355,21 @@ namespace SurvivalChaos
         {
             blackAlpha = 0f;
             MusicSource.HeldBack = false;
+            TitleFilm.HeldBack = false;
             TriggerMenuReveal();
+        }
+
+        /// <summary>
+        /// Seconds into the attract prompt before it shows: the title film's
+        /// logo powers on over its first half second, and the prompt waited
+        /// for nothing before it.
+        /// </summary>
+        public const float PromptDelay = 0.6f;
+
+        /// <summary>How far the attract prompt has come up, <paramref name="seconds"/> into the attract state.</summary>
+        public static float PromptLevel(float seconds)
+        {
+            return Mathf.Clamp01((seconds - PromptDelay) / 0.4f);
         }
 
         /// <summary>
@@ -592,7 +617,7 @@ namespace SurvivalChaos
             {
                 float pulse = 0.50f + 0.50f * Mathf.Sin(Time.unscaledTime * 4.8f);
                 Color pc = attractPromptStyle.normal.textColor;
-                attractPromptStyle.normal.textColor = new Color(pc.r, pc.g, pc.b, pulse);
+                attractPromptStyle.normal.textColor = new Color(pc.r, pc.g, pc.b, pulse * PromptLevel(stateTimer));
 
                 float promptH = attractPromptStyle.fontSize * 1.5f;
                 GUI.Label(new Rect(0f, screenH * 0.80f, screenW, promptH), "PRESS ANY KEY", attractPromptStyle);

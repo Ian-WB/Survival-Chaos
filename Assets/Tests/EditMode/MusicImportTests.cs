@@ -68,5 +68,35 @@ namespace SurvivalChaos.Tests
 
             Assert.GreaterOrEqual(tracks, 3, "the menu, run and Leviathan tracks were not all found");
         }
+
+        /// <summary>
+        /// A loop end past the clip is never reached, so the track plays its
+        /// ending and starts again from the top, which is the thing the loop is
+        /// there to stop; an end before the start loops it whole. Both fail
+        /// silently, so this reads the assets (16 November 2026).
+        /// </summary>
+        [Test]
+        public void EveryMusicLoopFitsItsClip()
+        {
+            int loops = 0;
+
+            foreach (string guid in AssetDatabase.FindAssets("t:SoundDefinition", new[] { "Assets/Audio/Definitions" }))
+            {
+                SoundDefinition definition = AssetDatabase.LoadAssetAtPath<SoundDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (definition == null || definition.LoopEnd <= 0f)
+                {
+                    continue;
+                }
+
+                int cursor = -1;
+                AudioClip clip = definition.PickClip(ref cursor);
+                Assert.IsNotNull(clip, definition.name + " has a loop but no clip");
+                Assert.Less(definition.LoopStart, definition.LoopEnd, definition.name);
+                Assert.LessOrEqual(definition.LoopEnd, clip.length, definition.name + ": the loop ends past the clip");
+                loops++;
+            }
+
+            Assert.GreaterOrEqual(loops, 1, "the run's track has no loop");
+        }
     }
 }

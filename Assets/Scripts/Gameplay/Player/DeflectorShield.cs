@@ -135,7 +135,7 @@ namespace SurvivalChaos
         /// A flat band around the origin in the XY plane, wound both ways so it
         /// draws whichever side the material culls.
         /// </summary>
-        private static Mesh RingMesh(float radius, float width)
+        public static Mesh RingMesh(float radius, float width)
         {
             var vertices = new Vector3[Segments * 2];
             var triangles = new int[Segments * 12];

@@ -217,6 +217,7 @@ namespace SurvivalChaos
             }
 
             GameIsPaused = false;
+            PauseShipView.Hide();
             RunTime.Apply();
         }
 
@@ -227,6 +228,9 @@ namespace SurvivalChaos
             if (pauseNotice != null) { pauseNotice.SetActive(false); }
             if (pauseMenuUI != null) { pauseMenuUI.SetActive(true); }
             GameIsPaused = true;
+
+            // The one moment the ship can be looked at: see PauseShipView.
+            PauseShipView.Show();
             RunTime.Apply();
         }
     }

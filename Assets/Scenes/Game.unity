@@ -12820,6 +12820,12 @@ MonoBehaviour:
   healthTint: {r: 0.35, g: 1, b: 0.55, a: 1}
   numberSeconds: 0.9
   numberRise: 2.2
+  mergeSeconds: 0.35
+  mergeDistance: 3.5
+  edgeArrows: 1
+  edgeMargin: 28
+  edgeSmallest: 0.55
+  edgeBand: 0.25
 --- !u!1 &386593568
 GameObject:
   m_ObjectHideFlags: 0
@@ -15832,6 +15838,7 @@ GameObject:
   - component: {fileID: 501978594}
   - component: {fileID: 501978593}
   - component: {fileID: 501978592}
+  - component: {fileID: 501978598}
   m_Layer: 0
   m_Name: Boss Bar
   m_TagString: bossHpBar
@@ -15891,6 +15898,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &501978594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15992,6 +16001,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 501978590}
   m_CullTransparentMesh: 1
+--- !u!114 &501978598
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 501978590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6022f43236a45984784c0155abd1289d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.BarMarks
+  width: 3
+  overhang: 6
+  inset: 4
+  colour: {r: 0.55, g: 0.95, b: 1, a: 1}
 --- !u!1 &509574216
 GameObject:
   m_ObjectHideFlags: 0
@@ -19075,6 +19100,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &635881918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21493,6 +21520,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &709384919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26117,6 +26146,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &934030579
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27481,6 +27512,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &976918769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29093,6 +29126,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1041845950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29352,6 +29387,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1049687028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29467,6 +29504,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1059922904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31334,7 +31373,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Incoming
+  m_text: Leviathan  10:00
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0fb93a97284033948a5b10590292f598, type: 2}
   m_sharedMaterial: {fileID: -4361812200676605057, guid: 0fb93a97284033948a5b10590292f598, type: 2}
@@ -36066,6 +36105,9 @@ MonoBehaviour:
   xpBar: {fileID: 1307770285}
   expText: {fileID: 217500815}
   player: {fileID: 1345772188}
+  levelUpColour: {r: 1, g: 0.78, b: 0.25, a: 1}
+  levelUpScale: 1.3
+  levelUpSeconds: 0.6
 --- !u!114 &1307770283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36085,6 +36127,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1307770284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37765,7 +37809,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 48, y: 48}
-  m_SizeDelta: {x: 440, y: 38}
+  m_SizeDelta: {x: 220, y: 38}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1390241629
 MonoBehaviour:
@@ -37784,6 +37828,9 @@ MonoBehaviour:
   shakeSeconds: 0.22
   warnAtOrBelow: 1
   heartbeatSeconds: 0.9
+  pixelsPerHitPoint: 11
+  hitPointsPerSegment: 2
+  growSeconds: 0.35
 --- !u!114 &1390241630
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37803,6 +37850,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1390241631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38277,6 +38326,9 @@ MonoBehaviour:
   timerBar: {fileID: 1059922901}
   timeValue: 0
   hornLead: 10
+  countdown: {fileID: 0}
+  countdownName: Leviathan
+  hornPulse: 0.7
 --- !u!1 &1425878371
 GameObject:
   m_ObjectHideFlags: 0
@@ -48297,6 +48349,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1842678374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50328,6 +50382,8 @@ MonoBehaviour:
   selectedBorderBoost: 2
   selectedFillLift: 0.35
   selectedResponse: 16
+  flashSeconds: 0.45
+  alertColour: {r: 1, g: 0.55, b: 0.25, a: 1}
 --- !u!114 &1954293718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54144,6 +54200,7 @@ GameObject:
   - component: {fileID: 919132148744893766}
   - component: {fileID: 919132148744893767}
   - component: {fileID: 919132148744893768}
+  - component: {fileID: 919132148744893769}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -54279,6 +54336,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.PlayerSlowMo
   duration: 5
   slowScale: 0.4
+--- !u!114 &919132148744893769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132148744893760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a48385661a38a047b4ec19023dbb5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.DashReadyGlint
+  material: {fileID: 2100000, guid: 1685b3596438635459ea94647ecc014c, type: 2}
+  color: {r: 0.6, g: 2.2, b: 3, a: 1}
+  radius: 0.425
+  width: 0.045
+  startScale: 2.4
+  endScale: 0.6
+  seconds: 0.28
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

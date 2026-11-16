@@ -236,7 +236,38 @@ namespace SurvivalChaos
                 GameSounds.Play(GameSounds.Instance.SkillPicked);
             }
 
-            ShowBanner(skill.GetDisplayName(Pool.PicksTaken(skill)));
+            ShowBanner(BannerFor(skill, Pool.PicksTaken(skill)));
+        }
+
+        /// <summary>
+        /// The banner for a pick just taken: its name with the pick's numeral,
+        /// as the pickup was labelled, and under it what the pick did.
+        ///
+        /// It said "Level Up!" over the name until 16 November 2026, but it
+        /// shows when an upgrade is flown into, and the level-up that put the
+        /// offer out can be twenty seconds gone by then. The level-up has its
+        /// own mark now, on the experience bar.
+        /// </summary>
+        public static string BannerFor(SkillDefinition skill, int picksTaken)
+        {
+            if (skill == null)
+            {
+                return string.Empty;
+            }
+
+            string effect = skill.GetEffectLine(picksTaken);
+            return BannerText(skill.GetPickupName(picksTaken), effect);
+        }
+
+        /// <summary>The banner's two lines, the second smaller; one line when there is no second.</summary>
+        public static string BannerText(string title, string effect)
+        {
+            if (string.IsNullOrWhiteSpace(effect))
+            {
+                return title ?? string.Empty;
+            }
+
+            return title + "\n<size=62%>" + effect + "</size>";
         }
 
         /// <summary>
@@ -293,7 +324,7 @@ namespace SurvivalChaos
                 GameSounds.Play(GameSounds.Instance.SkillPicked);
             }
 
-            ShowBanner(skill.GetDisplayName(Pool.PicksTaken(skill)));
+            ShowBanner(BannerFor(skill, Pool.PicksTaken(skill)));
         }
 
         /// <summary>
@@ -342,10 +373,10 @@ namespace SurvivalChaos
             banner = StartCoroutine(showText(skillName));
         }
 
-        IEnumerator showText(string skillName)
+        IEnumerator showText(string banner)
         {
             skillTextObject.SetActive(true);
-            skillText.text = "Level Up!\n" + skillName;
+            skillText.text = banner;
 
             yield return new WaitForSeconds(3);
             skillTextObject.SetActive(false);

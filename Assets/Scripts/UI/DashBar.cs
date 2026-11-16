@@ -61,7 +61,28 @@ namespace SurvivalChaos
         /// </summary>
         private void Update()
         {
-            fill.fillAmount = dash.ReadyFraction;
+            float ready = dash.ReadyFraction;
+            fill.fillAmount = ready;
+
+            // The moment it comes back, the bar flashes; the ship's
+            // DashReadyGlint says the same where the player is looking.
+            bool full = ready >= 1f;
+            if (full && !wasFull && holo != null)
+            {
+                holo.Flash();
+            }
+
+            wasFull = full;
+        }
+
+        private HoloBar holo;
+
+        /// <summary>Starts true: the dash is ready at the start, which is not a moment.</summary>
+        private bool wasFull = true;
+
+        private void Start()
+        {
+            holo = GetComponent<HoloBar>();
         }
     }
 }

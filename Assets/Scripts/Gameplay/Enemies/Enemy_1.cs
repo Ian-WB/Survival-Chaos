@@ -39,7 +39,45 @@ namespace SurvivalChaos
         [Range(0f, 10f)]
         private float spawnDelay = 1;
 
+        [Header("Tell")]
+        [SerializeField]
+        [Tooltip("The glow shown on a gun before it fires: BossTellGlow, the Leviathan's. Left " +
+                 "empty, the gun fires unannounced, as it did before 16 November 2026.")]
+        private Mesh tellMesh;
+
+        [SerializeField]
+        [Tooltip("Material for the glow: BossMuzzleTell, the thruster shader in the hostile colour.")]
+        private Material tellMaterial;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("Seconds the glow builds for before each shot. These rounds cost two hit points; " +
+                 "this is the warning that one is coming.")]
+        private float tellSeconds = 0.3f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Size of the glow at the moment the gun fires, in this ship's own units.")]
+        private float tellSize = 0.3f;
+
+        [SerializeField]
+        [Tooltip("Brightness of the glow at the moment the gun fires. The Leviathan's is 3.")]
+        private float tellBrightness = 3f;
+
+        [Header("Recoil")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard a shot kicks the model back, in units a second. 0 for none.")]
+        private float recoil = 2.5f;
+
         private EnemyMovement movement;
+        private EnemySpaceShip model;
+
+        private Renderer[] tells;
+        private MaterialPropertyBlock tellBlock;
+
+        /// <summary>When the next volley leaves, in game time, for the glow to count down to.</summary>
+        private float nextShotAt = float.PositiveInfinity;
 
         protected override int FallbackReward => 15;
 
@@ -52,6 +90,68 @@ namespace SurvivalChaos
             if (Ship != null)
             {
                 Ship.TryGetComponent(out movement);
+            }
+
+            model = GetComponentInChildren<EnemySpaceShip>();
+            BuildTells();
+        }
+
+        /// <summary>
+        /// One glow on each gun that fires. In Awake, so the pool counts them
+        /// among this ship's renderers the first time it spawns it.
+        /// </summary>
+        private void BuildTells()
+        {
+            if (tellMesh == null || tellMaterial == null || tellSeconds <= 0f)
+            {
+                return;
+            }
+
+            bool second = roundsPerVolley > 1 && shootPivot_1 != null && shootPivot_1 != shootPivot;
+
+            tells = new Renderer[second ? 2 : 1];
+            tells[0] = ShipFlare.Build(
+                shootPivot, "Gun Tell", tellMesh, tellMaterial, Vector3.zero, Quaternion.identity);
+
+            if (second)
+            {
+                tells[1] = ShipFlare.Build(
+                    shootPivot_1, "Gun Tell", tellMesh, tellMaterial, Vector3.zero, Quaternion.identity);
+            }
+
+            tellBlock = new MaterialPropertyBlock();
+        }
+
+        /// <summary>
+        /// The glow, building over the last <see cref="tellSeconds"/> before a
+        /// shot on the curve the Leviathan's muzzles use, so the moment it
+        /// peaks is the moment the gun fires.
+        /// </summary>
+        private void Update()
+        {
+            if (tells == null)
+            {
+                return;
+            }
+
+            float until = nextShotAt - Time.time;
+            float level = until < tellSeconds && !ArenaIntroDirector.IsPlaying
+                ? VolleyTell.Together(1f - until / tellSeconds)
+                : 0f;
+
+            SetTells(level);
+        }
+
+        private void SetTells(float level)
+        {
+            if (tells == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < tells.Length; i++)
+            {
+                ShipFlare.Set(tells[i], tellBlock, Vector3.one * (tellSize * level), tellBrightness * level);
             }
         }
 
@@ -68,6 +168,8 @@ namespace SurvivalChaos
 
             CancelInvoke(nameof(Shoot));
             InvokeRepeating(nameof(Shoot), initialDelay, spawnDelay);
+            nextShotAt = Time.time + initialDelay;
+            SetTells(0f);
         }
 
         private void OnDisable()
@@ -77,6 +179,8 @@ namespace SurvivalChaos
 
         private void Shoot()
         {
+            nextShotAt = Time.time + spawnDelay;
+
             // Cached and guarded: this fires on a repeating invoke, so an unguarded
             // lookup would throw for the whole lifetime of a mis-wired prefab.
             //
@@ -101,6 +205,13 @@ namespace SurvivalChaos
             if (roundsPerVolley > 1)
             {
                 ObjectPool.Spawn(bullet, shootPivot_1.position, Quaternion.Euler(0f, 0f, 90f));
+            }
+
+            // Back along the ring from the way the rounds leave.
+            if (recoil > 0f && model != null && model.Rig != null)
+            {
+                bool left = movement != null && movement.TravellingLeft;
+                model.Rig.Kick(new Vector3(left ? recoil : -recoil, 0f, 0f));
             }
         }
     }

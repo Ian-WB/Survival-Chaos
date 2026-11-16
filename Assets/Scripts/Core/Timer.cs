@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,6 +49,28 @@ namespace SurvivalChaos
         /// <summary>Latches the distant horn, like the handover.</summary>
         private bool hornSounded;
 
+        [Header("Countdown")]
+        [SerializeField]
+        [Tooltip("The caption over the bar, which counts down to the boss. Left empty, the " +
+                 "first text under the timer bar is used.")]
+        private TMP_Text countdown;
+
+        [SerializeField]
+        [Tooltip("What the countdown is to, written before the minutes and seconds.")]
+        private string countdownName = "Leviathan";
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("How hard the bar pulses once the distant horn has sounded, as it turns the " +
+                 "boss bar's orange.")]
+        private float hornPulse = 0.7f;
+
+        /// <summary>The bar's shader driver, for the horn's warning colour.</summary>
+        private HoloBar timerHolo;
+
+        /// <summary>The whole seconds the caption reads, so it is rewritten once a second.</summary>
+        private int shownSeconds = -1;
+
         void Start()
         {
             runLength = ResolveRunLength();
@@ -55,11 +78,61 @@ namespace SurvivalChaos
             if (timerSlider != null)
             {
                 timerSlider.maxValue = runLength;
+                timerHolo = timerSlider.GetComponent<HoloBar>();
+            }
+
+            if (countdown == null && timerBar != null)
+            {
+                countdown = timerBar.GetComponentInChildren<TMP_Text>(includeInactive: true);
             }
 
             timeValue = 0;
             handedOver = false;
             hornSounded = false;
+            shownSeconds = -1;
+            ShowCountdown();
+        }
+
+        /// <summary>
+        /// Minutes and seconds left, as the caption shows them: "4:12". Rounded
+        /// up, so the caption reaches 0:00 as the boss arrives rather than a
+        /// second before, and never shows a negative.
+        /// </summary>
+        public static string Countdown(float secondsLeft)
+        {
+            int whole = Mathf.Max(0, Mathf.CeilToInt(secondsLeft - 0.0001f));
+            return (whole / 60) + ":" + (whole % 60).ToString("00");
+        }
+
+        /// <summary>
+        /// Writes the caption when the whole second changes, and turns the bar
+        /// to the boss's colour once the distant horn's lead has begun.
+        ///
+        /// The caption was the word "Incoming" until 16 November 2026, so the
+        /// bar's twenty ticks were the only way to tell four minutes left from
+        /// six. A number is not a phase name: it adds no words to the fight,
+        /// which is what the 8 September revert took off the screen.
+        /// </summary>
+        private void ShowCountdown()
+        {
+            float left = runLength - timeValue;
+
+            if (countdown != null)
+            {
+                int whole = Mathf.Max(0, Mathf.CeilToInt(left - 0.0001f));
+                if (whole != shownSeconds)
+                {
+                    shownSeconds = whole;
+                    countdown.text = countdownName + "  " + Countdown(left);
+                }
+            }
+
+            if (timerHolo != null)
+            {
+                bool warning = hornLead > 0f && left <= hornLead && runLength > 0f;
+                timerHolo.Alert = warning ? 1f : 0f;
+                timerHolo.PulseFloor = warning ? hornPulse : 0f;
+            }
         }
 
         /// <summary>
@@ -159,6 +232,8 @@ namespace SurvivalChaos
             {
                 timerSlider.value = timeValue;
             }
+
+            ShowCountdown();
         }
 
         void Update()
@@ -175,6 +250,8 @@ namespace SurvivalChaos
             {
                 timerSlider.value = timeValue;
             }
+
+            ShowCountdown();
 
             // The clock and its bar run on through an ending beat, but nothing
             // past this point may: the run is settled, and a ship lost just

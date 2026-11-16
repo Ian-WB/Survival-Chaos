@@ -55,7 +55,20 @@ namespace SurvivalChaos
         [Tooltip("How sharply the focus highlight settles. Higher is snappier.")]
         private float selectedResponse = 16f;
 
+        [Header("Flash and alert (HUD bars)")]
+        [SerializeField]
+        [Range(0.05f, 2f)]
+        [Tooltip("Seconds a Flash takes to fade. A flash lights the bar the way focus does, at " +
+                 "full strength, and lets go of it across this.")]
+        private float flashSeconds = 0.45f;
+
+        [SerializeField]
+        [Tooltip("The fill colour the bar turns while Alert is up. The boss bar's orange, so " +
+                 "the timer's last seconds already look like what is coming.")]
+        private Color alertColour = new Color(1.00f, 0.55f, 0.25f, 1.00f);
+
         private static readonly int FillId = Shader.PropertyToID("_Fill");
+        private static readonly int SegmentsId = Shader.PropertyToID("_Segments");
         private static readonly int GhostId = Shader.PropertyToID("_Ghost");
         private static readonly int PulseId = Shader.PropertyToID("_Pulse");
 
@@ -66,6 +79,39 @@ namespace SurvivalChaos
         /// the warning should be unmistakable.
         /// </summary>
         public float PulseFloor { get; set; }
+
+        /// <summary>
+        /// How far the fill has turned to the alert colour, 0 to 1. Set by the
+        /// timer for the ten seconds the distant horn gives before the boss.
+        /// </summary>
+        public float Alert { get; set; }
+
+        /// <summary>What is left of the last flash, 1 at its start.</summary>
+        private float flash;
+
+        /// <summary>
+        /// Lights the bar once, the way focus lights an option bar, and fades.
+        /// For a moment the player should notice in the corner of their eye:
+        /// a level reached, the dash back.
+        /// </summary>
+        public void Flash()
+        {
+            flash = 1f;
+        }
+
+        /// <summary>
+        /// Sets how many segments the bar is ruled into, on this bar's own
+        /// material. The hull bar keeps one segment for every two hit points
+        /// however long it grows.
+        /// </summary>
+        public void SetSegments(float segments)
+        {
+            if (instance != null)
+            {
+                instance.SetFloat(SegmentsId, Mathf.Max(0f, segments));
+            }
+        }
+
         private static readonly int GlowId = Shader.PropertyToID("_Glow");
         private static readonly int BorderId = Shader.PropertyToID("_Border");
         private static readonly int FillColourId = Shader.PropertyToID("_FillColor");
@@ -82,7 +128,8 @@ namespace SurvivalChaos
 
         private float selected;
         private float selectedTarget;
-        private float appliedSelected = -1f;
+        private float appliedLift = -1f;
+        private float appliedAlert = -1f;
 
         private void Awake()
         {
@@ -156,6 +203,11 @@ namespace SurvivalChaos
                     1f - Mathf.Exp(-selectedResponse * Time.unscaledDeltaTime));
             }
 
+            if (flash > 0f)
+            {
+                flash = Mathf.Max(0f, flash - Time.unscaledDeltaTime / flashSeconds);
+            }
+
             Apply();
         }
 
@@ -181,18 +233,26 @@ namespace SurvivalChaos
 
             instance.SetFloat(PulseId, pulse);
 
-            // Written only when it moves: the HUD's bars never leave zero, and
-            // have no reason to rewrite three properties every frame.
-            if (Mathf.Approximately(selected, appliedSelected))
+            // Focus and a flash light the bar the same way, so the stronger of
+            // the two is what shows.
+            float lift = Mathf.Max(selected, flash);
+            float alert = Mathf.Clamp01(Alert);
+
+            // Written only when it moves: the HUD's bars spend nearly all their
+            // time at zero, and have no reason to rewrite three properties
+            // every frame.
+            if (Mathf.Approximately(lift, appliedLift) && Mathf.Approximately(alert, appliedAlert))
             {
                 return;
             }
 
-            appliedSelected = selected;
-            instance.SetFloat(GlowId, baseGlow * Mathf.Lerp(1f, selectedGlowBoost, selected));
-            instance.SetFloat(BorderId, baseBorder * Mathf.Lerp(1f, selectedBorderBoost, selected));
+            appliedLift = lift;
+            appliedAlert = alert;
+            instance.SetFloat(GlowId, baseGlow * Mathf.Lerp(1f, selectedGlowBoost, lift));
+            instance.SetFloat(BorderId, baseBorder * Mathf.Lerp(1f, selectedBorderBoost, lift));
 
-            Color fill = Color.Lerp(baseFillColour, Color.white, selectedFillLift * selected);
+            Color fill = Color.Lerp(baseFillColour, alertColour, alert);
+            fill = Color.Lerp(fill, Color.white, selectedFillLift * lift);
             fill.a = baseFillColour.a;
             instance.SetColor(FillColourId, fill);
         }

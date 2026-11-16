@@ -1431,6 +1431,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  animate: 0
+  climbPitchAngle: 16
+  fullClimbSpeed: 2.5
+  flyInSpeed: 1.5
+  turnThrough: 180
+  bobHeight: 0.03
+  bobRoll: 4
+  bobPitch: 2
+  bobSpeed: 1.6
+  springs:
+    turnFrequency: 1.6
+    turnDamping: 0.8
+    bankPerTurnRate: 0.06
+    maxTurnBank: 35
+    attitudeFrequency: 2
+    attitudeDamping: 0.6
+    maxPitch: 30
+    knockFrequency: 4.5
+    knockDamping: 0.5
+    maxKnock: 0.18
+  plumeMesh: {fileID: 0}
+  flareMaterial: {fileID: 0}
+  engineOffsets: []
+  flareLength: 0.4
+  flareWidth: 0.28
+  flareBrightness: 3
+  flareIdle: 0.35
 --- !u!1 &5080215830933510645
 GameObject:
   m_ObjectHideFlags: 0
@@ -2088,6 +2115,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.EnemySpaceShip
   EnemyShip: {fileID: 2752971980227408059}
+  animate: 0
+  climbPitchAngle: 16
+  fullClimbSpeed: 2.5
+  flyInSpeed: 1.5
+  turnThrough: 180
+  bobHeight: 0.03
+  bobRoll: 4
+  bobPitch: 2
+  bobSpeed: 1.6
+  springs:
+    turnFrequency: 1.6
+    turnDamping: 0.8
+    bankPerTurnRate: 0.06
+    maxTurnBank: 35
+    attitudeFrequency: 2
+    attitudeDamping: 0.6
+    maxPitch: 30
+    knockFrequency: 4.5
+    knockDamping: 0.5
+    maxKnock: 0.18
+  plumeMesh: {fileID: 0}
+  flareMaterial: {fileID: 0}
+  engineOffsets: []
+  flareLength: 0.4
+  flareWidth: 0.28
+  flareBrightness: 3
+  flareIdle: 0.35
 --- !u!1 &6935945300827674276
 GameObject:
   m_ObjectHideFlags: 0

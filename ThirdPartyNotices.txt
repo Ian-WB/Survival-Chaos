@@ -92,16 +92,20 @@ file, as ThirdPartyNotices-DirectStorage.txt, unaltered from DirectStorage
 Music
 ------------------------------------------------------------------------
 
-All three tracks are by Adiutorium, from OpenGameArt.org, and are
+Two of the tracks are by Adiutorium, from OpenGameArt.org, and are
 dedicated to the public domain under CC0 1.0. No credit is required; the
 composer asks for it if you can, so here it is.
 
 Darbuka Delight (the title screen)
   https://opengameart.org/content/darbuka-delight
-Chase (a run)
-  https://opengameart.org/content/chase-2
 Neon Hyperdrive (the Leviathan)
   https://opengameart.org/content/neon-hyperdrive
+
+The run's track, Moon Over the Horizon, was made for this game with
+ElevenLabs Music, under the commercial licence of an ElevenLabs paid
+plan. No credit is required; it is named here so the music's origin is
+plain.
+  https://elevenlabs.io/music
 
 ------------------------------------------------------------------------
 The Moon

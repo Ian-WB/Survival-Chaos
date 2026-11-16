@@ -119,8 +119,11 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// CC0, so nothing requires it, but the composer asks for credit where
-        /// it can be given, and this file ships beside every build.
+        /// Adiutorium's two are CC0, so nothing requires it, but the composer
+        /// asks for credit where it can be given, and this file ships beside
+        /// every build. The run's track has been an ElevenLabs one since 16
+        /// November 2026 (it replaced Adiutorium's "Chase"): no credit is
+        /// required for it either, and it is named so its origin is plain.
         /// </summary>
         [Test]
         public void EveryMusicTrackIsCredited()
@@ -128,8 +131,18 @@ namespace SurvivalChaos.Tests
             string text = Notices();
             StringAssert.Contains("Adiutorium", text);
             StringAssert.Contains("opengameart.org/content/darbuka-delight", text);
-            StringAssert.Contains("opengameart.org/content/chase-2", text);
             StringAssert.Contains("opengameart.org/content/neon-hyperdrive", text);
+            StringAssert.Contains("Moon Over the Horizon", text);
+            StringAssert.Contains("ElevenLabs Music", text);
+            StringAssert.DoesNotContain("chase-2", text, "Chase is no longer in the game");
+
+            const string line = "Moon Over the Horizon | made with ElevenLabs Music";
+            StringAssert.Contains(line, File.ReadAllText("Assets/Scripts/UI/Editor/HoloMainMenuBuilder.cs"),
+                "the credits the menu is built from do not name the run's track");
+            // Unity wraps a long line of text when it saves a scene, so the breaks are taken out first.
+            string menu = System.Text.RegularExpressions.Regex.Replace(File.ReadAllText("Assets/Scenes/Menu.unity"), @"\s+", " ");
+            StringAssert.Contains(line, menu,
+                "the saved credits screen does not name the run's track: the text is in HoloMainMenuBuilder.CreditsText");
         }
 
         /// <summary>

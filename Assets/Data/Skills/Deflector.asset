@@ -17,5 +17,8 @@ MonoBehaviour:
   maxPicks: 2
   availableFromLevel: 060000000d000000i
   pickupColor: {r: 2.6, g: 2.8, b: 3, a: 1}
+  effectLines:
+  - Blocks a hit, back in 10 s
+  - Back in 3 s
   stageNames: []
   stagePickupNames: []

@@ -67,6 +67,7 @@ namespace SurvivalChaos.EditorTools
             BuildTimer(root.transform, bar);
             BuildBossBar(root.transform, bar);
             BuildLevelUpBanner(root.transform, panel);
+            PutBoardUnderHud(canvas.transform, root.transform);
 
             // Order matters: the components have to exist on the new objects
             // before anything is wired to them, and everything has to be wired
@@ -130,6 +131,18 @@ namespace SurvivalChaos.EditorTools
             EditorUtility.SetDirty(scaler);
         }
 
+        /// <summary>
+        /// The hull bar's length at the start of a run: the starting 20 hit
+        /// points at HealthBar's 11 a point. It grows by 110 a Max HP pick and
+        /// is level with the 440 of the rows above after two (16 November 2026).
+        /// HealthBar sets the length from the hit points at Start; this only
+        /// makes the scene look like that before play.
+        /// </summary>
+        private const float HullStartWidth = 220f;
+
+        /// <summary>Two hit points a segment over the starting 20.</summary>
+        private const float HullStartSegments = 10f;
+
         private static void BuildHealth(Transform parent, Material bar)
         {
             HoloUiFactory.CreateText(parent, "Health Label", Vector2.zero, Vector2.zero,
@@ -137,8 +150,92 @@ namespace SurvivalChaos.EditorTools
                 .text = "Hull";
 
             HoloUiFactory.CreateBar(parent, "Health Bar", Vector2.zero, Vector2.zero,
-                new Vector2(48f, 48f), new Vector2(440f, 38f), bar,
-                HoloUiFactory.Health, 10f, 0.3f);
+                new Vector2(48f, 48f), new Vector2(HullStartWidth, 38f), bar,
+                HoloUiFactory.Health, HullStartSegments, 0.3f);
+        }
+
+        /// <summary>
+        /// Brings a HUD that is already built up to the 16 November 2026
+        /// changes, leaving the rest of it as it is, the way Add Deflector Bar
+        /// does: the experience bar in gold, the hull bar at its starting
+        /// length, the boss bar's act marks and the countdown caption, with
+        /// the pickup captions kept under the HUD. Safe to run again; a
+        /// rebuilt HUD has all of this already.
+        /// </summary>
+        [MenuItem("Survival Chaos/UI/Update HUD In Place", priority = 143)]
+        public static void UpdateInPlace()
+        {
+            Canvas canvas = FindCanvas();
+            Transform root = canvas != null ? canvas.transform.Find(RootName) : null;
+            if (root == null)
+            {
+                EditorUtility.DisplayDialog("No HUD",
+                    "Open the Game scene and build the HUD first (Survival Chaos/UI/Rebuild HUD).", "OK");
+                return;
+            }
+
+            Image xp = HoloUiFactory.Find<Image>(root, "XP Bar");
+            if (xp != null && xp.material != null)
+            {
+                Undo.RecordObject(xp.material, "Experience gold");
+                xp.material.SetColor("_FillColor", HoloUiFactory.Experience);
+                xp.material.SetColor("_GhostColor", HoloUiFactory.ExperienceTrail);
+                EditorUtility.SetDirty(xp.material);
+            }
+
+            Place(root, "Health Bar", new Vector2(48f, 48f), new Vector2(HullStartWidth, 38f));
+            Image hull = HoloUiFactory.Find<Image>(root, "Health Bar");
+            if (hull != null && hull.material != null)
+            {
+                Undo.RecordObject(hull.material, "Hull segments");
+                hull.material.SetFloat("_Segments", HullStartSegments);
+                EditorUtility.SetDirty(hull.material);
+            }
+
+            Slider boss = HoloUiFactory.Find<Slider>(root, "Boss Bar");
+            if (boss != null && boss.GetComponent<BarMarks>() == null)
+            {
+                Undo.AddComponent<BarMarks>(boss.gameObject);
+            }
+
+            TextMeshProUGUI caption = HoloUiFactory.Find<TextMeshProUGUI>(root, "Timer Label");
+            if (caption != null)
+            {
+                Undo.RecordObject(caption, "Countdown caption");
+                caption.text = CountdownPlaceholder;
+            }
+
+            PutBoardUnderHud(canvas.transform, root);
+
+            AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);
+            Debug.Log("HUD updated in place (16 November 2026). Ctrl+Z reverts it.", root);
+        }
+
+        /// <summary>What the timer's caption reads before play; Timer writes the real one.</summary>
+        private const string CountdownPlaceholder = "Leviathan  10:00";
+
+        /// <summary>
+        /// Keeps the pickup caption board before the HUD among the canvas's
+        /// children, so the HUD draws over the captions and kill numbers. The
+        /// scene already had it there on 16 November 2026; this holds it for a
+        /// board added after the HUD (PickupPrefabBuilder appends it last).
+        /// </summary>
+        private static void PutBoardUnderHud(Transform canvas, Transform hud)
+        {
+            PickupLabelBoard board = Object.FindAnyObjectByType<PickupLabelBoard>(FindObjectsInactive.Include);
+            if (board == null || board.transform.parent != canvas || hud.parent != canvas)
+            {
+                return;
+            }
+
+            if (board.transform.GetSiblingIndex() < hud.GetSiblingIndex())
+            {
+                return;
+            }
+
+            Undo.SetTransformParent(board.transform, canvas, "Captions under the HUD");
+            board.transform.SetSiblingIndex(hud.GetSiblingIndex());
         }
 
         /// <summary>
@@ -425,13 +522,17 @@ namespace SurvivalChaos.EditorTools
             // ExpBar reads an Image's fillAmount rather than a Slider, so this one
             // has no Slider and HoloBar falls back to reading fillAmount.
             Image image = HoloUiFactory.CreateBarImage(parent, "XP Bar", Vector2.zero, Vector2.zero,
-                new Vector2(48f, 172f), new Vector2(440f, 14f), bar, HoloUiFactory.Accent, 0f);
+                new Vector2(48f, 172f), new Vector2(440f, 14f), bar, HoloUiFactory.Experience, 0f);
 
             // Left as Simple deliberately. Filled would shorten the quad itself,
             // and the shader would then draw a whole bar inside that short piece.
             // ExpBar can still set fillAmount - it is stored, and read from here.
             image.type = Image.Type.Simple;
             image.fillAmount = 0f;
+
+            // The bar empties at every level-up, and the default red loss trail
+            // read as damage next to the gold flash.
+            image.material.SetColor("_GhostColor", HoloUiFactory.ExperienceTrail);
 
             HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
             // No source, and no low pulse: running out of experience is not an
@@ -451,7 +552,7 @@ namespace SurvivalChaos.EditorTools
             // The countdown and its caption have one lifetime during the boss handover.
             HoloUiFactory.CreateText(timer.transform, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, 24f), new Vector2(600f, 22f), 16f, TextAlignmentOptions.Center)
-                .text = "Incoming";
+                .text = CountdownPlaceholder;
         }
 
         private static void BuildBossBar(Transform parent, Material bar)
@@ -463,6 +564,10 @@ namespace SurvivalChaos.EditorTools
             // BossEmitter finds this by tag at runtime, so the tag matters more
             // than the name.
             slider.gameObject.tag = BossBarTag;
+
+            // Where the acts end, set by BossEmitter from its emplacements and
+            // scuttle threshold once it finds the bar. Marks, not words: see BarMarks.
+            Undo.AddComponent<BarMarks>(slider.gameObject);
 
             HoloUiFactory.CreateText(slider.transform, "Boss Label", new Vector2(0.5f, 1f),
                 new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(600f, 24f), 20f,

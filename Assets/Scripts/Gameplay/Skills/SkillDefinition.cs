@@ -34,7 +34,29 @@ namespace SurvivalChaos
                  "which is what makes it read as a glowing object rather than a painted one.")]
         private Color pickupColor = new Color(2f, 1.2f, 0.2f);
 
+        [SerializeField]
+        [Tooltip("What each pick does, one short line in pick order, shown under the name on the " +
+                 "banner when it is taken; the last line holds for any pick after it. The numbers " +
+                 "in it are the Player's tuning, and a test holds them to it.")]
+        private string[] effectLines = new string[0];
+
         public string DisplayName => displayName;
+
+        /// <summary>
+        /// What a pick did, for the banner's second line: "+30% fire rate".
+        /// Empty when none is authored. Clamped like the stage names, so a
+        /// skill with one line says it for every pick.
+        /// </summary>
+        public string GetEffectLine(int picksTaken)
+        {
+            if (effectLines == null || effectLines.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            string line = effectLines[Mathf.Clamp(picksTaken - 1, 0, effectLines.Length - 1)];
+            return line ?? string.Empty;
+        }
 
         public int MaxPicks => maxPicks;
 

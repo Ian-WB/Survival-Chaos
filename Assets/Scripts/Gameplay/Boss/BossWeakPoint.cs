@@ -86,6 +86,12 @@ namespace SurvivalChaos
         public int CurrentHealth => health != null ? health.Current : healthPoints;
 
         /// <summary>
+        /// The emplacement's full health, which is what it spends from the
+        /// boss's pool by the time it is wrecked.
+        /// </summary>
+        public int MaxHealth => healthPoints;
+
+        /// <summary>
         /// Whether this emplacement is wrecked, and so whether the attack it feeds
         /// still fires.
         ///

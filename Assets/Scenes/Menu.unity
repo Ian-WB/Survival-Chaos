@@ -10199,7 +10199,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "DEVELOPMENT TEAM\n\nSamuel Silva | Game Design\nLucca To\xE9 | Tech Art\nMaria Fernanda | Game Artist\nIan Barbosa | Main Programmer\nFabr\xEDcio Frade | UI Programmer\nLuis Rocha | Programmer\n\n\nMUSIC\n\nDarbuka Delight, Chase and Neon Hyperdrive\nby Adiutorium, from OpenGameArt.org (CC0)\n\n\nSOUND\n\nKenney | Interface Sounds and Sci-fi Sounds (CC0)\nBluezone Corporation | weapon sounds, from the Sonniss GDC bundle\n\n\nVISUAL EFFECTS\n\nBig Rook Games | effects pack\nUnity Technologies | Particle Pack\n\n\nSKY\n\nThe Moon's surface | NASA's Scientific Visualization Studio,\nCGI Moon Kit, from Lunar Reconnaissance Orbiter data\n\n\nFONTS\n\nChakra Petch | The Chakra Petch Project Authors\nLiberation Sans | Google and Red Hat\nBoth under the SIL Open Font License 1.1\n\n\nTECHNOLOGY\n\nAMD FidelityFX Super Resolution\nCopyright (C) Advanced Micro Devices, Inc.\n\nNVIDIA DLSS\nCopyright 2018 - 2024 NVIDIA Corporation. NVIDIA and DLSS are\ntrademarks and/or registered trademarks of NVIDIA Corporation\nin the U.S. and other countries.\n\nMade with Unity\n\n\nThe licences are in ThirdPartyNotices.txt, beside the game."
+  m_text: "DEVELOPMENT TEAM\n\nSamuel Silva | Game Design\nLucca To\xE9 | Tech Art\nMaria Fernanda | Game Artist\nIan Barbosa | Main Programmer\nFabr\xEDcio Frade | UI Programmer\nLuis Rocha | Programmer\n\n\nMUSIC\n\nDarbuka Delight and Neon Hyperdrive\nby Adiutorium, from OpenGameArt.org (CC0)\n\nMoon Over the Horizon | made with ElevenLabs Music\n\n\nSOUND\n\nKenney | Interface Sounds and Sci-fi Sounds (CC0)\nBluezone Corporation | weapon sounds, from the Sonniss GDC bundle\n\n\nVISUAL EFFECTS\n\nBig Rook Games | effects pack\nUnity Technologies | Particle Pack\n\n\nSKY\n\nThe Moon's surface | NASA's Scientific Visualization Studio,\nCGI Moon Kit, from Lunar Reconnaissance Orbiter data\n\n\nFONTS\n\nChakra Petch | The Chakra Petch Project Authors\nLiberation Sans | Google and Red Hat\nBoth under the SIL Open Font License 1.1\n\n\nTECHNOLOGY\n\nAMD FidelityFX Super Resolution\nCopyright (C) Advanced Micro Devices, Inc.\n\nNVIDIA DLSS\nCopyright 2018 - 2024 NVIDIA Corporation. NVIDIA and DLSS are\ntrademarks and/or registered trademarks of NVIDIA Corporation\nin the U.S. and other countries.\n\nMade with Unity\n\n\nThe licences are in ThirdPartyNotices.txt, beside the game."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0fb93a97284033948a5b10590292f598, type: 2}
   m_sharedMaterial: {fileID: -4361812200676605057, guid: 0fb93a97284033948a5b10590292f598, type: 2}
@@ -23719,6 +23719,7 @@ GameObject:
   - component: {fileID: 1253475478}
   - component: {fileID: 1253475479}
   - component: {fileID: 1253475480}
+  - component: {fileID: 1253475481}
   m_Layer: 5
   m_Name: Video Player
   m_TagString: Untagged
@@ -23767,14 +23768,12 @@ VideoPlayer:
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 0
-  m_TargetAudioSources:
-  - {fileID: 0}
-  m_DirectAudioVolumes:
-  - 1
+  m_TargetAudioSources: []
+  m_DirectAudioVolumes: []
   m_Url: 
-  m_EnabledAudioTracks: 01o
-  m_DirectAudioMutes: 00o
-  m_ControlledAudioTrackCount: 1
+  m_EnabledAudioTracks: 
+  m_DirectAudioMutes: 
+  m_ControlledAudioTrackCount: 0
   m_PlayOnAwake: 1
   m_SkipOnDrop: 1
   m_Looping: 1
@@ -23789,6 +23788,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1253475477}
   m_CullTransparentMesh: 1
+--- !u!114 &1253475481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1253475477}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e172c4f4bcf8bf14d90941c9f29f272e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.TitleFilm
+  loopFrame: 81
 --- !u!1 &1271814158
 GameObject:
   m_ObjectHideFlags: 0

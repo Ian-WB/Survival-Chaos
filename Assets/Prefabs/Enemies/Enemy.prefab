@@ -136,6 +136,8 @@ MonoBehaviour:
   definition: {fileID: 11400000, guid: 758023a95c130bd4aaa38b6ff0c465dc, type: 2}
   healthPoints: 2
   EnemyShip: {fileID: 2752971980227408059}
+  hitKnock: 4
+  hitTwist: 260
   childObject: {fileID: 4059127192425382724}
   shootPivot: {fileID: 1449221108018617522}
   shootPivot_1: {fileID: 1449221108018617522}
@@ -144,6 +146,12 @@ MonoBehaviour:
   roundsPerVolley: 1
   initialDelay: 1
   spawnDelay: 3
+  tellMesh: {fileID: 4300000, guid: 9abf9d684526f7244bbb4cba229ef1b4, type: 2}
+  tellMaterial: {fileID: 2100000, guid: 39dc5dc915cac634e8d378f456dd6e1f, type: 2}
+  tellSeconds: 0.3
+  tellSize: 0.3
+  tellBrightness: 3
+  recoil: 2.5
 --- !u!1 &3328684436521233923
 GameObject:
   m_ObjectHideFlags: 0
@@ -326,3 +334,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyShip: {fileID: 2752971980227408059}
+  animate: 1
+  climbPitchAngle: 16
+  fullClimbSpeed: 2.5
+  flyInSpeed: 1.5
+  turnThrough: 180
+  bobHeight: 0.03
+  bobRoll: 4
+  bobPitch: 2
+  bobSpeed: 1.6
+  springs:
+    turnFrequency: 1.6
+    turnDamping: 0.8
+    bankPerTurnRate: 0.06
+    maxTurnBank: 35
+    attitudeFrequency: 2
+    attitudeDamping: 0.6
+    maxPitch: 30
+    knockFrequency: 4.5
+    knockDamping: 0.5
+    maxKnock: 0.18
+  plumeMesh: {fileID: 4300000, guid: 66a43c8127ed24e478d7893d14706523, type: 2}
+  flareMaterial: {fileID: 2100000, guid: 39dc5dc915cac634e8d378f456dd6e1f, type: 2}
+  engineOffsets: []
+  flareLength: 0.4
+  flareWidth: 0.28
+  flareBrightness: 3
+  flareIdle: 0.35

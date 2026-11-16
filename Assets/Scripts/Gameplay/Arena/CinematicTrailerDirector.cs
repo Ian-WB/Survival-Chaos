@@ -23,6 +23,12 @@ namespace SurvivalChaos
     ///
     /// Can be launched with F11 in Game.unity or from the Unity menu: Survival Chaos > Play Cinematic Trailer (60s).
     /// Pressing Escape at any time ends the trailer.
+    ///
+    /// It starts late in the run: the wave clock is wound on as it begins so that it
+    /// reaches the boss's arrival as the boss shot does, and the storm, which grows on
+    /// that clock from 300 s to the boss, is up and lit for the climax. It used to wind
+    /// the clock on 25 s and call the boss at about 51 s on it, so the boss fought under
+    /// a clear sky (16 November 2026).
     /// </summary>
     [AddComponentMenu("")]
     [DisallowMultipleComponent]
@@ -40,7 +46,28 @@ namespace SurvivalChaos
         private WaveDirector waveDirector;
         private Canvas hudCanvas;
 
-        private bool waveAdvanced;
+        /// <summary>Trailer seconds at which the boss shot starts and the boss is put out.</summary>
+        public const float BossShotStart = 26f;
+
+        /// <summary>The slow motion in the third shot: when, and how slow.</summary>
+        public const float SlowMoStart = 20.5f;
+        public const float SlowMoEnd = 24.5f;
+        public const float SlowMoSpeed = 0.25f;
+
+        /// <summary>
+        /// Game seconds the boss is put out ahead of its own arrival, so it is
+        /// the trailer's boss and not the wave's that comes, a moment before
+        /// the storm is full.
+        /// </summary>
+        public const float BossLead = 1f;
+
+        /// <summary>Game seconds from the trailer's start to the boss shot: trailer time less what the slow motion holds back.</summary>
+        public static float GameSecondsToBossShot =>
+            BossShotStart - (SlowMoEnd - SlowMoStart) * (1f - SlowMoSpeed);
+
+        /// <summary>Whether this trailer has wound the wave clock on to the late run yet.</summary>
+        private bool clockWound;
+
         private bool slowMoStarted;
         private bool slowMoEnded;
         private bool bossSpawned;
@@ -216,6 +243,15 @@ namespace SurvivalChaos
                 waveDirector = FindAnyObjectByType<WaveDirector>();
             }
 
+            // From late in the run, so the storm, which rises no faster than
+            // its own limit, has grown by the boss shot.
+            if (!clockWound && !ArenaIntroDirector.IsPlaying && waveDirector != null && waveDirector.Wave != null)
+            {
+                clockWound = true;
+                float lead = Mathf.Max(0f, GameSecondsToBossShot - trailerTimer) + BossLead;
+                waveDirector.AdvanceBy(ClockJump(waveDirector.Elapsed, waveDirector.Wave.BossArrivesAt, lead));
+            }
+
             // Decay camera shake
             if (shakeIntensity > 0f)
             {
@@ -262,9 +298,19 @@ namespace SurvivalChaos
             }
 
             originalSpeed = RunTime.RequestedSpeed;
+
+            // At the speed the timeline is written for. The clock is wound on
+            // in Update, once the arena intro has handed over: the intro
+            // restarts the wave clock as it ends, and a trailer started during
+            // it had its wind undone (16 November 2026).
+            RunTime.SetSpeed(1f);
+            if (!isRunning)
+            {
+                clockWound = false;
+            }
+
             bossSpawned = false;
             bossHornPlayed = false;
-            waveAdvanced = false;
             slowMoStarted = false;
             slowMoEnded = false;
             shakeIntensity = 0f;
@@ -294,6 +340,22 @@ namespace SurvivalChaos
             {
                 CameraPresetSwitcher.Restore(heldPreset);
             }
+        }
+
+        /// <summary>
+        /// How far to wind the wave clock on from <paramref name="elapsed"/> so
+        /// that it stands <paramref name="lead"/> game seconds short of the
+        /// boss's arrival at <paramref name="bossAt"/>. Never back, and nothing
+        /// for a wave with no boss.
+        /// </summary>
+        public static float ClockJump(float elapsed, float bossAt, float lead)
+        {
+            if (bossAt <= 0f)
+            {
+                return 0f;
+            }
+
+            return Mathf.Max(0f, bossAt - lead - elapsed);
         }
 
         private void UpdateTrailerTimeline(float t, float dt)
@@ -326,13 +388,7 @@ namespace SurvivalChaos
             // Shot 2 (7s - 16s): Low-Angle Thruster Chase (Combat Ingress & Enemy Wave)
             else if (t < 16f)
             {
-                // Advance wave clock to bring enemies onto the ring
-                if (!waveAdvanced && waveDirector != null)
-                {
-                    waveAdvanced = true;
-                    waveDirector.AdvanceBy(25f);
-                }
-
+                // The ring is full by now: the clock was wound on to the late run at the start.
                 float chaseRadius = laneRadius + 3.8f;
                 float chaseHeight = playerPos.y - 0.35f;
                 Vector3 chasePos = new Vector3(
@@ -349,15 +405,15 @@ namespace SurvivalChaos
                 cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 65f, dt * 5f);
             }
             // Shot 3 (16s - 26s): Side-Profile Orbit & Super Slow-Mo Bullet Time
-            else if (t < 26f)
+            else if (t < BossShotStart)
             {
                 // Slow motion trigger between 20.5s and 24.5s
-                if (t >= 20.5f && t < 24.5f)
+                if (t >= SlowMoStart && t < SlowMoEnd)
                 {
                     if (!slowMoStarted)
                     {
                         slowMoStarted = true;
-                        RunTime.SetSpeed(0.25f);
+                        RunTime.SetSpeed(SlowMoSpeed);
                         if (GameSounds.Instance != null && GameSounds.Instance.SlowMoStart != null)
                         {
                             GameSounds.Play(GameSounds.Instance.SlowMoStart);
@@ -400,6 +456,14 @@ namespace SurvivalChaos
                 if (!bossSpawned && waveDirector != null)
                 {
                     bossSpawned = true;
+
+                    // Made up here if the game ran slower than the timeline (a
+                    // speed setting, frames held); nothing when it kept step.
+                    if (waveDirector.Wave != null)
+                    {
+                        waveDirector.AdvanceBy(ClockJump(waveDirector.Elapsed, waveDirector.Wave.BossArrivesAt, BossLead));
+                    }
+
                     waveDirector.SpawnBossNow();
                 }
 

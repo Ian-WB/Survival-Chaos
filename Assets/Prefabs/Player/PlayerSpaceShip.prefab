@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4150755058347126941}
   - component: {fileID: -8593387318748680303}
+  - component: {fileID: 2060029880387008009}
   m_Layer: 0
   m_Name: PlayerSpaceShip
   m_TagString: Untagged
@@ -66,8 +67,216 @@ MonoBehaviour:
   readyCarry: 0.25
   popSeconds: 0.25
   popStrength: 1.5
+  muzzleOffset: {x: 0.2, y: -0.02, z: 0}
+  muzzleSize: 0.16
+  muzzleBrightness: 4
+  muzzleSeconds: 0.08
+  trailLengthPerSpeed: 0.12
+  trailMaxLength: 1.4
+  trailWidth: 0.035
+  trailBrightness: 1.6
+  trailMinSpeed: 2
   riseResponse: 26
   fallResponse: 9
+--- !u!114 &2060029880387008009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3661885094213184039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe27dd20d7e729a4d97a92a090730b8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SurvivalChaos::SurvivalChaos.ShipParts
+  stages:
+  - upgrade: 0
+    pick: 1
+    mesh: {fileID: 4300000, guid: 2c8c23099769f844e9c7a96880537882, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 6b32dfc90b85a65419721030b134686c, type: 2}
+  - upgrade: 0
+    pick: 2
+    mesh: {fileID: 4300000, guid: 1680ba04e3b203849a786c9785073c9f, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 6b32dfc90b85a65419721030b134686c, type: 2}
+  - upgrade: 0
+    pick: 3
+    mesh: {fileID: 4300000, guid: 2cc948709069b504f90437e837dde9c2, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 6b32dfc90b85a65419721030b134686c, type: 2}
+  - upgrade: 1
+    pick: 1
+    mesh: {fileID: 4300000, guid: 01a9a32353af6b04caa3a691c959c58a, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 8aeb33073c64b03428a7a497bd486e92, type: 2}
+  - upgrade: 1
+    pick: 2
+    mesh: {fileID: 4300000, guid: 6d61610d964f85d42a308988099004ee, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 8aeb33073c64b03428a7a497bd486e92, type: 2}
+  - upgrade: 1
+    pick: 3
+    mesh: {fileID: 4300000, guid: 3a728cbd201365041b5105abe72c6443, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 8aeb33073c64b03428a7a497bd486e92, type: 2}
+  - upgrade: 1
+    pick: 4
+    mesh: {fileID: 4300000, guid: 7e557381273d8b24d944e2c9e676c53e, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 8aeb33073c64b03428a7a497bd486e92, type: 2}
+  - upgrade: 1
+    pick: 5
+    mesh: {fileID: 4300000, guid: fdeac009ea914c54883c4c123bba6b33, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 8aeb33073c64b03428a7a497bd486e92, type: 2}
+  - upgrade: 1
+    pick: 6
+    mesh: {fileID: 4300000, guid: faf2532068596324f8a507317d33698c, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 8aeb33073c64b03428a7a497bd486e92, type: 2}
+  - upgrade: 2
+    pick: 1
+    mesh: {fileID: 4300000, guid: 0f02efab7a8962149b2d30e395a83595, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 2f23afa10101a77419af41369e46ff7e, type: 2}
+  - upgrade: 2
+    pick: 2
+    mesh: {fileID: 4300000, guid: da6ffb5b5743c1f4a8482791c4e75c82, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 2f23afa10101a77419af41369e46ff7e, type: 2}
+  - upgrade: 2
+    pick: 3
+    mesh: {fileID: 4300000, guid: 1525d38a609d58544b8c4fbbbc4ee9c0, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 2f23afa10101a77419af41369e46ff7e, type: 2}
+  - upgrade: 2
+    pick: 4
+    mesh: {fileID: 4300000, guid: bbbd38119509049459261dba3bebb6e0, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 2f23afa10101a77419af41369e46ff7e, type: 2}
+  - upgrade: 3
+    pick: 1
+    mesh: {fileID: 4300000, guid: 4a1056eb0a6eace4487c15224b4bd390, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 978628fa36e83ba48a6fc433ae43e448, type: 2}
+  - upgrade: 3
+    pick: 2
+    mesh: {fileID: 4300000, guid: 39209832d986bd448982bdb7a1664921, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 978628fa36e83ba48a6fc433ae43e448, type: 2}
+  - upgrade: 3
+    pick: 3
+    mesh: {fileID: 4300000, guid: aa4fc07c8c97138458ad93ce919105e5, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 978628fa36e83ba48a6fc433ae43e448, type: 2}
+  - upgrade: 3
+    pick: 4
+    mesh: {fileID: 4300000, guid: 6e8f270f1cfcb3540b6884fbcf3ddbdd, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 978628fa36e83ba48a6fc433ae43e448, type: 2}
+  - upgrade: 4
+    pick: 1
+    mesh: {fileID: 4300000, guid: 48e7aeecb40a15546a7c842469877aff, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 047575ab982995f42bfde7fe58974b5a, type: 2}
+  - upgrade: 5
+    pick: 1
+    mesh: {fileID: 4300000, guid: 7a47c1498765ec04d9b5dfaa131b8004, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 39a7f4e32ea0e044a89f1df511413734, type: 2}
+  - upgrade: 5
+    pick: 2
+    mesh: {fileID: 4300000, guid: 16d8849362e170d4e8253734dd573bf6, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 39a7f4e32ea0e044a89f1df511413734, type: 2}
+  - upgrade: 6
+    pick: 1
+    mesh: {fileID: 4300000, guid: cf7f1b25381306645bc1aa568fa677a9, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 50846d5e04dceb949bb58d5cddd01cd2, type: 2}
+  - upgrade: 6
+    pick: 2
+    mesh: {fileID: 4300000, guid: b2c1112ac8aa04a4bb886fc47842327b, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 50846d5e04dceb949bb58d5cddd01cd2, type: 2}
+  - upgrade: 7
+    pick: 1
+    mesh: {fileID: 4300000, guid: 074971d86b96c6c45b53e1ae3f437bfe, type: 2}
+    materials:
+    - {fileID: 8852558580369714659, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -904788124244128060, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: -4603355721602703574, guid: 9fce308ef0d58b447b114b2ba6b89eec, type: 3}
+    - {fileID: 2100000, guid: 19d234a8770c84643b5203268bc7cb07, type: 2}
+  fitFrequency: 4.5
+  fitDamping: 0.42
 --- !u!1001 &6948567490738471319
 PrefabInstance:
   m_ObjectHideFlags: 0

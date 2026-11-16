@@ -17,5 +17,7 @@ MonoBehaviour:
   maxPicks: 1
   availableFromLevel: 08000000i
   pickupColor: {r: 3, g: 2.3, b: 0.1, a: 1}
+  effectLines:
+  - Dash back in 5.5 s
   stageNames: []
   stagePickupNames: []

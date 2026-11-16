@@ -1,67 +1,99 @@
 #if UNITY_EDITOR
 
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
+using UnityEditor.Recorder;
+using UnityEditor.Recorder.Encoder;
+using UnityEditor.Recorder.Input;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace SurvivalChaos.EditorTools
 {
     /// <summary>
-    /// Automates recording high-definition MP4 showcase videos for:
+    /// Records the showcase videos, with the game's own sound:
     /// 1. Arena Intro Cutscene (Game.unity) -> Builds/Videos/Intro_Arena_Entry.mp4
     /// 2. Title Boot Splash & Attract Mode (Menu.unity) -> Builds/Videos/Title_Boot_Splash.mp4
     /// 3. Full 60-Second Cinematic Action Trailer (Game.unity) -> Builds/Videos/Survival_Chaos_Trailer_60s.mp4
+    ///
+    /// Unity Recorder films the Game view and records the game's audio in step
+    /// with it, one frame of film per frame of game. Until 16 November 2026 this
+    /// saved a PNG a frame and had ffmpeg lay one music file under them, so the
+    /// videos had none of the game's sounds - no boss horn, no explosions - and
+    /// the music was not what the game plays there: the boss track under the
+    /// splash, the menu track under the intro, and music over the opening card,
+    /// which the game holds silent.
+    ///
+    /// The Game view is switched to the recording size while it records, as the
+    /// Recorder does, and put back on the size it was on afterwards. Its Mute
+    /// Audio is lifted while it records, since the Recorder hears only what the
+    /// game plays out - muted, the first recording had a silent track - and set
+    /// back as it was. The game can be heard while it records.
     /// </summary>
     public static class TrailerVideoExporter
     {
         public static string OutputDirectory =>
             Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "Builds", "Videos"));
 
-        public static string MusicTrackPath =>
-            Path.GetFullPath(Path.Combine(Application.dataPath, "Audio", "Music", "neon_hyperdrive.mp3"));
+        public const int Width = 2560;
+        public const int Height = 1440;
+        public const int FrameRate = 30;
 
-        public static string GameplayMusicTrackPath =>
-            Path.GetFullPath(Path.Combine(Application.dataPath, "Audio", "Music", "blow_the_day_with_a_darbuka.mp3"));
+        /// <summary>Frames the scene runs before the recording starts, so its first frames are not filmed.</summary>
+        private const int WarmUpFrames = 10;
+
+        /// <summary>The title splash's key press, in seconds of film: after the logo has lit and the prompt has come up.</summary>
+        public const float TitleRevealAt = 5.0f;
 
         private static string activeFileName;
-        private static string tempFolder;
         private static string finalMp4Path;
-        private static string audioPath;
         private static int totalFrames;
-        private static int currentFrame;
-        private static int lastCapturedFrameCount = -1;
+        private static int startFrame;
         private static bool isFullTrailer;
-        private static bool trailerStarted;
-        private static bool recordingActive;
+        private static bool revealPressed;
+        private static bool waitingToStart;
+        private static RecorderController controller;
+        private static int heldGameViewSize = -1;
+        private static bool? heldMute;
         private static EditorApplication.CallbackFunction updateHook;
 
         [MenuItem("Survival Chaos/Videos/Record 60s Cinematic Trailer (MP4)", priority = 220)]
         public static void RecordFullTrailer()
         {
-            LaunchRecorder("Assets/Scenes/Game.unity", "Survival_Chaos_Trailer_60s", 60.0f, true, MusicTrackPath);
+            LaunchRecorder("Assets/Scenes/Game.unity", "Survival_Chaos_Trailer_60s", 60.0f, true);
         }
 
         [MenuItem("Survival Chaos/Videos/Record Arena Intro Cutscene (MP4)", priority = 221)]
         public static void RecordArenaIntro()
         {
-            LaunchRecorder("Assets/Scenes/Game.unity", "Intro_Arena_Entry", 4.2f, false, GameplayMusicTrackPath);
+            LaunchRecorder("Assets/Scenes/Game.unity", "Intro_Arena_Entry", 4.2f, false);
         }
 
         [MenuItem("Survival Chaos/Videos/Record Title Menu Splash (MP4)", priority = 222)]
         public static void RecordTitleSplash()
         {
-            LaunchRecorder("Assets/Scenes/Menu.unity", "Title_Boot_Splash", 5.5f, false, MusicTrackPath);
+            LaunchRecorder("Assets/Scenes/Menu.unity", "Title_Boot_Splash", 7.0f, false);
         }
 
-        public static void LaunchRecorder(string scenePath, string fileName, float duration, bool isTrailer, string audioFile = null)
+        /// <summary>Frames of film for <paramref name="seconds"/>, never fewer than half a second's.</summary>
+        public static int FramesFor(float seconds)
+        {
+            return Mathf.Max(FrameRate / 2, Mathf.CeilToInt(seconds * FrameRate));
+        }
+
+        public static void LaunchRecorder(string scenePath, string fileName, float duration, bool isTrailer)
         {
             if (EditorApplication.isPlaying)
             {
                 Debug.LogWarning("Please stop Play Mode before starting an automated recording session.");
+                return;
+            }
+
+            if (controller != null || waitingToStart)
+            {
+                Debug.LogWarning("[TrailerVideoExporter] A recording is already under way.");
                 return;
             }
 
@@ -75,35 +107,12 @@ namespace SurvivalChaos.EditorTools
             }
 
             activeFileName = fileName;
-            audioPath = audioFile;
             isFullTrailer = isTrailer;
-            trailerStarted = false;
-            lastCapturedFrameCount = -1;
-            totalFrames = Mathf.Max(15, Mathf.CeilToInt(duration * 30f));
-            currentFrame = 0;
-            recordingActive = false;
+            revealPressed = false;
+            totalFrames = FramesFor(duration);
 
-            string outDir = OutputDirectory;
-            if (!Directory.Exists(outDir))
-            {
-                Directory.CreateDirectory(outDir);
-            }
-
-            finalMp4Path = Path.Combine(outDir, fileName + ".mp4");
-            tempFolder = Path.Combine(outDir, "temp_" + fileName);
-
-            try
-            {
-                if (Directory.Exists(tempFolder))
-                {
-                    Directory.Delete(tempFolder, true);
-                }
-                Directory.CreateDirectory(tempFolder);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[TrailerVideoExporter] Temp folder note: {ex.Message}");
-            }
+            Directory.CreateDirectory(OutputDirectory);
+            finalMp4Path = Path.Combine(OutputDirectory, fileName + ".mp4");
 
             if (EditorSceneManager.GetActiveScene().path != scenePath)
             {
@@ -126,13 +135,12 @@ namespace SurvivalChaos.EditorTools
 
         private static void StartCaptureSession()
         {
-            Time.captureFramerate = 30;
-            recordingActive = true;
-            currentFrame = 0;
-            trailerStarted = false;
-            lastCapturedFrameCount = -1;
+            // The warm-up runs on film time too, so the splash's opening card has
+            // moved on by its frames and no more when the filming starts.
+            Time.captureDeltaTime = 1f / FrameRate;
+            waitingToStart = true;
 
-            Debug.Log($"[TrailerVideoExporter] Capturing '{activeFileName}': {totalFrames} frames @ 30fps -> {finalMp4Path}");
+            Debug.Log($"[TrailerVideoExporter] Recording '{activeFileName}': {totalFrames} frames @ {FrameRate} fps -> {finalMp4Path}");
 
             EditorApplication.playModeStateChanged -= OnPlayStateChangedDuringCapture;
             EditorApplication.playModeStateChanged += OnPlayStateChangedDuringCapture;
@@ -148,16 +156,137 @@ namespace SurvivalChaos.EditorTools
 
         private static void OnPlayStateChangedDuringCapture(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.ExitingPlayMode && recordingActive)
+            if (state == PlayModeStateChange.ExitingPlayMode && (controller != null || waitingToStart))
             {
-                CancelCapture();
+                Debug.LogWarning("[TrailerVideoExporter] Recording cancelled: play mode was left before it finished.");
+                StopEverything();
             }
         }
 
-        private static void CancelCapture()
+        private static void OnEditorUpdate()
         {
-            recordingActive = false;
-            Time.captureFramerate = 0;
+            if (!EditorApplication.isPlaying)
+            {
+                return;
+            }
+
+            if (waitingToStart)
+            {
+                // Warm-up: wait for the scene to render its first frames.
+                if (Time.frameCount < WarmUpFrames || Time.timeSinceLevelLoad < 0.2f)
+                {
+                    return;
+                }
+
+                waitingToStart = false;
+
+                if (isFullTrailer)
+                {
+                    CinematicTrailerDirector.StartTrailer();
+                }
+
+                if (!BeginRecording())
+                {
+                    StopEverything();
+                    EditorApplication.isPlaying = false;
+                }
+                return;
+            }
+
+            if (controller == null)
+            {
+                return;
+            }
+
+            int filmed = Time.frameCount - startFrame;
+
+            // The title film's key press, which takes the attract prompt to the menu.
+            if (!revealPressed && activeFileName.Contains("Title") && filmed >= Mathf.RoundToInt(TitleRevealAt * FrameRate))
+            {
+                revealPressed = true;
+                TitleSplashDirector splash = UnityEngine.Object.FindAnyObjectByType<TitleSplashDirector>();
+                if (splash != null)
+                {
+                    splash.TriggerMenuReveal();
+                }
+            }
+
+            if (filmed >= totalFrames)
+            {
+                StopEverything();
+
+                if (File.Exists(finalMp4Path))
+                {
+                    Debug.Log($"[TrailerVideoExporter] SUCCESS: Video exported to {finalMp4Path}");
+                }
+                else
+                {
+                    Debug.LogError($"[TrailerVideoExporter] The Recorder finished but wrote no {finalMp4Path}.");
+                }
+
+                EditorApplication.isPlaying = false;
+            }
+        }
+
+        private static bool BeginRecording()
+        {
+            RecorderControllerSettings settings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
+            MovieRecorderSettings movie = ScriptableObject.CreateInstance<MovieRecorderSettings>();
+            movie.name = activeFileName;
+            movie.Enabled = true;
+            movie.EncoderSettings = new CoreEncoderSettings
+            {
+                Codec = CoreEncoderSettings.OutputCodec.MP4,
+                EncodingQuality = CoreEncoderSettings.VideoEncodingQuality.High
+            };
+            movie.CaptureAudio = true;
+            movie.ImageInputSettings = new GameViewInputSettings
+            {
+                OutputWidth = Width,
+                OutputHeight = Height
+            };
+
+            // The Recorder adds the extension.
+            movie.OutputFile = Path.Combine(OutputDirectory, activeFileName).Replace('\\', '/');
+
+            settings.AddRecorderSettings(movie);
+            settings.SetRecordModeToManual();
+            settings.FrameRatePlayback = FrameRatePlayback.Constant;
+            settings.FrameRate = FrameRate;
+            settings.CapFrameRate = true;
+            settings.ExitPlayMode = false;
+
+            heldGameViewSize = GameViewSizeIndex();
+            heldMute = EditorUtility.audioMasterMute;
+            EditorUtility.audioMasterMute = false;
+
+            controller = new RecorderController(settings);
+            controller.PrepareRecording();
+            if (!controller.StartRecording())
+            {
+                Debug.LogError("[TrailerVideoExporter] The Recorder did not start.");
+                controller = null;
+                return false;
+            }
+
+            startFrame = Time.frameCount;
+            return true;
+        }
+
+        private static void StopEverything()
+        {
+            waitingToStart = false;
+
+            if (controller != null)
+            {
+                if (controller.IsRecording())
+                {
+                    controller.StopRecording();
+                }
+                controller = null;
+            }
+
+            Time.captureDeltaTime = 0f;
             EditorApplication.playModeStateChanged -= OnPlayStateChangedDuringCapture;
 
             if (updateHook != null)
@@ -166,173 +295,48 @@ namespace SurvivalChaos.EditorTools
                 updateHook = null;
             }
 
-            Debug.LogWarning("[TrailerVideoExporter] Recording cancelled due to exiting play mode.");
-        }
-
-        private static void OnEditorUpdate()
-        {
-            if (!recordingActive || !EditorApplication.isPlaying)
+            if (heldGameViewSize >= 0)
             {
-                return;
+                SetGameViewSizeIndex(heldGameViewSize);
+                heldGameViewSize = -1;
             }
 
-            // Warm-up: wait for scene to render initial frames and camera to activate
-            if (Time.frameCount < 10 || Time.timeSinceLevelLoad < 0.2f)
+            if (heldMute.HasValue)
             {
-                return;
-            }
-
-            // Start trailer once scene is warm
-            if (isFullTrailer && !trailerStarted)
-            {
-                trailerStarted = true;
-                CinematicTrailerDirector.StartTrailer();
-            }
-
-            // Ensure we capture strictly once per newly rendered engine frame
-            int frame = Time.frameCount;
-            if (frame == lastCapturedFrameCount)
-            {
-                return;
-            }
-            lastCapturedFrameCount = frame;
-
-            // For Title screen recording, simulate key press at frame 105 (~3.5s) to reveal menu buttons
-            if (activeFileName.Contains("Title") && currentFrame == 105)
-            {
-                var splash = UnityEngine.Object.FindAnyObjectByType<TitleSplashDirector>();
-                if (splash != null)
-                {
-                    splash.TriggerMenuReveal();
-                }
-            }
-
-            if (currentFrame < totalFrames)
-            {
-                string framePath = Path.Combine(tempFolder, $"frame_{currentFrame:D5}.png");
-                ScreenCapture.CaptureScreenshot(framePath);
-                currentFrame++;
-            }
-            else
-            {
-                recordingActive = false;
-                EditorApplication.update -= updateHook;
-                updateHook = null;
-                FinalizeCapture();
+                EditorUtility.audioMasterMute = heldMute.Value;
+                heldMute = null;
             }
         }
 
-        private static void FinalizeCapture()
+        // The Game view's size choice is not public; the Recorder reaches it the same way.
+        private static readonly Type GameViewType = Type.GetType("UnityEditor.GameView,UnityEditor");
+
+        private static EditorWindow MainGameView()
         {
-            Time.captureFramerate = 0;
-            EditorApplication.playModeStateChanged -= OnPlayStateChangedDuringCapture;
-
-            // Wait a moment for last frame on disk
-            string lastFrame = Path.Combine(tempFolder, $"frame_{(totalFrames - 1):D5}.png");
-            for (int i = 0; i < 40; i++)
+            if (GameViewType == null)
             {
-                if (File.Exists(lastFrame)) break;
-                System.Threading.Thread.Sleep(50);
-            }
-            System.Threading.Thread.Sleep(300);
-
-            Debug.Log($"[TrailerVideoExporter] All {totalFrames} frames written. Encoding with FFmpeg...");
-
-            // The frames are kept when the encode fails, so it can be run again by hand.
-            if (EncodeWithFFmpeg())
-            {
-                try
-                {
-                    if (Directory.Exists(tempFolder))
-                    {
-                        Directory.Delete(tempFolder, true);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"[TrailerVideoExporter] Clean up note: {ex.Message}");
-                }
-
-                Debug.Log($"[TrailerVideoExporter] SUCCESS: Video exported to {finalMp4Path}");
-            }
-            else
-            {
-                Debug.LogError($"[TrailerVideoExporter] No video written. The frames are still in {tempFolder}.");
+                return null;
             }
 
-            EditorApplication.isPlaying = false;
+            UnityEngine.Object[] views = Resources.FindObjectsOfTypeAll(GameViewType);
+            return views.Length > 0 ? views[0] as EditorWindow : null;
         }
 
-        /// <summary>How long the encode may take before it is given up on.</summary>
-        private const int EncodeTimeoutMs = 120000;
-
-        /// <summary>True only when ffmpeg ran to the end and said it succeeded.</summary>
-        private static bool EncodeWithFFmpeg()
+        private static int GameViewSizeIndex()
         {
-            string inputPattern = Path.Combine(tempFolder, "frame_%05d.png");
-            string arguments;
+            EditorWindow view = MainGameView();
+            PropertyInfo index = GameViewType?.GetProperty("selectedSizeIndex", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            return view != null && index != null ? (int)index.GetValue(view) : -1;
+        }
 
-            bool hasAudio = !string.IsNullOrEmpty(audioPath) && File.Exists(audioPath);
-            if (hasAudio)
+        private static void SetGameViewSizeIndex(int value)
+        {
+            EditorWindow view = MainGameView();
+            PropertyInfo index = GameViewType?.GetProperty("selectedSizeIndex", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (view != null && index != null)
             {
-                arguments = $"-loglevel error -y -framerate 30 -i \"{inputPattern}\" -i \"{audioPath}\" -c:v libx264 -pix_fmt yuv420p -crf 18 -preset fast -c:a aac -b:a 192k -shortest \"{finalMp4Path}\"";
-            }
-            else
-            {
-                arguments = $"-loglevel error -y -framerate 30 -i \"{inputPattern}\" -c:v libx264 -pix_fmt yuv420p -crf 18 -preset fast \"{finalMp4Path}\"";
-            }
-
-            try
-            {
-                ProcessStartInfo psi = new ProcessStartInfo
-                {
-                    FileName = "ffmpeg",
-                    Arguments = arguments,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardError = false,
-                    RedirectStandardOutput = false
-                };
-
-                using (Process proc = Process.Start(psi))
-                {
-                    if (proc == null)
-                    {
-                        Debug.LogError("[TrailerVideoExporter] FFmpeg did not start.");
-                        return false;
-                    }
-
-                    // ExitCode throws on a process still running, so a timeout is
-                    // settled before it is read: the encode is stopped and failed.
-                    if (!proc.WaitForExit(EncodeTimeoutMs))
-                    {
-                        try
-                        {
-                            proc.Kill();
-                            proc.WaitForExit(5000);
-                        }
-                        catch (Exception killEx)
-                        {
-                            Debug.LogWarning($"[TrailerVideoExporter] Could not stop FFmpeg: {killEx.Message}");
-                        }
-
-                        Debug.LogError($"[TrailerVideoExporter] FFmpeg timed out after {EncodeTimeoutMs / 1000} s and was stopped.");
-                        return false;
-                    }
-
-                    if (proc.ExitCode != 0)
-                    {
-                        Debug.LogError($"[TrailerVideoExporter] FFmpeg error (code {proc.ExitCode})");
-                        return false;
-                    }
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[TrailerVideoExporter] Failed to run FFmpeg: {ex.Message}");
-                return false;
+                index.SetValue(view, value);
+                view.Repaint();
             }
         }
     }

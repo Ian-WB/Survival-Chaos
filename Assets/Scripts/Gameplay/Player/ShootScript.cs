@@ -439,6 +439,30 @@ namespace SurvivalChaos
         }
 
         /// <summary>
+        /// Where a round fired from a gun is headed: it leaves at the muzzle's
+        /// height and settles onto its row of the pattern. Zero seconds is a
+        /// round that is not fanning. Cleared on every spawn.
+        /// </summary>
+        private float fanFrom;
+        private float fanTo;
+        private float fanStart;
+        private float fanSeconds;
+
+        /// <summary>
+        /// Carries this round from the height it is at now to
+        /// <paramref name="height"/> over <paramref name="seconds"/>, fast at
+        /// first: the volley leaves the guns together and opens into its
+        /// pattern. Called straight after the spawn, like <see cref="Throw"/>.
+        /// </summary>
+        public void Fan(float height, float seconds)
+        {
+            fanFrom = transform.position.y;
+            fanTo = height;
+            fanStart = Time.time;
+            fanSeconds = Mathf.Max(0f, seconds);
+        }
+
+        /// <summary>
         /// Runs on every spawn, including reuse from the pool. This was Start(),
         /// which only ever runs on an object's first life - a reused bullet would
         /// have kept whatever rotation it died with.
@@ -474,6 +498,7 @@ namespace SurvivalChaos
             // A reused round must not keep the throw of the volley it died in,
             // nor go on hunting for the one before.
             throwSpeed = 0f;
+            fanSeconds = 0f;
             torpedoing = false;
             torpedoTarget = null;
             torpedoTargetBox = null;
@@ -714,6 +739,20 @@ namespace SurvivalChaos
                 thrown.y = RoundRoute.Height(
                     throwHeight, throwSpeed, Time.time - throwStart, throwFloor, throwCeiling);
                 transform.position = thrown;
+            }
+
+            if (fanSeconds > 0f)
+            {
+                float elapsed = Time.time - fanStart;
+
+                Vector3 fanned = transform.position;
+                fanned.y = ShipMuzzles.FanHeight(fanFrom, fanTo, elapsed, fanSeconds);
+                transform.position = fanned;
+
+                if (elapsed >= fanSeconds)
+                {
+                    fanSeconds = 0f;
+                }
             }
 
             if (torpedoing)

@@ -67,9 +67,29 @@ namespace SurvivalChaos
         private GameObject childPrefab;
 
         [SerializeField]
+        [Range(0.5f, 2f)]
+        [Tooltip("How large the ship's model is drawn, against the size it was authored at. Looks " +
+                 "1.35 since 16 November 2026, when the upgrades began adding parts too small " +
+                 "to read at 1.")]
+        private float modelScale = 1.35f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("How much of the model's growth the hit box takes. 0 leaves it as authored, 1 " +
+                 "grows it as much as the model. Half: a bit bigger (Ian, 16 November 2026), " +
+                 "without making the ship a third easier to hit for looking a third larger.")]
+        private float hitBoxGrowth = 0.5f;
+
+        [SerializeField]
         private Transform childObject;
 
         private GameObject instantiatedChild;
+
+        private ShipRig shipRig;
+        private ShipParts shipParts;
+        private ShipThrusters thrusters;
+        private ShipMuzzles muzzles;
+        private HitFlash hullFlash;
 
         private bool rotate;
 
@@ -107,6 +127,58 @@ namespace SurvivalChaos
         [SerializeField]
         [Tooltip("What the ship breaks up into. The hit effect plays as well.")]
         private GameObject deathExplosion;
+
+        [Header("Hit reaction")]
+        [SerializeField]
+        [ColorUsage(showAlpha: false, hdr: true)]
+        [Tooltip("What the hull lights up as when the ship loses a hit point. White, where an " +
+                 "enemy's is red: red on the ring means something of theirs was hit. Kept near 1 " +
+                 "at a half: at 1.2 the whole hull clipped to a white blob with no shape left in it.")]
+        private Color hitFlashColor = new Color(0.5f, 0.5f, 0.48f);
+
+        [SerializeField]
+        [Range(0.01f, 0.5f)]
+        [Tooltip("Seconds the hull stays lit.")]
+        private float hitFlashSeconds = 0.1f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard a hit knocks the model away from what hit it, in world units a second. " +
+                 "The ship springs back and its hit box does not move. 0 for none.")]
+        private float hitKnock = 4.5f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard the same hit rocks the ship, in degrees a second.")]
+        private float hitTwist = 420f;
+
+        [SerializeField]
+        [Range(0f, 0.2f)]
+        [Tooltip("Real seconds the game all but stops for when the ship loses a hit point: the " +
+                 "hit-stop the Leviathan's emplacements have, shorter. 0 for none.")]
+        private float hitFreezeSeconds = 0.05f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("How hard a hit the ship survives shakes the view, 0 to 1. The shake is the square " +
+                 "of this, so 0.5 is a quarter of the full 0.9 degrees. 0 for none.")]
+        private float hitShake = 0.55f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("How hard losing the ship shakes the view.")]
+        private float deathShake = 1f;
+
+        [Header("Recoil")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard a volley kicks the model back from its nose, in world units a second. " +
+                 "0 for none.")]
+        private float recoil = 2f;
+
+        [SerializeField]
+        [Tooltip("Degrees a second a volley lifts the nose by.")]
+        private float recoilTwist = 70f;
 
         [SerializeField] public int currentExperience = 0, maxExperience = 40, currentLevel = 1;
 
@@ -191,6 +263,34 @@ namespace SurvivalChaos
             healthBar.SetMaxHealth(health.Max);
             rotate = false;
             instantiatedChild = Instantiate(childPrefab, childObject);
+            instantiatedChild.transform.localScale *= modelScale;
+            GrowHitBox();
+
+            // What the hit and the gun act on: the pose of the model's mount,
+            // the hull's own flash, and the flares it carries. Each is looked
+            // for and none is required, so a ship missing one still flies.
+            shipRig = childObject != null ? ShipRig.On(childObject.gameObject) : null;
+            thrusters = instantiatedChild.GetComponentInChildren<ShipThrusters>();
+            shipParts = instantiatedChild.GetComponentInChildren<ShipParts>();
+
+            // The guns, on the model the flares are on: its space is the one
+            // the muzzles are measured in, and its mesh and material are the
+            // ones every other glow on the ship is made of.
+            if (thrusters != null)
+            {
+                muzzles = thrusters.gameObject.AddComponent<ShipMuzzles>();
+                muzzles.Build(thrusters.GlowMesh, thrusters.FlareMaterial);
+                muzzles.SetStage(shotUpgrades);
+            }
+            hullFlash = HitFlash.On(instantiatedChild);
+
+            // A shot stage set in the Inspector is on the ship from the start.
+            Fit(ShipUpgrade.Hydra, shotUpgrades);
+
+            if (hullFlash != null)
+            {
+                hullFlash.Set(hitFlashColor, hitFlashSeconds);
+            }
             //Rigidbody childRigidbody = instantiatedChild.GetComponent<Rigidbody>();
             //instantiatedChild.transform.localPosition = prefabOffset;
             expBar.setMaxExp(maxExperience);
@@ -209,6 +309,16 @@ namespace SurvivalChaos
             {
                 return;
             }
+
+            // The guns heat towards the next volley, and stay cold while
+            // nothing is going to fire.
+            if (muzzles != null)
+            {
+                muzzles.Charge(
+                    ArenaIntroDirector.IsPlaying ? float.PositiveInfinity : lastVolleyAt + spawnDelay - Time.time,
+                    spawnDelay);
+            }
+
             if(GameInput.ToggleDirectionReleased)
             {
                 rotate = !rotate;
@@ -242,7 +352,8 @@ namespace SurvivalChaos
                 // A round says what it costs: 2 for a Fighter's or a Heavy's since
                 // 10 November 2026, 1 for the Leviathan's and for anything unmarked.
                 int cost = other.TryGetComponent(out ShootScript hit) ? hit.Damage : 1;
-                TakeHit(spawnHitEffect: true, DamageSource.OfRound(other.gameObject), cost);
+                TakeHit(spawnHitEffect: true, DamageSource.OfRound(other.gameObject), cost,
+                    other.transform.position);
 
                 // A torpedo goes off when it hits. Plain rounds fly on through,
                 // which is harmless for a round that never comes back; a torpedo
@@ -257,16 +368,29 @@ namespace SurvivalChaos
             {
                 // Despawned rather than destroyed: enemies are pooled now, and
                 // destroying one leaves a dead entry in its bucket for the pool to
-                // trip over and discard later. Ramming still kills it silently - no
-                // reward, no explosion - which is the existing behaviour.
-                // Named before it goes back to the pool.
+                // trip over and discard later. Ramming pays nothing - no
+                // experience, no kill, no salvage - but since 16 November 2026
+                // the ship goes up where it was hit and is not simply gone.
+                // Named, and placed, before it goes back to the pool.
                 string rammed = DamageSource.OfRam(other.gameObject);
-                ObjectPool.Despawn(other.gameObject);
-                TakeHit(spawnHitEffect: true, rammed);
+                Vector3 where = other.transform.position;
+                EnemyBase enemy = other.GetComponentInParent<EnemyBase>();
+
+                if (enemy != null)
+                {
+                    enemy.Ram();
+                }
+                else
+                {
+                    ObjectPool.Despawn(other.gameObject);
+                }
+
+                TakeHit(spawnHitEffect: true, rammed, 1, where);
             }
             else if (other.CompareTag("Boss"))
             {
-                TakeHit(spawnHitEffect: false, DamageSource.OfBoss(other.gameObject));
+                TakeHit(spawnHitEffect: false, DamageSource.OfBoss(other.gameObject), 1,
+                    other.bounds.ClosestPoint(transform.position));
             }
         }
 
@@ -326,7 +450,12 @@ namespace SurvivalChaos
             TakeHit(spawnHitEffect: true, DamageSource.LeviathanLance);
         }
 
-        private void TakeHit(bool spawnHitEffect, string source, int damage = 1)
+        /// <param name="from">
+        /// Where the thing that hit the ship is, for the ship to be knocked
+        /// away from. Null for a hit with no place, the lance: the ship is
+        /// knocked back off its nose.
+        /// </param>
+        private void TakeHit(bool spawnHitEffect, string source, int damage = 1, Vector3? from = null)
         {
             // The run is over, won or lost, and the first ending stands. Stopping
             // time does not stop the physics step the ending happened in: hits
@@ -398,7 +527,49 @@ namespace SurvivalChaos
             else
             {
                 Rumble.Pulse(Rumble.Strength.Hit);
+                React(from);
             }
+        }
+
+        /// <summary>
+        /// The ship's own answer to a hit it survived: the hull lights, the
+        /// model is knocked away from what hit it, and the game holds for a
+        /// twentieth of a second.
+        ///
+        /// A hit used to be a spark, a sound and a shorter bar. The spark is
+        /// the round's, the bar is in the corner, and neither is the ship: the
+        /// thing the player is looking at did not change when it was hurt. Not
+        /// on the killing hit, which has its own beat and breaks the ship up.
+        /// </summary>
+        private void React(Vector3? from)
+        {
+            if (hullFlash != null)
+            {
+                hullFlash.Strike();
+            }
+
+            if (shipRig != null)
+            {
+                Vector3 push = from.HasValue ? transform.position - from.Value : -transform.TransformDirection(shipRig.Nose);
+
+                // Mostly along the ring and a little of the height: a round
+                // from above should not drive the ship out of its own hit box.
+                push.y *= 0.5f;
+
+                if (push.sqrMagnitude < 0.0001f)
+                {
+                    push = -transform.TransformDirection(shipRig.Nose);
+                }
+
+                shipRig.KickWorld(push, hitKnock);
+
+                // Rocked both ways over a run, by which side it came from.
+                float side = Vector3.Dot(push, transform.right) >= 0f ? 1f : -1f;
+                shipRig.Twist(hitTwist * 0.4f, side * hitTwist);
+            }
+
+            RunTime.Freeze(hitFreezeSeconds);
+            ScreenShake.Add(hitShake);
         }
 
         /// <summary>
@@ -416,6 +587,9 @@ namespace SurvivalChaos
         {
             Rumble.Pulse(Rumble.Strength.Death);
             CancelInvoke(nameof(Shoot));
+
+            // Before the ending is reported: a shake is not started once the run is decided.
+            ScreenShake.Add(deathShake);
 
             if (deathBeatSeconds <= 0f || !isActiveAndEnabled)
             {
@@ -576,9 +750,41 @@ namespace SurvivalChaos
             GameObject forward = rotate ? shootPrefab : shootPrefab1;
 
             FireLine(forward, ForwardPattern[stage]);
+            Kick();
         }
 
-        /// <summary>Spawns one bullet per offset, spaced up the pivot.</summary>
+        /// <summary>
+        /// The gun's kick: the model is knocked back off its nose and a flash
+        /// shows at the muzzle. Once a volley, like the sound.
+        /// </summary>
+        private void Kick()
+        {
+            if (shipRig != null && recoil > 0f)
+            {
+                shipRig.Kick(-shipRig.Nose * recoil);
+                shipRig.Twist(recoilTwist, 0f);
+            }
+
+            if (muzzles != null)
+            {
+                muzzles.Fire();
+            }
+            else if (thrusters != null)
+            {
+                thrusters.MuzzleFlash();
+            }
+        }
+
+        /// <summary>
+        /// Spawns one bullet per offset. Each leaves from one of the guns the
+        /// ship is wearing and opens out to its place in the pattern, spaced
+        /// up the pivot, which is where all of them used to appear at once.
+        ///
+        /// A round keeps the pivot's distance from the arena's axis: it is
+        /// put on the line through the pivot along the nose, at the muzzle's
+        /// reach and height. The guns sit across the hull's depth, and a
+        /// round holds whatever distance it is fired at for its whole flight.
+        /// </summary>
         private void FireLine(GameObject prefab, float[] offsets)
         {
             if (prefab == null || shootPivot == null)
@@ -586,12 +792,37 @@ namespace SurvivalChaos
                 return;
             }
 
-            foreach (float offset in offsets)
+            Vector3 pivot = shootPivot.position;
+            Vector3 nose = Vector3.zero;
+
+            if (muzzles != null)
             {
-                ObjectPool.Spawn(
-                    prefab,
-                    shootPivot.position + new Vector3(0f, offset * shotSpacing, 0f),
-                    Quaternion.Euler(0f, 0f, 90f));
+                nose = muzzles.transform.right;
+                nose.y = 0f;
+                nose = nose.sqrMagnitude > 0.0001f ? nose.normalized : Vector3.zero;
+            }
+
+            for (int i = 0; i < offsets.Length; i++)
+            {
+                float height = pivot.y + offsets[i] * shotSpacing;
+                Vector3 from = new Vector3(pivot.x, height, pivot.z);
+                bool fanned = nose != Vector3.zero;
+
+                if (fanned)
+                {
+                    int row = ShipMuzzles.RowFor(ShipMuzzles.Rank(offsets, i), offsets.Length, muzzles.Rows);
+                    Vector3 muzzle = muzzles.WorldPoint(row);
+
+                    from = pivot + nose * Vector3.Dot(muzzle - pivot, nose);
+                    from.y = muzzle.y;
+                }
+
+                GameObject round = ObjectPool.Spawn(prefab, from, Quaternion.Euler(0f, 0f, 90f));
+
+                if (fanned && round != null && round.TryGetComponent(out ShootScript script))
+                {
+                    script.Fan(height, ShipMuzzles.FanSeconds);
+                }
             }
         }
 
@@ -730,7 +961,50 @@ namespace SurvivalChaos
             }
 
             shotUpgrades = Mathf.Min(stage, MaxShotUpgrades);
+            Fit(ShipUpgrade.Hydra, shotUpgrades);
+
+            if (muzzles != null)
+            {
+                muzzles.SetStage(shotUpgrades);
+            }
         }
+
+        /// <summary>How much larger the hit box is for a model drawn this much larger.</summary>
+        public static float HitBoxScale(float modelScale, float growth)
+        {
+            return 1f + (modelScale - 1f) * Mathf.Clamp01(growth);
+        }
+
+        /// <summary>
+        /// The box follows the model: its middle moves out as far as the
+        /// model's does, and its size takes its share of the growth.
+        /// </summary>
+        private void GrowHitBox()
+        {
+            if (!TryGetComponent(out BoxCollider box))
+            {
+                return;
+            }
+
+            box.center *= modelScale;
+            box.size *= HitBoxScale(modelScale, hitBoxGrowth);
+        }
+
+        /// <summary>
+        /// Bolts an upgrade's parts onto the model: every stage up to this
+        /// many picks. See <see cref="ShipParts"/>.
+        /// </summary>
+        private void Fit(ShipUpgrade upgrade, int picksTaken)
+        {
+            if (shipParts != null)
+            {
+                shipParts.Set(upgrade, picksTaken);
+            }
+        }
+
+        private int maxHealthPicks;
+        private int moveSpeedPicks;
+        private int dashPicks;
 
         public void Heal(int hp){
             health.Heal(hp);
@@ -740,6 +1014,7 @@ namespace SurvivalChaos
         public void AddMaxHealth(int hp){
             health.RaiseMax(hp);
             healthBar.AddMaxHealth(hp);
+            Fit(ShipUpgrade.MaxHealth, ++maxHealthPicks);
         }
 
         [Header("Attack speed")]
@@ -879,6 +1154,7 @@ namespace SurvivalChaos
             float untilNext = Mathf.Max(0f, lastVolleyAt + spawnDelay - Time.time);
             CancelInvoke(nameof(Shoot));
             InvokeRepeating(nameof(Shoot), untilNext, spawnDelay);
+            Fit(ShipUpgrade.AttackSpeed, attackSpeedPicks);
         }
 
         /// <summary>
@@ -893,6 +1169,7 @@ namespace SurvivalChaos
         public void IncreaseMoveSpeed()
         {
             PlayerMovement.AddSpeedBonus(moveSpeedStep);
+            Fit(ShipUpgrade.MoveSpeed, ++moveSpeedPicks);
         }
 
         /// <summary>
@@ -905,6 +1182,8 @@ namespace SurvivalChaos
             {
                 dash.ShortenCooldown(dashCooldownStep, dashCooldownFloor);
             }
+
+            Fit(ShipUpgrade.DashRecovery, ++dashPicks);
         }
 
         /// <summary>
@@ -928,12 +1207,15 @@ namespace SurvivalChaos
             {
                 deflector.SetRecharge(recharge);
             }
+
+            Fit(ShipUpgrade.Deflector, deflectorPicks);
         }
 
         /// <summary>Pickups start drifting in from a little further away.</summary>
         public void ExtendMagnet()
         {
             magnetPicks++;
+            Fit(ShipUpgrade.Magnet, magnetPicks);
         }
 
         /// <summary>
@@ -951,6 +1233,7 @@ namespace SurvivalChaos
 
             slowMoPicks++;
             slowMo.Grant(PerPick(slowMoCooldown, slowMoPicks, 30f));
+            Fit(ShipUpgrade.SlowMo, slowMoPicks);
 
             if (slowMoPicks == 1)
             {

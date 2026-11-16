@@ -176,8 +176,9 @@ namespace SurvivalChaos.EditorTools
             "Fabr\u00EDcio Frade | UI Programmer\n" +
             "Luis Rocha | Programmer\n\n\n" +
             "MUSIC\n\n" +
-            "Darbuka Delight, Chase and Neon Hyperdrive\n" +
-            "by Adiutorium, from OpenGameArt.org (CC0)\n\n\n" +
+            "Darbuka Delight and Neon Hyperdrive\n" +
+            "by Adiutorium, from OpenGameArt.org (CC0)\n\n" +
+            "Moon Over the Horizon | made with ElevenLabs Music\n\n\n" +
             "SOUND\n\n" +
             "Kenney | Interface Sounds and Sci-fi Sounds (CC0)\n" +
             "Bluezone Corporation | weapon sounds, from the Sonniss GDC bundle\n\n\n" +

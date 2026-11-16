@@ -17,3 +17,5 @@ MonoBehaviour:
   maxPicks: 6
   availableFromLevel: 
   pickupColor: {r: 0.3, g: 1.7, b: 3, a: 1}
+  effectLines:
+  - +30% fire rate

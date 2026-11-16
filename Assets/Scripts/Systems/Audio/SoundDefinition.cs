@@ -58,6 +58,19 @@ namespace SurvivalChaos
                  "instead, which is what effects and ducking need.")]
         private AudioMixerGroup output;
 
+        [Header("Music only")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Seconds into the track where each loop comes back to. Put it on a bar line. Read " +
+                 "only for a MusicSource's run track; with Loop End at 0 the clip loops whole.")]
+        private float loopStart;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Seconds into the track where it goes back to Loop Start: the bar where its ending " +
+                 "or fade-out begins. 0 plays the whole clip and loops it whole.")]
+        private float loopEnd;
+
         public AudioChannel Channel => channel;
 
         public AudioMixerGroup Output => output;
@@ -71,6 +84,20 @@ namespace SurvivalChaos
         public float SpatialBlend => spatialBlend;
 
         public bool HasClips => clips != null && clips.Length > 0;
+
+        /// <summary>
+        /// Where a music track's loop starts and ends, in seconds. The run's
+        /// track since 16 November 2026: Ian wanted the music to start small and
+        /// grow as the run goes on, the track that does it grows over four
+        /// minutes and ends in a fade, and the Leviathan comes at 6:40. So it
+        /// plays once from its quiet start and then keeps its last full bars
+        /// going until the boss. On the asset rather than the scene, so a new
+        /// track brings its own loop with it.
+        /// </summary>
+        public float LoopStart => loopStart;
+
+        /// <inheritdoc cref="LoopStart"/>
+        public float LoopEnd => loopEnd;
 
         /// <summary>
         /// A clip to play, avoiding an immediate repeat where possible.
@@ -119,5 +146,17 @@ namespace SurvivalChaos
         {
             return Random.Range(pitchRange.x, pitchRange.y);
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (loopEnd > 0f && loopEnd <= loopStart)
+            {
+                Debug.LogWarning(
+                    "'" + name + "': Loop End is not after Loop Start, so the track loops whole instead, " +
+                    "intro and ending included.", this);
+            }
+        }
+#endif
     }
 }

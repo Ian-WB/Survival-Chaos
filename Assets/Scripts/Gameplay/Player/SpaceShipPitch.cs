@@ -1,21 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace SurvivalChaos
 {
     /// <summary>
-    /// Animates the ship model.
+    /// Flies the player's ship model: says where it should face and how it
+    /// should lean, and leaves the moving to <see cref="ShipRig"/>.
     ///
     /// The ship's nose already points along its direction of travel, so the two
     /// inputs mean different things:
-    ///   W / S  climb and dive  -> nose lifts or drops, with a little roll
-    ///   A / D  throttle        -> the craft leans into the acceleration and drags
-    ///                             back against it, the way a hovering craft does
+    ///   W / S  climb and dive  -> the nose lifts or drops, with a little roll
+    ///   A / D  throttle        -> the nose dips as the ship sets off and comes
+    ///                             back as it settles, and the craft drags back
+    ///                             against the acceleration
     ///
-    /// Every angle and distance is signed. If one reads backwards on your model,
-    /// negate it in the inspector rather than editing this file - the ship's
-    /// authored orientation decides which way each axis goes.
+    /// Until 16 November 2026 this wrote the model's rotation itself, as Euler
+    /// angles eased toward the stick. Two things were wrong with that beyond
+    /// the easing. The signs came out of the mesh and not out of the intent: a
+    /// climb dropped the nose when the ship faced one way and lifted it when
+    /// flipped, and the throttle lifted it where the comment above said it
+    /// dipped. And the lean held for as long as the throttle did, at nearly
+    /// the climb's own angle, so climbing forward cancelled the two and diving
+    /// forward doubled them. Now the angles are said in the ship's own words
+    /// (<see cref="ShipFlight.Rotation"/>), the climb's pitch follows the climb
+    /// whichever way the ship faces, and the throttle's lean is a reaction to
+    /// the change in it (<see cref="ShipFlight.Surge"/>).
+    ///
+    /// Every angle and distance is signed. If one reads backwards, negate it
+    /// in the inspector rather than editing this file.
     /// </summary>
     public class SpaceShipPitch : MonoBehaviour
     {
@@ -25,35 +36,52 @@ namespace SurvivalChaos
 
         [Header("Climb / dive (W and S)")]
         [SerializeField]
-        [Tooltip("Degrees the nose lifts at full climb.")]
+        [Tooltip("Degrees the nose lifts at full climb, and drops at full dive.")]
         private float climbPitchAngle = 22f;
 
         [SerializeField]
-        [Tooltip("Degrees the ship rolls as it climbs. Keep this small; it is flavour, not the main cue.")]
+        [Tooltip("Degrees the ship rolls as it climbs, roof away from the camera. Keep this small; " +
+                 "it is flavour, not the main cue.")]
         private float climbRollAngle = 10f;
-
-        [SerializeField]
-        [Tooltip("How quickly climb motion follows. Higher is snappier; 0 disables easing.")]
-        private float climbResponse = 7f;
 
         [Header("Throttle (A and D)")]
         [SerializeField]
-        [Tooltip("Degrees the craft leans into acceleration. Nose dips going forward, lifts reversing. " +
-                 "This is the main 'moving forward' cue - push it if you want it more pronounced.")]
+        [Tooltip("Degrees the nose dips as the ship sets off toward it, and lifts as it sets off " +
+                 "backwards or lets go. A reaction to the throttle changing, not a pose held with it.")]
         private float thrustLeanAngle = 18f;
 
         [SerializeField]
-        [Tooltip("World units the ship drags back against acceleration, as inertia. Set 0 to disable.")]
-        private float thrustDragDistance = 0.06f;
+        [Range(0f, 1f)]
+        [Tooltip("The share of that lean kept for as long as the throttle is held. 0 flies level " +
+                 "at speed; 1 is the old behaviour, a lean held with the key.")]
+        private float thrustLeanHold = 0.25f;
 
         [SerializeField]
-        [Tooltip("How quickly throttle motion follows. Lower feels heavier.")]
-        private float thrustResponse = 4f;
+        [Min(0f)]
+        [Tooltip("How quickly the ship gets used to a throttle and the lean comes back off. Higher " +
+                 "is a shorter reaction; 2.5 is most of it gone in under a second.")]
+        private float thrustSettle = 2.5f;
+
+        [SerializeField]
+        [Tooltip("World units the ship drags back against the way it is travelling. Set 0 to disable.")]
+        private float thrustDragDistance = 0.06f;
 
         [Header("Direction flip (Shift)")]
         [SerializeField]
-        [Tooltip("Sweep speed of the 180 degree turn.")]
-        private float flipDegreesPerSecond = 540f;
+        [Tooltip("The facing, in degrees, that points the nose at the camera. The flip turns " +
+                 "through it both ways, so the turn is seen and not hidden behind the hull.")]
+        private float flipThrough = 90f;
+
+        [Header("Dash")]
+        [SerializeField]
+        [Tooltip("Whole turns the ship rolls about its nose through a dash. 0 for none.")]
+        private int dashRollTurns = 1;
+
+        [SerializeField]
+        [Range(0.1f, 1f)]
+        [Tooltip("Seconds that roll takes. Longer than the 0.22 second burst on purpose: it finishes " +
+                 "as the ship comes out of it.")]
+        private float dashRollSeconds = 0.35f;
 
         [Header("Idle drift")]
         [SerializeField]
@@ -64,16 +92,43 @@ namespace SurvivalChaos
         private float idlePitchAmplitude = 2f;
 
         [SerializeField]
+        [Tooltip("World units the ship rises and falls as it idles.")]
+        private float idleBobHeight = 0.012f;
+
+        [SerializeField]
         private float idleSpeed = 0.7f;
 
-        private float climbPitch;
-        private float climbRoll;
-        private float thrustLean;
-        private float thrustDrag;
-        private float facing;
-        private Vector3 restPosition;
+        [Header("Springs")]
+        [SerializeField]
+        private ShipRigSettings springs = new ShipRigSettings
+        {
+            turnFrequency = 2.4f,
+            turnDamping = 0.85f,
+            bankPerTurnRate = 0.03f,
+            maxTurnBank = 25f,
+            attitudeFrequency = 2.6f,
+            attitudeDamping = 0.6f,
+            maxPitch = 34f,
+            knockFrequency = 6f,
+            knockDamping = 0.5f,
+            maxKnock = 0.12f,
+        };
 
-        void Start()
+        private ShipRig rig;
+        private float facing;
+        private float settledThrottle;
+        private bool wasDashing;
+
+        /// <summary>The rig this drives, for whatever wants to knock the ship.</summary>
+        public ShipRig Rig => rig;
+
+        private void Awake()
+        {
+            rig = ShipRig.On(gameObject);
+            rig.Configure(ShipBasis.NoseAlongX, springs);
+        }
+
+        private void Start()
         {
             if (player == null)
             {
@@ -85,11 +140,12 @@ namespace SurvivalChaos
                 Debug.LogWarning("SpaceShipPitch found no Player; the model will not flip.", this);
             }
 
-            restPosition = transform.localPosition;
             facing = FacingTarget();
+            rig.Aim(facing, 0f, 0f, Vector3.zero);
+            rig.Settle();
         }
 
-        void Update()
+        private void Update()
         {
             // The effective axes rather than the raw ones, so the model banks
             // into a dash it never asked for. A burst begun with nothing held
@@ -99,33 +155,43 @@ namespace SurvivalChaos
             float climb = PlayerMovement.EffectiveVertical;
             float throttle = PlayerMovement.EffectiveHorizontal;
 
-            // Flipping mirrors the model, so "forward" reverses with it.
+            // Flipping turns the model round, so "toward the nose" reverses with it.
             float mirror = IsFlipped ? -1f : 1f;
-            float delta = Time.deltaTime;
+            float noseward = throttle * mirror;
 
-            facing = ShipMotion.ApproachAngle(facing, FacingTarget(), flipDegreesPerSecond, delta);
+            facing = ShipFlight.TurnThrough(facing, FacingTarget(), flipThrough);
 
-            climbPitch = ShipMotion.Approach(climbPitch, -climb * climbPitchAngle * mirror, climbResponse, delta);
-            climbRoll = ShipMotion.Approach(climbRoll, climb * climbRollAngle * mirror, climbResponse, delta);
+            settledThrottle = ShipMotion.Approach(settledThrottle, noseward, thrustSettle, Time.deltaTime);
+            float surge = Mathf.Clamp(
+                ShipFlight.Surge(noseward, settledThrottle, thrustLeanHold), -1f, 1f);
 
-            thrustLean = ShipMotion.Approach(thrustLean, throttle * thrustLeanAngle * mirror, thrustResponse, delta);
-            thrustDrag = ShipMotion.Approach(thrustDrag, -throttle * thrustDragDistance * mirror, thrustResponse, delta);
+            // Nose up in a climb whichever way the ship faces; nose down into
+            // a throttle toward it.
+            float nose = climb * climbPitchAngle - surge * thrustLeanAngle;
 
-            float idle = 1f - Mathf.Clamp01(Mathf.Abs(climb) + Mathf.Abs(throttle));
-            float wave = Time.time * idleSpeed;
-            float idleRoll = Mathf.Sin(wave) * idleRollAmplitude * idle;
-            float idlePitch = Mathf.Sin(wave * 0.7f + 1.3f) * idlePitchAmplitude * idle;
+            // The roof tips away from the camera in a climb, which is a bank
+            // to the pilot's left facing one way and to the right the other.
+            float bank = -climb * climbRollAngle * mirror;
 
-            // Z carries the nose: climb pitch and throttle lean both tilt it along
-            // the direction of travel, and combine when you climb while thrusting.
-            transform.localRotation = Quaternion.Euler(
-                climbRoll + idleRoll,
-                facing,
-                climbPitch + thrustLean + idlePitch);
+            // Along the ring, against the way the ship is going, whichever
+            // way its nose points.
+            Vector3 drag = new Vector3(-throttle * thrustDragDistance, 0f, 0f);
 
-            // X in the parent's space is the tangent - the direction the ship
-            // travels - so offsetting it slides the ship along its own heading.
-            transform.localPosition = restPosition + new Vector3(thrustDrag, 0f, 0f);
+            rig.Aim(facing, nose, bank, drag);
+            rig.Hover(idleBobHeight, idleRollAmplitude, idlePitchAmplitude, idleSpeed);
+            rig.Bob = 1f - Mathf.Clamp01(Mathf.Abs(climb) + Mathf.Abs(throttle));
+
+            bool dashing = PlayerMovement.Dashing;
+
+            if (dashing && !wasDashing && dashRollTurns != 0)
+            {
+                // Over the top in a climb, under in a dive, and the same way
+                // round on screen whichever way the ship faces.
+                float way = (climb < -0.1f ? -1f : 1f) * mirror;
+                rig.BarrelRoll(way < 0f ? -dashRollTurns : dashRollTurns, dashRollSeconds);
+            }
+
+            wasDashing = dashing;
         }
 
         private bool IsFlipped => player != null && player.DirectionFlipped;

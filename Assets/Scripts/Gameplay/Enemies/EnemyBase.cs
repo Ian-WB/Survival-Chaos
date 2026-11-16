@@ -46,8 +46,29 @@ namespace SurvivalChaos
         [SerializeField]
         private GameObject EnemyShip;
 
+        [Header("Hit reaction")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard a round that does not kill knocks the model back along its path, in " +
+                 "units a second. The hull springs home on its own and the hit box does not move. " +
+                 "0 for none.")]
+        private float hitKnock = 4f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard the same round rocks the hull, in degrees a second.")]
+        private float hitTwist = 260f;
+
         private HealthState health;
         private HitFlash flash;
+
+        /// <summary>
+        /// What knocks the model. Found on the first hit, not in Awake: the
+        /// ships that fly get theirs from EnemySpaceShip on a child, which may
+        /// wake after this, and the one that does not fly is given one then.
+        /// </summary>
+        private ShipRig rig;
+        private bool rigSought;
 
         /// <summary>The ship model under this object, for the gunship to find its movement on.</summary>
         protected GameObject Ship => EnemyShip;
@@ -117,12 +138,86 @@ namespace SurvivalChaos
                         flash.Strike();
                     }
 
+                    Knock(impact);
+
                     if (enemyHit != null)
                     {
                         ObjectPool.Spawn(enemyHit, impact, transform.rotation);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Knocks the model away from where a round struck it.
+        ///
+        /// The flash says the hull was hit and the spark says where. Neither
+        /// says the round had any weight, and on the Heavy, which takes ten,
+        /// nine of them landed on a ship that did not so much as rock.
+        /// </summary>
+        private void Knock(Vector3 impact)
+        {
+            if (hitKnock <= 0f && hitTwist <= 0f)
+            {
+                return;
+            }
+
+            if (!rigSought)
+            {
+                rigSought = true;
+                rig = GetComponentInChildren<ShipRig>();
+
+                // A model nothing flies: knocked about the pose its prefab gave it.
+                if (rig == null)
+                {
+                    Renderer hull = GetComponentInChildren<MeshRenderer>();
+
+                    if (hull != null && hull.transform != transform)
+                    {
+                        rig = ShipRig.On(hull.gameObject);
+                    }
+                }
+            }
+
+            if (rig == null)
+            {
+                return;
+            }
+
+            // Along the ring: rounds travel it, so the side they struck is
+            // the side they came from.
+            Vector3 push = transform.position - impact;
+            push.y = 0f;
+
+            rig.KickWorld(push, hitKnock);
+
+            // Alternating by where it landed, so a stream of rounds rocks
+            // the hull both ways and does not wind it up one way.
+            float side = impact.y >= transform.position.y ? 1f : -1f;
+            rig.Twist(-side * hitTwist * 0.3f, side * hitTwist);
+        }
+
+        /// <summary>
+        /// Takes this enemy off the ring because the player flew into it:
+        /// its explosion and its sound, and nothing else.
+        ///
+        /// A rammed ship used to be handed straight back to the pool, so the
+        /// thing that had just cost the player a hit point vanished between
+        /// two frames with nothing to say it had been there. It still pays no
+        /// experience, counts as no kill and leaves no salvage: ramming is a
+        /// mistake, and those are what a kill earns.
+        /// </summary>
+        public void Ram()
+        {
+            if (health == null || health.IsDead)
+            {
+                return;
+            }
+
+            health.TakeDamage(health.Current);
+            ObjectPool.Spawn(explosion, transform.position, transform.rotation);
+            PlayDeathSound();
+            ObjectPool.Despawn(gameObject);
         }
 
         /// <summary>
