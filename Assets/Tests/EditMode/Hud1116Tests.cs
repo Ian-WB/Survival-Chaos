@@ -144,23 +144,26 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// Two Max HP picks bring the hull level with the 440 of the rows
-        /// above it - the length chosen so the bar starts smaller and grows
-        /// past them. Held to the scene's starting hull and the pick's amount.
+        /// The hull starts at 270 under the ship and every Max HP pick
+        /// lengthens it, up to the 375 cap of the 17 November 2026 redesign
+        /// (it was 220, growing without limit to sit level with a row above
+        /// that has since gone). Held to the scene's starting hull and the
+        /// pick's amount.
         /// </summary>
         [Test]
-        public void Hull_IsLevelWithTheRowsAfterTwoPicks()
+        public void Hull_GrowsWithPicksUpToTheCap()
         {
             int start = Mathf.RoundToInt(SceneFloat("healthPoints"));
             float perPoint = ComponentFloat("HealthBar", "pixelsPerHitPoint");
+            float cap = ComponentFloat("HealthBar", "maxWidth");
 
             var maxHealth = Skill<MaxHealthSkill>("MaxHealth");
             int amount = new SerializedObject(maxHealth).FindProperty("amount").intValue;
 
-            Assert.AreEqual(220f, HealthBar.WidthFor(start, perPoint), 0.001f, "The starting length.");
-            Assert.AreEqual(440f, HealthBar.WidthFor(start + 2 * amount, perPoint), 0.001f);
-            Assert.LessOrEqual(HealthBar.WidthFor(start + maxHealth.MaxPicks * amount, perPoint), 700f,
-                "Every pick taken, the hull should still leave the middle of the screen alone.");
+            Assert.AreEqual(270f, HealthBar.WidthFor(start, perPoint, cap), 0.001f, "The starting length.");
+            Assert.Greater(HealthBar.WidthFor(start + amount, perPoint, cap), 270f, "A pick still lengthens it.");
+            Assert.AreEqual(375f, HealthBar.WidthFor(start + maxHealth.MaxPicks * amount, perPoint, cap), 0.001f,
+                "Every pick taken, the hull stops at the cap.");
         }
 
         // ---- Banner -----------------------------------------------------

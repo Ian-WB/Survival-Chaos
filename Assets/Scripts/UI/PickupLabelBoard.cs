@@ -60,7 +60,36 @@ namespace SurvivalChaos
         [Range(0f, 1f)]
         [Tooltip("Strength of the glyph glow. This stands in for the bloom that overlay UI " +
                  "cannot receive.")]
-        private float glowPower = 0.4f;
+        private float glowPower = 0.25f;
+
+        [SerializeField]
+        [Range(0f, 0.5f)]
+        [Tooltip("Width of the dark rim round each glyph, as a fraction of the distance field. " +
+                 "0 switches it off.")]
+        private float outlineWidth = 0.3f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("Reach of the coloured glow beyond the glyph. Kept short so the dark rim reads " +
+                 "over lava rather than being painted over (17 November 2026).")]
+        private float glowOuter = 0.12f;
+
+        [SerializeField]
+        [Tooltip("A soft dark shadow straight under each glyph, wider than the rim: what keeps " +
+                 "a number legible on white-hot lava. Alpha 0 switches it off.")]
+        private Color underlayColour = new Color(0.016f, 0.063f, 0.102f, 0.85f);
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float underlayDilate = 0.6f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float underlaySoftness = 0.45f;
+
+        [SerializeField]
+        [Tooltip("Colour of the rim: the hologram plate's near-black (#04101A).")]
+        private Color outlineColour = new Color(0.016f, 0.063f, 0.102f, 1f);
 
         [SerializeField]
         [Tooltip("The arena axis the volcano stands on. Falls back to the world origin, which " +
@@ -72,16 +101,30 @@ namespace SurvivalChaos
                  "occlusion test off and draws every caption, hidden or not.")]
         private float occluderRadius = 5f;
 
+        [SerializeField]
+        [ColorUsage(showAlpha: true, hdr: true)]
+        [Tooltip("One colour for every offer caption and its edge arrow, instead of each " +
+                 "upgrade's own, when its alpha is above 0: gold (#FFD140) was proposed on 17 " +
+                 "November 2026 and is on hold while the captions themselves are reconsidered. " +
+                 "Alpha 0 keeps each pickup's own colour.")]
+        private Color captionTint = new Color(1f, 0.820f, 0.251f, 0f);
+
+        /// <summary>The caption colour: the shared one, or the pickup's own if that is off.</summary>
+        private Color CaptionTint(Color own)
+        {
+            return captionTint.a > 0f ? new Color(captionTint.r, captionTint.g, captionTint.b, own.a) : own;
+        }
+
         [Header("Combat numbers")]
         [SerializeField]
         [ColorUsage(showAlpha: false, hdr: true)]
         [Tooltip("Colour of the experience earned where a kill happened.")]
-        private Color experienceTint = new Color(1f, 0.78f, 0.25f);
+        private Color experienceTint = new Color(1f, 0.820f, 0.251f);
 
         [SerializeField]
         [ColorUsage(showAlpha: false, hdr: true)]
         [Tooltip("Colour of the health restored where a piece of salvage was taken.")]
-        private Color healthTint = new Color(0.35f, 1f, 0.55f);
+        private Color healthTint = new Color(0.180f, 0.898f, 0.490f);
 
         [SerializeField]
         [Range(0.2f, 3f)]
@@ -154,6 +197,12 @@ namespace SurvivalChaos
         private readonly List<PickupLabel> attached = new List<PickupLabel>();
 
         /// <summary>
+        /// The labels on the ring right now, for the pause card's list of
+        /// offers. Read only.
+        /// </summary>
+        public IReadOnlyList<PickupLabel> Attached => attached;
+
+        /// <summary>
         /// One number owed to the screen: what it says, where it was earned, and
         /// when.
         ///
@@ -218,6 +267,14 @@ namespace SurvivalChaos
         private static readonly int GlowOuter = Shader.PropertyToID("_GlowOuter");
         private static readonly int GlowInner = Shader.PropertyToID("_GlowInner");
         private static readonly int GlowOffset = Shader.PropertyToID("_GlowOffset");
+        private static readonly int OutlineWidth = Shader.PropertyToID("_OutlineWidth");
+        private static readonly int OutlineColor = Shader.PropertyToID("_OutlineColor");
+        private static readonly int FaceDilate = Shader.PropertyToID("_FaceDilate");
+        private static readonly int UnderlayColor = Shader.PropertyToID("_UnderlayColor");
+        private static readonly int UnderlayDilate = Shader.PropertyToID("_UnderlayDilate");
+        private static readonly int UnderlaySoftness = Shader.PropertyToID("_UnderlaySoftness");
+        private static readonly int UnderlayOffsetX = Shader.PropertyToID("_UnderlayOffsetX");
+        private static readonly int UnderlayOffsetY = Shader.PropertyToID("_UnderlayOffsetY");
 
         private void Awake()
         {
@@ -454,7 +511,7 @@ namespace SurvivalChaos
                     slot.fontSize = fontSize * ScaleAt(screen.z);
 
                     occupied.Add(Footprint(slot, screen, Side.Centre));
-                    Paint(drawn - 1, label.Tint);
+                    Paint(drawn - 1, CaptionTint(label.Tint));
                     continue;
                 }
 
@@ -494,7 +551,7 @@ namespace SurvivalChaos
 
                 Place(edge, point, side);
                 occupied.Add(footprint);
-                Paint(drawn - 1, label.Tint);
+                Paint(drawn - 1, CaptionTint(label.Tint));
             }
 
             drawn = DrawNumbers(camera, drawn);
@@ -871,9 +928,31 @@ namespace SurvivalChaos
             {
                 material.EnableKeyword("GLOW_ON");
                 material.SetFloat(GlowPower, glowPower);
-                material.SetFloat(GlowOuter, 0.3f);
+                material.SetFloat(GlowOuter, glowOuter);
                 material.SetFloat(GlowInner, 0.05f);
                 material.SetFloat(GlowOffset, 0f);
+
+                // A dark hologram-plate rim (#04101A) round every glyph, so a
+                // number or caption beside white-hot lava keeps its edge (17
+                // November 2026 redesign). Before the padding update below,
+                // for the reason it gives.
+                material.EnableKeyword("OUTLINE_ON");
+                material.SetFloat(OutlineWidth, outlineWidth);
+
+                // Grown by the rim's width, so the rim sits outside the letter
+                // instead of eating into it.
+                material.SetFloat(FaceDilate, outlineWidth);
+
+                if (underlayColour.a > 0f)
+                {
+                    material.EnableKeyword("UNDERLAY_ON");
+                    material.SetColor(UnderlayColor, underlayColour);
+                    material.SetFloat(UnderlayDilate, underlayDilate);
+                    material.SetFloat(UnderlaySoftness, underlaySoftness);
+                    material.SetFloat(UnderlayOffsetX, 0f);
+                    material.SetFloat(UnderlayOffsetY, 0f);
+                }
+                material.SetColor(OutlineColor, outlineColour);
 
                 // Not optional, and not obvious. TextMeshPro sizes the quad it
                 // builds for each glyph from the material's padding requirements,

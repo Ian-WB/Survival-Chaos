@@ -78,6 +78,9 @@ namespace SurvivalChaos.EditorTools
             RepointReferences(root.transform);
             int removed = RetireOldHud(canvas.transform);
 
+            // The 17 November 2026 layout on top of what was just built.
+            HudLayout1117.Apply();
+
             AssetDatabase.SaveAssets();
             EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);
             Selection.activeGameObject = root;
@@ -262,7 +265,7 @@ namespace SurvivalChaos.EditorTools
 
             Image image = HoloUiFactory.CreateBarImage(parent, "Dash Bar", Vector2.zero,
                 Vector2.zero, RowBarAt(0), RowBarSize, bar,
-                HoloUiFactory.Accent, 0f);
+                HoloUiFactory.Ability, 0f);
 
             image.type = Image.Type.Simple;
             image.fillAmount = 1f;
@@ -372,7 +375,7 @@ namespace SurvivalChaos.EditorTools
 
             Image image = HoloUiFactory.CreateBarImage(group, "Deflector Bar", Vector2.zero,
                 Vector2.zero, RowBarAt(1), RowBarSize, bar,
-                HoloUiFactory.Edge, 0f);
+                HoloUiFactory.Ability, 0f);
 
             image.type = Image.Type.Simple;
             image.fillAmount = 1f;
@@ -462,11 +465,10 @@ namespace SurvivalChaos.EditorTools
         private const string SlowMoName = "Slow Mo";
 
         /// <summary>
-        /// A pale violet, apart from the row's two blues. Time rather than
-        /// shields, and not the red of the Slow Mo pickup, which on this HUD is
-        /// the colour of taking a hit.
+        /// The abilities' cyan, like Dash and Deflector: one colour for every
+        /// ability (17 November 2026 redesign). It was a pale violet.
         /// </summary>
-        private static readonly Color SlowMoFill = new Color(0.80f, 0.62f, 1.00f, 1.00f);
+        private static readonly Color SlowMoFill = HoloUiFactory.Ability;
 
         /// <summary>
         /// Slow Mo's gauge, last in the row, built like the deflector's: under
@@ -547,7 +549,7 @@ namespace SurvivalChaos.EditorTools
         private static void BuildTimer(Transform parent, Material bar)
         {
             Slider timer = HoloUiFactory.CreateBar(parent, "Timer Bar", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -44f), new Vector2(860f, 22f), bar, HoloUiFactory.Accent, 20f, 0f);
+                new Vector2(0f, -44f), new Vector2(860f, 22f), bar, HoloUiFactory.Clock, 20f, 0f);
 
             // The countdown and its caption have one lifetime during the boss handover.
             HoloUiFactory.CreateText(timer.transform, "Timer Label", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),

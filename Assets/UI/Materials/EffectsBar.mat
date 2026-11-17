@@ -29,10 +29,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Border: 2
-    - _Chamfer: 8
+    - _Border: 1.1
+    - _BracketArm: 6
+    - _BracketWidth: 1.6
+    - _Chamfer: 2
     - _ColorMask: 15
     - _Fill: 1
+    - _FrameStrength: 0.7
     - _Ghost: 1
     - _Glow: 1.8
     - _HeadWidth: 3
@@ -49,8 +52,9 @@ Material:
     - _StencilWriteMask: 255
     - _TickWidth: 2
     m_Colors:
+    - _BracketColor: {r: 0.718, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EdgeColor: {r: 0.55, g: 0.95, b: 1, a: 1}
+    - _EdgeColor: {r: 0.431, g: 0.867, b: 0.941, a: 1}
     - _FillColor: {r: 0.3, g: 0.85, b: 1, a: 1}
     - _GhostColor: {r: 1, g: 0.32, b: 0.34, a: 1}
     - _TrackColor: {r: 0.03, g: 0.12, b: 0.17, a: 0.55}

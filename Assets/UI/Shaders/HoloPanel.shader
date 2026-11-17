@@ -7,11 +7,15 @@ Shader "Survival Chaos/Holo Panel"
 
         [Header(Holo)]
         _FillColor ("Fill", Color) = (0.05, 0.5, 0.65, 0.35)
-        _EdgeColor ("Edge", Color) = (0.5, 0.95, 1.0, 1.0)
-        _Chamfer ("Corner cut (px)", Float) = 14
-        _Border ("Border width (px)", Float) = 2
-        _BracketArm ("Bracket length (px)", Float) = 26
-        _BracketWidth ("Bracket width (px)", Float) = 4
+        _EdgeColor ("Edge", Color) = (0.43, 0.867, 0.941, 1.0)
+        // The corner ticks are brighter than the frame, so the corners read as
+        // the accent (17 Nov 2026 redesign: thin frame, small bright ticks).
+        _BracketColor ("Bracket", Color) = (0.718, 1.0, 1.0, 1.0)
+        _FrameStrength ("Frame strength", Range(0,1)) = 0.7
+        _Chamfer ("Corner cut (px)", Float) = 2
+        _Border ("Border width (px)", Float) = 1.1
+        _BracketArm ("Bracket length (px)", Float) = 7.5
+        _BracketWidth ("Bracket width (px)", Float) = 1.6
         _Inset ("Inset (px)", Float) = 1
 
         [Header(Projection)]
@@ -99,6 +103,8 @@ Shader "Survival Chaos/Holo Panel"
             fixed4 _Color;
             fixed4 _FillColor;
             fixed4 _EdgeColor;
+            fixed4 _BracketColor;
+            float _FrameStrength;
             float _Chamfer;
             float _Border;
             float _BracketArm;
@@ -142,7 +148,9 @@ Shader "Survival Chaos/Holo Panel"
 
                 float body = HoloFill(d);
                 float edge = HoloBand(d, _Border);
-                float brackets = HoloCornerBrackets(p, inner, _BracketArm, _BracketWidth);
+                // Centred on the frame line, so a tick overlays the corner
+                // instead of sitting beside it as a second line.
+                float brackets = HoloCornerBrackets(p, inner + _BracketWidth * 0.5, _BracketArm, _BracketWidth);
 
                 float scan = HoloScanlines(p, _ScanDensity, _ScanSpeed, _Time.y);
                 float flicker = HoloFlicker(_Time.y, _FlickerAmount);
@@ -151,23 +159,28 @@ Shader "Survival Chaos/Holo Panel"
                 float3 fill = _FillColor.rgb * lerp(1.0 - _ScanStrength, 1.0, scan);
                 float fillAlpha = _FillColor.a * body;
 
-                // Line work: bracket marks ride at full strength, the frame is
-                // slightly softer so the corners read as the accent.
-                float lines = saturate(max(edge * 0.85, brackets));
+                // Line work: a thin, softer frame, with the corner ticks drawn
+                // over it in their own brighter colour as the accent.
+                float frameLine = edge * _FrameStrength * (1.0 - brackets);
+                float lines = saturate(frameLine + brackets);
 
                 // A panel that has just appeared gets a bright line running up it.
                 float sweep = _Sweep < 1.0
                     ? HoloSweep(p, inner, _Sweep, _SweepWidth) * body
                     : 0.0;
 
-                float3 lit = _EdgeColor.rgb * (lines + sweep) * _Glow * _EdgeColor.a;
+                float3 lit = (_EdgeColor.rgb * (frameLine + sweep) + _BracketColor.rgb * brackets)
+                    * _Glow * _EdgeColor.a;
 
                 float alpha = saturate(fillAlpha + lines * _EdgeColor.a + sweep);
                 alpha *= i.color.a * flicker;
 
                 // Premultiplied: colour is already scaled by coverage, so the
                 // edges add light instead of just tinting what is behind them.
-                float3 rgb = (fill * fillAlpha + lit) * i.color.rgb * flicker;
+                // Times the vertex alpha too, so a CanvasGroup fading the panel
+                // (the HUD's context fades, 17 November 2026) dims its light
+                // as well as its coverage.
+                float3 rgb = (fill * fillAlpha + lit) * i.color.rgb * i.color.a * flicker;
 
                 #ifdef UNITY_UI_CLIP_RECT
                 float clipFactor = UnityGet2DClipping(i.world.xy, _ClipRect);

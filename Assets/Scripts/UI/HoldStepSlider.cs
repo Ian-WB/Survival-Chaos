@@ -5,22 +5,25 @@ using UnityEngine.UI;
 namespace SurvivalChaos
 {
     /// <summary>
-    /// The frame cap's slider: a whole-number Slider whose left and right
-    /// speed up while they are held.
+    /// A whole-number Slider whose left and right speed up while they are held.
     ///
-    /// A plain Slider moves one whole number a press, which is what the cap
-    /// wants for the last few frames and no use for crossing 270 of them on a
-    /// pad. This keeps the single step and widens it once the direction has
-    /// been held (<see cref="DisplayOptions.CapSliderStep"/>). The mouse is
+    /// A plain Slider moves one whole number a press, which is what the graphics
+    /// sliders want for fine-tuning and no use for crossing 270 frame rates on a
+    /// pad. This keeps the single step and widens it once the direction has been
+    /// held (<see cref="DisplayOptions.NextSliderPosition"/>). The mouse is
     /// untouched: dragging is the Slider's own.
+    ///
+    /// It was FrameCapSlider until 17 November 2026, when render scale and
+    /// dynamic resolution became sliders too. The file kept its GUID, so the
+    /// frame cap bar already in the scenes is this component.
     /// </summary>
-    [AddComponentMenu("Survival Chaos/Frame Cap Slider")]
-    public sealed class FrameCapSlider : Slider
+    [AddComponentMenu("Survival Chaos/Hold Step Slider")]
+    public sealed class HoldStepSlider : Slider
     {
         /// <summary>
         /// Presses closer together than this count as one hold. The input
         /// module repeats a held direction ten times a second; nobody taps that
-        /// fast, so tapping stays one frame a press.
+        /// fast, so tapping stays one step a press.
         /// </summary>
         private const float HoldGap = 0.2f;
 
@@ -49,7 +52,8 @@ namespace SurvivalChaos
             lastDirection = direction;
             lastMoveTime = now;
 
-            value = DisplayOptions.NextCapSliderPosition(Mathf.RoundToInt(value), direction, repeats);
+            value = DisplayOptions.NextSliderPosition(Mathf.RoundToInt(value), direction, repeats,
+                Mathf.RoundToInt(minValue), Mathf.RoundToInt(maxValue));
         }
     }
 }

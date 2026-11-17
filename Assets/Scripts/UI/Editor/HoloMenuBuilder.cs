@@ -81,13 +81,16 @@ namespace SurvivalChaos.EditorTools
             OptionsTabs options = HoloUiFactory.BuildOptionsTabs(tabs, panelMaterial, barMaterial, paused);
             WireOptions(paused, options);
             GameObject death = BuildOutcome(root.transform, panelMaterial, mainMenu,
-                "Death Screen", "Ship Lost", HoloUiFactory.Loss);
+                "Death Screen", "Ship Lost", Menus1117.DeathTitle);
             GameObject victory = BuildOutcome(root.transform, panelMaterial, mainMenu,
-                "Victory Screen", "Leviathan Down", HoloUiFactory.Health);
+                "Victory Screen", "Leviathan Down", Menus1117.VictoryTitle);
             GameObject prompt = BuildTutorialPrompt(root.transform, panelMaterial);
 
             int wired = Rewire(canvas, paused, tabs[0], death, victory, prompt);
             int removed = Retire(retired, root) + SweepLeftovers(canvas.transform, root);
+
+            // The 17 November 2026 menus: legends, pause chips and offers, end cards.
+            Menus1117.Apply();
 
             AssetDatabase.SaveAssets();
             EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);

@@ -1,15 +1,9 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace SurvivalChaos
 {
     /// <summary>
-    /// The frame cap slider, bound to <see cref="GraphicsDirector"/>.
-    ///
-    /// The same shape as <see cref="SharpnessControl"/>: it subscribes in code,
-    /// and reads back from the director as well as writing to it, so the pause
-    /// menu and the title screen cannot disagree about where the slider sits.
+    /// The frame cap slider.
     ///
     /// It was a cycler over nine fixed rates until 16 November 2026. A cap has
     /// no performance cliff to step around - 73 is as good a cap as 72 or 75,
@@ -19,94 +13,29 @@ namespace SurvivalChaos
     /// the right (<see cref="DisplayOptions.CapToSlider"/>).
     /// </summary>
     [AddComponentMenu("Survival Chaos/Frame Cap Control")]
-    public sealed class FrameCapControl : MonoBehaviour
+    public sealed class FrameCapControl : GraphicsSliderControl
     {
-        [SerializeField]
-        [Tooltip("Slider driving the cap. Its range is set here, in whole numbers.")]
-        private Slider slider;
+        protected override int First => DisplayOptions.CapSliderFirst;
 
-        [SerializeField]
-        [Tooltip("Optional. Shows the cap.")]
-        private TMP_Text readout;
+        protected override int Last => DisplayOptions.CapSliderLast;
 
-        [SerializeField]
-        [Tooltip("Optional. Says what is holding the cap when that is worth knowing.")]
-        private TMP_Text note;
+        protected override int Position(GraphicsDirector director) =>
+            DisplayOptions.CapToSlider(director.FrameCap);
 
-        private void OnEnable()
+        protected override void Apply(GraphicsDirector director, int position)
         {
-            if (slider != null)
-            {
-                slider.wholeNumbers = true;
-                slider.minValue = DisplayOptions.CapSliderFirst;
-                slider.maxValue = DisplayOptions.CapSliderLast;
-                slider.onValueChanged.AddListener(Apply);
-            }
-
-            GraphicsDirector.SettingsChanged += Refresh;
-            Refresh();
-        }
-
-        private void OnDisable()
-        {
-            if (slider != null)
-            {
-                slider.onValueChanged.RemoveListener(Apply);
-            }
-
-            GraphicsDirector.SettingsChanged -= Refresh;
-        }
-
-        private void Apply(float position)
-        {
-            GraphicsDirector director = GraphicsDirector.Instance;
-            if (director == null)
-            {
-                return;
-            }
-
-            int cap = DisplayOptions.SliderToCap(Mathf.RoundToInt(position));
-
-            // Setting the cap raises SettingsChanged, which refreshes the labels.
+            int cap = DisplayOptions.SliderToCap(position);
             if (cap != director.FrameCap)
             {
                 director.FrameCap = cap;
             }
         }
 
-        /// <summary>
-        /// Pulls the stored value back onto the slider. Set without notifying, or
-        /// writing the value would raise the change that wrote it.
-        /// </summary>
-        private void Refresh()
-        {
-            GraphicsDirector director = GraphicsDirector.Instance;
-            if (director == null)
-            {
-                return;
-            }
+        protected override string Describe(GraphicsDirector director) =>
+            DisplayOptions.DescribeCap(director.FrameCap);
 
-            if (slider != null)
-            {
-                slider.SetValueWithoutNotify(DisplayOptions.CapToSlider(director.FrameCap));
-            }
-
-            if (readout != null)
-            {
-                readout.text = DisplayOptions.DescribeCap(director.FrameCap);
-            }
-
-            if (note != null)
-            {
-                note.text = Note(director);
-                note.gameObject.SetActive(note.text.Length > 0);
-            }
-        }
-
-        private static string Note(GraphicsDirector director)
-        {
-            return DisplayOptions.DescribeCapHolder(director.FrameCap, director.ResolvedFrameCap,
+        protected override string Note(GraphicsDirector director) =>
+            DisplayOptions.DescribeCapHolder(director.FrameCap, director.ResolvedFrameCap,
                 director.CapSyncInterval);
-        }
     }
 }

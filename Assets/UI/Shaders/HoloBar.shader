@@ -15,9 +15,15 @@ Shader "Survival Chaos/Holo Bar"
         _TrackColor ("Track", Color) = (0.04, 0.18, 0.24, 0.55)
         _FillColor ("Fill colour", Color) = (0.35, 0.9, 1.0, 1.0)
         _GhostColor ("Ghost colour", Color) = (1.0, 0.35, 0.35, 1.0)
-        _EdgeColor ("Edge", Color) = (0.6, 0.97, 1.0, 1.0)
-        _Chamfer ("Corner cut (px)", Float) = 8
-        _Border ("Border width (px)", Float) = 2
+        _EdgeColor ("Edge", Color) = (0.43, 0.867, 0.941, 1.0)
+        // Small bright corner ticks over a thin, softer frame, matching the
+        // panels (17 Nov 2026 redesign). An arm of 0 turns them off.
+        _BracketColor ("Bracket", Color) = (0.718, 1.0, 1.0, 1.0)
+        _FrameStrength ("Frame strength", Range(0,1)) = 0.7
+        _BracketArm ("Bracket length (px)", Float) = 6
+        _BracketWidth ("Bracket width (px)", Float) = 1.6
+        _Chamfer ("Corner cut (px)", Float) = 2
+        _Border ("Border width (px)", Float) = 1.1
         _Inset ("Fill inset (px)", Float) = 4
         _Segments ("Segments", Float) = 12
         _TickWidth ("Tick width (px)", Float) = 2
@@ -102,6 +108,10 @@ Shader "Survival Chaos/Holo Bar"
             fixed4 _FillColor;
             fixed4 _GhostColor;
             fixed4 _EdgeColor;
+            fixed4 _BracketColor;
+            float _FrameStrength;
+            float _BracketArm;
+            float _BracketWidth;
             float _Fill;
             float _Ghost;
             float _Chamfer;
@@ -191,12 +201,25 @@ Shader "Survival Chaos/Holo Bar"
                 rgb += _FillColor.rgb * valueAlpha * scanned * pulse;
                 alpha += valueAlpha;
 
-                // Line work sits over everything.
-                float lineAlpha = _EdgeColor.a * saturate(max(frame, max(head, ticks * 0.45)));
+                // Line work sits over everything: the frame and fill marks in
+                // the edge colour, the corner ticks brighter on top.
+                float brackets = _BracketArm > 0.0
+                    // Centred on the frame line (which runs at halfSize - 1),
+                    // so a tick overlays the corner instead of doubling it.
+                    ? HoloCornerBrackets(p, halfSize - 1.0 + _BracketWidth * 0.5, _BracketArm, _BracketWidth)
+                    : 0.0;
+                float lineAlpha = _EdgeColor.a * saturate(max(frame * _FrameStrength, max(head, ticks * 0.45)))
+                    * (1.0 - brackets);
                 rgb += _EdgeColor.rgb * lineAlpha * _Glow * pulse;
                 alpha += lineAlpha;
 
-                rgb *= i.color.rgb;
+                float bracketAlpha = _EdgeColor.a * brackets;
+                rgb += _BracketColor.rgb * bracketAlpha * _Glow * pulse;
+                alpha += bracketAlpha;
+
+                // Premultiplied, so the vertex alpha (a CanvasGroup fading the
+                // bar) has to dim the light as well as the coverage.
+                rgb *= i.color.rgb * i.color.a;
                 alpha = saturate(alpha) * i.color.a;
 
                 #ifdef UNITY_UI_CLIP_RECT

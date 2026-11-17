@@ -29,14 +29,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Border: 2
-    - _Chamfer: 8
+    - _Border: 1.1
+    - _BracketArm: 0
+    - _BracketWidth: 1.6
+    - _Chamfer: 2
     - _ColorMask: 15
     - _Fill: 1
+    - _FrameStrength: 0
     - _Ghost: 1
     - _Glow: 1.8
     - _HeadWidth: 3
-    - _Inset: 4
+    - _Inset: 1.5
     - _Pulse: 0
     - _ScanDensity: 0.5
     - _ScanSpeed: 2
@@ -49,10 +52,11 @@ Material:
     - _StencilWriteMask: 255
     - _TickWidth: 2
     m_Colors:
+    - _BracketColor: {r: 0.718, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EdgeColor: {r: 0.55, g: 0.95, b: 1, a: 1}
-    - _FillColor: {r: 0.8, g: 0.62, b: 1, a: 1}
+    - _EdgeColor: {r: 0.431, g: 0.867, b: 0.941, a: 1}
+    - _FillColor: {r: 0.161, g: 0.851, b: 1, a: 1}
     - _GhostColor: {r: 0.03, g: 0.12, b: 0.17, a: 0.55}
-    - _TrackColor: {r: 0.03, g: 0.12, b: 0.17, a: 0.55}
+    - _TrackColor: {r: 0.016, g: 0.063, b: 0.102, a: 0.86}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -80,7 +80,113 @@ namespace SurvivalChaos
         [Tooltip("Seconds the bar takes to grow to its new length after a Max HP pick.")]
         private float growSeconds = 0.35f;
 
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("The longest the bar grows, in canvas units. Past it a Max HP pick packs more, " +
+                 "narrower segments into the same length. 0 for no cap.")]
+        private float maxWidth = 0f;
+
+        [Header("Plate and count")]
+        [SerializeField]
+        [Tooltip("The dark plate behind the bar, kept this much wider than the bar on each side " +
+                 "as it grows. Optional.")]
+        private RectTransform plate;
+
+        [SerializeField]
+        [Min(0f)]
+        private float platePadding = 12f;
+
+        [SerializeField]
+        [Tooltip("Reads the hull as \"18 / 20\", the current number in the stage colour. Optional.")]
+        private TMPro.TMP_Text count;
+
+        [Header("Colour stages")]
+        [SerializeField]
+        [Tooltip("Hull fill above the caution line (#2EE57D): green means hull, and nothing else.")]
+        private Color healthyColour = new Color(0.180f, 0.898f, 0.490f, 1f);
+
+        [SerializeField]
+        [Tooltip("Hull fill at or below 25% (#FFB830).")]
+        private Color cautionColour = new Color(1.000f, 0.722f, 0.188f, 1f);
+
+        [SerializeField]
+        [Tooltip("Hull fill at or below 15% (#FF3B4E).")]
+        private Color criticalColour = new Color(1.000f, 0.231f, 0.306f, 1f);
+
+        /// <summary>How worried the hull bar should look.</summary>
+        public enum Stage { Healthy, Caution, Critical }
+
+        /// <summary>
+        /// The stage for a hull reading: caution at or below 25% of the
+        /// maximum, critical at or below 15%. Whole-number maths, so at 20
+        /// hit points 5 is caution and 3 critical with no rounding doubt.
+        /// </summary>
+        public static Stage StageFor(int health, int maxHealth)
+        {
+            if (maxHealth <= 0)
+            {
+                return Stage.Healthy;
+            }
+
+            if (health * 100 <= maxHealth * 15)
+            {
+                return Stage.Critical;
+            }
+
+            return health * 100 <= maxHealth * 25 ? Stage.Caution : Stage.Healthy;
+        }
+
+        /// <summary>The fill colour for a stage.</summary>
+        public Color ColourFor(Stage stage)
+        {
+            return stage == Stage.Critical ? criticalColour
+                : stage == Stage.Caution ? cautionColour
+                : healthyColour;
+        }
+
+        [Header("Low-hull edge vignette")]
+        [SerializeField]
+        [Tooltip("Full-screen edge glow (Edge Glow shader) whose alpha this drives. Optional.")]
+        private Graphic vignette;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("Peak strength of the slow breath at amber.")]
+        private float vignetteCaution = 0.22f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("Strength between heartbeats at crimson.")]
+        private float vignetteCritical = 0.55f;
+
+        [SerializeField]
+        [Range(0.1f, 3f)]
+        private float breatheHz = 0.9f;
+
+        [SerializeField]
+        [Range(0f, 1f)]
+        [Tooltip("How much each heartbeat adds at crimson.")]
+        private float beatKick = 0.45f;
+
+        [SerializeField]
+        [Range(0.5f, 20f)]
+        [Tooltip("How fast the heartbeat's flash settles, per second.")]
+        private float beatDecay = 4f;
+
+        [SerializeField]
+        [Tooltip("Vignette tint at amber: a dark warm amber-red. Linear values, as the UI writes them.")]
+        private Color vignetteCautionTint = new Color(0.20f, 0.045f, 0.004f, 1f);
+
+        [SerializeField]
+        [Tooltip("Vignette tint at crimson: a dark crimson (about #5A1825 on screen).")]
+        private Color vignetteCriticalTint = new Color(0.16f, 0.006f, 0.02f, 1f);
+
+        private float vignetteShown;
+        private float lastBeat = -10f;
+        private Color vignetteTint;
+
         private HoloBar holo;
+        private Stage? shownStage;
         private float nextBeat;
         private bool warning;
         private Coroutine growing;
@@ -89,6 +195,47 @@ namespace SurvivalChaos
         public static float WidthFor(int maxHealth, float pixelsPerHitPoint)
         {
             return Mathf.Max(0, maxHealth) * Mathf.Max(0f, pixelsPerHitPoint);
+        }
+
+        /// <summary>The bar's length for a maximum, held at a cap (0 for none).</summary>
+        public static float WidthFor(int maxHealth, float pixelsPerHitPoint, float cap)
+        {
+            float width = WidthFor(maxHealth, pixelsPerHitPoint);
+            return cap > 0f ? Mathf.Min(width, cap) : width;
+        }
+
+        /// <summary>"18 / 20", with the current number in its stage colour.</summary>
+        public static string CountText(int health, int maxHealth, Color colour)
+        {
+            return "<color=#" + ColorUtility.ToHtmlStringRGB(colour) + ">" + Mathf.Max(0, health) +
+                   "</color> / " + Mathf.Max(0, maxHealth);
+        }
+
+        private int ShownMax => slider != null ? Mathf.RoundToInt(slider.maxValue) : 0;
+
+        /// <summary>
+        /// Length per hit point as drawn: the set rate until the cap, then the
+        /// cap shared out, so the segments always stand for the same two hit
+        /// points.
+        /// </summary>
+        private float DrawnPerPoint
+        {
+            get
+            {
+                int max = ShownMax;
+                return max > 0 ? WidthFor(max, pixelsPerHitPoint, maxWidth) / max : pixelsPerHitPoint;
+            }
+        }
+
+        private void RefreshCount()
+        {
+            if (count == null || slider == null)
+            {
+                return;
+            }
+
+            int health = Mathf.RoundToInt(slider.value);
+            count.text = CountText(health, ShownMax, ColourFor(StageFor(health, ShownMax)));
         }
 
         /// <summary>
@@ -139,10 +286,12 @@ namespace SurvivalChaos
         {
             if (shaken == null || pixelsPerHitPoint <= 0f)
             {
+                RefreshCount();
                 return;
             }
 
-            float width = WidthFor(maxHealth, pixelsPerHitPoint);
+            float width = WidthFor(maxHealth, pixelsPerHitPoint, maxWidth);
+            RefreshCount();
 
             if (growing != null)
             {
@@ -181,9 +330,14 @@ namespace SurvivalChaos
         {
             shaken.sizeDelta = new Vector2(width, shaken.sizeDelta.y);
 
+            if (plate != null)
+            {
+                plate.sizeDelta = new Vector2(width + 2f * platePadding, plate.sizeDelta.y);
+            }
+
             if (holo != null)
             {
-                holo.SetSegments(SegmentsFor(width, pixelsPerHitPoint, hitPointsPerSegment));
+                holo.SetSegments(SegmentsFor(width, DrawnPerPoint, hitPointsPerSegment));
             }
         }
 
@@ -200,6 +354,7 @@ namespace SurvivalChaos
             bool hurt = slider != null && health < slider.value;
 
             slider.value = health;
+            RefreshCount();
 
             if (hurt)
             {
@@ -216,10 +371,28 @@ namespace SurvivalChaos
         /// </summary>
         private void Update()
         {
-            bool now = slider != null && warnAtOrBelow > 0
+            if (slider != null && holo != null)
+            {
+                Stage stage = StageFor(Mathf.RoundToInt(slider.value), Mathf.RoundToInt(slider.maxValue));
+                if (stage != shownStage)
+                {
+                    shownStage = stage;
+                    holo.SetFillColour(ColourFor(stage));
+                    RefreshCount();
+                }
+            }
+
+            Stage current = slider != null
+                ? StageFor(Mathf.RoundToInt(slider.value), Mathf.RoundToInt(slider.maxValue))
+                : Stage.Healthy;
+
+            // The heartbeat and the bar's full pulse start at the crimson line
+            // (17 November 2026 redesign), not on the last hit point. The old
+            // dial still adds hit points below that line on a very small hull.
+            bool now = slider != null
                 && slider.value > 0f
-                && slider.value <= warnAtOrBelow
-                && slider.maxValue > warnAtOrBelow
+                && (current == Stage.Critical
+                    || (warnAtOrBelow > 0 && slider.value <= warnAtOrBelow && slider.maxValue > warnAtOrBelow))
                 && !RunOutcome.Decided;
 
             if (now != warning)
@@ -233,15 +406,76 @@ namespace SurvivalChaos
                 }
             }
 
+            UpdateVignette(RunOutcome.Decided || slider == null || slider.value <= 0f ? Stage.Healthy : current);
+
             if (!warning || PauseMenu.GameIsPaused || Time.time < nextBeat)
             {
                 return;
             }
 
+            lastBeat = Time.time;
             nextBeat = Time.time + heartbeatSeconds;
             if (GameSounds.Instance != null)
             {
                 GameSounds.Play(GameSounds.Instance.LowHealth);
+            }
+        }
+
+        /// <summary>
+        /// How strong the edge vignette is for a stage at a moment: nothing
+        /// above a quarter, a slow breath at amber, and at crimson a base that
+        /// jumps on each heartbeat and settles before the next.
+        /// </summary>
+        public static float VignetteFor(Stage stage, float time, float sinceBeat,
+            float caution, float critical, float breatheHz, float beatKick, float beatDecay)
+        {
+            switch (stage)
+            {
+                case Stage.Caution:
+                    float breath = 0.5f - 0.5f * Mathf.Cos(time * breatheHz * 2f * Mathf.PI);
+                    return caution * Mathf.Lerp(0.55f, 1f, breath);
+                case Stage.Critical:
+                    return Mathf.Clamp01(critical + beatKick * Mathf.Exp(-beatDecay * Mathf.Max(0f, sinceBeat)));
+                default:
+                    return 0f;
+            }
+        }
+
+        private void UpdateVignette(Stage stage)
+        {
+            if (vignette == null)
+            {
+                return;
+            }
+
+            float target = VignetteFor(stage, Time.time, Time.time - lastBeat,
+                vignetteCaution, vignetteCritical, breatheHz, beatKick, beatDecay);
+
+            // In quickly, out slowly: 0.25 s and 0.4 s.
+            float rate = target > vignetteShown ? 1f / 0.25f : 1f / 0.4f;
+            float settle = stage == Stage.Healthy || Mathf.Abs(target - vignetteShown) > 0.25f
+                ? rate * Time.unscaledDeltaTime
+                : 1f;
+            vignetteShown = Mathf.MoveTowards(vignetteShown, target, settle);
+
+            // The tint follows the stage it is showing; on the way out it
+            // keeps the last one rather than turning colour as it fades.
+            if (stage != Stage.Healthy)
+            {
+                vignetteTint = stage == Stage.Critical ? vignetteCriticalTint : vignetteCautionTint;
+            }
+
+            Color c = vignetteTint;
+            c.a = vignetteShown;
+            if (vignette.color != c)
+            {
+                vignette.color = c;
+            }
+
+            bool on = vignetteShown > 0.001f;
+            if (vignette.enabled != on)
+            {
+                vignette.enabled = on;
             }
         }
 

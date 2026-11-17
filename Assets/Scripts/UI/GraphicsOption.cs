@@ -18,14 +18,12 @@ namespace SurvivalChaos
         Resolution = 1,
         ScreenMode = 2,
         VSync = 3,
-        RenderScale = 5,
         Reflections = 7,
         VolumetricFog = 9,
         MotionBlur = 10,
         UpscaleMethod = 12,
         UpscaleQuality = 13,
         AntiAliasing = 14,
-        DynamicResolution = 16,
         GlobalIllumination = 17,
 
         // A new number rather than 18 or the old Shadow Quality row's key: this
@@ -45,6 +43,10 @@ namespace SurvivalChaos
         // 4 was Frame Cap, a cycler over nine fixed rates until 16 November
         // 2026. It is a slider now (FrameCapControl), any whole number from 30
         // to 300, and 4 is retired for the same reason.
+        //
+        // 5 was Render Scale and 16 Dynamic Resolution, cyclers until 17
+        // November 2026 and sliders since (RenderScaleControl,
+        // DynamicResolutionControl). Both numbers stay retired.
         //
         // 6 was Lighting, a two-way Baked/Ray traced switch whose only job was
         // toggling global illumination. GlobalIllumination replaced it with a
@@ -79,9 +81,10 @@ namespace SurvivalChaos
     /// Every setting here is a cycler, including the on/off ones. A toggle and a
     /// two-item cycler do the same job, and having one control type means one
     /// place to fix, one visual language, and no argument about which settings
-    /// deserve which widget. It also suits settings with performance cliffs —
-    /// render scale steps in tens rather than sliding continuously, because 73%
-    /// is not a choice anybody means to make.
+    /// deserve which widget. It suits settings with performance cliffs and
+    /// named rungs; the ones that are a number - frame cap, dynamic
+    /// resolution, render scale, sharpness - are sliders instead
+    /// (<see cref="GraphicsSliderControl"/>).
     ///
     /// The row reads its value back from <see cref="GraphicsDirector"/> rather
     /// than remembering one, so two screens showing the same setting cannot
@@ -101,9 +104,6 @@ namespace SurvivalChaos
         {
             "Fullscreen", "Borderless", "Windowed"
         };
-
-        /// <summary>Render scale in whole tens; anything finer is false precision.</summary>
-        private static readonly float[] RenderScales = { 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f };
 
         [SerializeField]
         private GraphicsOptionKind kind = GraphicsOptionKind.Quality;
@@ -159,45 +159,6 @@ namespace SurvivalChaos
         private void OnDisable()
         {
             GraphicsDirector.SettingsChanged -= Refresh;
-        }
-
-        /// <summary>How often the one live row re-reads its value.</summary>
-        private const float LiveRefreshInterval = 0.25f;
-
-        private float nextLiveRefresh;
-
-        /// <summary>
-        /// Keeps the Render Scale row honest while dynamic resolution is moving.
-        ///
-        /// Every other row changes only when the player changes it, so
-        /// SettingsChanged is enough. This one has a value that moves on its own,
-        /// and a row that reports a number it read once is worse than one that
-        /// reports nothing. Four times a second is legible without turning a
-        /// settings row into a per-frame string build.
-        /// </summary>
-        private void Update()
-        {
-            // An enum compare, not a disable: setting enabled false here would
-            // raise OnDisable and drop this row's SettingsChanged subscription,
-            // and it would never update again.
-            if (kind != GraphicsOptionKind.RenderScale)
-            {
-                return;
-            }
-
-            GraphicsDirector director = GraphicsDirector.Instance;
-            if (director == null || !director.DynamicResolutionOn)
-            {
-                return;
-            }
-
-            if (Time.unscaledTime < nextLiveRefresh)
-            {
-                return;
-            }
-
-            nextLiveRefresh = Time.unscaledTime + LiveRefreshInterval;
-            Refresh();
         }
 
         /// <summary>
@@ -328,20 +289,6 @@ namespace SurvivalChaos
         {
             switch (kind)
             {
-                // Inert while something else is driving the resolution, and also
-                // when the tier never compiled the handler that applies any of it.
-                //
-                // The director owns that first test rather than this row, because
-                // it is the same rule as the one deciding where the scale comes
-                // from - and an upscaler no longer always wins it. On a vendor
-                // preset the ratio is fixed and this row is inert as before; on
-                // Custom the row is what decides, which is the whole point of it.
-                case GraphicsOptionKind.RenderScale:
-                    return director.DynamicResolutionSupported && director.RenderScaleDecides;
-
-                case GraphicsOptionKind.DynamicResolution:
-                    return director.DynamicResolutionSupported;
-
                 // Nothing to set the quality of until an upscaler is chosen.
                 case GraphicsOptionKind.UpscaleQuality:
                     return director.Method != UpscaleMethod.Off;
@@ -446,8 +393,6 @@ namespace SurvivalChaos
 
                 case GraphicsOptionKind.Resolution: return director.Sizes.Count;
                 case GraphicsOptionKind.ScreenMode: return ScreenModes.Length;
-                case GraphicsOptionKind.RenderScale: return RenderScales.Length;
-                case GraphicsOptionKind.DynamicResolution: return DisplayOptions.DynamicTargets.Length;
                 case GraphicsOptionKind.UpscaleMethod: return Methods(director).Count;
                 case GraphicsOptionKind.UpscaleQuality: return DisplayOptions.UpscaleQualityNames.Length;
 
@@ -470,8 +415,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Resolution: return Mathf.Max(0, director.SizeIndex);
                 case GraphicsOptionKind.ScreenMode: return IndexOfMode(director.ScreenMode);
                 case GraphicsOptionKind.VSync: return director.VSync ? 1 : 0;
-                case GraphicsOptionKind.RenderScale: return IndexOfScale(director.RenderScale);
-                case GraphicsOptionKind.DynamicResolution: return IndexOfDynamic(director.DynamicTarget);
                 case GraphicsOptionKind.UpscaleMethod: return Mathf.Max(0, Methods(director).IndexOf(director.Method));
                 case GraphicsOptionKind.UpscaleQuality: return (int)director.Quality;
                 case GraphicsOptionKind.AntiAliasing: return (int)director.AntiAliasing;
@@ -493,8 +436,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.Resolution: director.SizeIndex = index; break;
                 case GraphicsOptionKind.ScreenMode: director.ScreenMode = ScreenModes[index]; break;
                 case GraphicsOptionKind.VSync: director.VSync = index == 1; break;
-                case GraphicsOptionKind.RenderScale: director.RenderScale = RenderScales[index]; break;
-                case GraphicsOptionKind.DynamicResolution: director.DynamicTarget = DisplayOptions.DynamicTargets[index]; break;
                 case GraphicsOptionKind.UpscaleMethod: director.Method = Methods(director)[index]; break;
                 case GraphicsOptionKind.UpscaleQuality: director.Quality = (UpscaleQuality)index; break;
                 case GraphicsOptionKind.AntiAliasing: director.AntiAliasing = (AntiAliasingMode)index; break;
@@ -526,14 +467,6 @@ namespace SurvivalChaos
 
                 case GraphicsOptionKind.VSync:
                     return director.VSync ? "On" : "Off";
-
-                case GraphicsOptionKind.RenderScale:
-                    // Shows what the game is actually rendering at, which an
-                    // upscaler decides rather than this control.
-                    return Mathf.RoundToInt(director.EffectiveRenderScale * 100f) + "%";
-
-                case GraphicsOptionKind.DynamicResolution:
-                    return DisplayOptions.DescribeDynamicTarget(director.DynamicTarget);
 
                 case GraphicsOptionKind.UpscaleMethod:
                     return DisplayOptions.UpscaleMethodNames[(int)director.Method];
@@ -595,10 +528,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VolumetricClouds when !director.VolumetricCloudsSupported:
                     return "Not compiled into this quality tier";
 
-                case GraphicsOptionKind.RenderScale when !director.DynamicResolutionSupported:
-                case GraphicsOptionKind.DynamicResolution when !director.DynamicResolutionSupported:
-                    return "Dynamic resolution is off in this quality tier";
-
                 // Says why the ladder stops at High rather than leaving the
                 // ray-traced rungs to be looked for and not found. Two things can
                 // withhold them and the row cannot tell which, so it names both.
@@ -616,40 +545,6 @@ namespace SurvivalChaos
                 case GraphicsOptionKind.VSync
                     when director.VSync && director.FrameCap != DisplayOptions.MatchDisplay:
                     return "If frames hitch, try Just Under Display instead";
-
-                // Ordered most specific first, because more than one of these can
-                // be true at once. Dynamic resolution moves the scale every frame
-                // whatever else is running, so it answers before the upscaler.
-                case GraphicsOptionKind.RenderScale when director.DynamicResolutionOn:
-                    return "Set by dynamic resolution";
-
-                case GraphicsOptionKind.RenderScale
-                    when director.Method == UpscaleMethod.Off &&
-                        director.AntiAliasing == AntiAliasingMode.Dlaa:
-                    return "DLAA renders at native, so there is nothing to scale";
-
-                // Custom is the mode where an upscaler is running and this row
-                // still decides, so it gets a note about what the number means
-                // rather than one about why it is dark.
-                case GraphicsOptionKind.RenderScale
-                    when director.Method != UpscaleMethod.Off && director.CustomScale:
-                    return "What " + DisplayOptions.UpscaleMethodNames[(int)director.Method] +
-                        " renders at before reconstructing to native";
-
-                case GraphicsOptionKind.RenderScale when director.Method != UpscaleMethod.Off:
-                    return "Set by the upscaler - pick Custom quality to set it here";
-
-                // The two used to be mutually exclusive: each upscaler installed
-                // its own scaler into a slot HDRP prefers, so the controller ran
-                // and was discarded. They compose now, and this is the pairing
-                // both vendors actually build for.
-                case GraphicsOptionKind.DynamicResolution when director.DynamicFeedsUpscaler:
-                    return "Moves the scale " +
-                        DisplayOptions.UpscaleMethodNames[(int)director.Method] +
-                        " reconstructs from";
-
-                case GraphicsOptionKind.DynamicResolution when director.DynamicResolutionOn:
-                    return "Drops resolution to hold the target, never below 50%";
 
                 case GraphicsOptionKind.UpscaleMethod when !director.DlssAvailable:
                     return "DLSS needs an NVIDIA RTX card";
@@ -705,40 +600,6 @@ namespace SurvivalChaos
             }
 
             return 1;
-        }
-
-        private static int IndexOfDynamic(int target)
-        {
-            for (int i = 0; i < DisplayOptions.DynamicTargets.Length; i++)
-            {
-                if (DisplayOptions.DynamicTargets[i] == target)
-                {
-                    return i;
-                }
-            }
-
-            // A target from a settings file this build no longer offers reads as
-            // off rather than as whatever happens to sit at index 0 by accident.
-            return 0;
-        }
-
-        /// <summary>
-        /// The step matching a stored scale, falling back to native.
-        ///
-        /// A saved value can sit between steps - written by an older build, or by
-        /// dynamic resolution having moved it - and native is the safe reading.
-        /// </summary>
-        private static int IndexOfScale(float scale)
-        {
-            for (int i = 0; i < RenderScales.Length; i++)
-            {
-                if (Mathf.Abs(RenderScales[i] - scale) < 0.01f)
-                {
-                    return i;
-                }
-            }
-
-            return RenderScales.Length - 1;
         }
     }
 }

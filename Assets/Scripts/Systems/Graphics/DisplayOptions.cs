@@ -343,6 +343,18 @@ namespace SurvivalChaos
         /// </summary>
         public static int NextCapSliderPosition(int position, int direction, int repeats)
         {
+            return NextSliderPosition(position, direction, repeats, CapSliderFirst, CapSliderLast);
+        }
+
+        /// <summary>
+        /// The position one press away on any of the whole-number graphics
+        /// sliders - frame cap, dynamic resolution, render scale - held between
+        /// its two ends. One a press at first, five and then ten while the
+        /// direction is held (<see cref="CapSliderStep"/>), landing on multiples
+        /// of the step.
+        /// </summary>
+        public static int NextSliderPosition(int position, int direction, int repeats, int first, int last)
+        {
             int step = CapSliderStep(repeats);
             int next;
 
@@ -355,12 +367,59 @@ namespace SurvivalChaos
                 next = ((position + step - 1) / step - 1) * step;
             }
 
-            if (next < CapSliderFirst)
+            if (next < first)
             {
-                return CapSliderFirst;
+                return first;
             }
 
-            return next > CapSliderLast ? CapSliderLast : next;
+            return next > last ? last : next;
+        }
+
+        // ---------- render scale ----------
+
+        /// <summary>The lowest render scale, in percent. Below half the image falls apart.</summary>
+        public const int MinimumRenderScalePercent = 50;
+
+        /// <summary>Native.</summary>
+        public const int MaximumRenderScalePercent = 100;
+
+        /// <summary>
+        /// The steps the render scale row offered while it was a cycler, until
+        /// 17 November 2026. Kept so the tests can show they still load as
+        /// themselves.
+        /// </summary>
+        public static readonly float[] FormerRenderScales = { 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1f };
+
+        /// <summary>
+        /// A render scale as a slider position: whole percent, 50 to 100. The
+        /// scale is stored as a fraction and always was, so this is only the
+        /// rounding the slider shows.
+        /// </summary>
+        public static int RenderScaleToPercent(float scale)
+        {
+            int percent = (int)(scale * 100f + 0.5f);
+
+            if (percent < MinimumRenderScalePercent)
+            {
+                return MinimumRenderScalePercent;
+            }
+
+            return percent > MaximumRenderScalePercent ? MaximumRenderScalePercent : percent;
+        }
+
+        /// <summary>The scale a slider position stands for.</summary>
+        public static float PercentToRenderScale(int percent)
+        {
+            if (percent < MinimumRenderScalePercent)
+            {
+                percent = MinimumRenderScalePercent;
+            }
+            else if (percent > MaximumRenderScalePercent)
+            {
+                percent = MaximumRenderScalePercent;
+            }
+
+            return percent / 100f;
         }
 
         /// <summary>
@@ -423,8 +482,60 @@ namespace SurvivalChaos
         /// One row rather than a toggle beside a target, because a target that is
         /// switched off is a control that does nothing - and this project already
         /// found three of those. "Dynamic Resolution: 120 FPS" says both things.
+        ///
+        /// These were the row's choices while it was a cycler, until 17 November
+        /// 2026; it is a slider over every whole number from 30 to 300 now, with
+        /// off at the left end. Kept so the tests can show they still load.
         /// </summary>
-        public static readonly int[] DynamicTargets = { 0, 30, 60, 90, 120, 144, 165, 240 };
+        public static readonly int[] FormerDynamicTargets = { 0, 30, 60, 90, 120, 144, 165, 240 };
+
+        /// <summary>
+        /// The lowest and highest rates the dynamic resolution slider chases,
+        /// the same span as the frame cap's. A target above what the cap or the
+        /// display lets through is chased at the slower rate anyway
+        /// (<see cref="DynamicTargetMs"/>).
+        /// </summary>
+        public const int MinimumDynamicTarget = 30;
+
+        public const int MaximumDynamicTarget = 300;
+
+        /// <summary>The slider's leftmost position, one below the lowest target: off.</summary>
+        public const int DynamicSliderFirst = MinimumDynamicTarget - 1;
+
+        public const int DynamicSliderLast = MaximumDynamicTarget;
+
+        /// <summary>
+        /// A stored target brought into what the slider offers: 0 for off, or a
+        /// whole number from 30 to 300. Every value the cycler saved is already
+        /// one of those, so this only catches a hand-edited settings file.
+        /// </summary>
+        public static int ClampDynamicTarget(int target)
+        {
+            if (target <= 0)
+            {
+                return 0;
+            }
+
+            if (target < MinimumDynamicTarget)
+            {
+                return MinimumDynamicTarget;
+            }
+
+            return target > MaximumDynamicTarget ? MaximumDynamicTarget : target;
+        }
+
+        /// <summary>Where a target sits on the slider: off at the left end, else the rate itself.</summary>
+        public static int DynamicTargetToSlider(int target)
+        {
+            target = ClampDynamicTarget(target);
+            return target == 0 ? DynamicSliderFirst : target;
+        }
+
+        /// <summary>The target a slider position stands for.</summary>
+        public static int SliderToDynamicTarget(int position)
+        {
+            return position <= DynamicSliderFirst ? 0 : ClampDynamicTarget(position);
+        }
 
         public static string DescribeDynamicTarget(int target)
         {

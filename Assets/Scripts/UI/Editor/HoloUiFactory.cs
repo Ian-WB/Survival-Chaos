@@ -39,19 +39,39 @@ namespace SurvivalChaos.EditorTools
         // orange lava that dominates the scene, so the interface never competes
         // with the thing being looked at.
         public static readonly Color Edge = new Color(0.55f, 0.95f, 1.00f, 1.00f);
+
+        /// <summary>
+        /// The frame line on panels and bars (#6EDDF0): a touch softer than the
+        /// text cyan so the bright corner ticks the shaders draw read as the
+        /// accent. Thin frame, small ticks: the 17 November 2026 redesign.
+        /// </summary>
+        public static readonly Color FrameLine = new Color(0.431f, 0.867f, 0.941f, 1.00f);
         public static readonly Color Accent = new Color(0.30f, 0.85f, 1.00f, 1.00f);
-        public static readonly Color PanelFill = new Color(0.03f, 0.14f, 0.20f, 0.42f);
+        /// <summary>
+        /// The dark hologram backing plate (#04101A at 86%): opaque enough that
+        /// lava behind a panel no longer shows through it. Was a 42% teal.
+        /// </summary>
+        public static readonly Color PanelFill = new Color(0.016f, 0.063f, 0.102f, 0.86f);
         public static readonly Color TrackDark = new Color(0.03f, 0.12f, 0.17f, 0.55f);
         public static readonly Color Loss = new Color(1.00f, 0.32f, 0.34f, 1.00f);
-        public static readonly Color Health = new Color(0.40f, 1.00f, 0.80f, 1.00f);
-        public static readonly Color Boss = new Color(1.00f, 0.55f, 0.25f, 1.00f);
+
+        // One meaning per colour (17 November 2026 redesign): green is hull,
+        // crimson is danger and the boss, gold is experience, vivid cyan is an
+        // ability, muted ice-cyan is the clock.
+        public static readonly Color Health = new Color(0.180f, 0.898f, 0.490f, 1.00f);
+        public static readonly Color HealthCaution = new Color(1.000f, 0.722f, 0.188f, 1.00f);
+        public static readonly Color Danger = new Color(1.000f, 0.231f, 0.306f, 1.00f);
+        public static readonly Color Boss = Danger;
+        public static readonly Color Ability = new Color(0.161f, 0.851f, 1.000f, 1.00f);
+        public static readonly Color Clock = new Color(0.471f, 0.761f, 0.831f, 1.00f);
+        public static readonly Color BossTrack = new Color(0.078f, 0.031f, 0.051f, 0.88f);
 
         /// <summary>
         /// Experience: the gold of the numbers a kill raises, so the bar they
         /// fill reads as theirs. It was the dash bar's cyan until 16 November
         /// 2026, which tied it to the wrong thing.
         /// </summary>
-        public static readonly Color Experience = new Color(1.00f, 0.78f, 0.25f, 1.00f);
+        public static readonly Color Experience = new Color(1.00f, 0.820f, 0.251f, 1.00f);
 
         /// <summary>The XP bar's trail as it empties at a level-up: dim gold, not the damage red.</summary>
         public static readonly Color ExperienceTrail = new Color(0.75f, 0.55f, 0.18f, 1.00f);
@@ -237,7 +257,7 @@ namespace SurvivalChaos.EditorTools
 
             Material variant = new Material(panelMaterial) { name = materialName };
             variant.SetColor("_FillColor", fill);
-            variant.SetColor("_EdgeColor", Edge);
+            variant.SetColor("_EdgeColor", FrameLine);
             image.material = SaveMaterial(variant, materialName);
             return image;
         }
@@ -280,7 +300,7 @@ namespace SurvivalChaos.EditorTools
 
             Material variant = new Material(barMaterial) { name = name };
             variant.SetColor("_FillColor", fill);
-            variant.SetColor("_EdgeColor", Edge);
+            variant.SetColor("_EdgeColor", FrameLine);
             variant.SetColor("_TrackColor", TrackDark);
             variant.SetColor("_GhostColor", Loss);
             variant.SetFloat("_Segments", segments);
@@ -477,7 +497,7 @@ namespace SurvivalChaos.EditorTools
             float columnX, float top, Material barMaterial)
         {
             Slider slider = CreateSliderRow<Slider>(panel, label, columnX, top, barMaterial,
-                "33%  (Low)", out TextMeshProUGUI readout, out TextMeshProUGUI note);
+                "33%  (Low)", out _, out TextMeshProUGUI readout, out TextMeshProUGUI note);
             slider.minValue = 0f;
             slider.maxValue = 1f;
             slider.value = 0.33f;
@@ -493,58 +513,56 @@ namespace SurvivalChaos.EditorTools
         }
 
         /// <summary>
-        /// The frame cap slider: any whole number from 30 to 300, with Just
-        /// under display at the left end and Uncapped at the right.
+        /// A whole-number graphics slider - frame cap, dynamic resolution or
+        /// render scale - bound to its control, which sets the range.
         ///
-        /// The same bar as the sharpness row, so the two sliders on the screen
-        /// read as one kind of control. A FrameCapSlider rather than a plain
-        /// Slider, so a held direction on the keys or the pad speeds up instead
-        /// of crossing 270 values one at a time.
+        /// The same bar as the sharpness row, so every slider on the screen reads
+        /// as one kind of control. A HoldStepSlider rather than a plain Slider,
+        /// so a held direction on the keys or the pad speeds up instead of
+        /// crossing 270 values one at a time. The control is handed the caption
+        /// too, so it can dim the row the way an inert cycler dims.
         /// </summary>
-        public static Slider CreateFrameCapRow(Transform panel, string label,
+        public static Slider CreateGraphicsSliderRow<TControl>(Transform panel, string label,
             float columnX, float top, Material barMaterial)
+            where TControl : GraphicsSliderControl
         {
-            FrameCapSlider slider = CreateSliderRow<FrameCapSlider>(panel, label, columnX, top, barMaterial,
-                "Uncapped", out TextMeshProUGUI readout, out TextMeshProUGUI note);
+            HoldStepSlider slider = CreateSliderRow<HoldStepSlider>(panel, label, columnX, top, barMaterial,
+                "-", out TextMeshProUGUI caption, out TextMeshProUGUI readout, out TextMeshProUGUI note);
             slider.wholeNumbers = true;
-            slider.minValue = DisplayOptions.CapSliderFirst;
-            slider.maxValue = DisplayOptions.CapSliderLast;
-            slider.value = DisplayOptions.CapSliderLast;
 
-            FrameCapControl control = Undo.AddComponent<FrameCapControl>(slider.gameObject);
+            TControl control = Undo.AddComponent<TControl>(slider.gameObject);
             SerializedObject so = new SerializedObject(control);
             so.FindProperty("slider").objectReferenceValue = slider;
             so.FindProperty("readout").objectReferenceValue = readout;
             so.FindProperty("note").objectReferenceValue = note;
+            so.FindProperty("label").objectReferenceValue = caption;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             return slider;
         }
 
         /// <summary>
-        /// A label, a readout, a draggable bar and a note line, laid out to
-        /// occupy one cycler row's worth of height with the bar under the label,
-        /// so it drops into a column without moving anything below it.
+        /// A label, a readout, a draggable bar and a note line, in the same
+        /// shape as a cycler row (<see cref="ApplySliderRowLayout"/>).
         /// </summary>
         private static T CreateSliderRow<T>(Transform panel, string label, float columnX, float top,
-            Material barMaterial, string placeholder, out TextMeshProUGUI readout, out TextMeshProUGUI note)
+            Material barMaterial, string placeholder, out TextMeshProUGUI caption, out TextMeshProUGUI readout,
+            out TextMeshProUGUI note)
             where T : Slider
         {
             Vector2 anchor = new Vector2(0.5f, 1f);
             Vector2 middle = new Vector2(0.5f, 0.5f);
 
-            TextMeshProUGUI caption = CreateText(panel, label + " Label", anchor,
-                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top), new Vector2(290f, 30f),
+            caption = CreateText(panel, label + " Label", anchor, middle, Vector2.zero, Vector2.one,
                 21f, TextAlignmentOptions.Left);
             caption.text = label;
 
-            readout = CreateText(panel, label + " Readout", anchor,
-                new Vector2(1f, 0.5f), new Vector2(columnX + 340f, top), new Vector2(200f, 30f),
-                18f, TextAlignmentOptions.Right);
+            readout = CreateText(panel, label + " Readout", anchor, middle, Vector2.zero, Vector2.one,
+                21f, TextAlignmentOptions.Center);
             readout.text = placeholder;
 
             Image image = CreateBarImage(panel, label + " Bar", anchor, middle,
-                new Vector2(columnX + 30f, top - 26f), new Vector2(560f, 20f), barMaterial, Accent, 8f);
+                Vector2.zero, Vector2.one, barMaterial, Accent, 8f);
             image.raycastTarget = true;
 
             T slider = Undo.AddComponent<T>(image.gameObject);
@@ -555,13 +573,85 @@ namespace SurvivalChaos.EditorTools
             HoloBar holo = Undo.AddComponent<HoloBar>(image.gameObject);
             ConfigureBar(holo, slider, 0f);
 
-            note = CreateText(panel, label + " Note", anchor,
-                new Vector2(0f, 0.5f), new Vector2(columnX - 300f, top - 44f), new Vector2(560f, 20f),
+            note = CreateText(panel, label + " Note", anchor, middle, Vector2.zero, Vector2.one,
                 14f, TextAlignmentOptions.Left);
             note.text = string.Empty;
             note.color = new Color(Edge.r, Edge.g, Edge.b, 0.55f);
 
+            ApplySliderRowLayout(panel, label, columnX, top);
             return slider;
+        }
+
+        /// <summary>
+        /// Lays a slider row out exactly where a cycler row puts its parts, so
+        /// the two kinds line up down a column: the label on the left, the value
+        /// where a cycler shows its value, the bar beneath it across the span the
+        /// two arrows occupy, and the note under the label at the cycler's note
+        /// width.
+        ///
+        /// Until 17 November 2026 the bar ran under the label across the whole
+        /// column, with the value pushed out past the arrows and the note a line
+        /// lower. With three sliders among the cyclers instead of one, every
+        /// column had rows of two different shapes and nothing lined up.
+        ///
+        /// Public so a scene can be brought into line without rebuilding its
+        /// menus: it only moves the four named parts.
+        /// </summary>
+        public static void ApplySliderRowLayout(Transform panel, string label, float columnX, float top)
+        {
+            Vector2 left = new Vector2(0f, 0.5f);
+            Vector2 middle = new Vector2(0.5f, 0.5f);
+
+            // The arrows sit at columnX + 50 and + 290, 46 wide: this is their span.
+            const float controlsCentre = 170f;
+            const float controlsWidth = 286f;
+
+            Place(panel, label + " Label", left, new Vector2(columnX - 300f, top), new Vector2(290f, 30f));
+            Place(panel, label + " Readout", middle, new Vector2(columnX + controlsCentre, top - 2f),
+                new Vector2(controlsWidth, 28f));
+            Place(panel, label + " Bar", middle, new Vector2(columnX + controlsCentre, top - 26f),
+                new Vector2(controlsWidth, 14f));
+            Place(panel, label + " Note", left, new Vector2(columnX - 300f, top - 24f), new Vector2(NoteWidth, 20f));
+
+            Transform readout = panel.Find(label + " Readout");
+            if (readout != null && readout.TryGetComponent(out TextMeshProUGUI value))
+            {
+                value.alignment = TextAlignmentOptions.Center;
+                value.enableAutoSizing = true;
+                value.fontSizeMin = 14f;
+                value.fontSizeMax = 19f;
+                value.textWrappingMode = TextWrappingModes.NoWrap;
+                EditorUtility.SetDirty(value);
+            }
+
+            // The cycler note's settings, for the same reason: it ends short of
+            // the controls and shrinks rather than running under them.
+            Transform noteLine = panel.Find(label + " Note");
+            if (noteLine != null && noteLine.TryGetComponent(out TextMeshProUGUI note))
+            {
+                note.fontSize = 14f;
+                note.textWrappingMode = TextWrappingModes.NoWrap;
+                note.enableAutoSizing = true;
+                note.fontSizeMin = NoteSmallest;
+                note.fontSizeMax = 14f;
+                EditorUtility.SetDirty(note);
+            }
+        }
+
+        private static void Place(Transform panel, string name, Vector2 pivot, Vector2 position, Vector2 size)
+        {
+            Transform child = panel.Find(name);
+            if (child == null)
+            {
+                Debug.LogError("Slider row part '" + name + "' is missing from " + panel.name, panel);
+                return;
+            }
+
+            RectTransform rect = (RectTransform)child;
+            Undo.RecordObject(rect, "Lay out slider row");
+            rect.pivot = pivot;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
         }
 
         /// <summary>
@@ -589,7 +679,7 @@ namespace SurvivalChaos.EditorTools
         public const float OptionsBackY = -620f;
 
         /// <summary>The tabs, in strip order. Content is built by position.</summary>
-        public static readonly string[] OptionTabNames = { "Audio", "Display", "Graphics", "Controls" };
+        public static readonly string[] OptionTabNames = { "Audio", "Display", "Graphics", "Controls", "HUD" };
 
         private static readonly Vector2 BackButtonSize = new Vector2(420f, 72f);
 
@@ -625,51 +715,36 @@ namespace SurvivalChaos.EditorTools
             const float top = -170f;
             const float step = 84f;
 
-            // Where the frame cap slider sits in the left column: after VSync.
-            const int FrameCapRow = 3;
+            // Left: what a player sets once to fit their monitor. Frame cap and
+            // dynamic resolution sit together because both are about holding a
+            // frame rate, and a player looking for one will be looking for the
+            // other.
+            float y = top;
+            order.Add(CreateOptionRow(panel, GraphicsOptionKind.Resolution, "Resolution", LeftColumn, y, panelMaterial));
+            y -= step;
+            order.Add(CreateOptionRow(panel, GraphicsOptionKind.ScreenMode, "Window Mode", LeftColumn, y, panelMaterial));
+            y -= step;
+            order.Add(CreateOptionRow(panel, GraphicsOptionKind.VSync, "VSync", LeftColumn, y, panelMaterial));
+            y -= step;
+            order.Add(CreateGraphicsSliderRow<FrameCapControl>(panel, "Frame Cap", LeftColumn, y, barMaterial));
+            y -= step;
+            order.Add(CreateGraphicsSliderRow<DynamicResolutionControl>(panel, "Dynamic Resolution",
+                LeftColumn, y, barMaterial));
 
-            (GraphicsOptionKind kind, string label)[] screen =
-            {
-                (GraphicsOptionKind.Resolution, "Resolution"),
-                (GraphicsOptionKind.ScreenMode, "Window Mode"),
-                (GraphicsOptionKind.VSync, "VSync"),
-                // Then the Frame Cap slider (FrameCapRow), and beside it rather
-                // than with the upscalers Dynamic Resolution: both are about
-                // holding a frame rate, and a player looking for one will be
-                // looking for the other.
-                (GraphicsOptionKind.DynamicResolution, "Dynamic Resolution")
-            };
-
-            (GraphicsOptionKind kind, string label)[] reconstruction =
-            {
-                (GraphicsOptionKind.UpscaleMethod, "Upscaling"),
-                (GraphicsOptionKind.UpscaleQuality, "Upscale Quality"),
-                (GraphicsOptionKind.RenderScale, "Render Scale"),
-                (GraphicsOptionKind.AntiAliasing, "Anti-Aliasing")
-            };
-
-            for (int i = 0, slot = 0; i < screen.Length; i++, slot++)
-            {
-                if (i == FrameCapRow)
-                {
-                    order.Add(CreateFrameCapRow(panel, "Frame Cap", LeftColumn, top - slot * step, barMaterial));
-                    slot++;
-                }
-
-                order.Add(CreateOptionRow(panel, screen[i].kind, screen[i].label,
-                    LeftColumn, top - slot * step, panelMaterial));
-            }
-
-            for (int i = 0; i < reconstruction.Length; i++)
-            {
-                order.Add(CreateOptionRow(panel, reconstruction[i].kind, reconstruction[i].label,
-                    RightColumn, top - i * step, panelMaterial));
-            }
+            // Right: reconstruction.
+            y = top;
+            order.Add(CreateOptionRow(panel, GraphicsOptionKind.UpscaleMethod, "Upscaling", RightColumn, y, panelMaterial));
+            y -= step;
+            order.Add(CreateOptionRow(panel, GraphicsOptionKind.UpscaleQuality, "Upscale Quality", RightColumn, y, panelMaterial));
+            y -= step;
+            order.Add(CreateGraphicsSliderRow<RenderScaleControl>(panel, "Render Scale", RightColumn, y, barMaterial));
+            y -= step;
+            order.Add(CreateOptionRow(panel, GraphicsOptionKind.AntiAliasing, "Anti-Aliasing", RightColumn, y, panelMaterial));
+            y -= step;
 
             // Directly under the row it depends on: sharpening is a property of
             // whatever resolved the edges, so the two belong together.
-            order.Add(CreateSharpnessRow(panel, "Sharpness",
-                RightColumn, top - reconstruction.Length * step, barMaterial));
+            order.Add(CreateSharpnessRow(panel, "Sharpness", RightColumn, y, barMaterial));
 
             return order;
         }
@@ -1014,7 +1089,8 @@ namespace SurvivalChaos.EditorTools
                     case 0: order = PopulateAudioPanel(panel, barMaterial); break;
                     case 1: order = PopulateDisplayPanel(panel, panelMaterial, barMaterial); break;
                     case 2: order = PopulateGraphicsPanel(panel, panelMaterial); break;
-                    default: order = PopulateControlsPanel(panel, panelMaterial); break;
+                    case 3: order = PopulateControlsPanel(panel, panelMaterial); break;
+                    default: order = PopulateHudPanel(panel, panelMaterial, barMaterial); break;
                 }
 
                 Button backButton = CreateButton(panel, "Back", new Vector2(0.5f, 1f),
@@ -1056,16 +1132,15 @@ namespace SurvivalChaos.EditorTools
         private static void AddTabStrip(Transform panel, Material panelMaterial, MenuScreen[] tabs, int active)
         {
             const float y = -62f;
-            const float width = 250f;
-            const float gap = 30f;
 
             Vector2 anchor = new Vector2(0.5f, 1f);
             Vector2 middle = new Vector2(0.5f, 0.5f);
-            float span = tabs.Length * width + (tabs.Length - 1) * gap;
+            float width = OptionTabWidth(tabs.Length);
+            float span = OptionTabSpan(tabs.Length);
 
             for (int i = 0; i < tabs.Length; i++)
             {
-                float x = -span / 2f + width / 2f + i * (width + gap);
+                float x = OptionTabX(i, tabs.Length);
                 Button tab = CreateButton(panel, OptionTabNames[i] + " Tab", anchor, middle,
                     new Vector2(x, y), new Vector2(width, 58f), panelMaterial, OptionTabNames[i], 24f);
                 tab.navigation = new Navigation { mode = Navigation.Mode.None };
@@ -1081,6 +1156,69 @@ namespace SurvivalChaos.EditorTools
 
             AddTabHint(panel, "Previous Tab Hint", new Vector2(-span / 2f - 70f, y), "Q", "LB");
             AddTabHint(panel, "Next Tab Hint", new Vector2(span / 2f + 70f, y), "E", "RB");
+        }
+
+        /// <summary>
+        /// A tab's width in the strip: 250 for up to four tabs, 210 for five
+        /// (the HUD tab, 17 November 2026), so the strip and its two key hints
+        /// still sit inside the 1400-wide panel.
+        /// </summary>
+        public static float OptionTabWidth(int count) => count > 4 ? 210f : 250f;
+
+        private static float OptionTabGap(int count) => count > 4 ? 14f : 30f;
+
+        /// <summary>The strip's width, tab edge to tab edge.</summary>
+        public static float OptionTabSpan(int count) =>
+            count * OptionTabWidth(count) + (count - 1) * OptionTabGap(count);
+
+        /// <summary>Centre of tab <paramref name="index"/> of <paramref name="count"/>.</summary>
+        public static float OptionTabX(int index, int count) =>
+            -OptionTabSpan(count) / 2f + OptionTabWidth(count) / 2f
+            + index * (OptionTabWidth(count) + OptionTabGap(count));
+
+        /// <summary>Centre of the Next Tab hint; the Previous one mirrors it.</summary>
+        public static float OptionTabHintX(int count) => OptionTabSpan(count) / 2f + 70f;
+
+        /// <summary>
+        /// The HUD tab (17 November 2026 redesign): HUD SCALE, HUD OPACITY and
+        /// CONTEXTUAL HUD, in one centred column, nothing else.
+        /// </summary>
+        public static List<Selectable> PopulateHudPanel(Transform panel, Material panelMaterial,
+            Material barMaterial)
+        {
+            const float top = -170f;
+            const float step = 84f;
+
+            return new List<Selectable>
+            {
+                CreateHudSliderRow(panel, HudSliderKind.Scale, "HUD Scale", OneColumn, top, barMaterial),
+                CreateHudSliderRow(panel, HudSliderKind.Opacity, "HUD Opacity", OneColumn, top - step,
+                    barMaterial),
+                CreateToggleRow(panel, ToggleOptionKind.HudContextual, "Contextual HUD", OneColumn,
+                    top - 2f * step, panelMaterial)
+            };
+        }
+
+        /// <summary>A HUD scale or opacity slider, in the graphics sliders' row shape.</summary>
+        public static Slider CreateHudSliderRow(Transform panel, HudSliderKind kind, string label,
+            float columnX, float top, Material barMaterial)
+        {
+            HoldStepSlider slider = CreateSliderRow<HoldStepSlider>(panel, label, columnX, top, barMaterial,
+                "100%", out _, out TextMeshProUGUI readout, out TextMeshProUGUI note);
+            slider.wholeNumbers = true;
+            slider.minValue = 0f;
+            slider.maxValue = HudOptionControl.LastPosition(kind);
+            slider.value = HudOptionControl.PositionOf(kind, 100);
+
+            HudOptionControl control = Undo.AddComponent<HudOptionControl>(slider.gameObject);
+            SerializedObject so = new SerializedObject(control);
+            so.FindProperty("kind").intValue = (int)kind;
+            so.FindProperty("slider").objectReferenceValue = slider;
+            so.FindProperty("readout").objectReferenceValue = readout;
+            so.FindProperty("note").objectReferenceValue = note;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return slider;
         }
 
         private static void AddTabHint(Transform panel, string name, Vector2 position,

@@ -109,6 +109,9 @@ namespace SurvivalChaos.EditorTools
 
             int removed = RetireOldScreens(canvas.transform, root);
 
+            // The 17 November 2026 title screen: rail, framed bests, legend.
+            Menus1117.Apply();
+
             AssetDatabase.SaveAssets();
             EditorSceneManager.MarkSceneDirty(canvas.gameObject.scene);
             Selection.activeGameObject = root;

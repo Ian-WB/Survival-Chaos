@@ -35,8 +35,9 @@ namespace SurvivalChaos
         private float inset = 4f;
 
         [SerializeField]
-        [Tooltip("Colour of the marks. The HUD's line colour.")]
-        private Color colour = new Color(0.55f, 0.95f, 1.00f, 1.00f);
+        [Tooltip("Colour of the marks: the bright corner-tick ice (#B7FFFF), so they stand out " +
+                 "on the boss bar's crimson.")]
+        private Color colour = new Color(0.718f, 1.00f, 1.00f, 1.00f);
 
         private readonly List<RectTransform> marks = new List<RectTransform>();
 

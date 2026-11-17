@@ -86,38 +86,68 @@ namespace SurvivalChaos
             }
             else if (RunRecords.Assisted)
             {
-                into.AppendLine("<alpha=#88>DEBUG MENU USED  -  NOT A RECORD<alpha=#FF>");
+                into.AppendLine(DebugPill);
             }
 
-            into.Append("SURVIVED ").Append(Clock(RunStats.Seconds));
-            into.Append("    LEVEL ").AppendLine(RunStats.LevelReached.ToString());
-            into.Append("DESTROYED ").Append(RunStats.EnemiesDestroyed);
-            into.Append("    EXPERIENCE ").AppendLine(RunStats.ExperienceEarned.ToString());
+            into.AppendLine(StatsLine(Clock(RunStats.Seconds), RunStats.LevelReached,
+                RunStats.EnemiesDestroyed, RunStats.ExperienceEarned));
 
             // Counted rather than listed. A full run's thirty-odd picks would be
             // thirty-odd lines of mostly the same eight names, and what the player
-            // wants back is the shape of the build - which is the counts.
+            // wants back is the shape of the build - which is the counts. One
+            // chip per skill (17 November 2026), wrapping as the card's width
+            // allows rather than a fixed number to a line.
             if (RunStats.SkillOrder.Count > 0)
             {
-                into.AppendLine();
+                into.Append("<line-height=160%>");
 
                 for (int i = 0; i < RunStats.SkillOrder.Count; i++)
                 {
                     string skill = RunStats.SkillOrder[i];
-
-                    // Three to a line: nine skills are three lines, where two
-                    // to a line ran off the bottom of the card.
                     if (i > 0)
                     {
-                        if (i % SkillsPerLine == 0) { into.AppendLine(); }
-                        else { into.Append("    "); }
+                        into.Append(" <space=8>");
                     }
 
-                    into.Append(ShortName(skill)).Append(" x").Append(RunStats.PicksOf(skill));
+                    into.Append(Chip(ShortName(skill), RunStats.PicksOf(skill)));
                 }
+
+                into.Append("</line-height>");
             }
 
             return into.ToString();
+        }
+
+        /// <summary>The amber pill for a run the debug menu touched.</summary>
+        public const string DebugPill =
+            "<size=80%><mark=#FFB8302E padding=\"12,12,4,4\"><color=#FFB830>DEBUG MENU USED - NOT A RECORD</color></mark></size>";
+
+        /// <summary>
+        /// The run's four numbers on one line: dim labels, bright values,
+        /// dots between.
+        /// </summary>
+        public static string StatsLine(string survived, int level, int destroyed, int experience)
+        {
+            return "<size=85%>" + Stat("SURVIVED", survived) + Dot + Stat("LEVEL", level.ToString())
+                + Dot + Stat("DESTROYED", destroyed.ToString()) + Dot + Stat("EXPERIENCE", experience.ToString())
+                + "</size>";
+        }
+
+        private const string Dot = "  <alpha=#66>·<alpha=#FF>  ";
+
+        private static string Stat(string label, string value)
+        {
+            return "<color=#9CD8E6>" + label + "</color> <color=#FFFFFF>" + value + "</color>";
+        }
+
+        /// <summary>
+        /// One skill as a chip: its name on a dark plate and its count in
+        /// gold, kept on one line.
+        /// </summary>
+        public static string Chip(string name, int count)
+        {
+            return "<nobr><size=80%><mark=#5CB8CC24 padding=\"12,12,5,5\">" + name
+                + " <color=#FFD140>X" + count + "</color></mark></size></nobr>";
         }
 
         /// <summary>How many skills the card lists on one line.</summary>

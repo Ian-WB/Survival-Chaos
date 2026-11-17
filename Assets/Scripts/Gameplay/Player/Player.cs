@@ -68,10 +68,11 @@ namespace SurvivalChaos
 
         [SerializeField]
         [Range(0.5f, 2f)]
-        [Tooltip("How large the ship's model is drawn, against the size it was authored at. Looks " +
-                 "1.35 since 16 November 2026, when the upgrades began adding parts too small " +
-                 "to read at 1.")]
-        private float modelScale = 1.35f;
+        [Tooltip("How large the ship's model is drawn, against the size it was authored at. " +
+                 "1.35 from 16 November 2026, when the upgrades began adding parts too small " +
+                 "to read at 1; 2 later that day, on 1440p captures where 1.35 drew the ship " +
+                 "97 x 60 px. The hit box does not follow it: see hitBoxModelScale.")]
+        private float modelScale = 2f;
 
         [SerializeField]
         [Range(0f, 1f)]
@@ -79,6 +80,13 @@ namespace SurvivalChaos
                  "grows it as much as the model. Half: a bit bigger (Ian, 16 November 2026), " +
                  "without making the ship a third easier to hit for looking a third larger.")]
         private float hitBoxGrowth = 0.5f;
+
+        [SerializeField]
+        [Range(0.5f, 2f)]
+        [Tooltip("The model scale the hit box is sized for. The box follows this, not modelScale, " +
+                 "so drawing the ship larger for readability leaves dodging exactly as it was " +
+                 "(16 November 2026: the box Ian played at 1.35).")]
+        private float hitBoxModelScale = 1.35f;
 
         [SerializeField]
         private Transform childObject;
@@ -404,6 +412,16 @@ namespace SurvivalChaos
         public bool Invulnerable { get; set; }
 
         /// <summary>
+        /// The hull just lost points: where the hit came from, or null for a
+        /// hit with no place (the lance). The HUD's screen-edge hit flare
+        /// listens (17 November 2026 redesign).
+        /// </summary>
+        public static event System.Action<Vector3?> Hurt;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetHurt() => Hurt = null;
+
+        /// <summary>
         /// What the last hit that cost a hit point came from, in the card's words
         /// (see <see cref="DamageSource"/>). Null before the first. The playtest
         /// bot reads it to say what hit it.
@@ -518,6 +536,7 @@ namespace SurvivalChaos
 
             // Was missing, so bullet damage was invisible until death.
             healthBar.SetHealth(health.Current);
+            Hurt?.Invoke(from);
             PlayDamageSound(killed);
 
             if (killed)
@@ -976,8 +995,9 @@ namespace SurvivalChaos
         }
 
         /// <summary>
-        /// The box follows the model: its middle moves out as far as the
-        /// model's does, and its size takes its share of the growth.
+        /// The box follows the model as drawn at <see cref="hitBoxModelScale"/>:
+        /// its middle moves out as far as that model's would, and its size takes
+        /// its share of the growth. modelScale itself never reaches it.
         /// </summary>
         private void GrowHitBox()
         {
@@ -986,8 +1006,8 @@ namespace SurvivalChaos
                 return;
             }
 
-            box.center *= modelScale;
-            box.size *= HitBoxScale(modelScale, hitBoxGrowth);
+            box.center *= hitBoxModelScale;
+            box.size *= HitBoxScale(hitBoxModelScale, hitBoxGrowth);
         }
 
         /// <summary>

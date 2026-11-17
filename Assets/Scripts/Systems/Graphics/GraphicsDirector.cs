@@ -494,11 +494,11 @@ namespace SurvivalChaos
         /// </summary>
         public int DynamicTarget
         {
-            get => GetInt("DynamicTarget", 0);
+            get => DisplayOptions.ClampDynamicTarget(GetInt("DynamicTarget", 0));
             set
             {
                 dynamic.Reset();
-                SetInt("DynamicTarget", value);
+                SetInt("DynamicTarget", DisplayOptions.ClampDynamicTarget(value));
             }
         }
 

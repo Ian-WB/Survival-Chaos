@@ -63,9 +63,9 @@ namespace SurvivalChaos
         private float flashSeconds = 0.45f;
 
         [SerializeField]
-        [Tooltip("The fill colour the bar turns while Alert is up. The boss bar's orange, so " +
-                 "the timer's last seconds already look like what is coming.")]
-        private Color alertColour = new Color(1.00f, 0.55f, 0.25f, 1.00f);
+        [Tooltip("The fill colour the bar turns while Alert is up. The boss bar's crimson " +
+                 "(#FF3B4E), so the timer's last seconds already look like what is coming.")]
+        private Color alertColour = new Color(1.00f, 0.231f, 0.306f, 1.00f);
 
         private static readonly int FillId = Shader.PropertyToID("_Fill");
         private static readonly int SegmentsId = Shader.PropertyToID("_Segments");
@@ -111,6 +111,29 @@ namespace SurvivalChaos
                 instance.SetFloat(SegmentsId, Mathf.Max(0f, segments));
             }
         }
+
+        /// <summary>
+        /// Changes the bar's own fill colour, the one Alert and focus are
+        /// measured from. The hull bar's green, amber and crimson (17 November
+        /// 2026 redesign). Keeps the material's alpha.
+        /// </summary>
+        public void SetFillColour(Color colour)
+        {
+            if (instance == null)
+            {
+                return;
+            }
+
+            colour.a = baseFillColour.a;
+            baseFillColour = colour;
+
+            // Forces Apply to write the colour on its next pass, even with
+            // lift and alert unchanged.
+            appliedLift = -1f;
+        }
+
+        /// <summary>The fill colour Alert and focus are measured from.</summary>
+        public Color FillColour => baseFillColour;
 
         private static readonly int GlowId = Shader.PropertyToID("_Glow");
         private static readonly int BorderId = Shader.PropertyToID("_Border");

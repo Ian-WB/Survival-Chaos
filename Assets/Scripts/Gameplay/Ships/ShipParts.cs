@@ -29,7 +29,7 @@ namespace SurvivalChaos
         [Tooltip("In the ship model's own space, nose along +X, so it needs no placing.")]
         public Mesh mesh;
 
-        [Tooltip("One per submesh: hull, dark hull, trim, glow.")]
+        [Tooltip("One per submesh: hull, dark hull, trim, upgrade-coloured plate, glow.")]
         public Material[] materials;
     }
 

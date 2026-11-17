@@ -35,8 +35,16 @@ namespace SurvivalChaos.EditorTools
     ///
     /// The parts are flat-shaded and in the model's own three hull
     /// materials, so they read as more of the same ship. The fourth slot is
-    /// a small light in the colour of the upgrade's pickup, which is what
-    /// says which pick a part came from.
+    /// plate in the colour of the upgrade's pickup and the fifth a small
+    /// light in it, which is what says which pick a part came from.
+    ///
+    /// Recoloured on 16 November 2026 to the concept sheet Ian had drawn
+    /// from the first build (Artifacts/captures/26_1116_ship-concept-sheet.jpg).
+    /// The first build edged every part in the hull's yellow trim, and with
+    /// every pick taken the ship was yellow lines all over; on the sheet
+    /// the yellow is the model's alone and a part is hull blue, dark, or
+    /// its upgrade's colour: magenta armour, a gold burner, a green
+    /// booster, a purple coil.
     /// </summary>
     public static class ShipPartsBuilder
     {
@@ -57,10 +65,15 @@ namespace SurvivalChaos.EditorTools
         /// </summary>
         private const float GlowIntensity = 2.2f;
 
+        /// <summary>How bright the upgrade-coloured plate is painted, and how much it lights itself.</summary>
+        private const float TintAlbedo = 0.7f;
+        private const float TintGlow = 0.22f;
+
         private const int Hull = 0;
         private const int Dark = 1;
         private const int Trim = 2;
-        private const int Glow = 3;
+        private const int Tint = 3;
+        private const int Glow = 4;
 
         /// <summary>The rocket's centre line, which the collar and the ring go round.</summary>
         private const float RocketY = 0.048f;
@@ -123,6 +136,7 @@ namespace SurvivalChaos.EditorTools
             foreach (ShipUpgrade upgrade in Enum.GetValues(typeof(ShipUpgrade)))
             {
                 Material glow = BuildGlow(upgrade);
+                Material tint = BuildTint(upgrade);
                 int picks = PickLimit(upgrade);
 
                 for (int pick = 1; pick <= picks; pick++)
@@ -144,7 +158,7 @@ namespace SurvivalChaos.EditorTools
                         upgrade = upgrade,
                         pick = pick,
                         mesh = mesh,
-                        materials = new[] { hull, dark, trim, glow },
+                        materials = new[] { hull, dark, trim, tint, glow },
                     });
                 }
             }
@@ -217,11 +231,11 @@ namespace SurvivalChaos.EditorTools
             kit.Material(Dark);
             kit.Tube(from, muzzle, radius, radius, 6);
 
-            kit.Material(Trim);
-            kit.Tube(muzzle - Vector3.right * 0.03f, muzzle + Vector3.right * 0.004f, radius * 1.55f, radius * 1.55f, 6);
+            // A dark brake and a lit mouth: on the sheet a barrel has no yellow on it.
+            kit.Tube(muzzle - Vector3.right * 0.03f, muzzle + Vector3.right * 0.002f, radius * 1.5f, radius * 1.5f, 6);
 
             kit.Material(Glow);
-            kit.Tube(muzzle + Vector3.right * 0.004f, muzzle + Vector3.right * 0.008f, radius * 0.9f, radius * 0.5f, 6);
+            kit.Tube(muzzle + Vector3.right * 0.002f, muzzle + Vector3.right * 0.01f, radius * 1.2f, radius * 0.7f, 6);
         }
 
         /// <summary>
@@ -251,8 +265,13 @@ namespace SurvivalChaos.EditorTools
                     new Vector3(-0.05f, 0.185f, -0.04f), new Vector3(0.05f, 0.18f, -0.04f),
                     new Vector3(0.05f, 0.18f, 0.04f), new Vector3(-0.05f, 0.185f, 0.04f));
 
-                kit.Material(Trim);
-                kit.Box(new Vector3(-0.01f, 0.186f, 0f), new Vector3(0.06f, 0.006f, 0.03f));
+                // Two lit ports on each side of the turret.
+                kit.Material(Glow);
+                kit.Both(() =>
+                {
+                    kit.Box(new Vector3(-0.035f, 0.164f, 0.047f), new Vector3(0.014f, 0.016f, 0.004f));
+                    kit.Box(new Vector3(-0.012f, 0.164f, 0.047f), new Vector3(0.014f, 0.016f, 0.004f));
+                });
 
                 kit.Both(() => Barrel(kit, new Vector3(0.045f, 0.163f, 0.024f), 0.15f, 0.012f));
             }
@@ -266,7 +285,7 @@ namespace SurvivalChaos.EditorTools
         {
             float x = -0.03f - 0.024f * (pick - 1);
 
-            kit.Material(Trim);
+            kit.Material(Hull);
             kit.Extrude(-0.055f, 0.055f,
                 new Vector2(x + 0.012f, -0.03f), new Vector2(x - 0.003f, -0.03f),
                 new Vector2(x - 0.026f, -0.13f), new Vector2(x - 0.012f, -0.13f));
@@ -283,7 +302,7 @@ namespace SurvivalChaos.EditorTools
         {
             if (pick == 1)
             {
-                kit.Material(Dark);
+                kit.Material(Tint);
                 kit.Extrude(-0.082f, 0.082f,
                     new Vector2(0.066f, 0.126f), new Vector2(0.066f, 0.152f),
                     new Vector2(0.136f, 0.139f), new Vector2(0.128f, 0.117f));
@@ -291,7 +310,7 @@ namespace SurvivalChaos.EditorTools
                     new Vector2(0.128f, 0.117f), new Vector2(0.136f, 0.139f),
                     new Vector2(0.182f, 0.084f), new Vector2(0.164f, 0.078f));
 
-                kit.Material(Trim);
+                kit.Material(Dark);
                 kit.Box(new Vector3(0.174f, 0.079f, 0f), new Vector3(0.016f, 0.014f, 0.172f), Quaternion.Euler(0f, 0f, -50f));
 
                 kit.Material(Glow);
@@ -301,29 +320,28 @@ namespace SurvivalChaos.EditorTools
             {
                 kit.Both(() =>
                 {
-                    // Dark, bordered in trim: in the hull's own blue it was
-                    // a plate nobody could see against the hull.
-                    kit.Material(Dark);
+                    // In the armour's own colour, railed in dark: in the
+                    // hull's blue it was a plate nobody could see against
+                    // the hull.
+                    kit.Material(Tint);
                     kit.Extrude(0.107f, 0.127f,
                         new Vector2(-0.172f, -0.03f), new Vector2(0.066f, -0.03f),
                         new Vector2(0.066f, -0.066f), new Vector2(0.04f, -0.1f),
                         new Vector2(-0.15f, -0.1f), new Vector2(-0.172f, -0.05f));
 
-                    kit.Material(Trim);
+                    kit.Material(Dark);
                     kit.Box(new Vector3(-0.053f, -0.034f, 0.129f), new Vector3(0.238f, 0.01f, 0.006f));
                     kit.Box(new Vector3(-0.055f, -0.096f, 0.129f), new Vector3(0.19f, 0.01f, 0.006f));
 
                     kit.Material(Glow);
-                    kit.Box(new Vector3(-0.11f, -0.065f, 0.129f), new Vector3(0.026f, 0.026f, 0.006f));
-                    kit.Box(new Vector3(-0.05f, -0.065f, 0.129f), new Vector3(0.026f, 0.026f, 0.006f));
-                    kit.Box(new Vector3(0.01f, -0.065f, 0.129f), new Vector3(0.026f, 0.026f, 0.006f));
+                    kit.Box(new Vector3(-0.053f, -0.065f, 0.129f), new Vector3(0.15f, 0.008f, 0.006f));
                 });
             }
             else if (pick == 3)
             {
                 // A skid under the nose blocks: the one piece of plate that
                 // moves the ship's bottom edge.
-                kit.Material(Dark);
+                kit.Material(Tint);
                 kit.Extrude(-0.082f, 0.082f,
                     new Vector2(-0.034f, -0.15f), new Vector2(-0.022f, -0.184f),
                     new Vector2(0.12f, -0.184f), new Vector2(0.12f, -0.15f));
@@ -331,11 +349,11 @@ namespace SurvivalChaos.EditorTools
                     new Vector2(0.12f, -0.15f), new Vector2(0.12f, -0.184f),
                     new Vector2(0.168f, -0.156f), new Vector2(0.156f, -0.142f));
 
-                kit.Material(Trim);
+                kit.Material(Dark);
                 kit.Box(new Vector3(0.049f, -0.187f, 0f), new Vector3(0.146f, 0.01f, 0.17f));
 
                 kit.Material(Glow);
-                kit.Box(new Vector3(0.05f, -0.167f, 0f), new Vector3(0.05f, 0.016f, 0.168f));
+                kit.Box(new Vector3(0.05f, -0.167f, 0f), new Vector3(0.05f, 0.008f, 0.168f));
             }
             else
             {
@@ -344,35 +362,33 @@ namespace SurvivalChaos.EditorTools
 
                 // Twice the girth of the rocket's neck, which is the thin
                 // part of the ship's outline from the side.
-                kit.Material(Hull);
+                kit.Material(Tint);
                 kit.Tube(front, back, 0.094f, 0.084f, 8);
 
-                kit.Material(Trim);
+                kit.Material(Dark);
                 kit.Tube(front + Vector3.left * 0.008f, front + Vector3.left * 0.022f, 0.099f, 0.098f, 8);
                 kit.Tube(back + Vector3.right * 0.016f, back + Vector3.right * 0.004f, 0.09f, 0.088f, 8);
 
                 kit.Material(Glow);
-                kit.Tube(front + Vector3.left * 0.028f, front + Vector3.left * 0.042f, 0.094f, 0.092f, 8);
+                kit.Tube(front + Vector3.left * 0.03f, front + Vector3.left * 0.038f, 0.094f, 0.093f, 8);
             }
         }
 
-        /// <summary>A small rocket: a nose, a body, a bell, a band and a lit throat.</summary>
-        private static void Rocket(Kit kit, Vector3 nose, float length, float radius)
+        /// <summary>A small rocket: a nose, a body, a bell and a lit throat.</summary>
+        private static void Rocket(Kit kit, Vector3 nose, float length, float radius, int body, int tip)
         {
             Vector3 shoulder = nose + Vector3.left * (length * 0.2f);
             Vector3 waist = nose + Vector3.left * (length * 0.8f);
             Vector3 mouth = nose + Vector3.left * length;
 
-            kit.Material(Hull);
+            kit.Material(tip);
             kit.Tube(nose, shoulder, radius * 0.35f, radius, 8);
+
+            kit.Material(body);
             kit.Tube(shoulder, waist, radius, radius * 0.9f, 8);
 
             kit.Material(Dark);
             kit.Tube(waist, mouth, radius * 0.8f, radius * 1.3f, 8);
-
-            kit.Material(Trim);
-            kit.Tube(shoulder + Vector3.left * (length * 0.12f), shoulder + Vector3.left * (length * 0.24f),
-                radius * 1.08f, radius * 1.06f, 8);
 
             kit.Material(Glow);
             kit.Tube(mouth + Vector3.right * 0.004f, mouth + Vector3.left * 0.003f, radius * 1.05f, radius * 0.7f, 8);
@@ -386,7 +402,7 @@ namespace SurvivalChaos.EditorTools
         {
             if (pick == 1)
             {
-                kit.Both(() => Rocket(kit, new Vector3(-0.105f, -0.042f, 0.064f), 0.175f, 0.028f));
+                kit.Both(() => Rocket(kit, new Vector3(-0.105f, -0.042f, 0.064f), 0.175f, 0.028f, Tint, Tint));
             }
             else if (pick == 2)
             {
@@ -403,7 +419,7 @@ namespace SurvivalChaos.EditorTools
                         new Vector3(-0.135f, 0.27f, 0.192f), new Vector3(-0.058f, 0.27f, 0.192f),
                         new Vector3(-0.058f, 0.27f, 0.204f), new Vector3(-0.135f, 0.27f, 0.204f));
 
-                    kit.Material(Trim);
+                    kit.Material(Dark);
                     kit.Hex(
                         new Vector3(0.022f, 0.118f, 0.096f), new Vector3(0.04f, 0.118f, 0.096f),
                         new Vector3(0.04f, 0.118f, 0.116f), new Vector3(0.022f, 0.118f, 0.116f),
@@ -420,54 +436,53 @@ namespace SurvivalChaos.EditorTools
             }
             else if (pick == 3)
             {
-                kit.Both(() => Rocket(kit, new Vector3(-0.005f, 0.278f, 0.2f), 0.155f, 0.022f));
+                kit.Both(() => Rocket(kit, new Vector3(-0.005f, 0.278f, 0.2f), 0.155f, 0.022f, Hull, Tint));
             }
             else
             {
-                // Behind the antenna and above the rocket, where nothing
-                // else is: fins on the roof stood between the camera and
-                // the Slow Mo halo.
-                kit.Material(Hull);
-                kit.Hex(
-                    new Vector3(-0.29f, 0.208f, -0.13f), new Vector3(-0.225f, 0.212f, -0.13f),
-                    new Vector3(-0.225f, 0.212f, 0.13f), new Vector3(-0.29f, 0.208f, 0.13f),
-                    new Vector3(-0.29f, 0.218f, -0.13f), new Vector3(-0.225f, 0.226f, -0.13f),
-                    new Vector3(-0.225f, 0.226f, 0.13f), new Vector3(-0.29f, 0.218f, 0.13f));
-
-                kit.Material(Glow);
-                kit.Box(new Vector3(-0.292f, 0.213f, 0f), new Vector3(0.006f, 0.008f, 0.2f));
-
+                // A blade swept back off each shoulder, as the sheet draws
+                // it. Low and behind the antenna: fins on the roof stood
+                // between the camera and the Slow Mo halo.
                 kit.Both(() =>
                 {
-                    kit.Material(Trim);
-                    kit.Extrude(0.13f, 0.142f,
-                        new Vector2(-0.305f, 0.185f), new Vector2(-0.225f, 0.185f),
-                        new Vector2(-0.21f, 0.25f), new Vector2(-0.275f, 0.25f));
+                    kit.Material(Hull);
+                    kit.Extrude(0.05f, 0.066f,
+                        new Vector2(-0.15f, 0.09f), new Vector2(-0.2f, 0.075f),
+                        new Vector2(-0.345f, 0.165f), new Vector2(-0.33f, 0.185f));
 
                     kit.Material(Dark);
-                    kit.Hex(
-                        new Vector3(-0.2f, 0.1f, 0.05f), new Vector3(-0.17f, 0.1f, 0.05f),
-                        new Vector3(-0.17f, 0.1f, 0.066f), new Vector3(-0.2f, 0.1f, 0.066f),
-                        new Vector3(-0.27f, 0.21f, 0.05f), new Vector3(-0.245f, 0.21f, 0.05f),
-                        new Vector3(-0.245f, 0.21f, 0.066f), new Vector3(-0.27f, 0.21f, 0.066f));
+                    kit.Extrude(0.048f, 0.068f,
+                        new Vector2(-0.15f, 0.09f), new Vector2(-0.33f, 0.185f),
+                        new Vector2(-0.322f, 0.192f), new Vector2(-0.142f, 0.1f));
+
+                    kit.Material(Glow);
+                    kit.Extrude(0.047f, 0.069f,
+                        new Vector2(-0.305f, 0.142f), new Vector2(-0.345f, 0.165f),
+                        new Vector2(-0.33f, 0.185f), new Vector2(-0.297f, 0.167f));
                 });
             }
         }
 
-        /// <summary>Dash: a burner ring round the mouth of the rocket.</summary>
+        /// <summary>Dash: a burner bell round the mouth of the rocket.</summary>
         private static void BurnerRing(Kit kit)
         {
-            var centre = new Vector3(-0.258f, RocketY, 0f);
+            // A flared bell in the burner's gold over the rocket's own,
+            // stopping where the flame starts.
+            var front = new Vector3(-0.222f, RocketY, 0f);
+            var mouth = new Vector3(-0.266f, RocketY, 0f);
 
-            kit.Material(Trim);
-            kit.Torus(centre, Vector3.right, 0.086f, 0.016f, 12, 5);
+            kit.Material(Tint);
+            kit.Tube(front, mouth, 0.07f, 0.1f, 10);
+
+            kit.Material(Dark);
+            kit.Tube(front + Vector3.right * 0.006f, front, 0.074f, 0.074f, 10);
 
             kit.Material(Glow);
-            kit.Torus(centre + Vector3.left * 0.016f, Vector3.right, 0.086f, 0.009f, 12, 4);
+            kit.Torus(mouth, Vector3.right, 0.098f, 0.007f, 12, 4);
         }
 
         /// <summary>
-        /// Slow Mo: a ring round the ball of the antenna with a lit core,
+        /// Slow Mo: a lit ring round the ball of the antenna,
         /// then a second, wider ring tipped across the first.
         /// </summary>
         private static void Halo(Kit kit, int pick)
@@ -477,11 +492,8 @@ namespace SurvivalChaos.EditorTools
             if (pick == 1)
             {
                 // Flat to the camera, so it is a circle and not a line.
-                kit.Material(Trim);
-                kit.Torus(ball, Vector3.forward, 0.04f, 0.007f, 14, 4);
-
                 kit.Material(Glow);
-                kit.Gem(ball, 0.02f);
+                kit.Torus(ball, Vector3.forward, 0.04f, 0.006f, 14, 4);
             }
             else
             {
@@ -502,13 +514,13 @@ namespace SurvivalChaos.EditorTools
                     new Vector3(-0.06f, PodY + side * 0.03f, PodZ), new Vector3(-0.06f, PodY + side * 0.07f, PodZ),
                     0.022f, 0.012f, 6);
 
-                kit.Material(Trim);
+                kit.Material(Hull);
                 kit.Tube(
                     new Vector3(-0.06f, PodY + side * 0.066f, PodZ), new Vector3(-0.06f, PodY + side * 0.074f, PodZ),
                     0.019f, 0.019f, 6);
 
                 kit.Material(Glow);
-                kit.Gem(new Vector3(-0.06f, PodY + side * 0.098f, PodZ), 0.027f);
+                kit.Gem(new Vector3(-0.06f, PodY + side * 0.102f, PodZ), 0.03f);
             });
         }
 
@@ -517,8 +529,8 @@ namespace SurvivalChaos.EditorTools
         {
             var centre = new Vector3(0.108f, 0.03f, 0f);
 
-            kit.Material(Trim);
-            kit.Torus(centre, Vector3.right, 0.104f, 0.015f, 14, 5);
+            kit.Material(Tint);
+            kit.Torus(centre, Vector3.right, 0.104f, 0.016f, 14, 5);
 
             kit.Material(Glow);
             kit.Box(centre + Vector3.down * 0.106f, new Vector3(0.04f, 0.03f, 0.06f));
@@ -570,6 +582,50 @@ namespace SurvivalChaos.EditorTools
             return material;
         }
 
+        /// <summary>
+        /// Plate in the colour of an upgrade's pickup: the glow's colour as
+        /// paint. Greyed a little so it sits with the hull, and lit a little
+        /// so it keeps its colour over the lava, where the hull goes dark.
+        /// </summary>
+        private static Material BuildTint(ShipUpgrade upgrade)
+        {
+            string path = MaterialFolder + "/ShipPartTint " + upgrade + ".mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            Shader shader = Shader.Find("HDRP/Lit");
+
+            if (material == null)
+            {
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            else
+            {
+                material.shader = shader;
+            }
+
+            Color colour = new Color(1f, 1f, 1f);
+            SkillDefinition skill = AssetDatabase.LoadAssetAtPath<SkillDefinition>(SkillPath(upgrade));
+
+            if (skill != null)
+            {
+                colour = skill.PickupColor;
+            }
+
+            float peak = Mathf.Max(0.0001f, colour.maxColorComponent);
+            Color unit = new Color(colour.r / peak, colour.g / peak, colour.b / peak, 1f);
+            Color paint = Color.Lerp(unit, new Color(0.5f, 0.5f, 0.55f), 0.3f);
+
+            material.SetColor("_BaseColor", new Color(paint.r * TintAlbedo, paint.g * TintAlbedo, paint.b * TintAlbedo, 1f));
+            material.SetFloat("_Smoothness", 0.35f);
+            material.SetFloat("_UseEmissiveIntensity", 0f);
+            material.SetColor("_EmissiveColorLDR", paint * TintGlow);
+            material.SetColor("_EmissiveColor", paint * TintGlow);
+            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            HDMaterial.ValidateMaterial(material);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
         private static Mesh Save(Kit kit, string path)
         {
             Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
@@ -610,7 +666,7 @@ namespace SurvivalChaos.EditorTools
         // --------------------------------------------------------------- kit
 
         /// <summary>
-        /// Flat-shaded solids in four materials. Every face is turned to
+        /// Flat-shaded solids in five materials. Every face is turned to
         /// look away from a point inside its solid, so no shape here has to
         /// get its winding right, and a mirrored one cannot get it wrong.
         /// </summary>
@@ -619,7 +675,7 @@ namespace SurvivalChaos.EditorTools
             private readonly List<Vector3> vertices = new List<Vector3>();
             private readonly List<int>[] triangles =
             {
-                new List<int>(), new List<int>(), new List<int>(), new List<int>(),
+                new List<int>(), new List<int>(), new List<int>(), new List<int>(), new List<int>(),
             };
 
             private int material;

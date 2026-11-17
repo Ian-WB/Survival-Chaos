@@ -8,7 +8,13 @@ namespace SurvivalChaos
     public enum ToggleOptionKind
     {
         Rumble,
-        ControlHints
+        ControlHints,
+
+        /// <summary>
+        /// The HUD tab's CONTEXTUAL HUD: on is ALWAYS ON, off is SMART (the
+        /// default), which fades idle parts of the HUD back.
+        /// </summary>
+        HudContextual
     }
 
     /// <summary>
@@ -63,6 +69,7 @@ namespace SurvivalChaos
             {
                 case ToggleOptionKind.Rumble: return Rumble.Enabled;
                 case ToggleOptionKind.ControlHints: return Tutorial.HintsOn;
+                case ToggleOptionKind.HudContextual: return HudSettings.Mode == HudSettings.Contextual.AlwaysOn;
                 default: return false;
             }
         }
@@ -84,6 +91,10 @@ namespace SurvivalChaos
                 case ToggleOptionKind.ControlHints:
                     Tutorial.HintsOn = on;
                     break;
+
+                case ToggleOptionKind.HudContextual:
+                    HudSettings.Mode = on ? HudSettings.Contextual.AlwaysOn : HudSettings.Contextual.Smart;
+                    break;
             }
         }
 
@@ -93,7 +104,7 @@ namespace SurvivalChaos
 
             if (value != null)
             {
-                value.text = on ? "On" : "Off";
+                value.text = ValueText(kind, on);
             }
 
             if (note != null)
@@ -101,6 +112,17 @@ namespace SurvivalChaos
                 note.text = Note(on);
                 note.gameObject.SetActive(note.text.Length > 0);
             }
+        }
+
+        /// <summary>What the row shows for a value: On or Off, or the HUD's two modes.</summary>
+        public static string ValueText(ToggleOptionKind kind, bool on)
+        {
+            if (kind == ToggleOptionKind.HudContextual)
+            {
+                return on ? "Always On" : "Smart";
+            }
+
+            return on ? "On" : "Off";
         }
 
         private string Note(bool on)
@@ -116,6 +138,11 @@ namespace SurvivalChaos
                     return on
                         ? "Showing in your next " + left + (left == 1 ? " run." : " runs.")
                         : "Turn on to see the control prompts again.";
+
+                case ToggleOptionKind.HudContextual:
+                    return on
+                        ? "Every part of the HUD stays lit."
+                        : "Idle parts of the HUD fade back.";
 
                 default:
                     return string.Empty;

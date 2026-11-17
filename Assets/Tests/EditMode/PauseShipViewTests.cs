@@ -62,6 +62,38 @@ namespace SurvivalChaos.Tests
             Assert.AreEqual(expected, Player.HitBoxScale(model, growth), 0.0001f);
         }
 
+        [TestCase(1.35f)]
+        [TestCase(1.6f)]
+        [TestCase(2f)]
+        public void TheHitBox_IgnoresHowLargeTheModelIsDrawn(float model)
+        {
+            var host = new GameObject("player");
+
+            try
+            {
+                var box = host.AddComponent<BoxCollider>();
+                box.center = new Vector3(0.1f, 0.2f, 0f);
+                box.size = new Vector3(1f, 2f, 1f);
+                var player = host.AddComponent<Player>();
+                var serialized = new UnityEditor.SerializedObject(player);
+                serialized.FindProperty("modelScale").floatValue = model;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+
+                typeof(Player)
+                    .GetMethod("GrowHitBox", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    .Invoke(player, null);
+
+                // The box as played at 1.35 with half the growth: 1.175 of authored.
+                Assert.AreEqual(1.175f, box.size.x, 0.0001f);
+                Assert.AreEqual(2.35f, box.size.y, 0.0001f);
+                Assert.AreEqual(0.27f, box.center.y, 0.0001f);
+            }
+            finally
+            {
+                Object.DestroyImmediate(host);
+            }
+        }
+
         [Test]
         public void ThePlayersModel_IsDrawnLargerThanAuthored()
         {
@@ -73,7 +105,7 @@ namespace SurvivalChaos.Tests
                 UnityEditor.SerializedProperty scale = serialized.FindProperty("modelScale");
 
                 Assert.IsNotNull(scale);
-                Assert.That(scale.floatValue, Is.InRange(1.15f, 1.5f));
+                Assert.That(scale.floatValue, Is.InRange(1.15f, 2f));
             }
             finally
             {

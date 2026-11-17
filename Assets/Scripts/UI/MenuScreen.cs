@@ -54,8 +54,18 @@ namespace SurvivalChaos
             LetSlidersTakeLeftAndRight();
         }
 
+        /// <summary>
+        /// How many screens are open right now. The run HUD hides behind any
+        /// of them (17 November 2026 redesign): pause, options, the end cards.
+        /// </summary>
+        public static int OpenCount { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetOpenCount() => OpenCount = 0;
+
         private void OnEnable()
         {
+            OpenCount++;
             bool fromAnotherScreen = false;
 
             Transform parent = transform.parent;
@@ -89,6 +99,7 @@ namespace SurvivalChaos
 
         private void OnDisable()
         {
+            OpenCount = Mathf.Max(0, OpenCount - 1);
             EventSystem events = EventSystem.current;
             GameObject selected = events != null ? events.currentSelectedGameObject : null;
 
