@@ -122,6 +122,34 @@ namespace SurvivalChaos
         [Tooltip("Spawned where a pickup was taken. Optional - any one-shot effect prefab.")]
         private GameObject collectEffect;
 
+        [Header("Clamp (17 November 2026)")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How hard a part landing knocks the ship's model along its flight, in units a " +
+                 "second. Looks only: the flight path and the hit box do not move.")]
+        private float clampKnock = 5f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Degrees a second the landing twists the model.")]
+        private float clampTwist = 160f;
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Screen shake a landing adds. A hit adds 0.55.")]
+        private float clampShake = 0.45f;
+
+        [SerializeField]
+        [Range(0f, 3f)]
+        [Tooltip("How hard a landing squashes the model before it springs back, in scale a second.")]
+        private float clampPunch = 1.6f;
+
+        [SerializeField]
+        [Range(0.1f, 1f)]
+        [Tooltip("Size of the burst where a part clamps on, against the pickup burst's own. It is " +
+                 "drawn in the upgrade's colour.")]
+        private float clampBurstSize = 0.45f;
+
         /// <summary>
         /// How many skills a level-up should draw. Read by SkillSelect, which
         /// owns the pool - the count belongs here because it is a property of
@@ -350,9 +378,11 @@ namespace SurvivalChaos
                     continue;
                 }
 
-                offer.Add(Place(
+                Pickup placed = Place(
                     bearings[i], height, skill, 0, skill.PickupColor,
-                    CaptionFor(skill), offerLifetime, 1f));
+                    CaptionFor(skill), offerLifetime, 1f);
+                Dress(placed, skill);
+                offer.Add(placed);
             }
 
             if (offer.LiveCount > 0)
@@ -574,6 +604,7 @@ namespace SurvivalChaos
                     if (skillSelect.CanOffer(member.Skill))
                     {
                         member.Retarget(member.Skill, member.Skill.PickupColor, CaptionFor(member.Skill));
+                        Dress(member, member.Skill);
                         continue;
                     }
 
@@ -583,6 +614,7 @@ namespace SurvivalChaos
                     {
                         onOffer.Add(replacement);
                         member.Retarget(replacement, replacement.PickupColor, CaptionFor(replacement));
+                        Dress(member, replacement);
                         continue;
                     }
 
@@ -660,6 +692,170 @@ namespace SurvivalChaos
         }
 
         /// <summary>Takes the rest of a collected pickup's offer off the ring.</summary>
+        private ShipParts parts;
+        private ShipRig rig;
+        private Collider hitBox;
+
+        /// <summary>
+        /// The ship's parts, looked up when first wanted: the model is put on
+        /// the player in its Start, which can come after this one's.
+        /// </summary>
+        private ShipParts Parts
+        {
+            get
+            {
+                if (parts == null && player != null)
+                {
+                    parts = player.GetComponentInChildren<ShipParts>();
+                    rig = player.GetComponentInChildren<ShipRig>();
+                    player.TryGetComponent(out hitBox);
+                }
+
+                return parts;
+            }
+        }
+
+        /// <summary>
+        /// Draws an upgrade as the part its pick fits on the ship (17 November
+        /// 2026), or the old way when it fits none: Heal, or a ship with no parts.
+        /// </summary>
+        private void Dress(Pickup pickup, SkillDefinition skill)
+        {
+            if (pickup == null)
+            {
+                return;
+            }
+
+            ShipParts ship = Parts;
+
+            if (ship != null && PartOffer.UpgradeOf(skill, out ShipUpgrade upgrade)
+                && ship.TryGetMount(upgrade, ship.Fitted(upgrade) + 1, out _, out Transform mount)
+                && ship.TryGetMount(upgrade, PartOffer.HeroPick(upgrade, ship.Fitted(upgrade) + 1), out ShipPartStage stage, out _))
+            {
+                int pick = (skillSelect != null ? skillSelect.PicksTaken(skill) : 0) + 1;
+                pickup.ShowPart(stage, mount, pick, skill.PickupColor, skill.GetEffectLine(pick));
+            }
+            else
+            {
+                pickup.HidePart();
+            }
+        }
+
+        /// <summary>
+        /// Centre to centre, how far apart the ship and a pickup are when they
+        /// touch: the pickup's trigger radius and half the hit box's breadth.
+        /// </summary>
+        public float ContactDistance(Pickup pickup)
+        {
+            float box = 0f;
+
+            if (Parts != null && hitBox != null)
+            {
+                Vector3 extents = hitBox.bounds.extents;
+                box = (extents.x + extents.z) * 0.5f;
+            }
+
+            return (pickup != null ? pickup.ContactRadius : 0f) + box;
+        }
+
+        /// <summary>Whether the ship is close enough to pull this part in. The Magnet does not widen it.</summary>
+        public bool InPullReach(Pickup pickup)
+        {
+            if (pickup == null || player == null || RunOutcome.Decided)
+            {
+                return false;
+            }
+
+            float reach = PartOffer.Reach(ContactDistance(pickup));
+            Vector3 ship = hitBox != null ? hitBox.bounds.center : player.position;
+            return (pickup.transform.position - ship).sqrMagnitude <= reach * reach;
+        }
+
+        /// <summary>Whether a part still in flight may land: the ship is alive and the run goes on.</summary>
+        public bool CanLand => playerTarget != null && playerTarget.CurrentHealth > 0 && !RunOutcome.Decided
+                               && player != null && player.gameObject.activeInHierarchy;
+
+        /// <summary>
+        /// A part starts its flight to the ship. The choice locks here: the
+        /// rest of its offer break up, and the offer is answered, so it does
+        /// not come back.
+        /// </summary>
+        public void BeginPull(Pickup pickup)
+        {
+            if (pickup == null || !pickup.WaitsAsPart || !CanLand)
+            {
+                return;
+            }
+
+            SkillOffer offer = pickup.Offer;
+            if (offer != null)
+            {
+                foreach (Pickup forfeited in offer.Claim(pickup))
+                {
+                    forfeited.BreakApart();
+                }
+
+                offers.Remove(offer);
+            }
+
+            pickup.StartPull();
+        }
+
+        /// <summary>
+        /// The part has reached its mount: the upgrade is granted now, the
+        /// stage goes on at full size, and the ship takes the hit of it.
+        /// False when it may no longer land, and nothing was granted.
+        /// </summary>
+        public bool Land(Pickup pickup, Vector3 travel)
+        {
+            if (pickup == null || pickup.Skill == null || !CanLand)
+            {
+                return false;
+            }
+
+            SkillDefinition skill = pickup.Skill;
+
+            if (skillSelect != null)
+            {
+                skillSelect.ApplyCollected(skill);
+            }
+            else if (playerTarget != null)
+            {
+                skill.Apply(playerTarget);
+                PlayCollectSound();
+            }
+
+            if (Parts != null && PartOffer.UpgradeOf(skill, out ShipUpgrade upgrade))
+            {
+                parts.Seat(upgrade);
+                PartPowerOn.Play(pickup.Mount);
+            }
+
+            Vector3 at = pickup.transform.position;
+
+            if (collectEffect != null)
+            {
+                // In the upgrade's colour and smaller, without the shockwave:
+                // nothing may circle the ship.
+                GameObject burst = ObjectPool.Spawn(collectEffect, at, Quaternion.identity);
+                EffectTint.Apply(burst, skill.PickupColor, clampBurstSize, "Shockwave");
+            }
+
+            if (rig != null && travel.sqrMagnitude > 0f)
+            {
+                rig.KickWorld(travel, clampKnock);
+                float side = Vector3.Dot(travel, player.right) >= 0f ? 1f : -1f;
+                rig.Twist(clampTwist * 0.4f, side * clampTwist);
+                rig.Punch(-clampPunch);
+            }
+
+            ScreenShake.Add(clampShake);
+            Rumble.Pulse(0.9f, 1f, 0.12f);
+
+            RefreshOffers();
+            return true;
+        }
+
         private void ClearOffer(Pickup taken)
         {
             SkillOffer offer = taken.Offer;

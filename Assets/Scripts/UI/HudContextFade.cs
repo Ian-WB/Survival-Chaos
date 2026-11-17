@@ -99,6 +99,12 @@ namespace SurvivalChaos
             return fill != null ? fill.fillAmount : 1f;
         }
 
+        /// <summary>Brings it up now, as if its value had just changed: an offer near the ship points at it.</summary>
+        public void Wake()
+        {
+            lastAwake = Time.unscaledTime;
+        }
+
         private void OnEnable()
         {
             lastValue = Read();

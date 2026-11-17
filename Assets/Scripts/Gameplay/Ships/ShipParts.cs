@@ -181,6 +181,67 @@ namespace SurvivalChaos
             }
         }
 
+        /// <summary>
+        /// The stage an upgrade's pick fits and where it sits on the ship, for
+        /// an offer drawn as that part (part pickups, 17 November 2026): the
+        /// stage with this pick, or the next one after it, or past the last
+        /// the last. The mount is the stage's pivot, at the middle of its mesh
+        /// and turned with the model; its scale is not the part's until fitted.
+        /// </summary>
+        public bool TryGetMount(ShipUpgrade upgrade, int pick, out ShipPartStage stage, out Transform mount)
+        {
+            int best = -1;
+
+            for (int i = 0; stages != null && i < stages.Length; i++)
+            {
+                if (stages[i].upgrade != upgrade || pivots == null || pivots[i] == null)
+                {
+                    continue;
+                }
+
+                if (best < 0)
+                {
+                    best = i;
+                    continue;
+                }
+
+                int have = stages[best].pick;
+                int now = stages[i].pick;
+                bool haveReaches = have >= pick;
+                bool nowReaches = now >= pick;
+
+                if (nowReaches && (!haveReaches || now < have) || !nowReaches && !haveReaches && now > have)
+                {
+                    best = i;
+                }
+            }
+
+            stage = best >= 0 ? stages[best] : default;
+            mount = best >= 0 ? pivots[best] : null;
+            return best >= 0;
+        }
+
+        /// <summary>
+        /// Puts an upgrade's parts that are still growing in at full size at
+        /// once: a part that flew onto the ship arrives the size it is, and
+        /// growing it again from nothing would draw it twice.
+        /// </summary>
+        public void Seat(ShipUpgrade upgrade)
+        {
+            for (int i = 0; fitting != null && i < fitting.Length; i++)
+            {
+                if (!fitting[i] || stages[i].upgrade != upgrade)
+                {
+                    continue;
+                }
+
+                growth[i].Reset(1f);
+                pivots[i].localScale = Vector3.one;
+                fitting[i] = false;
+                fittingCount--;
+            }
+        }
+
         private void Update()
         {
             if (fittingCount == 0)

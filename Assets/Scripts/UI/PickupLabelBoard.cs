@@ -477,6 +477,9 @@ namespace SurvivalChaos
             occupied.Clear();
             pendingEdges.Clear();
 
+            PickupLabel nearest = Nearest();
+            PulseHud(nearest);
+
             for (int i = 0; i < attached.Count; i++)
             {
                 PickupLabel label = attached[i];
@@ -500,6 +503,18 @@ namespace SurvivalChaos
 
                 bool offScreen = !behind
                     && (screen.x < 0f || screen.x > Screen.width || screen.y < 0f || screen.y > Screen.height);
+
+                // A part on screen is its own label (17 November 2026): no caption,
+                // except a small tag beside the one the ship is closest to.
+                if (!hidden && !offScreen && label.Tier > 0)
+                {
+                    if (label == nearest)
+                    {
+                        drawn = DrawTag(camera, label, screen, drawn);
+                    }
+
+                    continue;
+                }
 
                 if (!hidden && !offScreen)
                 {
@@ -537,7 +552,7 @@ namespace SurvivalChaos
 
                 TextMeshProUGUI edge = Slot(drawn++);
                 edge.gameObject.SetActive(true);
-                edge.text = left ? "<  " + label.Caption : label.Caption + "  >";
+                edge.text = EdgeText(label.Caption, label.Tier, left);
                 edge.fontSize = fontSize * Mathf.Lerp(edgeSmallest, 1f, label.LifeLeft);
 
                 Vector3 point = EdgePoint(pending.Screen, pending.Behind, left, stacked);
@@ -557,6 +572,162 @@ namespace SurvivalChaos
             drawn = DrawNumbers(camera, drawn);
 
             HideFrom(drawn);
+        }
+
+        [Header("Nearest offer (17 November 2026)")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("How close the ship must be to an offer drawn as its part for that one offer to " +
+                 "show a tag saying what it does, and the HUD bar it improves to pulse, in world units.")]
+        private float tagDistance = 7f;
+
+        [SerializeField]
+        [Range(0.2f, 2f)]
+        [Tooltip("Seconds between pulses of the HUD bar an offer near the ship improves.")]
+        private float pulseEvery = 0.5f;
+
+        private Transform ship;
+        private float shipLookedAt = float.NegativeInfinity;
+        private float lastPulse = float.NegativeInfinity;
+        private readonly Dictionary<ShipUpgrade, (HoloBar bar, HudContextFade fade)> hudFor =
+            new Dictionary<ShipUpgrade, (HoloBar, HudContextFade)>();
+
+        /// <summary>The offer drawn as its part that is closest to the ship and inside the tag distance, or null.</summary>
+        private PickupLabel Nearest()
+        {
+            if (ship == null && Time.unscaledTime - shipLookedAt > 1f)
+            {
+                shipLookedAt = Time.unscaledTime;
+                Player found = FindAnyObjectByType<Player>();
+                ship = found != null ? found.transform : null;
+            }
+
+            if (ship == null)
+            {
+                return null;
+            }
+
+            PickupLabel best = null;
+            float bestDistance = tagDistance * tagDistance;
+
+            for (int i = 0; i < attached.Count; i++)
+            {
+                PickupLabel label = attached[i];
+
+                if (label == null || !label.Live || label.Tier <= 0)
+                {
+                    continue;
+                }
+
+                float distance = (label.transform.position - ship.position).sqrMagnitude;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = label;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// The tag beside the nearest offer: its name in its own colour over
+        /// what it does, hung off the part's right side. Returns the slots used.
+        /// </summary>
+        private int DrawTag(Camera camera, PickupLabel label, Vector3 screen, int drawn)
+        {
+            Vector3 side = camera.WorldToScreenPoint(label.transform.position + camera.transform.right * 1.3f);
+            Vector3 point = new Vector3(side.x, screen.y, screen.z);
+
+            TextMeshProUGUI slot = Slot(drawn++);
+            slot.gameObject.SetActive(true);
+            slot.text = TagText(label.Caption, label.Effect, label.Tint);
+            Place(slot, point, Side.Left);
+            slot.fontSize = fontSize * 0.8f * ScaleAt(screen.z);
+
+            occupied.Add(Footprint(slot, point, Side.Left));
+            Paint(drawn - 1, Color.white);
+            return drawn;
+        }
+
+        /// <summary>The nearest offer's tag: the name, small and in the upgrade's colour, over what it does.</summary>
+        public static string TagText(string caption, string effect, Color tint)
+        {
+            string name = "<size=70%><color=#" + ColorUtility.ToHtmlStringRGB(tint) + ">"
+                + (caption ?? string.Empty).ToUpperInvariant() + "</color></size>";
+
+            return string.IsNullOrEmpty(effect) ? name : name + "\n" + effect;
+        }
+
+        /// <summary>Pulses the HUD bar the nearest offer improves, if it has one on the HUD.</summary>
+        private void PulseHud(PickupLabel nearest)
+        {
+            if (nearest == null || nearest.Upgrade == null
+                || Time.unscaledTime - lastPulse < pulseEvery || PauseMenu.GameIsPaused)
+            {
+                return;
+            }
+
+            ShipUpgrade upgrade = nearest.Upgrade.Value;
+
+            if (!hudFor.TryGetValue(upgrade, out (HoloBar bar, HudContextFade fade) hud) || hud.bar == null)
+            {
+                hud = FindHud(upgrade);
+                hudFor[upgrade] = hud;
+            }
+
+            if (hud.bar == null || !hud.bar.isActiveAndEnabled)
+            {
+                return;
+            }
+
+            lastPulse = Time.unscaledTime;
+            hud.bar.Flash();
+
+            if (hud.fade != null)
+            {
+                hud.fade.Wake();
+            }
+        }
+
+        /// <summary>The HUD bar an upgrade improves: the hull for Max HP, and each ability its own.</summary>
+        private static (HoloBar, HudContextFade) FindHud(ShipUpgrade upgrade)
+        {
+            Component owner = upgrade switch
+            {
+                ShipUpgrade.MaxHealth => FindAnyObjectByType<HealthBar>(FindObjectsInactive.Include),
+                ShipUpgrade.DashRecovery => FindAnyObjectByType<DashBar>(FindObjectsInactive.Include),
+                ShipUpgrade.SlowMo => FindAnyObjectByType<SlowMoBar>(FindObjectsInactive.Include),
+                ShipUpgrade.Deflector => FindAnyObjectByType<DeflectorBar>(FindObjectsInactive.Include),
+                _ => null,
+            };
+
+            if (owner == null)
+            {
+                return (null, null);
+            }
+
+            HoloBar bar = owner.GetComponentInChildren<HoloBar>(true);
+            HudContextFade fade = owner.GetComponentInParent<HudContextFade>(true);
+            if (fade == null)
+            {
+                fade = owner.GetComponentInChildren<HudContextFade>(true);
+            }
+
+            return (bar, fade);
+        }
+
+        /// <summary>
+        /// An edge arrow's text: the arrow and the name, or for an offer drawn
+        /// as its part the arrow and its tier dots in gold, with no name.
+        /// </summary>
+        public static string EdgeText(string caption, int tier, bool left)
+        {
+            string what = tier > 0
+                ? "<color=#FFD140>" + PartOffer.DotText(tier) + "</color>"
+                : caption;
+
+            return left ? "<  " + what : what + "  >";
         }
 
         /// <summary>

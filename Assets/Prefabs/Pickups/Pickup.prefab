@@ -237,3 +237,13 @@ MonoBehaviour:
   warnFlashRate: 4
   tintTarget: {fileID: 2621768402692152702}
   label: {fileID: 2723668499675268320}
+  partGlow: {fileID: 2100000, guid: ae2f4ff72b06d3340bea30347ba365ca, type: 2}
+  partSize: 3
+  partSizeMost: 5.5
+  partRadius: 0.9
+  partSpin: 40
+  partTilt: 24
+  pullSeconds: 0.35
+  pullBow: 0.3
+  breakSeconds: 0.3
+  flashSeconds: 0.2

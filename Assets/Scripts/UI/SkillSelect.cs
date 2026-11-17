@@ -270,6 +270,12 @@ namespace SurvivalChaos
             return title + "\n<size=62%>" + effect + "</size>";
         }
 
+        /// <summary>How many times a skill has been taken this run.</summary>
+        public int PicksTaken(SkillDefinition skill)
+        {
+            return skill != null ? Pool.PicksTaken(skill) : 0;
+        }
+
         /// <summary>
         /// What a skill would be called if the player took it next, for the label on
         /// its pickup.

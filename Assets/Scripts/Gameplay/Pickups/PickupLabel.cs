@@ -36,6 +36,23 @@ namespace SurvivalChaos
         /// <summary>Whether the board should be drawing this at all.</summary>
         public bool Live { get; private set; }
 
+        /// <summary>
+        /// The pick an upgrade drawn as its ship part is, or 0 for a pickup
+        /// drawn the old way. A part carries no caption on the ring and its
+        /// edge arrow carries dots for this in place of the name; the name
+        /// stays here for the pause screen's offers card.
+        /// </summary>
+        public int Tier { get; set; }
+
+        /// <summary>
+        /// What taking this offer does, for the tag beside the offer the ship
+        /// is closest to ("+10 hull"). Empty when none is authored.
+        /// </summary>
+        public string Effect { get; set; }
+
+        /// <summary>The upgrade an offer drawn as its part adds; null for anything else.</summary>
+        public ShipUpgrade? Upgrade { get; set; }
+
         private Pickup pickup;
         private bool pickupLooked;
 

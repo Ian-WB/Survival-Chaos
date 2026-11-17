@@ -109,6 +109,11 @@ namespace SurvivalChaos
         private float aimRoll;
         private Vector3 aimOffset;
 
+        // A squash of the whole model that springs back, for a part slamming
+        // onto the hull. Applied as a factor on whatever scale the model has.
+        private Spring punch;
+        private float punchApplied = 1f;
+
         private float rollStarted = float.NegativeInfinity;
         private float rollSeconds;
         private int rollTurns;
@@ -272,6 +277,15 @@ namespace SurvivalChaos
             Kick(local * speed);
         }
 
+        /// <summary>
+        /// Squashes the model and lets it spring back past its size and settle:
+        /// negative shrinks first. In scale a second; looks only.
+        /// </summary>
+        public void Punch(float speed)
+        {
+            punch.Kick(speed);
+        }
+
         /// <summary>Knocks the nose and the wings, in degrees a second.</summary>
         public void Twist(float noseUp, float bankRight)
         {
@@ -361,6 +375,15 @@ namespace SurvivalChaos
             }
 
             transform.localPosition = restPosition + offset;
+
+            punch.Step(0f, 6f, 0.3f, delta);
+            float factor = 1f + Mathf.Clamp(punch.Value, -0.2f, 0.2f);
+
+            if (Mathf.Abs(factor - punchApplied) > 0.00001f)
+            {
+                transform.localScale *= factor / punchApplied;
+                punchApplied = factor;
+            }
         }
     }
 }
