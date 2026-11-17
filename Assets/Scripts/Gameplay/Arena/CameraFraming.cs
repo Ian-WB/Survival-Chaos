@@ -22,13 +22,26 @@ namespace SurvivalChaos
         /// </summary>
         public readonly bool HoldsBandMiddle;
 
-        public CameraPreset(string name, float distance, float fieldOfView, bool holdsBandMiddle)
+        /// <summary>
+        /// Whether a preset that holds the band's middle keeps
+        /// <see cref="FieldOfView"/> instead of fitting its lens to the band.
+        /// Such a preset shows the band with room above and below it. Added on
+        /// 17 November 2026 for the 85-degree default; see
+        /// <see cref="CameraFraming.DefaultIndex"/>.
+        /// </summary>
+        public readonly bool KeepsLens;
+
+        public CameraPreset(string name, float distance, float fieldOfView, bool holdsBandMiddle, bool keepsLens = false)
         {
             Name = name;
             Distance = distance;
             FieldOfView = fieldOfView;
             HoldsBandMiddle = holdsBandMiddle;
+            KeepsLens = keepsLens;
         }
+
+        /// <summary>Whether the lens is fitted to the band's live height.</summary>
+        public bool FitsBand => HoldsBandMiddle && !KeepsLens;
 
         /// <summary>
         /// The field of view to use on a band <paramref name="bandHeight"/> tall.
@@ -45,7 +58,7 @@ namespace SurvivalChaos
         /// </remarks>
         public float FieldOfViewOn(float bandHeight)
         {
-            return HoldsBandMiddle
+            return FitsBand
                 ? CameraFraming.FieldOfViewFor(Distance, CameraFraming.WholeBandHeightOf(bandHeight))
                 : FieldOfView;
         }
@@ -172,11 +185,25 @@ namespace SurvivalChaos
             WholeBand(WholeBandDistances[1]),
             WholeBand(WholeBandDistances[2]),
             WholeBand(WholeBandDistances[3]),
+            new CameraPreset("Wide, 7 out", WholeBandDistances[0], WideFieldOfView, true, true),
         };
 
         /// <summary>
-        /// The preset every run starts on: the whole band from 7 out, which is
-        /// 78.6 degrees on the 9.23 band. Ian picked it on 15 October 2026
+        /// The lens of the default preset since 17 November 2026, when Ian
+        /// asked for 85 degrees from the same spot rather than a closer camera.
+        /// Vertical, like every lens here.
+        /// </summary>
+        public const float WideFieldOfView = 85f;
+
+        /// <summary>
+        /// The preset every run starts on: "Wide, 7 out", the camera of the
+        /// whole band from 7 out with its lens opened from 78.6 to
+        /// <see cref="WideFieldOfView"/> degrees, so the band has room above
+        /// and below it and everything draws about 11% smaller. Ian asked for
+        /// 85 on 17 November 2026 and chose to keep the camera where it was.
+        ///
+        /// Until then it was the whole band from 7 out (index 3), 78.6 degrees
+        /// on the 9.23 band. Ian picked that on 15 October 2026
         /// from stills of all seven presets. Before it the default was the
         /// whole band from 9 out, 65 degrees, asked for as those two numbers
         /// on 5 October; the band and <see cref="BandMargin"/> were sized so
@@ -185,7 +212,7 @@ namespace SurvivalChaos
         /// starts. The Game scene's camera is still authored at 9 out and 65
         /// degrees, which only the editor's view before play shows.
         /// </summary>
-        public const int DefaultIndex = 3;
+        public const int DefaultIndex = 7;
 
         /// <summary>
         /// What the debug menu's two camera sliders run between. Distance
@@ -212,7 +239,7 @@ namespace SurvivalChaos
                 return Mathf.Clamp(chosen, MinFieldOfView, MaxFieldOfView);
             }
 
-            return preset.HoldsBandMiddle
+            return preset.FitsBand
                 ? FieldOfViewFor(distance, WholeBandHeightOf(bandHeight))
                 : preset.FieldOfView;
         }

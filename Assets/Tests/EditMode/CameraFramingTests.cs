@@ -60,7 +60,7 @@ namespace SurvivalChaos.Tests
 
             foreach (CameraPreset preset in CameraFraming.Presets)
             {
-                if (!preset.HoldsBandMiddle)
+                if (!preset.FitsBand)
                 {
                     continue;
                 }
@@ -77,7 +77,7 @@ namespace SurvivalChaos.Tests
         [Test]
         public void TheWholeBandPresets_GetTighterAsTheyGetFurther()
         {
-            for (int i = 4; i < CameraFraming.Presets.Length; i++)
+            for (int i = 4; i < 3 + CameraFraming.WholeBandDistances.Length; i++)
             {
                 Assert.Greater(CameraFraming.Presets[i].Distance, CameraFraming.Presets[i - 1].Distance);
                 Assert.Less(CameraFraming.Presets[i].FieldOfView, CameraFraming.Presets[i - 1].FieldOfView);
@@ -85,20 +85,52 @@ namespace SurvivalChaos.Tests
         }
 
         /// <summary>
-        /// The camera a run starts on: the whole band from 7 out, 78.6
-        /// degrees, Ian's pick on 15 October 2026 from stills of all seven.
-        /// Pinned so that reordering the list cannot quietly move the default
-        /// to a neighbour.
+        /// The camera a run starts on since 17 November 2026: 7 out, holding
+        /// the band's middle, at 85 degrees whatever the band. Ian asked for 85
+        /// and chose to keep the camera where it was. Pinned so that reordering
+        /// the list cannot quietly move the default to a neighbour.
         /// </summary>
         [Test]
-        public void TheDefault_IsTheWholeBandFromSevenOut()
+        public void TheDefault_IsSevenOutAt85Degrees()
         {
             CameraPreset preset = CameraFraming.Default;
 
+            Assert.AreEqual("Wide, 7 out", preset.Name);
             Assert.AreEqual(7f, preset.Distance);
             Assert.IsTrue(preset.HoldsBandMiddle);
-            Assert.AreEqual(78.6f, preset.FieldOfView, 0.05f);
+            Assert.IsTrue(preset.KeepsLens);
+            Assert.AreEqual(85f, preset.FieldOfViewOn(CameraFraming.BandHeight), 1e-4f);
+            Assert.AreEqual(85f, preset.FieldOfViewOn(12f), 1e-4f);
+            Assert.AreEqual(85f, CameraFraming.Lens(preset, 9f, 10.5f, 0f), 1e-4f);
+        }
+
+        /// <summary>
+        /// The default before 17 November: the whole band from 7 out, 78.6
+        /// degrees, Ian's pick on 15 October 2026 from stills of all seven.
+        /// Kept on the debug menu, and the 85-degree default sits where it does.
+        /// </summary>
+        [Test]
+        public void TheWholeBandFromSevenOut_Is78Point6Degrees()
+        {
+            CameraPreset preset = CameraFraming.Presets[3];
+
             Assert.AreEqual("Whole band, 7 out", preset.Name);
+            Assert.AreEqual(78.6f, preset.FieldOfView, 0.05f);
+            Assert.AreEqual(preset.Distance, CameraFraming.Default.Distance);
+        }
+
+        /// <summary>
+        /// The wider lens only adds room: the band, margins and the HUD's
+        /// share all still fit, with the ship drawn about 11% smaller.
+        /// </summary>
+        [Test]
+        public void TheDefault_ShowsTheWholeBandWithRoomToSpare()
+        {
+            CameraPreset preset = CameraFraming.Default;
+            float shown = CameraFraming.VisibleHeight(preset.Distance, preset.FieldOfView);
+
+            Assert.Greater(shown, CameraFraming.WholeBandHeight);
+            Assert.AreEqual(0.89f, CameraFraming.WholeBandHeight / shown, 0.01f);
         }
 
         /// <summary>
@@ -117,7 +149,7 @@ namespace SurvivalChaos.Tests
             CameraPreset nineOut = CameraFraming.Presets[4];
             Assert.AreEqual("Whole band, 9 out", nineOut.Name);
             Assert.AreEqual(65f, nineOut.FieldOfViewOn(ceiling - floor), 0.05f);
-            Assert.AreEqual(78.6f, CameraFraming.Default.FieldOfViewOn(ceiling - floor), 0.05f);
+            Assert.AreEqual(78.6f, CameraFraming.Presets[3].FieldOfViewOn(ceiling - floor), 0.05f);
         }
 
         /// <summary>PlayerBounds when the default was picked, 3.4225 to 12.6525.</summary>
@@ -135,7 +167,7 @@ namespace SurvivalChaos.Tests
         {
             foreach (CameraPreset preset in CameraFraming.Presets)
             {
-                if (!preset.HoldsBandMiddle)
+                if (!preset.FitsBand)
                 {
                     continue;
                 }
@@ -211,21 +243,21 @@ namespace SurvivalChaos.Tests
         [Test]
         public void ATallerBand_WidensTheLens()
         {
-            CameraPreset preset = CameraFraming.Default;
+            CameraPreset preset = CameraFraming.Presets[3];
 
             Assert.Greater(preset.FieldOfViewOn(12f), preset.FieldOfViewOn(8.9f));
             Assert.Less(preset.FieldOfViewOn(6f), preset.FieldOfViewOn(8.9f));
         }
 
         /// <summary>
-        /// On the band it was picked on the default keeps the lens it was picked
-        /// at.
+        /// On the band it was picked on, the 15 October default keeps the lens
+        /// it was picked at.
         /// </summary>
         [Test]
-        public void OnTheBandItWasPickedOn_TheDefaultKeepsItsLens()
+        public void OnTheBandItWasPickedOn_TheOctoberDefaultKeepsItsLens()
         {
-            Assert.AreEqual(CameraFraming.Default.FieldOfView,
-                CameraFraming.Default.FieldOfViewOn(PickedBandHeight), 0.05f);
+            Assert.AreEqual(CameraFraming.Presets[3].FieldOfView,
+                CameraFraming.Presets[3].FieldOfViewOn(PickedBandHeight), 0.05f);
         }
 
         /// <summary>
@@ -263,7 +295,7 @@ namespace SurvivalChaos.Tests
         [Test]
         public void MovedByTheSlider_AWholeBandPresetStillFitsTheBand()
         {
-            CameraPreset preset = CameraFraming.Default;
+            CameraPreset preset = CameraFraming.Presets[3];
 
             foreach (float distance in new[] { CameraFraming.MinDistance, 8.5f, 17f, CameraFraming.MaxDistance })
             {
@@ -288,7 +320,7 @@ namespace SurvivalChaos.Tests
                 Assert.AreEqual(40f, CameraFraming.Lens(preset, 12f, 10.5f, 40f), preset.Name);
                 Assert.AreEqual(CameraFraming.MaxFieldOfView, CameraFraming.Lens(preset, 12f, 10.5f, 170f), preset.Name);
 
-                if (!preset.HoldsBandMiddle)
+                if (!preset.FitsBand)
                 {
                     Assert.AreEqual(preset.FieldOfView, CameraFraming.Lens(preset, 12f, 10.5f, 0f), preset.Name);
                 }
